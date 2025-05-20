@@ -50,7 +50,6 @@ namespace WOTRMultiplayer.Menu
             Object.DestroyImmediate(originalWindow);
             var creditsScreen = copy.transform.Find("CreditsScreen")?.gameObject;
             SetupLayout(creditsScreen);
-
             _mainMenuMultiplayerWindow.Initialize();
             return _mainMenuMultiplayerWindow;
         }
@@ -70,13 +69,11 @@ namespace WOTRMultiplayer.Menu
                     continue;
                 }
 
-                screen.transform.GetChild(i).SetParent(null);
+                Object.DestroyImmediate(screen.transform.GetChild(i).gameObject);
             }
 
-            var menuEntity = screen.transform.GetChild(0);
-            var label = menuEntity.GetChild(3);
-            var labelText = label.GetComponent<TextMeshProUGUI>();
-            labelText.text = StringsConst.MultiplayerWindow.HostMenuLabel;
+            var labelText = screen.transform.GetComponentInChildren<TextMeshProUGUI>();
+            labelText.SetText(StringsConst.MultiplayerWindow.HostMenuLabel);
         }
 
         public class MultiplayerWindow : FullScreenTabsWindow
