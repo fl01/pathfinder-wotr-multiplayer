@@ -9,6 +9,7 @@ using Kingmaker.UI.FullScreenUITypes;
 using Kingmaker.UI.MVVM;
 using Kingmaker.UI.MVVM._PCView.ContextMenu;
 using Kingmaker.UI.MVVM._PCView.MainMenu;
+using Kingmaker.UI.MVVM._PCView.SaveLoad;
 using Kingmaker.UI.MVVM._VM.ContextMenu;
 using Kingmaker.UI.ServiceWindow;
 using Kingmaker.UI.ServiceWindow.Credits;
@@ -23,6 +24,18 @@ namespace WOTRMultiplayer.Menu
     public class MenuPatches
     {
         private static MultiplayerWindow _mainMenuMultiplayerWindow;
+        private static SaveLoadPCView _saveLoadView;
+
+        [HarmonyPatch(typeof(SaveLoadPCView), "DoInitialize")]
+        [HarmonyPrefix]
+        public static void SaveLoadPCView_BindViewImplementation_Prefix(SaveLoadPCView __instance)
+        {
+            Logging.Logger.Info("Applying");
+            if (_saveLoadView == null)
+            {
+                _saveLoadView = __instance;
+            }
+        }
 
         [HarmonyPatch(typeof(MainMenuSideBarPCView), "BindViewImplementation")]
         [HarmonyPrefix]

@@ -27,6 +27,9 @@
 		<Reference Include="DOTweenPro">
 		  <HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\DOTweenPro.dll</HintPath>
 		</Reference>
+		<Reference Include="UniRx">
+		  <HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\UniRx.dll</HintPath>
+		</Reference>
 		<Reference Include="Unity.TextMeshPro">
 		  <HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\Unity.TextMeshPro.dll</HintPath>
 		</Reference>
