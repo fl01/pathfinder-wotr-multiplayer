@@ -6,7 +6,6 @@ using Kingmaker.UI.MVVM._VM.ServiceWindows.CharacterInfo.Sections.Abilities;
 using Owlcat.Runtime.UI.VirtualListSystem;
 using TMPro;
 using UnityEngine;
-using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.Strings;
 
 namespace WOTRMultiplayer.UI.Menu.Items
@@ -37,6 +36,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
 
             if (_setupLayout)
             {
+                _setupLayout = false;
                 /// overriding save/load/delete buttons prefab to make sure original loadsave screen is not affected
                 var screen = saveLoad.gameObject.transform.Find("SaveLoadScreen");
                 var collectionView = screen.Find("SaveSlotCollectionPlace").Find("SaveSlotVirtualCollectionView");
@@ -50,15 +50,9 @@ namespace WOTRMultiplayer.UI.Menu.Items
                 ///
             }
 
-            // it's important to be called inbetween
             saveLoad.Bind(_saveLoadViewModel);
             _saveLoadViewModel.SelectedSaveSlot.Subscribe(this);
-            if (_setupLayout)
-            {
-                CleanupLoadSaveGamesLayout(saveLoad);
-            }
 
-            _setupLayout = false;
             saveLoad.Show();
             base.Activate();
         }
@@ -78,38 +72,6 @@ namespace WOTRMultiplayer.UI.Menu.Items
         private void OnCloseSaveLoadVM()
         {
             Window.OnCloseClicked();
-        }
-
-        private void CleanupLoadSaveGamesLayout(SaveLoadPCView saveLoadView)
-        {
-            UnityEngine.Object.DestroyImmediate(saveLoadView.gameObject.transform.Find("BackgroundWorldCover").gameObject);
-            UnityEngine.Object.DestroyImmediate(saveLoadView.gameObject.transform.Find("Background").gameObject);
-            var screen = saveLoadView.gameObject.transform.Find("SaveLoadScreen");
-            var top = screen.Find("Top");
-            UnityEngine.Object.DestroyImmediate(top.gameObject);
-
-            var saveLoadDetails = screen.Find("SaveLoadDetails");
-            var picture = saveLoadDetails.Find("Picture");
-            UnityEngine.Object.DestroyImmediate(picture.gameObject);
-
-            var info = saveLoadDetails.Find("Info");
-            info.gameObject.CleanupAllChildren(x => x.name != "Buttons");
-            var buttons = info.Find("Buttons");
-            // TBD random buttons as placeholders
-            var baseButton = buttons.Find("OwlcatButton").gameObject;
-            var layout = baseButton.GetComponent<RectTransform>();
-            layout.sizeDelta = new Vector2(layout.sizeDelta.x * 0.92f, layout.sizeDelta.y);
-            var buttonCopy1 = UnityEngine.Object.Instantiate(baseButton, buttons);
-            buttonCopy1.name = "Button1";
-            var buttonCopy2 = UnityEngine.Object.Instantiate(baseButton, buttons);
-            buttonCopy2.name = "Button2";
-            var buttonCopy3 = UnityEngine.Object.Instantiate(baseButton, buttons);
-            buttonCopy3.name = "Button3";
-            buttons.gameObject.CleanupAllChildren(
-                x => x.name != "DlcRequiredLabel" && x.name != buttonCopy1.name && x.name != buttonCopy2.name && x.name != buttonCopy3.name);
-            buttonCopy1.GetComponentInChildren<TextMeshProUGUI>().text = "Host";
-            buttonCopy2.GetComponentInChildren<TextMeshProUGUI>().text = "Ready";
-            buttonCopy3.GetComponentInChildren<TextMeshProUGUI>().text = "Start";
         }
 
         public void OnNext(SaveSlotVM value)

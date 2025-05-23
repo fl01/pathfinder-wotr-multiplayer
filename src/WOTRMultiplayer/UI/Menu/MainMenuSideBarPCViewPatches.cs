@@ -1,32 +1,23 @@
 ﻿using System;
+using System.ComponentModel;
 using HarmonyLib;
-using Kingmaker;
-using Kingmaker.UI.Common;
-using Kingmaker.UI.MVVM._PCView.ContextMenu;
+using Kingmaker.UI.MVVM;
+using Kingmaker.UI.MVVM._PCView.Common;
 using Kingmaker.UI.MVVM._PCView.MainMenu;
 using Kingmaker.UI.MVVM._PCView.Settings;
-using Kingmaker.UI.MVVM._PCView.Settings.Entities;
-using Kingmaker.UI.MVVM._VM.ContextMenu;
-using Kingmaker.UI.ServiceWindow.Credits;
-using WOTRMultiplayer.Strings;
+using TMPro;
 
 namespace WOTRMultiplayer.UI.Menu
 {
     [HarmonyPatch]
     public class MainMenuSideBarPCViewPatches
     {
-        public static SettingsEntityDropdownPCView DropdownPrefab;
-
         [HarmonyPatch(typeof(SettingsPCView), "Initialize")]
         [HarmonyPostfix]
         public static void SettingsEntityDropdownPCView_BindViewImplementation_Prefix(SettingsPCView __instance)
         {
-            if (DropdownPrefab == null)
-            {
-                DropdownPrefab = __instance.m_SettingsViews.m_SettingsEntityDropdownViewPrefab;
-            }
-
             Logging.Logger.Warning("Applying");
+            Main.Multiplayer.ElementFactory.StoreDropdownPrefab(__instance.m_SettingsViews.m_SettingsEntityDropdownViewPrefab);
         }
 
 
@@ -37,33 +28,32 @@ namespace WOTRMultiplayer.UI.Menu
             Logging.Logger.Info("Applying");
             try
             {
+                var commonPCView = (RootUIContext.Instance.m_CommonView as CommonPCView)?.m_SaveLoadPCView;
+                Main.Multiplayer.ElementFactory.StoreSaveLoadPCViewPrefab(commonPCView);
+                if (commonPCView != null)
+                {
+                    var screen = commonPCView.gameObject.transform.Find("SaveLoadScreen");
+                    var saveList = screen.Find("SaveSlotCollectionPlace").Find("SaveSlotVirtualCollectionView");
+                    Main.Multiplayer.ElementFactory.StoreTopDecoration(saveList.Find("decoration").gameObject);
+                    Main.Multiplayer.ElementFactory.StoreBottomDecoration(saveList.Find("Decoration").gameObject);
+                    
+                    var title = screen.Find("SaveLoadDetails").Find("Title");
+                    var defaultTextMesh = title.GetComponentInChildren<TextMeshProUGUI>();
+                    Main.Multiplayer.ElementFactory.StoreDefaultTextMesh(defaultTextMesh);
+                }
+
                 var menuButtons = __instance.transform.GetChild(0);
-                var menuItemToCopy = menuButtons.GetChild(3).gameObject;
-                var multiplayerMenu = UnityEngine.Object.Instantiate(menuItemToCopy, menuButtons.transform);
-                multiplayerMenu.transform.SetSiblingIndex(3);
-                var multiplayerMenuView = multiplayerMenu.GetComponent<ContextMenuEntityPCView>();
-                var window = CreateMultiplayerWindow();
-                var text = UIUtility.GetSaberBookFormat(StringConsts.MainMenu.MultiplayerMenu);
-                var viewModel = new ContextMenuEntityVM(new ContextMenuCollectionEntity(UIUtility.GetSaberBookFormat(text), () => window.Show(true)));
-                multiplayerMenuView.Bind(viewModel);
+                var isOk = Main.Multiplayer.InjectMultiplayerMenuWindow(menuButtons.GetChild(3).gameObject, menuButtons.transform);
+                if (!isOk)
+                {
+                    Logging.Logger.Error("Unable to inject multiplayer menu");
+                }
             }
             catch (Exception ex)
             {
                 Logging.Logger.Error("Unable to apply patch", ex);
                 throw;
             }
-        }
-
-        private static MultiplayerWindow CreateMultiplayerWindow()
-        {
-            Logging.Logger.Info($"Creating new instance of {nameof(MultiplayerWindow)}");
-
-            var copy = UnityEngine.Object.Instantiate(Game.Instance.UI.CreditsUI.gameObject, Game.Instance.UI.MainMenu.transform);
-            var originalWindow = copy.GetComponent<CreditsUIWindow>();
-            var mainMenuMultiplayerWindow = copy.AddComponent<MultiplayerWindow>();
-            UnityEngine.Object.DestroyImmediate(originalWindow);
-            mainMenuMultiplayerWindow.Initialize();
-            return mainMenuMultiplayerWindow;
         }
     }
 }

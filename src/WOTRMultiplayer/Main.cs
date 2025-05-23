@@ -9,14 +9,20 @@ namespace WOTRMultiplayer
     {
         private static UnityModManagerSettings _settings;
 
+        public static Multiplayer Multiplayer { get; private set; }
+
         public static bool Load(UnityModManager.ModEntry entry)
         {
             _settings = UnityModManager.ModSettings.Load<UnityModManagerSettings>(entry);
-
             Logging.Logger.Initialize(_settings);
+            Logging.Logger.Info("Loading mod");
+
+            Multiplayer = new Multiplayer(new UIElementFactory());
+
 
             entry.OnGUI += OnGui;
             entry.OnSaveGUI += OnSaveGui;
+            entry.OnUnload += OnUnload;
 
             try
             {
@@ -29,6 +35,13 @@ namespace WOTRMultiplayer
                 throw;
             }
 
+            return true;
+        }
+
+        private static bool OnUnload(UnityModManager.ModEntry entry)
+        {
+            Logging.Logger.Info("Unloading");
+            Multiplayer.Dispose();
             return true;
         }
 
