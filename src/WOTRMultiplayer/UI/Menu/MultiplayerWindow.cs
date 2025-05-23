@@ -37,8 +37,8 @@ namespace WOTRMultiplayer.UI.Menu
 
         private bool _isInitialized = false;
 
-        private MenuItemController _hostMenuController;
-        private MenuItemController _joinMenuController;
+        private HostMenuItemController _hostMenuController;
+        private JoinMenuItemController _joinMenuController;
 
         public MultiplayerWindow()
         {
@@ -125,13 +125,13 @@ namespace WOTRMultiplayer.UI.Menu
         {
             var hostItemContent = Instantiate(baseLayout, baseLayout.transform);
             hostItemContent.name = HostMenuItemContentObjectName;
-            hostItemContent.CleanupAllChildren(x => true);
+            hostItemContent.CleanupAllChildren();
             SetupLoadSaveGamesLayout(hostItemContent);
             SetupLobbyInfo(baseLayout, hostItemContent);
 
             var joinItemContent = Instantiate(baseLayout, baseLayout.transform);
             joinItemContent.name = JoinMenuItemContentObjectName;
-            joinItemContent.CleanupAllChildren(x => true);
+            joinItemContent.CleanupAllChildren();
             return (hostItemContent, joinItemContent);
         }
 
@@ -271,8 +271,8 @@ namespace WOTRMultiplayer.UI.Menu
                 x => x.name != HostMenuItemContentObjectName && x.name != JoinMenuItemContentObjectName && x.name != MenuOverridesObjectName);
 
             var baseMenuItem = SetupBaseMenuItem(baseLayout);
-            _hostMenuController = SetupMenuController(MultiplayerMenuItemType.Host, Screen.width * 0.33f, hostItemContent, baseMenuItem, baseLayout.transform);
-            _joinMenuController = SetupMenuController(MultiplayerMenuItemType.Join, Screen.width * 0.66f, joinItemContent, baseMenuItem, baseLayout.transform);
+            _hostMenuController = SetupMenuController<HostMenuItemController>(MultiplayerMenuItemType.Host, Screen.width * 0.33f, hostItemContent, baseMenuItem, baseLayout.transform);
+            _joinMenuController = SetupMenuController<JoinMenuItemController>(MultiplayerMenuItemType.Join, Screen.width * 0.66f, joinItemContent, baseMenuItem, baseLayout.transform);
             DestroyImmediate(baseMenuItem);
 
             _hostMenuController.OnClicked += OnHostMenuItemClicked;
@@ -304,12 +304,13 @@ namespace WOTRMultiplayer.UI.Menu
             return baseItem;
         }
 
-        private MenuItemController SetupMenuController(
+        private T SetupMenuController<T>(
             MultiplayerMenuItemType menuItemType,
             float positionX,
             GameObject menuContent,
             GameObject baseMenuItem,
             Transform parent)
+            where T : MenuItemController
         {
             var menuItem = Instantiate(baseMenuItem, parent);
             var position = new Vector3(positionX, menuItem.transform.position.y, menuItem.transform.position.z);
@@ -324,7 +325,7 @@ namespace WOTRMultiplayer.UI.Menu
 
             controller.Initialize();
 
-            return controller;
+            return (T)controller;
         }
 
         private enum MultiplayerMenuItemType
