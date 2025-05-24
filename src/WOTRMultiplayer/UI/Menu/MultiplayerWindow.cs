@@ -43,7 +43,7 @@ namespace WOTRMultiplayer.UI.Menu
                 return;
             }
 
-            Main.Multiplayer.ElementFactory.StoreDefaultGameObject(this.gameObject.transform.Find("Black").gameObject);
+            Main.Multiplayer.Factory.StoreDefaultGameObject(this.gameObject.transform.Find("Black").gameObject);
 
             SetupLayout();
 

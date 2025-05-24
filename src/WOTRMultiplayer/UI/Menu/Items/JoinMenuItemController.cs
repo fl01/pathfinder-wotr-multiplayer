@@ -1,7 +1,6 @@
 ﻿using TMPro;
 using UnityEngine;
 using WOTRMultiplayer.Extensions;
-using WOTRMultiplayer.Strings;
 using WOTRMultiplayer.UI.Menu;
 
 namespace WOTRMultiplayer.UI.Menu.Items

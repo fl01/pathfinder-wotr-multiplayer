@@ -7,6 +7,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using WOTRMultiplayer.Extensions;
+using WOTRMultiplayer.Unity;
 
 namespace WOTRMultiplayer.UI.Lobby
 {
@@ -14,6 +15,7 @@ namespace WOTRMultiplayer.UI.Lobby
     {
         public const string LobbyScreenRootObjectName = "LobbyScreen";
         public const string LobbyContentObjectName = "LobbyContent";
+        public const string PlayersSectionObjectName = "PlayersSectionTitle";
         public const string PlayersInfoContainerObjectName = "PlayersInfoContainer";
         public const string PlayerContainerObjectName = "PlayerContainer";
         public const string PlayerNameObjectName = "PlayerName";
@@ -47,14 +49,14 @@ namespace WOTRMultiplayer.UI.Lobby
         public void UpdatePlayers(List<string> players)
         {
             PlayersInfoContainer.CleanupAllChildren();
-            var defaultMesh = Main.Multiplayer.ElementFactory.GetDefaultMesh();
+            var defaultMesh = Main.Multiplayer.Factory.GetDefaultMesh();
             foreach (var playerName in players)
             {
-                var playerInfoObject = Main.Multiplayer.ElementFactory.CreateDefaultGameObject(PlayersInfoContainer.transform);
+                var playerInfoObject = Main.Multiplayer.Factory.CreateDefaultGameObject(PlayersInfoContainer.transform);
                 playerInfoObject.name = LobbyInfoController.PlayerContainerObjectName;
                 playerInfoObject.AddComponent<HorizontalLayoutGroupWorkaround>();
 
-                var player = Main.Multiplayer.ElementFactory.CreateDefaultGameObject(playerInfoObject.transform);
+                var player = Main.Multiplayer.Factory.CreateDefaultGameObject(playerInfoObject.transform);
                 player.name = LobbyInfoController.PlayerNameObjectName;
                 var playerTitle = player.AddComponent<TextMeshProUGUI>();
                 playerTitle.material = defaultMesh.Material;
@@ -65,21 +67,43 @@ namespace WOTRMultiplayer.UI.Lobby
 
         private void UpdateCharacters(SaveSlotVM saveSlotVM, List<string> players)
         {
-            for (int i = 0; i < UIElementFactory.GetMaxCharactersCount(); i++)
+            for (int characterIndex = 0; characterIndex < UIFactory.GetMaxCharactersCount(); characterIndex++)
             {
-                var sprite = GetPortraitSprite(i, saveSlotVM);
-                var specificCharacterContainer = CharactersInfoContainer.transform.GetChild(i);
+                var sprite = GetPortraitSprite(characterIndex, saveSlotVM);
+                var specificCharacterContainer = CharactersInfoContainer.transform.GetChild(characterIndex);
                 var portrait = specificCharacterContainer.Find(CharacterPortraitObjectName);
                 var dropdown = specificCharacterContainer.Find(CharacterOwnerObjectName);
                 var img = portrait.GetComponent<Image>();
                 img.sprite = sprite;
                 img.color = sprite == null ? Color.clear : Color.white;
                 // TBD test stuff
-                var dropdownObject = dropdown.transform.Find(UIElementFactory.DropdownGameObjectName);
+                var dropdownObject = dropdown.transform.Find(UIFactory.DropdownGameObjectName);
                 var tmpDropdown = dropdownObject.GetComponent<TMP_Dropdown>();
+                tmpDropdown.onValueChanged.RemoveAllListeners();
                 tmpDropdown.ClearOptions();
                 tmpDropdown.AddOptions(players);
+                tmpDropdown.onValueChanged.AddListener(index => OnCharacterOwnerChanged(tmpDropdown));
             }
+        }
+
+        private void OnCharacterOwnerChanged(TMP_Dropdown dropdown)
+        {
+            var player = dropdown.options.Count >= dropdown.value ? dropdown.options[dropdown.value].text : null;
+            if (player == null)
+            {
+                Logging.Logger.Warning("Can't find selected player to assign character control");
+                return;
+            }
+
+            var characterIndexComponent = dropdown.transform.parent?.GetComponent<CharacterIndexMonoBehavior>();
+
+            if (characterIndexComponent == null)
+            {
+                Logging.Logger.Warning($"Can't find ${nameof(CharacterIndexMonoBehavior)} to assign character control");
+                return;
+            }
+
+            Logging.Logger.Info($"Character owner changed. CharacterIndex={characterIndexComponent.CharacterIndex}, Player={player}");
         }
 
         private Sprite GetPortraitSprite(int slot, SaveSlotVM saveSlotVM)

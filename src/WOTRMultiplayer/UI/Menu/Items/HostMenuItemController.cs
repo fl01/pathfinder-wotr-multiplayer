@@ -7,7 +7,6 @@ using Owlcat.Runtime.UI.VirtualListSystem;
 using TMPro;
 using UnityEngine;
 using WOTRMultiplayer.Extensions;
-using WOTRMultiplayer.Strings;
 using WOTRMultiplayer.UI.Lobby;
 
 namespace WOTRMultiplayer.UI.Menu.Items
@@ -92,13 +91,13 @@ namespace WOTRMultiplayer.UI.Menu.Items
             var lobbyWindowObjectRect = lobbyWindowObject.GetComponent<RectTransform>();
             lobbyWindowObjectRect.sizeDelta = new Vector2(parentContainerRect.sizeDelta.x * 0.9f, parentContainerRect.sizeDelta.y * 0.72f);
 
-            var lobbyContent = Main.Multiplayer.ElementFactory.CreateLobbyWindowContent(lobbyWindowObject.transform);
+            var lobbyContent = Main.Multiplayer.Factory.CreateLobbyWindowContent(lobbyWindowObject.transform);
             _lobbyInfoController = new LobbyInfoController(lobbyContent);
         }
 
         private void SetupLoadSaveGamesLayout()
         {
-            SaveLoadPCView saveLoad = Main.Multiplayer.ElementFactory.CreateSaveLoadPCView(this.MenuContent.transform);
+            SaveLoadPCView saveLoad = Main.Multiplayer.Factory.CreateSaveLoadPCView(this.MenuContent.transform);
             saveLoad.Initialize();
         }
 

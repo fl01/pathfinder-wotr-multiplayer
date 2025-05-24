@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Kingmaker;
 using Kingmaker.UI;
 using Kingmaker.UI.Common;
@@ -10,11 +9,13 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using WOTRMultiplayer.Extensions;
+using WOTRMultiplayer.UI;
 using WOTRMultiplayer.UI.Lobby;
+using WOTRMultiplayer.Unity;
 
 namespace WOTRMultiplayer
 {
-    public class UIElementFactory
+    public class UIFactory
     {
         public const string DropdownGameObjectName = "Dropdown";
 
@@ -196,47 +197,33 @@ namespace WOTRMultiplayer
             //backgroundImageRectangle.sizeDelta = lobbyWindowObjectRect.sizeDelta;
 
             // TBD test info
-            var players = new List<string> { "Cat", "Dog", "Squirrel", "Rat" };
             var verticalContent = CreateDefaultGameObject(lobbyContent.transform);
             verticalContent.name = LobbyInfoController.LobbyContentObjectName;
             var vertical = verticalContent.AddComponent<VerticalLayoutGroup>();
             var playersTitleObject = CreateDefaultGameObject(verticalContent.transform);
-            playersTitleObject.name = "PlayersSectionTitle";
+            playersTitleObject.name = LobbyInfoController.PlayersSectionObjectName;
             var playersTitle = playersTitleObject.AddComponent<TextMeshProUGUI>();
             playersTitle.material = _defaultTextMesh.Material;
             playersTitle.color = _defaultTextMesh.Color;
             playersTitle.horizontalAlignment = HorizontalAlignmentOptions.Center;
-            playersTitle.SetText("Players");
+            playersTitle.SetText(StringConsts.LobbyInfoWindow.PlayersSectionTitle);
 
             var playersInfoContainer = CreateDefaultGameObject(verticalContent.transform);
             playersInfoContainer.AddComponent<VerticalLayoutGroup>();
             playersInfoContainer.name = LobbyInfoController.PlayersInfoContainerObjectName;
-            foreach (var playerName in players)
-            {
-                var playerInfoObject = CreateDefaultGameObject(playersInfoContainer.transform);
-                playerInfoObject.name = LobbyInfoController.PlayerContainerObjectName;
-                playerInfoObject.AddComponent<HorizontalLayoutGroup>();
-
-                var player = CreateDefaultGameObject(playerInfoObject.transform);
-                player.name = LobbyInfoController.PlayerNameObjectName;
-                var playerTitle = player.AddComponent<TextMeshProUGUI>();
-                playerTitle.material = _defaultTextMesh.Material;
-                playerTitle.color = _defaultTextMesh.Color;
-                playerTitle.SetText(playerName);
-            }
 
             var characterControlTitleObject = CreateDefaultGameObject(verticalContent.transform);
             var characterControlTitle = characterControlTitleObject.AddComponent<TextMeshProUGUI>();
             characterControlTitle.material = _defaultTextMesh.Material;
             characterControlTitle.color = _defaultTextMesh.Color;
             characterControlTitle.horizontalAlignment = HorizontalAlignmentOptions.Center;
-            characterControlTitle.SetText("Characters");
+            characterControlTitle.SetText(StringConsts.LobbyInfoWindow.CharactersSectionTitle);
 
             var characterInfoLayout = CreateDefaultGameObject(verticalContent.transform);
             characterInfoLayout.name = LobbyInfoController.CharactersInfoContainerObjectName;
             characterInfoLayout.AddComponent<HorizontalLayoutGroup>();
-            var preferedX = parent.gameObject.GetComponent<RectTransform>().sizeDelta.x / UIElementFactory.GetMaxCharactersCount();
-            for (int i = 1; i <= UIElementFactory.GetMaxCharactersCount(); i++)
+            var preferedX = parent.gameObject.GetComponent<RectTransform>().sizeDelta.x / UIFactory.GetMaxCharactersCount();
+            for (int characterIndex = 0; characterIndex < UIFactory.GetMaxCharactersCount(); characterIndex++)
             {
                 var specificCharInfo = CreateDefaultGameObject(characterInfoLayout.transform);
                 specificCharInfo.name = LobbyInfoController.SpecificCharacterContainerObjectName;
@@ -249,20 +236,15 @@ namespace WOTRMultiplayer
                 element.preferredWidth = preferedX;
                 element.preferredHeight = preferedX;
 
-                var dropdownContainerObject = Main.Multiplayer.ElementFactory.CreateDropdown(preferedX, specificCharInfo.transform);
+                var dropdownContainerObject = Main.Multiplayer.Factory.CreateDropdown(preferedX, specificCharInfo.transform);
+                var characterIndexComponent = dropdownContainerObject.AddComponent<CharacterIndexMonoBehavior>();
+                characterIndexComponent.CharacterIndex = characterIndex;
                 dropdownContainerObject.name = LobbyInfoController.CharacterOwnerObjectName;
-                var dropdownObject = dropdownContainerObject.transform.Find(UIElementFactory.DropdownGameObjectName);
+                var dropdownObject = dropdownContainerObject.transform.Find(UIFactory.DropdownGameObjectName);
                 var dropdown = dropdownObject.GetComponent<TMP_Dropdown>();
-                dropdown.AddOptions(players);
-                dropdown.onValueChanged.AddListener(OnValueChanged);
             }
 
             return lobbyContent;
-        }
-
-        private void OnValueChanged(int arg0)
-        {
-            Logging.Logger.Info($"Value changed. Index={arg0}");
         }
 
         public void StoreDefaultTextMesh(TextMeshProUGUI defaultTextMesh)

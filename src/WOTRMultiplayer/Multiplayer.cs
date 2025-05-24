@@ -3,7 +3,7 @@ using Kingmaker.UI.Common;
 using Kingmaker.UI.MVVM._PCView.ContextMenu;
 using Kingmaker.UI.MVVM._VM.ContextMenu;
 using UnityEngine;
-using WOTRMultiplayer.Strings;
+using WOTRMultiplayer.UI;
 using WOTRMultiplayer.UI.Menu;
 
 namespace WOTRMultiplayer
@@ -12,11 +12,11 @@ namespace WOTRMultiplayer
     {
         private MultiplayerWindow _multiplayerWindow;
 
-        public UIElementFactory ElementFactory { get; private set; }
+        public UIFactory Factory { get; private set; }
 
-        public Multiplayer(UIElementFactory uiElementFactory)
+        public Multiplayer(UIFactory uiFactory)
         {
-            ElementFactory = uiElementFactory;
+            Factory = uiFactory;
         }
 
         public bool InjectMultiplayerMenuWindow(GameObject menuItemPrototype, Transform parent)
@@ -24,7 +24,7 @@ namespace WOTRMultiplayer
             var multiplayerMenu = UnityEngine.Object.Instantiate(menuItemPrototype, parent);
             multiplayerMenu.transform.SetSiblingIndex(3);
             var multiplayerMenuView = multiplayerMenu.GetComponent<ContextMenuEntityPCView>();
-            var element = ElementFactory.CreateCopyOfCreditsScreen();
+            var element = Factory.CreateCopyOfCreditsScreen();
             _multiplayerWindow = element.AddComponent<MultiplayerWindow>();
             _multiplayerWindow.Initialize();
             var text = UIUtility.GetSaberBookFormat(StringConsts.MainMenu.MultiplayerMenu);

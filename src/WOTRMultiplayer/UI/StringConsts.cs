@@ -1,4 +1,4 @@
-﻿namespace WOTRMultiplayer.Strings
+﻿namespace WOTRMultiplayer.UI
 {
     /// <summary>
     /// should be replaced with localization later on
@@ -14,6 +14,12 @@
         {
             public const string HostMenuLabel = "Host";
             public const string JoinMenuLabel = "Join";
+        }
+
+        public class LobbyInfoWindow
+        {
+            public const string PlayersSectionTitle = "Players";
+            public const string CharactersSectionTitle = "Characters";
         }
     }
 }

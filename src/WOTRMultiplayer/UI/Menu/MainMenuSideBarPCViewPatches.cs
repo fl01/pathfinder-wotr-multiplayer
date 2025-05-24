@@ -17,7 +17,7 @@ namespace WOTRMultiplayer.UI.Menu
         public static void SettingsEntityDropdownPCView_BindViewImplementation_Prefix(SettingsPCView __instance)
         {
             Logging.Logger.Warning("Applying");
-            Main.Multiplayer.ElementFactory.StoreDropdownPrefab(__instance.m_SettingsViews.m_SettingsEntityDropdownViewPrefab);
+            Main.Multiplayer.Factory.StoreDropdownPrefab(__instance.m_SettingsViews.m_SettingsEntityDropdownViewPrefab);
         }
 
 
@@ -29,17 +29,17 @@ namespace WOTRMultiplayer.UI.Menu
             try
             {
                 var commonPCView = (RootUIContext.Instance.m_CommonView as CommonPCView)?.m_SaveLoadPCView;
-                Main.Multiplayer.ElementFactory.StoreSaveLoadPCViewPrefab(commonPCView);
+                Main.Multiplayer.Factory.StoreSaveLoadPCViewPrefab(commonPCView);
                 if (commonPCView != null)
                 {
                     var screen = commonPCView.gameObject.transform.Find("SaveLoadScreen");
                     var saveList = screen.Find("SaveSlotCollectionPlace").Find("SaveSlotVirtualCollectionView");
-                    Main.Multiplayer.ElementFactory.StoreTopDecoration(saveList.Find("decoration").gameObject);
-                    Main.Multiplayer.ElementFactory.StoreBottomDecoration(saveList.Find("Decoration").gameObject);
+                    Main.Multiplayer.Factory.StoreTopDecoration(saveList.Find("decoration").gameObject);
+                    Main.Multiplayer.Factory.StoreBottomDecoration(saveList.Find("Decoration").gameObject);
 
                     var title = screen.Find("SaveLoadDetails").Find("Title");
                     var defaultTextMesh = title.GetComponentInChildren<TextMeshProUGUI>();
-                    Main.Multiplayer.ElementFactory.StoreDefaultTextMesh(defaultTextMesh);
+                    Main.Multiplayer.Factory.StoreDefaultTextMesh(defaultTextMesh);
                 }
 
                 var menuButtons = __instance.transform.GetChild(0);
