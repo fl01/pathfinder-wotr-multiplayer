@@ -27,7 +27,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
         protected override void InitializeInternal(GameObject baseLayout)
         {
             var label = this.MenuItem.GetComponentInChildren<TextMeshProUGUI>();
-            label.SetText(StringConsts.MultiplayerWindow.HostMenuLabel);
+            label.SetText(StringConsts.MultiplayerWindow.JoinMenuLabel);
 
             _menuContent = UnityEngine.Object.Instantiate(baseLayout, baseLayout.transform);
             _menuContent.name = JoinMenuItemContentObjectName;

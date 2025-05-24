@@ -8,6 +8,7 @@ using TMPro;
 using UnityEngine;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.Strings;
+using WOTRMultiplayer.UI.Lobby;
 
 namespace WOTRMultiplayer.UI.Menu.Items
 {
@@ -18,6 +19,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
         private SaveLoadVM _saveLoadViewModel;
         private bool _setupLayout = true;
         private GameObject _menuContent;
+        private LobbyInfoController _lobbyInfoController;
 
         public override GameObject MenuContent => _menuContent;
 
@@ -91,6 +93,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
             lobbyWindowObjectRect.sizeDelta = new Vector2(parentContainerRect.sizeDelta.x * 0.9f, parentContainerRect.sizeDelta.y * 0.72f);
 
             var lobbyContent = Main.Multiplayer.ElementFactory.CreateLobbyWindowContent(lobbyWindowObject.transform);
+            _lobbyInfoController = new LobbyInfoController(lobbyContent);
         }
 
         private void SetupLoadSaveGamesLayout()
@@ -120,7 +123,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
         {
             if (value != null)
             {
-                Logging.Logger.Info($"Selected SaveSlo={value.SaveName.Value}");
+                _lobbyInfoController.SaveSlotSelected(value);
                 return;
             }
         }
