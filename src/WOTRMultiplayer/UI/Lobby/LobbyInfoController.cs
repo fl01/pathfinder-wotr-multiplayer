@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Kingmaker.UI;
 using Kingmaker.UI.MVVM._VM.SaveLoad;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using WOTRMultiplayer.Extensions;
 
 namespace WOTRMultiplayer.UI.Lobby
@@ -31,17 +33,15 @@ namespace WOTRMultiplayer.UI.Lobby
         public void SaveSlotSelected(SaveSlotVM value)
         {
             Logging.Logger.Info($"Selected SaveSlo={value.SaveName.Value}");
-            UpdatePortraits(value);
             var players = new List<string>()
             {
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
+                Guid.NewGuid().ToString().Split('-').First(),
+                Guid.NewGuid().ToString().Split('-').First(),
+                Guid.NewGuid().ToString().Split('-').First(),
+                Guid.NewGuid().ToString().Split('-').First(),
             };
             UpdatePlayers(players);
+            UpdateCharacters(value, players);
         }
 
         public void UpdatePlayers(List<string> players)
@@ -63,26 +63,23 @@ namespace WOTRMultiplayer.UI.Lobby
             }
         }
 
-        private void UpdatePortraits(SaveSlotVM saveSlotVM)
+        private void UpdateCharacters(SaveSlotVM saveSlotVM, List<string> players)
         {
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < UIElementFactory.GetMaxCharactersCount(); i++)
             {
                 var sprite = GetPortraitSprite(i, saveSlotVM);
                 var specificCharacterContainer = CharactersInfoContainer.transform.GetChild(i);
                 var portrait = specificCharacterContainer.Find(CharacterPortraitObjectName);
                 var dropdown = specificCharacterContainer.Find(CharacterOwnerObjectName);
-                var spriteRenderer = portrait.GetComponent<SpriteRenderer>();
-                var portraitRect = portrait.GetComponent<RectTransform>();
-                //spriteRenderer.size = portraitRect.sizeDelta;
-                spriteRenderer.sprite = sprite;
-                spriteRenderer.transform.localScale = new Vector3(60, 50, 0);
-                portrait.SetPositionAndRotation(new Vector3(portrait.position.x - i * 25, portrait.position.y, portrait.position.z), portrait.transform.rotation);
+                var img = portrait.GetComponent<Image>();
+                img.sprite = sprite;
+                img.color = sprite == null ? Color.clear : Color.white;
+                // TBD test stuff
+                var dropdownObject = dropdown.transform.Find(UIElementFactory.DropdownGameObjectName);
+                var tmpDropdown = dropdownObject.GetComponent<TMP_Dropdown>();
+                tmpDropdown.ClearOptions();
+                tmpDropdown.AddOptions(players);
             }
-
-            CharactersInfoContainer.SetActive(false);
-            CharactersInfoContainer.SetActive(true);
-
-
         }
 
         private Sprite GetPortraitSprite(int slot, SaveSlotVM saveSlotVM)

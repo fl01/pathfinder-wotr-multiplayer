@@ -26,6 +26,12 @@ namespace WOTRMultiplayer
         private DefaultMesh _defaultTextMesh;
         private readonly object _actionLock = new();
 
+        public static int GetMaxCharactersCount()
+        {
+            // should be const, but it might need to be modified via harmony for some other mods
+            return 6;
+        }
+
         public void StoreDropdownPrefab(SettingsEntityDropdownPCView view)
         {
             if (view == null)
@@ -229,7 +235,8 @@ namespace WOTRMultiplayer
             var characterInfoLayout = CreateDefaultGameObject(verticalContent.transform);
             characterInfoLayout.name = LobbyInfoController.CharactersInfoContainerObjectName;
             characterInfoLayout.AddComponent<HorizontalLayoutGroup>();
-            for (int i = 1; i <= 6; i++)
+            var preferedX = parent.gameObject.GetComponent<RectTransform>().sizeDelta.x / UIElementFactory.GetMaxCharactersCount();
+            for (int i = 1; i <= UIElementFactory.GetMaxCharactersCount(); i++)
             {
                 var specificCharInfo = CreateDefaultGameObject(characterInfoLayout.transform);
                 specificCharInfo.name = LobbyInfoController.SpecificCharacterContainerObjectName;
@@ -237,9 +244,12 @@ namespace WOTRMultiplayer
 
                 var characterPortrait = CreateDefaultGameObject(specificCharInfo.transform);
                 characterPortrait.name = LobbyInfoController.CharacterPortraitObjectName;
-                characterPortrait.AddComponent<SpriteRenderer>();
+                characterPortrait.AddComponent<Image>();
+                var element = characterPortrait.AddComponent<LayoutElement>();
+                element.preferredWidth = preferedX;
+                element.preferredHeight = preferedX;
 
-                var dropdownContainerObject = Main.Multiplayer.ElementFactory.CreateDropdown(parent.gameObject.GetComponent<RectTransform>().sizeDelta.x / 6, specificCharInfo.transform);
+                var dropdownContainerObject = Main.Multiplayer.ElementFactory.CreateDropdown(preferedX, specificCharInfo.transform);
                 dropdownContainerObject.name = LobbyInfoController.CharacterOwnerObjectName;
                 var dropdownObject = dropdownContainerObject.transform.Find(UIElementFactory.DropdownGameObjectName);
                 var dropdown = dropdownObject.GetComponent<TMP_Dropdown>();

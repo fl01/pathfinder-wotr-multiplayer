@@ -36,7 +36,7 @@ namespace WOTRMultiplayer.UI.Menu
                     var saveList = screen.Find("SaveSlotCollectionPlace").Find("SaveSlotVirtualCollectionView");
                     Main.Multiplayer.ElementFactory.StoreTopDecoration(saveList.Find("decoration").gameObject);
                     Main.Multiplayer.ElementFactory.StoreBottomDecoration(saveList.Find("Decoration").gameObject);
-                    
+
                     var title = screen.Find("SaveLoadDetails").Find("Title");
                     var defaultTextMesh = title.GetComponentInChildren<TextMeshProUGUI>();
                     Main.Multiplayer.ElementFactory.StoreDefaultTextMesh(defaultTextMesh);
