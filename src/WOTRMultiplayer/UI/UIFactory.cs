@@ -5,6 +5,7 @@ using Kingmaker.UI.Common;
 using Kingmaker.UI.MVVM._PCView.SaveLoad;
 using Kingmaker.UI.MVVM._PCView.Settings.Entities;
 using Kingmaker.UI.ServiceWindow.Credits;
+using Owlcat.Runtime.UI.Controls.Button;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -171,8 +172,10 @@ namespace WOTRMultiplayer.UI
             var buttonCopy1 = UnityEngine.Object.Instantiate(baseButton, buttons);
             buttonCopy1.name = "Button1";
             var buttonCopy2 = UnityEngine.Object.Instantiate(baseButton, buttons);
+            buttonCopy2.GetComponent<OwlcatButton>().Interactable = false;
             buttonCopy2.name = "Button2";
             var buttonCopy3 = UnityEngine.Object.Instantiate(baseButton, buttons);
+            buttonCopy3.GetComponent<OwlcatButton>().Interactable = false;
             buttonCopy3.name = "Button3";
             buttons.gameObject.CleanupAllChildren(
                 x => x.name != "DlcRequiredLabel" && x.name != buttonCopy1.name && x.name != buttonCopy2.name && x.name != buttonCopy3.name);
