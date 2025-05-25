@@ -80,7 +80,7 @@ namespace WOTRMultiplayer.UI.Lobby
 
             var playerObject = Main.Multiplayer.Factory.CreateDefaultGameObject(playerContainerObject.transform);
             var playerElement = playerObject.AddComponent<LayoutElement>();
-            playerElement.preferredHeight = 50;
+            playerElement.preferredHeight = 40;
             playerObject.name = LobbyInfoController.PlayerNameObjectName;
             var playerNameBox = playerObject.AddComponent<TextMeshProUGUI>();
             playerNameBox.alignment = TextAlignmentOptions.Center;
@@ -98,12 +98,7 @@ namespace WOTRMultiplayer.UI.Lobby
             for (int characterIndex = 0; characterIndex < UIFactory.GetMaxCharactersCount(); characterIndex++)
             {
                 var sprite = GetPortraitSprite(characterIndex, saveSlotVM);
-                var specificCharacterContainer = CharactersInfoContainer.transform.GetChild(characterIndex);
-                var portrait = specificCharacterContainer.Find(CharacterPortraitObjectName);
-                var dropdown = specificCharacterContainer.Find(CharacterOwnerObjectName);
-                var img = portrait.GetComponent<Image>();
-                img.sprite = sprite;
-                img.color = sprite == null ? Color.clear : Color.white;
+                UpdateCharacterPortrait(characterIndex, sprite);
                 //// TBD test stuff
                 //var dropdownObject = dropdown.transform.Find(UIFactory.DropdownGameObjectName);
                 //var tmpDropdown = dropdownObject.GetComponent<TMP_Dropdown>();
@@ -112,6 +107,22 @@ namespace WOTRMultiplayer.UI.Lobby
                 //tmpDropdown.AddOptions(players);
                 //tmpDropdown.onValueChanged.AddListener(index => OnCharacterOwnerChanged(tmpDropdown));
             }
+        }
+
+        private void UpdateCharacterPortrait(int characterIndex, Sprite portraitSprite)
+        {
+            var specificCharacterContainer = CharactersInfoContainer.transform.GetChild(characterIndex);
+            if (specificCharacterContainer == null)
+            {
+                Logging.Logger.Info($"Character doesn't exist. Index={characterIndex}");
+            }
+
+            var portrait = specificCharacterContainer.Find(CharacterPortraitObjectName);
+            var dropdown = specificCharacterContainer.Find(CharacterOwnerObjectName);
+            var img = portrait.GetComponent<Image>();
+            img.sprite = portraitSprite;
+            img.color = portraitSprite == null ? Color.clear : Color.white;
+            Logging.Logger.Info($"Updated character portrait. Index={characterIndex}, SpriteName={portraitSprite?.name}");
         }
 
         private void OnCharacterOwnerChanged(TMP_Dropdown dropdown)
