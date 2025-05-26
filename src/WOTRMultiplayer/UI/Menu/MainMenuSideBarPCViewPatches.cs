@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using HarmonyLib;
 using Kingmaker.UI.MVVM;
 using Kingmaker.UI.MVVM._PCView.Common;
@@ -34,7 +33,6 @@ namespace WOTRMultiplayer.UI.Menu
                 {
                     var screen = commonPCView.gameObject.transform.Find("SaveLoadScreen");
                     var saveList = screen.Find("SaveSlotCollectionPlace").Find("SaveSlotVirtualCollectionView");
-                    //Main.Multiplayer.Factory.StoreTopDecoration(saveList.Find("decoration").gameObject);
                     Main.Multiplayer.Factory.StoreBorderDecoration(saveList.Find("Decoration").gameObject);
 
                     var title = screen.Find("SaveLoadDetails").Find("Title");
@@ -43,10 +41,18 @@ namespace WOTRMultiplayer.UI.Menu
                 }
 
                 var menuButtons = __instance.transform.GetChild(0);
-                var isOk = Main.Multiplayer.InjectMultiplayerMenuWindow(menuButtons.GetChild(3).gameObject, menuButtons.transform);
-                if (!isOk)
+                for (int menuIndex = 0; menuIndex >= 0; menuIndex++)
                 {
-                    Logging.Logger.Error("Unable to inject multiplayer menu");
+                    var obj = menuButtons.GetChild(menuIndex).gameObject;
+                    if (string.Equals(obj.name, "Settings"))
+                    {
+                        var isOk = Main.Multiplayer.InjectMultiplayerMenuWindow(obj, menuButtons.transform);
+                        if (!isOk)
+                        {
+                            Logging.Logger.Error("Unable to inject multiplayer menu");
+                        }
+                        break;
+                    }
                 }
             }
             catch (Exception ex)

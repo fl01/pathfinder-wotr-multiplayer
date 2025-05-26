@@ -22,7 +22,6 @@ namespace WOTRMultiplayer.UI
         private GameObject _dropdownPrefab;
         private SaveLoadPCView _saveLoadPCView;
         private GameObject _defaultGameObject;
-        private GameObject _topDecoration;
         private GameObject _borderDecoration;
         private DefaultMesh _defaultTextMesh;
         private readonly object _actionLock = new();
@@ -97,27 +96,6 @@ namespace WOTRMultiplayer.UI
                         _defaultGameObject = UnityEngine.Object.Instantiate(gameObject);
                         UnityEngine.Object.DestroyImmediate(_defaultGameObject.GetComponent<Image>());
                         UnityEngine.Object.DontDestroyOnLoad(_defaultGameObject);
-                    }
-                }
-            }
-        }
-
-        public void StoreTopDecoration(GameObject gameObject)
-        {
-            if (gameObject == null)
-            {
-                return;
-            }
-
-            if (_topDecoration == null)
-            {
-                lock (_actionLock)
-                {
-                    if (_topDecoration == null)
-                    {
-                        Logging.Logger.Info($"Storing top decoration prefab");
-                        _topDecoration = UnityEngine.Object.Instantiate(gameObject);
-                        UnityEngine.Object.DontDestroyOnLoad(_topDecoration);
                     }
                 }
             }
@@ -255,7 +233,7 @@ namespace WOTRMultiplayer.UI
             var playersSectionRect = playersSectionObject.GetComponent<RectTransform>();
             playersSectionRect.pivot = new Vector2(0.5f, 1f); // upper center
             playersSectionObject.name = LobbyInfoController.PlayersSectionObjectName;
-            var playersSectionVertical = playersSectionObject.AddComponent<VerticalLayoutGroup>();
+            playersSectionObject.AddComponent<VerticalLayoutGroup>();
             var playersSectionSizeFitter = playersSectionObject.AddComponent<ContentSizeFitter>();
             playersSectionSizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
@@ -271,7 +249,7 @@ namespace WOTRMultiplayer.UI
 
             var playersSectionContentObject = CreateDefaultGameObject(playersSectionObject.transform);
             playersSectionContentObject.name = LobbyInfoController.PlayersSectionContentObjectName;
-            var playersSectionContentVertical = playersSectionContentObject.AddComponent<VerticalLayoutGroup>();
+            playersSectionContentObject.AddComponent<VerticalLayoutGroup>();
         }
 
         private void CreateLobbyCharactersSection(float width, Transform parent)
@@ -280,7 +258,7 @@ namespace WOTRMultiplayer.UI
             var charactersSectionRect = charactersSectionObject.GetComponent<RectTransform>();
             charactersSectionRect.pivot = new Vector2(0.5f, 0f); // bottom (almost) center
             charactersSectionObject.name = LobbyInfoController.CharactersSectionObjectName;
-            var charactersSectionVertical = charactersSectionObject.AddComponent<VerticalLayoutGroup>();
+            charactersSectionObject.AddComponent<VerticalLayoutGroup>();
             var charactersSectionSizeFitter = charactersSectionObject.AddComponent<ContentSizeFitter>();
             charactersSectionSizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
@@ -295,13 +273,13 @@ namespace WOTRMultiplayer.UI
             characterControlTitle.SetText(UIUtility.GetSaberBookFormat(StringConsts.LobbyInfoWindow.CharactersSectionTitle));
             var charactersSectionContentObject = CreateDefaultGameObject(charactersSectionObject.transform);
             charactersSectionContentObject.name = LobbyInfoController.CharactersSectionContentObjectName;
-            var charactersSectionContentHorizontal = charactersSectionContentObject.AddComponent<HorizontalLayoutGroup>();
+            charactersSectionContentObject.AddComponent<HorizontalLayoutGroup>();
             var preferedWidth = width / GetMaxCharactersCount();
             for (int characterIndex = 0; characterIndex < GetMaxCharactersCount(); characterIndex++)
             {
                 var characterObject = CreateDefaultGameObject(charactersSectionContentObject.transform);
                 characterObject.name = LobbyInfoController.CharacterContainerObjectName;
-                var characterVertical = characterObject.AddComponent<VerticalLayoutGroup>();
+                characterObject.AddComponent<VerticalLayoutGroup>();
                 characterObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
                 var characterPortrait = CreateDefaultGameObject(characterObject.transform);

@@ -22,7 +22,7 @@ namespace WOTRMultiplayer
         public bool InjectMultiplayerMenuWindow(GameObject menuItemPrototype, Transform parent)
         {
             var multiplayerMenu = UnityEngine.Object.Instantiate(menuItemPrototype, parent);
-            multiplayerMenu.transform.SetSiblingIndex(3);
+            multiplayerMenu.transform.SetSiblingIndex(menuItemPrototype.transform.GetSiblingIndex());
             var multiplayerMenuView = multiplayerMenu.GetComponent<ContextMenuEntityPCView>();
             var element = Factory.CreateCopyOfCreditsScreen();
             _multiplayerWindow = element.AddComponent<MultiplayerWindow>();

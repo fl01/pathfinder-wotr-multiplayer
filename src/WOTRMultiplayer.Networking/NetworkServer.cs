@@ -8,9 +8,11 @@ namespace WOTRMultiplayer.Networking
     public class NetworkServer : IApplication
     {
         private ServerBuilder<NetworkServer, NetworkClientToken, ProtobufPacket> _server;
-        private ConcurrentDictionary<long, NetworkClient> _clients = new();
+        private readonly ConcurrentDictionary<long, NetworkClient> _clients = new();
 
-        public void Start()
+        public bool IsActive => _server.AppServer?.Status == ServerStatus.Start;
+
+        public void Start(string networkInterfaceBinding, int port)
         {
             _server = new ServerBuilder<NetworkServer, NetworkClientToken, ProtobufPacket>();
             _server.OnLog(OnServerLog)
