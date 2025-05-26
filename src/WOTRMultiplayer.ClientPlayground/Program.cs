@@ -1,7 +1,7 @@
 ﻿using System;
 using WOTRMultiplayer.Networking;
 
-namespace WOTRMultiplayer.Playground
+namespace WOTRMultiplayer.ClientPlayground
 {
     internal class Program
     {

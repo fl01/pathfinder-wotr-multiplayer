@@ -7,7 +7,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WOTRMultiplayer", "WOTRMult
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WOTRMultiplayer.Networking", "WOTRMultiplayer.Networking\WOTRMultiplayer.Networking.csproj", "{04F52CFC-45A2-4819-AD53-04903D1746A3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WOTRMultiplayer.Playground", "WOTRMultiplayer.Playground\WOTRMultiplayer.Playground.csproj", "{9EE1B41A-8074-488B-A064-FCECE1AB1346}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WOTRMultiplayer.ClientPlayground", "WOTRMultiplayer.ClientPlayground\WOTRMultiplayer.ClientPlayground.csproj", "{9EE1B41A-8074-488B-A064-FCECE1AB1346}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WOTRMultiplayer.ServerPlayground", "WOTRMultiplayer.ServerPlayground\WOTRMultiplayer.ServerPlayground.csproj", "{A9F7CD0E-F673-49D8-A2E1-4252BEEF96A1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{9EE1B41A-8074-488B-A064-FCECE1AB1346}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9EE1B41A-8074-488B-A064-FCECE1AB1346}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9EE1B41A-8074-488B-A064-FCECE1AB1346}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9F7CD0E-F673-49D8-A2E1-4252BEEF96A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9F7CD0E-F673-49D8-A2E1-4252BEEF96A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9F7CD0E-F673-49D8-A2E1-4252BEEF96A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9F7CD0E-F673-49D8-A2E1-4252BEEF96A1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

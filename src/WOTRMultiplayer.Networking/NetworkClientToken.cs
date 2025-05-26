@@ -10,7 +10,6 @@ namespace WOTRMultiplayer.Networking
 
         public void Init(IServer server, ISession session)
         {
-            session.Send(new Messages.System.NetworkClientNameRequest());
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using WOTRMultiplayer.Networking;
+using WOTRMultiplayer.Networking.Messages.System;
 
 namespace WOTRMultiplayer
 {
@@ -15,7 +16,18 @@ namespace WOTRMultiplayer
 
         public void Start(MultiplayerSettings settings)
         {
+            RegisterMessageHandlers();
+
             _networkServer.Start(settings.NetworkInterfaceBinding, settings.Port);
+        }
+
+        private void RegisterMessageHandlers()
+        {
+            _networkServer.Register<NetworkClientNameResponse>(OnNetworkClientNameResponse);
+        }
+
+        private void OnNetworkClientNameResponse(NetworkClientNameResponse response)
+        {
         }
     }
 }
