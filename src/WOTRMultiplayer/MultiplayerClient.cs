@@ -1,6 +1,6 @@
 ﻿using System.Net;
 using WOTRMultiplayer.Networking;
-using WOTRMultiplayer.Networking.Messages.System;
+using WOTRMultiplayer.Networking.Messages.Lobby;
 
 namespace WOTRMultiplayer
 {
@@ -12,7 +12,7 @@ namespace WOTRMultiplayer
         {
             _networkServerClient = networkServerClient;
 
-            RegisterMessageHandlers();
+            RegisterHandlers();
         }
 
         public void Join(string address, MultiplayerSettings settings)
@@ -26,15 +26,16 @@ namespace WOTRMultiplayer
             _networkServerClient.ConnectAsync(endpoint.Address.ToString(), endpoint.Port).Wait();
         }
 
-        private void RegisterMessageHandlers()
+        private void RegisterHandlers()
         {
             _networkServerClient
-                .Register<NetworkClientNameRequest>(OnNameRequested);
+                .Register<PlayerNameRequest>(OnPlayerNameRequest)
+                ;
         }
 
-        private void OnNameRequested(NetworkClientNameRequest request)
+        private void OnPlayerNameRequest(PlayerNameRequest request)
         {
-            var nameResponse = new NetworkClientNameResponse() { Name = "AAA" };
+            var nameResponse = new PlayerNameResponse() { Name = "AAA" };
             _networkServerClient.Send(nameResponse);
         }
     }

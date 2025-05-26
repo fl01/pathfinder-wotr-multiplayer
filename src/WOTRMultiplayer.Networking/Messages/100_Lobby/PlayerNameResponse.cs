@@ -3,10 +3,10 @@
 namespace WOTRMultiplayer.Networking.Messages.Lobby
 {
     [ProtoContract]
-    [BeetleX.Packets.MessageType(100)]
-    public class ReadyStatusChanged
+    [BeetleX.Packets.MessageType(101)]
+    public class PlayerNameResponse
     {
         [ProtoMember(1)]
-        public bool IsReady { get; set; }
+        public string Name { get; set; }
     }
 }

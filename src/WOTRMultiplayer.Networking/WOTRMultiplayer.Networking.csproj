@@ -10,4 +10,8 @@
 	  <PackageReference Include="protobuf-net" Version="3.2.52" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Messages\1_System\" />
+	</ItemGroup>
+
 </Project>

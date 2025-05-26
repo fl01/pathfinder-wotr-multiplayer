@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using Kingmaker.UI.MVVM._VM.SaveLoad;
 using TMPro;
 using UnityEngine;
@@ -84,7 +82,7 @@ namespace WOTRMultiplayer.UI.Lobby
             playerNameBox.material = defaultMesh.Material;
             playerNameBox.color = defaultMesh.Color;
             playerNameBox.SetText(player.Name);
-            if (player.Status == NetworkPlayerReadinessStatus.NotReady)
+            if (!player.IsReady)
             {
                 playerNameBox.fontStyle = FontStyles.Strikethrough;
             }

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Net;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Networking;
-using WOTRMultiplayer.Networking.Messages.System;
+using WOTRMultiplayer.Networking.Messages.Lobby;
 
 namespace WOTRMultiplayer
 {
@@ -50,29 +50,68 @@ namespace WOTRMultiplayer
             _networkServer.OnServerStarted = OnServerStarted;
 
             _networkServer
-                .Register<NetworkClientNameResponse>(OnNetworkClientNameResponse);
+                .Register<PlayerReadyStatusChanged>(OnPlayerReadyStatusChanged)
+                .Register<PlayerNameResponse>(OnPlayerNameResponse)
+                ;
         }
 
+        private void OnPlayerReadyStatusChanged(long playerId, PlayerReadyStatusChanged readyStatusChanged)
+        {
+            var existingPlayer = GetPlayer(playerId);
+            if (existingPlayer == null)
+            {
+                // warn
+                return;
+            }
+
+            existingPlayer.IsReady = readyStatusChanged.IsReady;
+
+            // new event maybe to notify all clients
+            //readyStatusChanged.PlayerId = playerId;
+            //_networkServer.SendAllExcept(playerId, readyStatusChanged);
+            // update UI
+        }
+
+        private void OnPlayerNameResponse(long playerId, PlayerNameResponse response)
+        {
+            var existingPlayer = GetPlayer(playerId);
+            if (existingPlayer == null)
+            {
+                // warn
+                return;
+            }
+
+            if (string.IsNullOrEmpty(response.Name))
+            {
+                // warn
+                // generate new or disconnect?
+                return;
+            }
+
+            existingPlayer.Name = response.Name;
+            // send updates to other clients
+            // UPDATE UI
+        }
         private void OnServerStarted(EndPoint point)
         {
             // update ui
         }
 
-        private void OnPlayerConnected(long clientId)
+        private void OnPlayerConnected(long playerId)
         {
             lock (_actionlock)
             {
-                var existingPlayer = GetPlayer(clientId);
+                var existingPlayer = GetPlayer(playerId);
                 if (existingPlayer != null)
                 {
                     // warn
                     return;
                 }
 
-                var player = new NetworkPlayer(clientId);
+                var player = new NetworkPlayer(playerId);
                 _playersList.Add(player);
 
-                _networkServer.Send(clientId, new NetworkClientNameRequest());
+                _networkServer.Send(playerId, new PlayerNameRequest());
             }
         }
 
@@ -91,26 +130,6 @@ namespace WOTRMultiplayer
 
                 // UPDATE UI
             }
-        }
-
-        private void OnNetworkClientNameResponse(long clientId, NetworkClientNameResponse response)
-        {
-            var existingPlayer = GetPlayer(clientId);
-            if (existingPlayer == null)
-            {
-                // warn
-                return;
-            }
-
-            if (string.IsNullOrEmpty(response.Name))
-            {
-                // warn
-                // generate new or disconnect?
-                return;
-            }
-
-            existingPlayer.Name = response.Name;
-            // UPDATE UI
         }
 
         private NetworkPlayer GetPlayer(long playerId)
