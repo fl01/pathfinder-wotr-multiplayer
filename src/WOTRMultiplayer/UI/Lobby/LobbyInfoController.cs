@@ -52,10 +52,7 @@ namespace WOTRMultiplayer.UI.Lobby
         {
             Logging.Logger.Info($"Selected SaveSlo={value.SaveName.Value}");
             var rnd = new System.Random();
-            var players = Enumerable.Range(0, new System.Random().Next(1, 8))
-                .Select(c => new NetworkPlayer(Guid.NewGuid().ToString().Split('-').First(), rnd.Next(0, 2) == 0 ? NetworkPlayerReadinessStatus.NotReady : NetworkPlayerReadinessStatus.Ready))
-                .ToList();
-            UpdatePlayers(players);
+            //UpdatePlayers(players);
             UpdateCharacters(value);
         }
 

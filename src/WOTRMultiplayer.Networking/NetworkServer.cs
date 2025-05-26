@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections.Concurrent;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using BeetleX;
 using BeetleX.EventArgs;
 using WOTRMultiplayer.Networking.Messages;
-using WOTRMultiplayer.Networking.Messages.System;
 
 namespace WOTRMultiplayer.Networking
 {
@@ -13,7 +13,11 @@ namespace WOTRMultiplayer.Networking
         private ServerBuilder<NetworkServer, NetworkClientToken, ProtobufPacket> _server;
         private ServerBuilder<NetworkServer, NetworkClientToken, ProtobufPacket> Server => _server ??= new ServerBuilder<NetworkServer, NetworkClientToken, ProtobufPacket>();
 
-        private readonly ConcurrentDictionary<long, NetworkClient> _clients = new();
+        public Action<long> OnClientConnected { get; set; }
+
+        public Action<long> OnClientDisconnected { get; set; }
+
+        public Action<EndPoint> OnServerStarted { get; set; }
 
         public bool IsActive => _server.AppServer?.Status == ServerStatus.Start;
         private Task _serverRunTask;
@@ -36,13 +40,42 @@ namespace WOTRMultiplayer.Networking
             _serverRunTask = Server.Run();
         }
 
+        public void Send(long clientId, object message)
+        {
+            var session = Server.AppServer.GetSession(clientId);
+            if (session == null)
+            {
+                return;
+            }
+
+            Server.AppServer.Send(message, session);
+        }
+
+        public void SendAll(object message)
+        {
+            Server.AppServer.Send(message, Server.AppServer.GetOnlines());
+        }
+
+        public void SendAllExcept(long clientId, object message)
+        {
+            var sessions = Server.AppServer.GetOnlines().Where(s => s.ID != clientId).ToArray();
+            Server.AppServer.Send(message, sessions);
+        }
+
         private void OnOpened(IServer server)
         {
+            var endpoint = server.Options?.DefaultListen?.EndPoint;
+            if (endpoint == null)
+            {
+                // error
+                return;
+            }
+
+            OnServerStarted?.Invoke(endpoint);
         }
 
         public void Init(IServer server)
         {
-            // get listen info -> show info label somewhere
         }
 
         private void OnServerLog(IServer server, ServerLogEventArgs args)
@@ -51,15 +84,12 @@ namespace WOTRMultiplayer.Networking
 
         private void OnDisconnected(ISession session, NetworkClientToken clientToken)
         {
-            _clients.TryRemove(session.ID, out var _);
+            OnClientDisconnected?.Invoke(session.ID);
         }
 
         private void OnConnected(ISession session, NetworkClientToken clientToken)
         {
-            var networkClient = new NetworkClient(session.ID);
-            _clients.TryAdd(networkClient.Id, networkClient);
-
-            session.Send(new NetworkClientNameRequest());
+            OnClientConnected?.Invoke(session.ID);
         }
 
         public void Dispose()

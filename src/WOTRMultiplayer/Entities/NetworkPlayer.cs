@@ -1,19 +1,38 @@
-﻿namespace WOTRMultiplayer.Entities
+﻿using System.Collections.Generic;
+
+namespace WOTRMultiplayer.Entities
 {
-    public class NetworkPlayer
+    public class NetworkPlayer : IEqualityComparer<NetworkPlayer>, IEqualityComparer<long>
     {
-        public string Name { get; private set; }
+        public long Id { get; private set; }
 
-        public NetworkPlayerReadinessStatus Status { get; private set; }
+        public string Name { get; set; }
 
-        public NetworkPlayer()
+        public NetworkPlayerReadinessStatus Status { get; set; }
+
+        public NetworkPlayer(long id)
         {
+            Id = id;
         }
 
-        public NetworkPlayer(string name, NetworkPlayerReadinessStatus networkPlayerReadinessStatus)
+        public bool Equals(NetworkPlayer x, NetworkPlayer y)
         {
-            Name = name;
-            Status = networkPlayerReadinessStatus;
+            return x != null && y != null && x.Id == y.Id;
+        }
+
+        public int GetHashCode(NetworkPlayer obj)
+        {
+            return obj.GetHashCode();
+        }
+
+        public bool Equals(long x, long y)
+        {
+            return x == y;
+        }
+
+        public int GetHashCode(long obj)
+        {
+            return obj.GetHashCode();
         }
     }
 }
