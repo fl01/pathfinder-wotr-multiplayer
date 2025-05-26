@@ -8,44 +8,36 @@ using WOTRMultiplayer.Networking.Messages.System;
 
 namespace WOTRMultiplayer.Networking
 {
-    public class NetworkServer : IApplication
+    public class NetworkServer : IApplication, IDisposable
     {
         private ServerBuilder<NetworkServer, NetworkClientToken, ProtobufPacket> _server;
+        private ServerBuilder<NetworkServer, NetworkClientToken, ProtobufPacket> Server => _server ??= new ServerBuilder<NetworkServer, NetworkClientToken, ProtobufPacket>();
+
         private readonly ConcurrentDictionary<long, NetworkClient> _clients = new();
 
         public bool IsActive => _server.AppServer?.Status == ServerStatus.Start;
         private Task _serverRunTask;
 
-        public NetworkServer()
+        public NetworkServer Register<TMessage>(Action<long, TMessage> handler)
         {
-            _server = new ServerBuilder<NetworkServer, NetworkClientToken, ProtobufPacket>();
-        }
-
-        public NetworkServer Register<T>(Action<T> handler)
-        {
-            _server.OnMessageReceive<T>(args => handler(args.Message));
+            Server.OnMessageReceive<TMessage>(args => handler(args.NetSession.ID, args.Message));
             return this;
         }
 
         public void Start(string networkInterfaceBinding, int port)
         {
-            _server.ServerOptions.DefaultListen.StartRegionPort = 1024;
-            _server.ServerOptions.DefaultListen.EndRegionPort = ushort.MaxValue;
-            _server.OnOpened(OnOpened);
-            _server.OnLog(OnServerLog)
+            Server.ServerOptions.DefaultListen.StartRegionPort = 1024;
+            Server.ServerOptions.DefaultListen.EndRegionPort = ushort.MaxValue;
+            Server.OnOpened(OnOpened);
+            Server.OnLog(OnServerLog)
                 .OnConnected(OnConnected)
                 .OnDisconnect(OnDisconnected);
 
-            _serverRunTask = _server.Run();
+            _serverRunTask = Server.Run();
         }
 
         private void OnOpened(IServer server)
         {
-        }
-
-        public void Stop()
-        {
-            _server.Dispose();
         }
 
         public void Init(IServer server)
@@ -68,6 +60,11 @@ namespace WOTRMultiplayer.Networking
             _clients.TryAdd(networkClient.Id, networkClient);
 
             session.Send(new NetworkClientNameRequest());
+        }
+
+        public void Dispose()
+        {
+            _server.Dispose();
         }
     }
 }

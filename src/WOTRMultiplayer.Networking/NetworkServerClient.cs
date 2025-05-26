@@ -18,10 +18,10 @@ namespace WOTRMultiplayer.Networking
             var status = await _client.Connect();
         }
 
-        public NetworkServerClient Register<T>(Action<T> handler)
-            where T : class
+        public NetworkServerClient Register<TMessage>(Action<TMessage> handler)
+            where TMessage : class
         {
-            _handlers.TryAdd(typeof(T), message => handler((T)message));
+            _handlers.TryAdd(typeof(TMessage), message => handler((TMessage)message));
 
             return this;
         }

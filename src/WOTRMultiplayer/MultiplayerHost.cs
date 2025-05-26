@@ -18,6 +18,10 @@ namespace WOTRMultiplayer
 
         public void Start(MultiplayerSettings settings)
         {
+            if (_networkServer.IsActive)
+            {
+                _networkServer.Dispose();
+            }
 
             _networkServer.Start(settings.NetworkInterfaceBinding, settings.Port);
         }
@@ -27,7 +31,7 @@ namespace WOTRMultiplayer
             _networkServer.Register<NetworkClientNameResponse>(OnNetworkClientNameResponse);
         }
 
-        private void OnNetworkClientNameResponse(NetworkClientNameResponse response)
+        private void OnNetworkClientNameResponse(long clientId, NetworkClientNameResponse response)
         {
         }
     }
