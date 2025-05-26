@@ -57,19 +57,24 @@ namespace WOTRMultiplayer
 
         private void OnPlayerReadyStatusChanged(long playerId, PlayerReadyStatusChanged readyStatusChanged)
         {
-            var existingPlayer = GetPlayer(playerId);
-            if (existingPlayer == null)
+            lock (_actionlock)
             {
-                // warn
-                return;
+                var existingPlayer = GetPlayer(playerId);
+                if (existingPlayer == null)
+                {
+                    // warn
+                    return;
+                }
+
+                existingPlayer.IsReady = readyStatusChanged.IsReady;
+
+                // new event maybe to notify all clients
+                //readyStatusChanged.PlayerId = playerId;
+                //_networkServer.SendAllExcept(playerId, readyStatusChanged);
+                // update UI
+                var allAreReady = _playersList.All(p => p.IsReady);
             }
 
-            existingPlayer.IsReady = readyStatusChanged.IsReady;
-
-            // new event maybe to notify all clients
-            //readyStatusChanged.PlayerId = playerId;
-            //_networkServer.SendAllExcept(playerId, readyStatusChanged);
-            // update UI
         }
 
         private void OnPlayerNameResponse(long playerId, PlayerNameResponse response)
@@ -91,10 +96,6 @@ namespace WOTRMultiplayer
             existingPlayer.Name = response.Name;
             // send updates to other clients
             // UPDATE UI
-        }
-        private void OnServerStarted(EndPoint point)
-        {
-            // update ui
         }
 
         private void OnPlayerConnected(long playerId)
@@ -128,8 +129,14 @@ namespace WOTRMultiplayer
 
                 _playersList.Remove(existingPlayer);
 
+                // send updates to other clients
                 // UPDATE UI
             }
+        }
+
+        private void OnServerStarted(EndPoint point)
+        {
+            // update ui
         }
 
         private NetworkPlayer GetPlayer(long playerId)
