@@ -14,10 +14,9 @@ namespace WOTRMultiplayer
     {
         private static UnityModManagerSettings _settings;
         private static IServiceProvider _serviceProvider;
+        private static ILogger<Main> _logger;
 
         public static IMultiplayer Multiplayer { get; private set; }
-
-        private static ILogger<Main> _logger;
 
         public static bool Load(UnityModManager.ModEntry entry)
         {
