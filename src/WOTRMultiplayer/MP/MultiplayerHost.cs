@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net;
 using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Lobby;
@@ -11,15 +12,17 @@ namespace WOTRMultiplayer.MP
     public class MultiplayerHost : IMultiplayerHost
     {
         private readonly INetworkServer _networkServer;
+        private readonly ILobbyWindowController _lobbyWindowController;
 
         private readonly List<NetworkPlayer> _playersList = [];
         private readonly object _actionlock = new();
 
         public bool IsActive => _networkServer.IsActive;
 
-        public MultiplayerHost(INetworkServer networkServer)
+        public MultiplayerHost(INetworkServer networkServer, ILobbyWindowController lobbyWindowController)
         {
             _networkServer = networkServer;
+            _lobbyWindowController = lobbyWindowController;
 
             RegisterHandlers();
         }
@@ -80,23 +83,26 @@ namespace WOTRMultiplayer.MP
 
         private void OnPlayerNameResponse(long playerId, PlayerNameResponse response)
         {
-            var existingPlayer = GetPlayer(playerId);
-            if (existingPlayer == null)
+            lock (_actionlock)
             {
-                // warn
-                return;
-            }
+                var existingPlayer = GetPlayer(playerId);
+                if (existingPlayer == null)
+                {
+                    // warn
+                    return;
+                }
 
-            if (string.IsNullOrEmpty(response.Name))
-            {
-                // warn
-                // generate new or disconnect?
-                return;
-            }
+                if (string.IsNullOrEmpty(response.Name))
+                {
+                    // warn
+                    // generate new or disconnect?
+                    return;
+                }
 
-            existingPlayer.Name = response.Name;
+                existingPlayer.Name = response.Name;
+                _lobbyWindowController.UpdatePlayers(_playersList);
             // send updates to other clients
-            // UPDATE UI
+            }
         }
 
         private void OnPlayerConnected(long playerId)

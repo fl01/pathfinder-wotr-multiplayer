@@ -4,9 +4,13 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.UI;
+using WOTRMultiplayer.Abstractions.UI.Controllers;
+using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.MP;
 using WOTRMultiplayer.Networking.Extensions;
 using WOTRMultiplayer.UI;
+using WOTRMultiplayer.UI.Lobby;
+using WOTRMultiplayer.UI.Menu.Items;
 
 namespace WOTRMultiplayer.DI
 {
@@ -25,6 +29,9 @@ namespace WOTRMultiplayer.DI
 
             serviceCollection.AddSingleton<IMultiplayer, Multiplayer>();
             serviceCollection.AddSingleton<IUIFactory, UIFactory>();
+            serviceCollection.AddSingleton<ILobbyWindowController, LobbyWindowController>();
+            serviceCollection.AddSingleton<IHostMenuItemController, HostMenuItemController>();
+            serviceCollection.AddSingleton<IJoinMenuItemController, JoinMenuItemController>();
 
             serviceCollection.AddSingleton<IMultiplayerHost, MultiplayerHost>();
             serviceCollection.AddSingleton<IMultiplayerClient, MultiplayerClient>();

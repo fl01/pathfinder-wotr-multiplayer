@@ -3,46 +3,51 @@ using Kingmaker.UI.MVVM;
 using Kingmaker.UI.MVVM._PCView.SaveLoad;
 using Kingmaker.UI.MVVM._VM.SaveLoad;
 using Kingmaker.UI.MVVM._VM.ServiceWindows.CharacterInfo.Sections.Abilities;
+using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.VirtualListSystem;
-using Serilog;
 using TMPro;
 using UnityEngine;
+using WOTRMultiplayer.Abstractions.UI.Controllers;
+using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Extensions;
-using WOTRMultiplayer.UI.Lobby;
 
 namespace WOTRMultiplayer.UI.Menu.Items
 {
-    public class HostMenuItemController : MenuItemController, IObserver<SaveSlotVM>
+    public class HostMenuItemController : MenuItemController, IHostMenuItemController, IObserver<SaveSlotVM>
     {
         public const string HostMenuItemContentObjectName = "HostMenuItemContent";
+        private readonly ILogger<HostMenuItemController> _logger;
+        private readonly ILobbyWindowController _lobbyWindowController;
 
         private SaveLoadVM _saveLoadViewModel;
-        private bool _setupLayout = true;
         private GameObject _menuContent;
-        private LobbyInfoController _lobbyInfoController;
 
-        public override GameObject MenuContent => _menuContent;
+        protected override GameObject MenuContent => _menuContent;
 
-        public HostMenuItemController(MultiplayerWindow multiplayerWindow, GameObject menuItem)
-            : base(multiplayerWindow, menuItem)
+        public HostMenuItemController(
+            ILogger<HostMenuItemController> logger,
+            ILobbyWindowController lobbyWindowController)
+            : base(logger)
         {
+            _logger = logger;
+            _lobbyWindowController = lobbyWindowController;
         }
 
         public override void Activate()
         {
-            Log.Logger.Information("Trying to activate {controllerTypeName}. IsActive={IsActive}", nameof(HostMenuItemController), IsActive);
+            _logger.LogInformation("Trying to activate");
 
             if (IsActive)
             {
                 return;
             }
 
-            var saveLoad = MenuContent.transform.GetChild(0).GetComponent<SaveLoadPCView>();
+            var saveLoad = _menuContent.transform.GetChild(0).GetComponent<SaveLoadPCView>();
             _saveLoadViewModel = new SaveLoadVM(SaveLoadMode.Load, true, OnCloseSaveLoadVM, RootUIContext.Instance.CommonVM);
 
-            if (_setupLayout)
+            if (SetupLayout)
             {
-                _setupLayout = false;
+                SetupLayout = false;
                 /// overriding save/load/delete buttons prefab to make sure original loadsave screen is not affected
                 var screen = saveLoad.gameObject.transform.Find("SaveLoadScreen");
                 var collectionView = screen.Find("SaveSlotCollectionPlace").Find("SaveSlotVirtualCollectionView");
@@ -78,7 +83,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
 
         private void SetupLobbyInfo(GameObject baseLayout)
         {
-            var saveLoadView = this.MenuContent.transform.GetChild(0);
+            var saveLoadView = _menuContent.transform.GetChild(0);
             var screen = saveLoadView.gameObject.transform.Find("SaveLoadScreen");
             var container = screen.Find("SaveLoadDetails");
             var parentContainerRect = container.GetComponent<RectTransform>();
@@ -92,13 +97,12 @@ namespace WOTRMultiplayer.UI.Menu.Items
             var lobbyWindowObjectRect = lobbyWindowObject.GetComponent<RectTransform>();
             lobbyWindowObjectRect.sizeDelta = new Vector2(parentContainerRect.sizeDelta.x * 0.9f, parentContainerRect.sizeDelta.y * 0.72f);
 
-            var lobbyContent = Main.Multiplayer.Factory.CreateLobbyWindowContent(lobbyWindowObject.transform);
-            _lobbyInfoController = new LobbyInfoController(lobbyContent);
+            _lobbyWindowController.InitializeContent(lobbyWindowObject.transform);
         }
 
         private void SetupLoadSaveGamesLayout()
         {
-            SaveLoadPCView saveLoad = Main.Multiplayer.Factory.CreateSaveLoadPCView(this.MenuContent.transform);
+            SaveLoadPCView saveLoad = Main.Multiplayer.Factory.CreateSaveLoadPCView(_menuContent.transform);
             saveLoad.Initialize();
         }
 
@@ -123,7 +127,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
         {
             if (value != null)
             {
-                _lobbyInfoController.SaveSlotSelected(value);
+                _lobbyWindowController.SaveSlotSelected(value);
                 return;
             }
         }

@@ -14,16 +14,13 @@ namespace WOTRMultiplayer.Networking
     {
         private ServerBuilder<NetworkServerApp, NetworkClientToken, ProtobufPacket> _server;
         private ServerBuilder<NetworkServerApp, NetworkClientToken, ProtobufPacket> Server => _server ??= new ServerBuilder<NetworkServerApp, NetworkClientToken, ProtobufPacket>();
-
-        public Action<long> OnClientConnected { get; set; }
-
-        public Action<long> OnClientDisconnected { get; set; }
-
-        public Action<EndPoint> OnServerStarted { get; set; }
-
-        public bool IsActive => _server.AppServer?.Status == ServerStatus.Start;
         private Task _serverRunTask;
         private readonly ILogger<NetworkServer> _logger;
+
+        public Action<long> OnClientConnected { get; set; }
+        public Action<long> OnClientDisconnected { get; set; }
+        public Action<EndPoint> OnServerStarted { get; set; }
+        public bool IsActive => _server.AppServer?.Status == ServerStatus.Start;
 
         public NetworkServer(ILogger<NetworkServer> logger)
         {
@@ -33,6 +30,7 @@ namespace WOTRMultiplayer.Networking
         public INetworkServer Register<TMessage>(Action<long, TMessage> messageHandler)
             where TMessage : class
         {
+            _logger.LogInformation("Register message handler. Type={type}", typeof(TMessage).Name);
             Server.OnMessageReceive<TMessage>(args => messageHandler(args.NetSession.ID, args.Message));
             return this;
         }
@@ -76,9 +74,11 @@ namespace WOTRMultiplayer.Networking
             var endpoint = server.Options?.DefaultListen?.EndPoint;
             if (endpoint == null)
             {
-                // error
+                _logger.LogError("Server started with null endpoint");
                 return;
             }
+
+            _logger.LogInformation("Server started. Endpoint={endpoint}", endpoint);
 
             OnServerStarted?.Invoke(endpoint);
         }
@@ -89,11 +89,13 @@ namespace WOTRMultiplayer.Networking
 
         private void OnDisconnected(ISession session, NetworkClientToken clientToken)
         {
+            _logger.LogInformation("Client disconnected. ClientId={clientId}", session.ID);
             OnClientDisconnected?.Invoke(session.ID);
         }
 
         private void OnConnected(ISession session, NetworkClientToken clientToken)
         {
+            _logger.LogInformation("Client connected. ClientId={clientId}", session.ID);
             OnClientConnected?.Invoke(session.ID);
         }
 

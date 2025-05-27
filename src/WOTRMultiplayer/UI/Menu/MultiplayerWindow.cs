@@ -6,12 +6,13 @@ using Kingmaker.UI.ServiceWindow;
 using Owlcat.Runtime.UI.Controls.Button;
 using Serilog;
 using UnityEngine;
+using WOTRMultiplayer.Abstractions.UI;
+using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Extensions;
-using WOTRMultiplayer.UI.Menu.Items;
 
 namespace WOTRMultiplayer.UI.Menu
 {
-    public class MultiplayerWindow : FullScreenTabsWindow
+    public class MultiplayerWindow : FullScreenTabsWindow, IMultiplayerMenuWindow
     {
         private const string BaseLayoutName = "MultiplayerScreen";
         private const string SeparatorGameObjectName = "Separator";
@@ -19,18 +20,26 @@ namespace WOTRMultiplayer.UI.Menu
 
         public override FullScreenUIType ActiveFullScreenUIType => (FullScreenUIType)555555;
 
+        public Action OnDispose { get; set; }
+
         private List<DOTweenAnimation> _animations = [];
 
         private bool _isInitialized = false;
 
-        private HostMenuItemController _hostMenuController;
-        private JoinMenuItemController _joinMenuController;
+        private IHostMenuItemController _hostMenuController;
+        private IJoinMenuItemController _joinMenuController;
 
         public MultiplayerWindow()
         {
             // I assume this should be used to display menu items content,
             // but I have no idea how to make it work, so have to rely on my own `MenuItemController.MenuContent` implementation
             SubWindowsList = [];
+        }
+
+        public void AssignMenuItemControllers(IHostMenuItemController hostMenuItemController, IJoinMenuItemController joinMenuItemController)
+        {
+            _hostMenuController = hostMenuItemController;
+            _joinMenuController = joinMenuItemController;
         }
 
         public override void Initialize()
@@ -106,16 +115,14 @@ namespace WOTRMultiplayer.UI.Menu
             var baseLayout = transform.Find("CreditsScreen")?.gameObject;
             var baseMenuItem = SetupBaseMenuItem(baseLayout);
             var hostMenuItem = CreateMenuItem(Screen.width * 0.33f, baseMenuItem, baseLayout.transform);
-            _hostMenuController = new HostMenuItemController(this, hostMenuItem);
-            _hostMenuController.Initialize(baseLayout);
+            _hostMenuController.Initialize(this, baseLayout, hostMenuItem);
 
             var joinMenuItem = CreateMenuItem(Screen.width * 0.66f, baseMenuItem, baseLayout.transform);
-            _joinMenuController = new JoinMenuItemController(this, joinMenuItem);
-            _joinMenuController.Initialize(baseLayout);
+            _joinMenuController.Initialize(this, baseLayout, joinMenuItem);
             DestroyImmediate(baseMenuItem);
 
-            _hostMenuController.OnClicked += OnHostMenuItemClicked;
-            _joinMenuController.OnClicked += OnJoinMenuItemClicked;
+            _hostMenuController.OnClicked = OnHostMenuItemClicked;
+            _joinMenuController.OnClicked = OnJoinMenuItemClicked;
         }
 
         private GameObject CreateMenuItem(float positionX, GameObject objToCopy, Transform parent)
@@ -151,6 +158,13 @@ namespace WOTRMultiplayer.UI.Menu
             DestroyImmediate(endSeparator.gameObject);
 
             return baseItem;
+        }
+
+        public override void Dispose()
+        {
+            _hostMenuController.Reset();
+            _joinMenuController.Reset();
+            base.Dispose();
         }
     }
 }

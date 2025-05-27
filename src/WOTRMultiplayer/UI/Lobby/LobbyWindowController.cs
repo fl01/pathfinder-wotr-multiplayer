@@ -1,16 +1,18 @@
 ﻿using System.Collections.Generic;
 using Kingmaker.UI.MVVM._VM.SaveLoad;
-using Serilog;
+using Microsoft.Extensions.Logging;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using WOTRMultiplayer.Abstractions.UI;
+using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.Unity;
 
 namespace WOTRMultiplayer.UI.Lobby
 {
-    public class LobbyInfoController
+    public class LobbyWindowController : ILobbyWindowController
     {
         public const string LobbyScreenRootObjectName = "LobbyScreen";
         public const string LobbyContentObjectName = "LobbyContent";
@@ -30,8 +32,10 @@ namespace WOTRMultiplayer.UI.Lobby
         public const string CharacterContainerObjectName = "CharacterContainer";
         public const string CharacterPortraitObjectName = "CharacterPortrait";
         public const string CharacterOwnerObjectName = "CharacterOwner";
+        private readonly ILogger<LobbyWindowController> _logger;
+        private readonly IUIFactory _uIFactory;
+        private GameObject _content;
 
-        private readonly GameObject _content;
         private GameObject PlayersSectionContent => _content.transform
             .Find(LobbyContentObjectName)
             .Find(PlayersSectionObjectName)
@@ -42,14 +46,28 @@ namespace WOTRMultiplayer.UI.Lobby
             .Find(CharactersSectionObjectName)
             .Find(CharactersSectionContentObjectName).gameObject;
 
-        public LobbyInfoController(GameObject content)
+        public LobbyWindowController(
+            ILogger<LobbyWindowController> logger,
+            IUIFactory uIFactory)
         {
-            _content = content;
+            _logger = logger;
+            _uIFactory = uIFactory;
+        }
+
+        public void InitializeContent(Transform parent)
+        {
+            if (_content != null)
+            {
+                _logger.LogError("Lobby content still exists on the scene");
+                return;
+            }
+
+            _content = _uIFactory.CreateLobbyWindowContent(parent);
         }
 
         public void SaveSlotSelected(SaveSlotVM value)
         {
-            Log.Logger.Information("Selected SaveSlo={saveSlot}", value);
+            _logger.LogInformation("Selected SaveSlo={saveSlot}", value);
             var rnd = new System.Random();
             //UpdatePlayers(players);
             UpdateCharacters(value);
@@ -68,7 +86,7 @@ namespace WOTRMultiplayer.UI.Lobby
         {
             var defaultMesh = Main.Multiplayer.Factory.GetDefaultMesh();
             var playerContainerObject = Main.Multiplayer.Factory.CreateDefaultGameObject(PlayersSectionContent.transform);
-            playerContainerObject.name = LobbyInfoController.PlayerContainerObjectName;
+            playerContainerObject.name = LobbyWindowController.PlayerContainerObjectName;
             var playerContainerHorizontal = playerContainerObject.AddComponent<HorizontalLayoutGroup>();
             var playerContainerSizeFitter = playerContainerObject.AddComponent<ContentSizeFitter>();
             playerContainerSizeFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
@@ -77,7 +95,7 @@ namespace WOTRMultiplayer.UI.Lobby
             var playerObject = Main.Multiplayer.Factory.CreateDefaultGameObject(playerContainerObject.transform);
             var playerElement = playerObject.AddComponent<LayoutElement>();
             playerElement.preferredHeight = 40;
-            playerObject.name = LobbyInfoController.PlayerNameObjectName;
+            playerObject.name = LobbyWindowController.PlayerNameObjectName;
             var playerNameBox = playerObject.AddComponent<TextMeshProUGUI>();
             playerNameBox.alignment = TextAlignmentOptions.Center;
             playerNameBox.material = defaultMesh.Material;
@@ -110,7 +128,7 @@ namespace WOTRMultiplayer.UI.Lobby
             var specificCharacterContainer = CharactersInfoContainer.transform.GetChild(characterIndex);
             if (specificCharacterContainer == null)
             {
-                Log.Logger.Information("Character doesn't exist. Index={characterIndex}", characterIndex);
+                _logger.LogInformation("Character doesn't exist. Index={characterIndex}", characterIndex);
             }
 
             var portrait = specificCharacterContainer.Find(CharacterPortraitObjectName);
@@ -118,7 +136,7 @@ namespace WOTRMultiplayer.UI.Lobby
             var img = portrait.GetComponent<Image>();
             img.sprite = portraitSprite;
             img.color = portraitSprite == null ? Color.clear : Color.white;
-            Log.Logger.Information("Updated character portrait. Index={characterIndex}, SpriteName={spriteName}", characterIndex, portraitSprite?.name);
+            _logger.LogInformation("Updated character portrait. Index={characterIndex}, SpriteName={spriteName}", characterIndex, portraitSprite?.name);
         }
 
         private void OnCharacterOwnerChanged(TMP_Dropdown dropdown)
@@ -126,7 +144,7 @@ namespace WOTRMultiplayer.UI.Lobby
             var player = dropdown.options.Count >= dropdown.value ? dropdown.options[dropdown.value].text : null;
             if (player == null)
             {
-                Log.Logger.Warning("Can't find selected player to assign character control");
+                _logger.LogWarning("Can't find selected player to assign character control");
                 return;
             }
 
@@ -134,11 +152,11 @@ namespace WOTRMultiplayer.UI.Lobby
 
             if (characterIndexComponent == null)
             {
-                Log.Logger.Warning($"Can't find ${nameof(CharacterIndexMonoBehavior)} to assign character control");
+                _logger.LogWarning($"Can't find ${nameof(CharacterIndexMonoBehavior)} to assign character control");
                 return;
             }
 
-            Log.Logger.Information("Character owner changed. CharacterIndex={characterIndex}, Player={player}", characterIndexComponent.CharacterIndex, player);
+            _logger.LogInformation("Character owner changed. CharacterIndex={characterIndex}, Player={player}", characterIndexComponent.CharacterIndex, player);
         }
 
         private Sprite GetPortraitSprite(int slot, SaveSlotVM saveSlotVM)

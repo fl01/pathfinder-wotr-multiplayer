@@ -1,7 +1,8 @@
 ﻿using System;
+using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
-using Serilog;
 using UnityEngine;
+using WOTRMultiplayer.Abstractions.UI;
 
 namespace WOTRMultiplayer.UI.Menu.Items
 {
@@ -9,35 +10,40 @@ namespace WOTRMultiplayer.UI.Menu.Items
     {
         public const string SelectedGameObjectName = "SelectedImage";
         public const string HoverGameObjectName = "HoverImage";
+        private readonly Microsoft.Extensions.Logging.ILogger _logger;
 
         private bool _isInitialized = false;
         private OwlcatButton Button => MenuItem.gameObject.GetComponent<OwlcatButton>();
         private GameObject _hoverImage;
 
-        public GameObject MenuItem { get; private set; }
-        public abstract GameObject MenuContent { get; }
+        protected bool SetupLayout { get; set; } = true;
         protected GameObject ActiveImage { get; private set; }
-        protected MultiplayerWindow Window { get; private set; }
+
+        protected GameObject MenuItem { get; private set; }
+        protected abstract GameObject MenuContent { get; }
+        protected IMultiplayerMenuWindow Window { get; private set; }
 
         public bool IsActive => ActiveImage.activeSelf;
 
-        public event EventHandler OnClicked;
+        public Action<object, EventArgs> OnClicked { get; set; }
 
-        public MenuItemController(MultiplayerWindow multiplayerWindow, GameObject menuItem)
+        protected MenuItemController(Microsoft.Extensions.Logging.ILogger logger)
         {
-            Log.Logger.Information("Creating {controllerTypeName}. Type={type}", nameof(MenuItemController), GetType().Name);
-
-            MenuItem = menuItem;
-            Window = multiplayerWindow;
+            _logger = logger;
         }
 
-        public void Initialize(GameObject baseLayout)
+        public void Initialize(IMultiplayerMenuWindow multiplayerMenuWindow, GameObject baseLayout, GameObject menuItem)
         {
+            _logger.LogInformation("Trying to initialize");
+
             if (_isInitialized)
             {
+                _logger.LogInformation("Already initialized");
                 return;
             }
 
+            MenuItem = menuItem;
+            Window = multiplayerMenuWindow;
             _isInitialized = true;
 
             InitializeInternal(baseLayout);
@@ -48,6 +54,13 @@ namespace WOTRMultiplayer.UI.Menu.Items
             _hoverImage = MenuItem.transform.Find(HoverGameObjectName).gameObject;
 
             Deactivate();
+        }
+
+        public void Reset()
+        {
+            _logger.LogInformation("Resetting initialization");
+            SetupLayout = true;
+            _isInitialized = false;
         }
 
         protected virtual void InitializeInternal(GameObject baseLayout)
@@ -64,7 +77,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
             ActiveImage.SetActive(true);
             MenuContent.SetActive(true);
 
-            Log.Logger.Information("Activated {controllerTypeName}. Type={type}", nameof(MenuItemController), GetType().Name);
+            _logger.LogInformation("Activated");
         }
 
         public virtual void Deactivate()
@@ -72,7 +85,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
             ActiveImage.SetActive(false);
             MenuContent.SetActive(false);
 
-            Log.Logger.Information("Deactivated {controllerTypeName}. Type={type}", nameof(MenuItemController), GetType().Name);
+            _logger.LogInformation("Deactivated");
 
         }
 

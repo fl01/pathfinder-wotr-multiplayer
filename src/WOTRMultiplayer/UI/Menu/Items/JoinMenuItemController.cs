@@ -1,25 +1,40 @@
-﻿using TMPro;
+﻿using Microsoft.Extensions.Logging;
+using TMPro;
 using UnityEngine;
+using WOTRMultiplayer.Abstractions.UI.Controllers;
+using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Extensions;
-using WOTRMultiplayer.UI.Menu;
 
 namespace WOTRMultiplayer.UI.Menu.Items
 {
-    public class JoinMenuItemController : MenuItemController
+    public class JoinMenuItemController : MenuItemController, IJoinMenuItemController
     {
         public const string JoinMenuItemContentObjectName = "JoinMenuItemContent";
+        private readonly ILogger<JoinMenuItemController> _logger;
+        private readonly ILobbyWindowController _lobbyWindowController;
 
         private GameObject _menuContent;
 
-        public override GameObject MenuContent =>  _menuContent;
+        protected override GameObject MenuContent => _menuContent;
 
-        public JoinMenuItemController(MultiplayerWindow multiplayerWindow, GameObject menuItem)
-            : base(multiplayerWindow, menuItem)
+        public JoinMenuItemController(
+            ILogger<JoinMenuItemController> logger,
+            ILobbyWindowController lobbyWindowController)
+            : base(logger)
         {
+            _logger = logger;
+            _lobbyWindowController = lobbyWindowController;
         }
 
         public override void Activate()
         {
+            _logger.LogInformation("Trying to activate");
+
+            if (IsActive)
+            {
+                return;
+            }
+
             base.Activate();
         }
 
