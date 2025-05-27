@@ -4,6 +4,7 @@ using Kingmaker.UI.MVVM._PCView.SaveLoad;
 using Kingmaker.UI.MVVM._VM.SaveLoad;
 using Kingmaker.UI.MVVM._VM.ServiceWindows.CharacterInfo.Sections.Abilities;
 using Owlcat.Runtime.UI.VirtualListSystem;
+using Serilog;
 using TMPro;
 using UnityEngine;
 using WOTRMultiplayer.Extensions;
@@ -29,7 +30,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
 
         public override void Activate()
         {
-            Logging.Logger.Info($"Trying to activate {nameof(HostMenuItemController)}. IsActive={IsActive}");
+            Log.Logger.Information("Trying to activate {controllerTypeName}. IsActive={IsActive}", nameof(HostMenuItemController), IsActive);
 
             if (IsActive)
             {

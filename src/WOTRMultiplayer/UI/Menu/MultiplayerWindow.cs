@@ -4,6 +4,7 @@ using DG.Tweening;
 using Kingmaker.UI.FullScreenUITypes;
 using Kingmaker.UI.ServiceWindow;
 using Owlcat.Runtime.UI.Controls.Button;
+using Serilog;
 using UnityEngine;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.UI.Menu.Items;
@@ -36,7 +37,7 @@ namespace WOTRMultiplayer.UI.Menu
         {
             if (_isInitialized)
             {
-                Logging.Logger.Warning("Trying to initialize already initialized window");
+                Log.Logger.Warning("Trying to initialize already initialized window");
                 return;
             }
 
@@ -84,7 +85,7 @@ namespace WOTRMultiplayer.UI.Menu
 
         public override void Show(bool state)
         {
-            Logging.Logger.Info($"Show/Hide {nameof(MultiplayerWindow)}. State={state}");
+            Log.Logger.Information("Show/Hide {windowTypeName}, State={state}", nameof(MultiplayerWindow), state);
             if (state)
             {
                 _hostMenuController.Activate();

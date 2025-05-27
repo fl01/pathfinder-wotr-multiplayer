@@ -1,7 +1,9 @@
 ﻿using System.Reflection;
 using HarmonyLib;
+using Serilog;
 using UnityModManagerNet;
 using WOTRMultiplayer.Config.UnityMod;
+using WOTRMultiplayer.Logging;
 using WOTRMultiplayer.UI;
 
 namespace WOTRMultiplayer
@@ -12,11 +14,14 @@ namespace WOTRMultiplayer
 
         public static Multiplayer Multiplayer { get; private set; }
 
+        private static ILogger _logger;
+
         public static bool Load(UnityModManager.ModEntry entry)
         {
             _settings = UnityModManager.ModSettings.Load<UnityModManagerSettings>(entry);
-            Logging.Logger.Initialize(_settings);
-            Logging.Logger.Info("Loading mod");
+            _logger = Log.Logger = LoggerFactory.Create(_settings.UseDebugConsole);
+
+            _logger.Information("Loading mod");
 
             var host = new MultiplayerHost(new Networking.NetworkServer());
             var client = new MultiplayerClient(new Networking.NetworkServerClient());
@@ -33,7 +38,7 @@ namespace WOTRMultiplayer
             }
             catch (System.Exception ex)
             {
-                Logging.Logger.Error(ex);
+                _logger.Error(ex, "Harmony patching has failed");
                 throw;
             }
 
@@ -42,7 +47,7 @@ namespace WOTRMultiplayer
 
         private static bool OnUnload(UnityModManager.ModEntry entry)
         {
-            Logging.Logger.Info("Unloading");
+            _logger.Information("Unloading");
             Multiplayer.Dispose();
             return true;
         }

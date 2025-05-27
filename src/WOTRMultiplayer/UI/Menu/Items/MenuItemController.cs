@@ -1,5 +1,6 @@
 ﻿using System;
 using Owlcat.Runtime.UI.Controls.Button;
+using Serilog;
 using UnityEngine;
 
 namespace WOTRMultiplayer.UI.Menu.Items
@@ -24,7 +25,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
 
         public MenuItemController(MultiplayerWindow multiplayerWindow, GameObject menuItem)
         {
-            Logging.Logger.Info($"Creating {nameof(MenuItemController)}. Type={GetType().Name}");
+            Log.Logger.Information("Creating {controllerTypeName}. Type={type}", nameof(MenuItemController), GetType().Name);
 
             MenuItem = menuItem;
             Window = multiplayerWindow;
@@ -63,7 +64,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
             ActiveImage.SetActive(true);
             MenuContent.SetActive(true);
 
-            Logging.Logger.Info($"Activated {nameof(MenuItemController)}. Type={GetType().Name}");
+            Log.Logger.Information("Activated {controllerTypeName}. Type={type}", nameof(MenuItemController), GetType().Name);
         }
 
         public virtual void Deactivate()
@@ -71,7 +72,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
             ActiveImage.SetActive(false);
             MenuContent.SetActive(false);
 
-            Logging.Logger.Info($"Deactivated {nameof(MenuItemController)}. Type={GetType().Name}");
+            Log.Logger.Information("Deactivated {controllerTypeName}. Type={type}", nameof(MenuItemController), GetType().Name);
 
         }
 

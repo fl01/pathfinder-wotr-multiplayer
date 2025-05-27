@@ -30,7 +30,7 @@ namespace WOTRMultiplayer.Networking.Extensions
                 }
             }
 
-            if (IPAddress.TryParse(value.Slice(0, addressLength).ToString(), out IPAddress? address))
+            if (IPAddress.TryParse(value.Slice(0, addressLength).ToString(), out IPAddress address))
             {
                 uint port = 0;
                 if (addressLength == value.Length ||

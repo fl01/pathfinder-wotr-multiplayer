@@ -6,6 +6,7 @@ using Kingmaker.UI.MVVM._PCView.SaveLoad;
 using Kingmaker.UI.MVVM._PCView.Settings.Entities;
 using Kingmaker.UI.ServiceWindow.Credits;
 using Owlcat.Runtime.UI.Controls.Button;
+using Serilog;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -45,7 +46,7 @@ namespace WOTRMultiplayer.UI
                 {
                     if (_dropdownPrefab == null)
                     {
-                        Logging.Logger.Info($"Storing {nameof(SettingsEntityDropdownPCView)} prefab");
+                        Log.Logger.Information("Storing {prefabTypeName} prefab", nameof(SettingsEntityDropdownPCView));
 
                         _dropdownPrefab = UnityEngine.Object.Instantiate(view.gameObject);
                         UnityEngine.Object.DontDestroyOnLoad(_dropdownPrefab);
@@ -71,7 +72,7 @@ namespace WOTRMultiplayer.UI
                 {
                     if (_saveLoadPCView == null)
                     {
-                        Logging.Logger.Info($"Storing {nameof(SaveLoadPCView)} prefab");
+                        Log.Logger.Information("Storing {prefabTypeName} prefab", nameof(SaveLoadPCView));
                         _saveLoadPCView = UnityEngine.Object.Instantiate(view);
                         UnityEngine.Object.DontDestroyOnLoad(_saveLoadPCView);
                     }
@@ -92,7 +93,7 @@ namespace WOTRMultiplayer.UI
                 {
                     if (_defaultGameObject == null)
                     {
-                        Logging.Logger.Info($"Storing default prefab");
+                        Log.Logger.Information("Storing default prefab");
                         _defaultGameObject = UnityEngine.Object.Instantiate(gameObject);
                         UnityEngine.Object.DestroyImmediate(_defaultGameObject.GetComponent<Image>());
                         UnityEngine.Object.DontDestroyOnLoad(_defaultGameObject);
@@ -114,7 +115,7 @@ namespace WOTRMultiplayer.UI
                 {
                     if (_borderDecoration == null)
                     {
-                        Logging.Logger.Info($"Storing border decoration prefab");
+                        Log.Logger.Information("Storing border decoration prefab");
                         _borderDecoration = UnityEngine.Object.Instantiate(gameObject);
                         UnityEngine.Object.DontDestroyOnLoad(_borderDecoration);
                     }

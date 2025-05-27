@@ -4,6 +4,7 @@ using Kingmaker.UI.MVVM;
 using Kingmaker.UI.MVVM._PCView.Common;
 using Kingmaker.UI.MVVM._PCView.MainMenu;
 using Kingmaker.UI.MVVM._PCView.Settings;
+using Serilog;
 using TMPro;
 
 namespace WOTRMultiplayer.UI.Menu
@@ -15,7 +16,7 @@ namespace WOTRMultiplayer.UI.Menu
         [HarmonyPostfix]
         public static void SettingsEntityDropdownPCView_BindViewImplementation_Prefix(SettingsPCView __instance)
         {
-            Logging.Logger.Warning("Applying");
+            Log.Logger.Information("Applying");
             Main.Multiplayer.Factory.StoreDropdownPrefab(__instance.m_SettingsViews.m_SettingsEntityDropdownViewPrefab);
         }
 
@@ -24,7 +25,7 @@ namespace WOTRMultiplayer.UI.Menu
         [HarmonyPrefix]
         public static void MainMenuSideBarPCView_BindViewImplementation_Prefix(MainMenuSideBarPCView __instance)
         {
-            Logging.Logger.Info("Applying");
+            Log.Logger.Information("Applying");
             try
             {
                 var commonPCView = (RootUIContext.Instance.m_CommonView as CommonPCView)?.m_SaveLoadPCView;
@@ -49,7 +50,7 @@ namespace WOTRMultiplayer.UI.Menu
                         var isOk = Main.Multiplayer.InjectMultiplayerMenuWindow(obj, menuButtons.transform);
                         if (!isOk)
                         {
-                            Logging.Logger.Error("Unable to inject multiplayer menu");
+                            Log.Logger.Error("Unable to inject multiplayer menu");
                         }
                         break;
                     }
@@ -57,7 +58,7 @@ namespace WOTRMultiplayer.UI.Menu
             }
             catch (Exception ex)
             {
-                Logging.Logger.Error("Unable to apply patch", ex);
+                Log.Logger.Error(ex, "Unable to apply patch");
                 throw;
             }
         }

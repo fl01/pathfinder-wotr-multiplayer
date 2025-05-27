@@ -18,11 +18,25 @@
 			xcopy /q /y ".\System.Numerics.Vectors.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
 			xcopy /q /y ".\System.Runtime.CompilerServices.Unsafe.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
 			xcopy /q /y ".\System.Threading.Tasks.Extensions.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+
+			xcopy /q /y ".\Serilog.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+			xcopy /q /y ".\Serilog.Sinks.Console.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+			xcopy /q /y ".\Serilog.Sinks.File.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+			xcopy /q /y ".\System.Buffers.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+			xcopy /q /y ".\System.Diagnostics.DiagnosticSource.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+			xcopy /q /y ".\System.Memory.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+			xcopy /q /y ".\System.Numerics.Vectors.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+			xcopy /q /y ".\System.Runtime.CompilerServices.Unsafe.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+			xcopy /q /y ".\System.Threading.Channels.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+			xcopy /q /y ".\System.Threading.Tasks.Extensions.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+
+
 		</PostBuildEvent>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3" PrivateAssets="all" />
+		<ProjectReference Include="..\WOTRMultiplayer.Logging\WOTRMultiplayer.Logging.csproj" />
 		<ProjectReference Include="..\WOTRMultiplayer.Networking\WOTRMultiplayer.Networking.csproj" />
 
 		<Reference Include="0Harmony">
@@ -32,19 +46,19 @@
 			<HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\Assembly-CSharp.dll</HintPath>
 		</Reference>
 		<Reference Include="Assembly-CSharp-firstpass">
-		  <HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+			<HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
 		</Reference>
 		<Reference Include="DOTweenPro">
-		  <HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\DOTweenPro.dll</HintPath>
+			<HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\DOTweenPro.dll</HintPath>
 		</Reference>
 		<Reference Include="UniRx">
-		  <HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\UniRx.dll</HintPath>
+			<HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\UniRx.dll</HintPath>
 		</Reference>
 		<Reference Include="Unity.TextMeshPro">
-		  <HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+			<HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\Unity.TextMeshPro.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine">
-		  <HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\UnityEngine.dll</HintPath>
+			<HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\UnityEngine.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.CoreModule">
 			<HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
@@ -53,13 +67,13 @@
 			<HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.TextRenderingModule">
-		  <HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+			<HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.UI">
-		  <HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\UnityEngine.UI.dll</HintPath>
+			<HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\UnityEngine.UI.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.UIModule">
-		  <HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+			<HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\UnityEngine.UIModule.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityModManager">
 			<HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\UnityModManager\UnityModManager.dll</HintPath>

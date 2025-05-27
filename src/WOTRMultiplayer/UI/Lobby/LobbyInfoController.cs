@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Kingmaker.UI.MVVM._VM.SaveLoad;
+using Serilog;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -48,7 +49,7 @@ namespace WOTRMultiplayer.UI.Lobby
 
         public void SaveSlotSelected(SaveSlotVM value)
         {
-            Logging.Logger.Info($"Selected SaveSlo={value.SaveName.Value}");
+            Log.Logger.Information("Selected SaveSlo={saveSlot}", value);
             var rnd = new System.Random();
             //UpdatePlayers(players);
             UpdateCharacters(value);
@@ -109,7 +110,7 @@ namespace WOTRMultiplayer.UI.Lobby
             var specificCharacterContainer = CharactersInfoContainer.transform.GetChild(characterIndex);
             if (specificCharacterContainer == null)
             {
-                Logging.Logger.Info($"Character doesn't exist. Index={characterIndex}");
+                Log.Logger.Information("Character doesn't exist. Index={characterIndex}", characterIndex);
             }
 
             var portrait = specificCharacterContainer.Find(CharacterPortraitObjectName);
@@ -117,7 +118,7 @@ namespace WOTRMultiplayer.UI.Lobby
             var img = portrait.GetComponent<Image>();
             img.sprite = portraitSprite;
             img.color = portraitSprite == null ? Color.clear : Color.white;
-            Logging.Logger.Info($"Updated character portrait. Index={characterIndex}, SpriteName={portraitSprite?.name}");
+            Log.Logger.Information("Updated character portrait. Index={characterIndex}, SpriteName={spriteName}", characterIndex, portraitSprite?.name);
         }
 
         private void OnCharacterOwnerChanged(TMP_Dropdown dropdown)
@@ -125,7 +126,7 @@ namespace WOTRMultiplayer.UI.Lobby
             var player = dropdown.options.Count >= dropdown.value ? dropdown.options[dropdown.value].text : null;
             if (player == null)
             {
-                Logging.Logger.Warning("Can't find selected player to assign character control");
+                Log.Logger.Warning("Can't find selected player to assign character control");
                 return;
             }
 
@@ -133,11 +134,11 @@ namespace WOTRMultiplayer.UI.Lobby
 
             if (characterIndexComponent == null)
             {
-                Logging.Logger.Warning($"Can't find ${nameof(CharacterIndexMonoBehavior)} to assign character control");
+                Log.Logger.Warning($"Can't find ${nameof(CharacterIndexMonoBehavior)} to assign character control");
                 return;
             }
 
-            Logging.Logger.Info($"Character owner changed. CharacterIndex={characterIndexComponent.CharacterIndex}, Player={player}");
+            Log.Logger.Information("Character owner changed. CharacterIndex={characterIndex}, Player={player}", characterIndexComponent.CharacterIndex, player);
         }
 
         private Sprite GetPortraitSprite(int slot, SaveSlotVM saveSlotVM)
