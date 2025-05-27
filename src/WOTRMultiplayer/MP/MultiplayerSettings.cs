@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace WOTRMultiplayer
+namespace WOTRMultiplayer.MP
 {
     public class MultiplayerSettings
     {

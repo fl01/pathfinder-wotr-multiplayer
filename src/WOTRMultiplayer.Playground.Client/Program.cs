@@ -1,5 +1,6 @@
 ﻿using System;
-using WOTRMultiplayer.Networking;
+using Microsoft.Extensions.DependencyInjection;
+using WOTRMultiplayer.Abstractions.MP;
 
 namespace WOTRMultiplayer.Playground.Client
 {
@@ -8,11 +9,12 @@ namespace WOTRMultiplayer.Playground.Client
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
+            var serviceProvider = DI.DIFactory.Create(new Config.UnityMod.UnityModManagerSettings { UseDebugConsole = false });
             Console.WriteLine("Press enter to join");
             Console.ReadLine();
 
-            var networkClient = new NetworkServerClient();
-            var client = new MultiplayerClient(networkClient);
+
+            var client = serviceProvider.GetService<IMultiplayerClient>();
             client.Join("127.0.0.1:1024", null);
             var input = string.Empty;
 

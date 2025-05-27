@@ -14,4 +14,8 @@
 	  <Folder Include="Messages\1_System\" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\WOTRMultiplayer.Logging\WOTRMultiplayer.Logging.csproj" />
+	</ItemGroup>
+
 </Project>

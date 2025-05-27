@@ -1,4 +1,7 @@
 ﻿using System;
+using Microsoft.Extensions.DependencyInjection;
+using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.MP;
 using WOTRMultiplayer.Networking;
 
 namespace WOTRMultiplayer.Playground.Host
@@ -11,8 +14,8 @@ namespace WOTRMultiplayer.Playground.Host
             Console.WriteLine("Press enter to host");
             Console.ReadLine();
 
-            var networkServer = new NetworkServer();
-            var host = new MultiplayerHost(networkServer);
+            var serviceProvider = DI.DIFactory.Create(new Config.UnityMod.UnityModManagerSettings { UseDebugConsole = false });
+            var host = serviceProvider.GetService<IMultiplayerHost>();
             host.Start(new MultiplayerSettings());
             var input = string.Empty;
 

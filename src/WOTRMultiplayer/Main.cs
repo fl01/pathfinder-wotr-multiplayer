@@ -1,44 +1,45 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using HarmonyLib;
-using Serilog;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using UnityModManagerNet;
+using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Config.UnityMod;
-using WOTRMultiplayer.Logging;
-using WOTRMultiplayer.UI;
+using WOTRMultiplayer.DI;
 
 namespace WOTRMultiplayer
 {
     public class Main
     {
         private static UnityModManagerSettings _settings;
+        private static IServiceProvider _serviceProvider;
 
-        public static Multiplayer Multiplayer { get; private set; }
+        public static IMultiplayer Multiplayer { get; private set; }
 
-        private static ILogger _logger;
+        private static ILogger<Main> _logger;
 
         public static bool Load(UnityModManager.ModEntry entry)
         {
             _settings = UnityModManager.ModSettings.Load<UnityModManagerSettings>(entry);
-            _logger = Log.Logger = LoggerFactory.Create(_settings.UseDebugConsole);
-
-            _logger.Information("Loading mod");
-
-            var host = new MultiplayerHost(new Networking.NetworkServer());
-            var client = new MultiplayerClient(new Networking.NetworkServerClient());
-            Multiplayer = new Multiplayer(new UIFactory(), host, client);
-
-            entry.OnGUI += OnGui;
-            entry.OnSaveGUI += OnSaveGui;
-            entry.OnUnload += OnUnload;
-
+            _serviceProvider = DIFactory.Create(_settings);
+            _logger = _serviceProvider.GetService<ILogger<Main>>();
+            _logger.LogInformation("Loading mod");
             try
             {
+                Multiplayer = _serviceProvider.GetService<IMultiplayer>();
+
+                entry.OnGUI += OnGui;
+                entry.OnSaveGUI += OnSaveGui;
+                entry.OnUnload += OnUnload;
+
+
                 var harmony = new Harmony(entry.Info.Id);
                 harmony.PatchAll(Assembly.GetExecutingAssembly());
             }
             catch (System.Exception ex)
             {
-                _logger.Error(ex, "Harmony patching has failed");
+                _logger.LogError(ex, "Failed to load mod");
                 throw;
             }
 
@@ -47,7 +48,7 @@ namespace WOTRMultiplayer
 
         private static bool OnUnload(UnityModManager.ModEntry entry)
         {
-            _logger.Information("Unloading");
+            _logger.LogInformation("Unloading");
             Multiplayer.Dispose();
             return true;
         }

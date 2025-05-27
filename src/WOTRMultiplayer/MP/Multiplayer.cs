@@ -1,21 +1,25 @@
-﻿using System;
-using Kingmaker.UI.Common;
+﻿using Kingmaker.UI.Common;
 using Kingmaker.UI.MVVM._PCView.ContextMenu;
 using Kingmaker.UI.MVVM._VM.ContextMenu;
 using UnityEngine;
+using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.UI;
 
-namespace WOTRMultiplayer
+namespace WOTRMultiplayer.MP
 {
-    public class Multiplayer : IDisposable
+    public class Multiplayer : IMultiplayer
     {
         private UI.Menu.MultiplayerWindow _multiplayerWindow;
-        private readonly MultiplayerClient _multiplayerClient;
-        private readonly MultiplayerHost _multiplayerHost;
+        private readonly IMultiplayerClient _multiplayerClient;
+        private readonly IMultiplayerHost _multiplayerHost;
 
-        public UIFactory Factory { get; private set; }
+        public IUIFactory Factory { get; private set; }
 
-        public Multiplayer(UIFactory uiFactory, MultiplayerHost multiplayerHost, MultiplayerClient multiplayerClient)
+        public Multiplayer(
+            IUIFactory uiFactory,
+            IMultiplayerHost multiplayerHost,
+            IMultiplayerClient multiplayerClient)
         {
             Factory = uiFactory;
             _multiplayerHost = multiplayerHost;

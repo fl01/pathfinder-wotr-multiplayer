@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Globalization;
 using System.Net;
+using WOTRMultiplayer.Networking.Abstractions;
 
-namespace WOTRMultiplayer.Networking.Extensions
+namespace WOTRMultiplayer.Networking.Endpoint
 {
-    public static class IPEndPoint
+    public class IPEndPointParser : IIPEndPointParser
     {
-        public static bool TryParse(string value, out System.Net.IPEndPoint result)
+        public bool TryParse(string value, out IPEndPoint result)
         {
             return TryParse(value.AsSpan(), out result);
         }
 
-        public static bool TryParse(ReadOnlySpan<char> value, out System.Net.IPEndPoint result)
+        public bool TryParse(ReadOnlySpan<char> value, out IPEndPoint result)
         {
             int addressLength = value.Length;  // If there's no port then send the entire string to the address parser
             int lastColonPos = value.LastIndexOf(':');
@@ -34,10 +35,10 @@ namespace WOTRMultiplayer.Networking.Extensions
             {
                 uint port = 0;
                 if (addressLength == value.Length ||
-                    (uint.TryParse(value.Slice(addressLength + 1).ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out port) && port <= System.Net.IPEndPoint.MaxPort))
+                    uint.TryParse(value.Slice(addressLength + 1).ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out port) && port <= IPEndPoint.MaxPort)
 
                 {
-                    result = new System.Net.IPEndPoint(address, (int)port);
+                    result = new IPEndPoint(address, (int)port);
                     return true;
                 }
             }

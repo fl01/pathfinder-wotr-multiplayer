@@ -3,10 +3,11 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using BeetleX;
 using BeetleX.Clients;
+using WOTRMultiplayer.Networking.Abstractions;
 
 namespace WOTRMultiplayer.Networking
 {
-    public class NetworkServerClient
+    public class NetworkServerClient : INetworkServerClient
     {
         private AsyncTcpClient _client;
         private readonly ConcurrentDictionary<Type, Action<object>> _handlers = new();
@@ -18,7 +19,7 @@ namespace WOTRMultiplayer.Networking
             var status = await _client.Connect();
         }
 
-        public NetworkServerClient Register<TMessage>(Action<TMessage> handler)
+        public INetworkServerClient Register<TMessage>(Action<TMessage> handler)
             where TMessage : class
         {
             _handlers.TryAdd(typeof(TMessage), message => handler((TMessage)message));
@@ -26,9 +27,14 @@ namespace WOTRMultiplayer.Networking
             return this;
         }
 
-        public Task Send(object message)
+        public Task SendAsync(object message)
         {
             return _client.Send(message);
+        }
+
+        public void Dispose()
+        {
+            _client?.Dispose();
         }
 
         private void OnPackedReceived(IClient client, object message)

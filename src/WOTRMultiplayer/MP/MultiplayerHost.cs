@@ -1,22 +1,23 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Entities;
-using WOTRMultiplayer.Networking;
+using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Lobby;
 
-namespace WOTRMultiplayer
+namespace WOTRMultiplayer.MP
 {
-    public class MultiplayerHost
+    public class MultiplayerHost : IMultiplayerHost
     {
-        private readonly NetworkServer _networkServer;
+        private readonly INetworkServer _networkServer;
 
         private readonly List<NetworkPlayer> _playersList = [];
         private readonly object _actionlock = new();
 
         public bool IsActive => _networkServer.IsActive;
 
-        public MultiplayerHost(NetworkServer networkServer)
+        public MultiplayerHost(INetworkServer networkServer)
         {
             _networkServer = networkServer;
 
@@ -30,7 +31,7 @@ namespace WOTRMultiplayer
                 _networkServer.Dispose();
             }
 
-            _networkServer.Start(settings.NetworkInterfaceBinding, settings.Port);
+            _networkServer.Start();
         }
 
         public void Reset()

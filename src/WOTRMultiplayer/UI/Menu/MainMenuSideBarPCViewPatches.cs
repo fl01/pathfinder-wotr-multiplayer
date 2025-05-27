@@ -16,8 +16,16 @@ namespace WOTRMultiplayer.UI.Menu
         [HarmonyPostfix]
         public static void SettingsEntityDropdownPCView_BindViewImplementation_Prefix(SettingsPCView __instance)
         {
-            Log.Logger.Information("Applying");
-            Main.Multiplayer.Factory.StoreDropdownPrefab(__instance.m_SettingsViews.m_SettingsEntityDropdownViewPrefab);
+            try
+            {
+                Log.Logger.Information("Applying");
+                Main.Multiplayer.Factory.StoreDropdownPrefab(__instance.m_SettingsViews.m_SettingsEntityDropdownViewPrefab);
+            }
+            catch (Exception ex)
+            {
+                Log.Logger.Error(ex, "Unable to apply SettingsPCView patch");
+                throw;
+            }
         }
 
 
@@ -44,10 +52,10 @@ namespace WOTRMultiplayer.UI.Menu
                 var menuButtons = __instance.transform.GetChild(0);
                 for (int menuIndex = 0; menuIndex >= 0; menuIndex++)
                 {
-                    var obj = menuButtons.GetChild(menuIndex).gameObject;
-                    if (string.Equals(obj.name, "Settings"))
+                    var menuButton = menuButtons.GetChild(menuIndex).gameObject;
+                    if (string.Equals(menuButton.name, "Settings"))
                     {
-                        var isOk = Main.Multiplayer.InjectMultiplayerMenuWindow(obj, menuButtons.transform);
+                        var isOk = Main.Multiplayer.InjectMultiplayerMenuWindow(menuButton, menuButtons.transform);
                         if (!isOk)
                         {
                             Log.Logger.Error("Unable to inject multiplayer menu");
@@ -58,7 +66,7 @@ namespace WOTRMultiplayer.UI.Menu
             }
             catch (Exception ex)
             {
-                Log.Logger.Error(ex, "Unable to apply patch");
+                Log.Logger.Error(ex, "Unable to apply MainMenuSideBarPCView patch");
                 throw;
             }
         }

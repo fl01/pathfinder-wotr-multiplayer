@@ -1,4 +1,4 @@
-﻿namespace WOTRMultiplayer.Networking
+﻿namespace WOTRMultiplayer.Networking.Entities
 {
     public class NetworkClient
     {

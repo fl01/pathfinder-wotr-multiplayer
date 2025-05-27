@@ -5,18 +5,19 @@ using Kingmaker.UI.Common;
 using Kingmaker.UI.MVVM._PCView.SaveLoad;
 using Kingmaker.UI.MVVM._PCView.Settings.Entities;
 using Kingmaker.UI.ServiceWindow.Credits;
+using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
-using Serilog;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.UI.Lobby;
 using WOTRMultiplayer.Unity;
 
 namespace WOTRMultiplayer.UI
 {
-    public class UIFactory
+    public class UIFactory : IUIFactory
     {
         public const string DropdownGameObjectName = "Dropdown";
         public const int LobbySectionTitleHeight = 50;
@@ -24,8 +25,14 @@ namespace WOTRMultiplayer.UI
         private SaveLoadPCView _saveLoadPCView;
         private GameObject _defaultGameObject;
         private GameObject _borderDecoration;
-        private DefaultMesh _defaultTextMesh;
+        private Mesh _defaultTextMesh;
         private readonly object _actionLock = new();
+        private readonly ILogger<UIFactory> _logger;
+
+        public UIFactory(ILogger<UIFactory> logger)
+        {
+            _logger = logger;
+        }
 
         public static int GetMaxCharactersCount()
         {
@@ -46,7 +53,7 @@ namespace WOTRMultiplayer.UI
                 {
                     if (_dropdownPrefab == null)
                     {
-                        Log.Logger.Information("Storing {prefabTypeName} prefab", nameof(SettingsEntityDropdownPCView));
+                        _logger.LogInformation("Storing {prefabTypeName} prefab", nameof(SettingsEntityDropdownPCView));
 
                         _dropdownPrefab = UnityEngine.Object.Instantiate(view.gameObject);
                         UnityEngine.Object.DontDestroyOnLoad(_dropdownPrefab);
@@ -72,7 +79,7 @@ namespace WOTRMultiplayer.UI
                 {
                     if (_saveLoadPCView == null)
                     {
-                        Log.Logger.Information("Storing {prefabTypeName} prefab", nameof(SaveLoadPCView));
+                        _logger.LogInformation("Storing {prefabTypeName} prefab", nameof(SaveLoadPCView));
                         _saveLoadPCView = UnityEngine.Object.Instantiate(view);
                         UnityEngine.Object.DontDestroyOnLoad(_saveLoadPCView);
                     }
@@ -93,7 +100,7 @@ namespace WOTRMultiplayer.UI
                 {
                     if (_defaultGameObject == null)
                     {
-                        Log.Logger.Information("Storing default prefab");
+                        _logger.LogInformation("Storing default prefab");
                         _defaultGameObject = UnityEngine.Object.Instantiate(gameObject);
                         UnityEngine.Object.DestroyImmediate(_defaultGameObject.GetComponent<Image>());
                         UnityEngine.Object.DontDestroyOnLoad(_defaultGameObject);
@@ -115,7 +122,7 @@ namespace WOTRMultiplayer.UI
                 {
                     if (_borderDecoration == null)
                     {
-                        Log.Logger.Information("Storing border decoration prefab");
+                        _logger.LogInformation("Storing border decoration prefab");
                         _borderDecoration = UnityEngine.Object.Instantiate(gameObject);
                         UnityEngine.Object.DontDestroyOnLoad(_borderDecoration);
                     }
@@ -299,14 +306,14 @@ namespace WOTRMultiplayer.UI
 
         public void StoreDefaultTextMesh(TextMeshProUGUI defaultTextMesh)
         {
-            _defaultTextMesh ??= new DefaultMesh
+            _defaultTextMesh ??= new Mesh
             {
                 Color = defaultTextMesh.color,
                 Material = defaultTextMesh.material,
             };
         }
 
-        public DefaultMesh GetDefaultMesh()
+        public Mesh GetDefaultMesh()
         {
             return _defaultTextMesh;
         }

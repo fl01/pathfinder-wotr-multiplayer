@@ -2,7 +2,7 @@
 
 namespace WOTRMultiplayer.UI
 {
-    public class DefaultMesh
+    public class Mesh
     {
         public Material Material { get; set; }
 

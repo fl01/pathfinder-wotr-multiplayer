@@ -4,14 +4,16 @@ using System.Net;
 using System.Threading.Tasks;
 using BeetleX;
 using BeetleX.EventArgs;
+using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages;
 
 namespace WOTRMultiplayer.Networking
 {
-    public class NetworkServer : IApplication, IDisposable
+    public class NetworkServer : INetworkServer
     {
-        private ServerBuilder<NetworkServer, NetworkClientToken, ProtobufPacket> _server;
-        private ServerBuilder<NetworkServer, NetworkClientToken, ProtobufPacket> Server => _server ??= new ServerBuilder<NetworkServer, NetworkClientToken, ProtobufPacket>();
+        private ServerBuilder<NetworkServerApp, NetworkClientToken, ProtobufPacket> _server;
+        private ServerBuilder<NetworkServerApp, NetworkClientToken, ProtobufPacket> Server => _server ??= new ServerBuilder<NetworkServerApp, NetworkClientToken, ProtobufPacket>();
 
         public Action<long> OnClientConnected { get; set; }
 
@@ -21,14 +23,21 @@ namespace WOTRMultiplayer.Networking
 
         public bool IsActive => _server.AppServer?.Status == ServerStatus.Start;
         private Task _serverRunTask;
+        private readonly ILogger<NetworkServer> _logger;
 
-        public NetworkServer Register<TMessage>(Action<long, TMessage> handler)
+        public NetworkServer(ILogger<NetworkServer> logger)
         {
-            Server.OnMessageReceive<TMessage>(args => handler(args.NetSession.ID, args.Message));
+            _logger = logger;
+        }
+
+        public INetworkServer Register<TMessage>(Action<long, TMessage> messageHandler)
+            where TMessage : class
+        {
+            Server.OnMessageReceive<TMessage>(args => messageHandler(args.NetSession.ID, args.Message));
             return this;
         }
 
-        public void Start(string networkInterfaceBinding, int port)
+        public void Start()
         {
             Server.ServerOptions.DefaultListen.StartRegionPort = 1024;
             Server.ServerOptions.DefaultListen.EndRegionPort = ushort.MaxValue;
@@ -72,10 +81,6 @@ namespace WOTRMultiplayer.Networking
             }
 
             OnServerStarted?.Invoke(endpoint);
-        }
-
-        public void Init(IServer server)
-        {
         }
 
         private void OnServerLog(IServer server, ServerLogEventArgs args)

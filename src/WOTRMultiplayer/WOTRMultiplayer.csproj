@@ -22,6 +22,7 @@
 			xcopy /q /y ".\Serilog.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
 			xcopy /q /y ".\Serilog.Sinks.Console.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
 			xcopy /q /y ".\Serilog.Sinks.File.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+			xcopy /q /y ".\Serilog.Extensions.Logging.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
 			xcopy /q /y ".\System.Buffers.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
 			xcopy /q /y ".\System.Diagnostics.DiagnosticSource.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
 			xcopy /q /y ".\System.Memory.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
@@ -30,12 +31,21 @@
 			xcopy /q /y ".\System.Threading.Channels.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
 			xcopy /q /y ".\System.Threading.Tasks.Extensions.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
 
+			xcopy /q /y ".\Microsoft.Bcl.AsyncInterfaces.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+			xcopy /q /y ".\Microsoft.Extensions.DependencyInjection.Abstractions.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+			xcopy /q /y ".\Microsoft.Extensions.DependencyInjection.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
 
+			xcopy /q /y ".\Microsoft.Extensions.Logging.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+			xcopy /q /y ".\Microsoft.Extensions.Logging.Abstractions.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+			xcopy /q /y ".\Microsoft.Extensions.Options.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+			xcopy /q /y ".\Microsoft.Extensions.Primitives.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+			xcopy /q /y ".\System.ValueTuple.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
 		</PostBuildEvent>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
 		<ProjectReference Include="..\WOTRMultiplayer.Logging\WOTRMultiplayer.Logging.csproj" />
 		<ProjectReference Include="..\WOTRMultiplayer.Networking\WOTRMultiplayer.Networking.csproj" />
 
