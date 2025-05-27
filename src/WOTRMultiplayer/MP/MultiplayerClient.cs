@@ -35,6 +35,12 @@ namespace WOTRMultiplayer.MP
             _networkServerClient.ConnectAsync(endpoint.Address.ToString(), endpoint.Port).Wait();
         }
 
+        public void ReadyChanged(bool isReady)
+        {
+            var readyStatusChanged = new PlayerReadyStatusChanged() { IsReady = isReady };
+            _networkServerClient.SendAsync(readyStatusChanged).Wait();
+        }
+
         private void RegisterHandlers()
         {
             _networkServerClient

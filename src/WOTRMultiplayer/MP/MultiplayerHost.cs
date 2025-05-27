@@ -16,7 +16,6 @@ namespace WOTRMultiplayer.MP
         private readonly ILogger<MultiplayerHost> _logger;
         private readonly INetworkServer _networkServer;
         private readonly ILobbyWindowController _lobbyWindowController;
-
         private readonly List<NetworkPlayer> _playersList = [];
         private readonly object _actionlock = new();
 
@@ -85,7 +84,7 @@ namespace WOTRMultiplayer.MP
                 //readyStatusChanged.PlayerId = playerId;
                 //_networkServer.SendAllExcept(playerId, readyStatusChanged);
                 // update UI
-                var allAreReady = _playersList.All(p => p.IsReady);
+                _lobbyWindowController.UpdatePlayers(_playersList);
             }
         }
 
@@ -108,10 +107,10 @@ namespace WOTRMultiplayer.MP
                 }
 
                 existingPlayer.Name = response.Name;
+
+                _lobbyWindowController.UpdatePlayers(_playersList);
                 // send updates to other clients
             }
-
-            _lobbyWindowController.UpdatePlayers(_playersList);
         }
 
         private void OnPlayerConnected(long playerId)

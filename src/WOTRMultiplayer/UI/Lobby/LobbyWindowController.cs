@@ -115,7 +115,6 @@ namespace WOTRMultiplayer.UI.Lobby
             var serverAddressObject = Main.Multiplayer.Factory.CreateDefaultGameObject(serverInfoContainerObject.transform);
             var serverAddressElement = serverAddressObject.AddComponent<LayoutElement>();
             serverAddressElement.preferredHeight = 40;
-            //serverAddressObject.name = LobbyWindowController.PlayerNameObjectName;
             var serverAddressBox = serverAddressObject.AddComponent<TextMeshProUGUI>();
             serverAddressBox.alignment = TextAlignmentOptions.Center;
             serverAddressBox.material = defaultMesh.Material;
