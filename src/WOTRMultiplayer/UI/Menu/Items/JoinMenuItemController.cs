@@ -44,8 +44,6 @@ namespace WOTRMultiplayer.UI.Menu.Items
             }
 
             _lobbyWindowController.SetActiveOwner(LobbyWindowOwner.JoinMenu);
-            _lobbyWindowController.UpdateServerInfo("ZAZAZA");
-
             base.Activate();
         }
 
@@ -56,9 +54,10 @@ namespace WOTRMultiplayer.UI.Menu.Items
 
             _menuContent = UnityEngine.Object.Instantiate(baseLayout, baseLayout.transform);
             _menuContent.name = JoinMenuItemContentObjectName;
+            _menuContent.AddComponent<VerticalLayoutGroup>().padding = new RectOffset(0, 0, 25, 0);
             _menuContent.CleanupAllChildren();
             var menuContentRect = _menuContent.GetComponent<RectTransform>();
-            menuContentRect.sizeDelta = new Vector2(menuContentRect.sizeDelta.x * 0.4f, menuContentRect.sizeDelta.y * 0.85f);
+            menuContentRect.sizeDelta = new Vector2(menuContentRect.sizeDelta.x * 0.4f, menuContentRect.sizeDelta.y * 0.88f);
 
             var content = _uIFactory.CreateDefaultGameObject(_menuContent.transform);
             content.AddComponent<Image>().color = Color.grey;
@@ -76,6 +75,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
             _lobbyWindowController.InitializeContent(LobbyWindowOwner.JoinMenu, lobbyWindow.transform);
 
             var actionMenuContainer = _uIFactory.CreateDefaultGameObject(content.transform);
+            actionMenuContainer.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0f);
             actionMenuContainer.AddComponent<Image>().color = Color.green;
             actionMenuContainer.AddComponent<HorizontalLayoutGroup>();
             var actionMenuContainerLayout = actionMenuContainer.AddComponent<LayoutElement>();

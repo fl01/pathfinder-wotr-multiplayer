@@ -152,7 +152,6 @@ namespace WOTRMultiplayer.UI
             info.gameObject.CleanupAllChildren(x => x.name != HostMenuItemController.SaveLoadDetailsInfoButtons);
             var buttons = info.Find(HostMenuItemController.SaveLoadDetailsInfoButtons);
 
-            // TBD random buttons as placeholders
             var baseButton = buttons.Find("OwlcatButton").gameObject;
             var layout = baseButton.GetComponent<RectTransform>();
             layout.sizeDelta = new Vector2(layout.sizeDelta.x * 0.92f, layout.sizeDelta.y);
@@ -206,7 +205,6 @@ namespace WOTRMultiplayer.UI
             lobbyContent.CleanupAllChildren();
             var background = CreateDefaultGameObject(lobbyContent.transform);
             background.name = "Background";
-            //CreateTopDecoration(background.transform);
             CreateBorderDecoration(background.transform);
             //playersTitle.horizontalAlignment = HorizontalAlignmentOptions.Center;
             //var backgroundImageToCopy = this.gameObject.transform.Find("BackgroundGroup").Find("PapperBackgroundImage").gameObject;
