@@ -15,6 +15,7 @@ using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Extensions;
+using WOTRMultiplayer.UI.Lobby;
 
 namespace WOTRMultiplayer.UI.Menu.Items
 {
@@ -89,6 +90,8 @@ namespace WOTRMultiplayer.UI.Menu.Items
             {
                 return;
             }
+
+            _lobbyWindowController.SetActiveOwner(LobbyWindowOwner.HostMenu);
 
             var saveLoad = _menuContent.transform.GetChild(0).GetComponent<SaveLoadPCView>();
             _saveLoadViewModel = new SaveLoadVM(SaveLoadMode.Load, true, OnCloseSaveLoadVM, RootUIContext.Instance.CommonVM);
@@ -219,7 +222,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
             var lobbyWindowObjectRect = lobbyWindowObject.GetComponent<RectTransform>();
             lobbyWindowObjectRect.sizeDelta = new Vector2(parentContainerRect.sizeDelta.x * 0.9f, parentContainerRect.sizeDelta.y * 0.72f);
 
-            _lobbyWindowController.InitializeContent(lobbyWindowObject.transform);
+            _lobbyWindowController.InitializeContent(LobbyWindowOwner.HostMenu, lobbyWindowObject.transform);
         }
 
         private void SetupLoadSaveGamesLayout()

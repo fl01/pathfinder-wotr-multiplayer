@@ -310,7 +310,7 @@ namespace WOTRMultiplayer.UI
 
                 var characterPortrait = CreateDefaultGameObject(characterObject.transform);
                 characterPortrait.name = LobbyWindowController.CharacterPortraitObjectName;
-                characterPortrait.AddComponent<Image>();
+                characterPortrait.AddComponent<Image>().color = Color.clear;
                 var portraitLayoutElement = characterPortrait.AddComponent<LayoutElement>();
                 portraitLayoutElement.preferredWidth = preferedWidth;
                 portraitLayoutElement.preferredHeight = preferedWidth * 1.2f;

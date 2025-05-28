@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using Kingmaker.UI.MVVM._VM.SaveLoad;
 using Microsoft.Extensions.Logging;
@@ -40,19 +41,20 @@ namespace WOTRMultiplayer.UI.Lobby
         private readonly ILogger<LobbyWindowController> _logger;
         private readonly IUIFactory _uIFactory;
         private readonly IMainThreadAccessor _mainThreadAccessor;
-        private GameObject _content;
-
-        private GameObject ServerInfoSectionContent => _content.transform
+        private ConcurrentDictionary<LobbyWindowOwner, GameObject> _contents = new();
+        private LobbyWindowOwner _activeOwner;
+        private GameObject ContentOwner => _contents[_activeOwner];
+        private GameObject ServerInfoSectionContent => ContentOwner.transform
             .Find(LobbyContentObjectName)
             .Find(ServerInfoSectionObjectName)
             .Find(ServerInfoSectionContentObjectName).gameObject;
 
-        private GameObject PlayersSectionContent => _content.transform
+        private GameObject PlayersSectionContent => ContentOwner.transform
             .Find(LobbyContentObjectName)
             .Find(PlayersSectionObjectName)
             .Find(PlayersSectionContentObjectName).gameObject;
 
-        private GameObject CharactersInfoContainer => _content.transform
+        private GameObject CharactersInfoContainer => ContentOwner.transform
             .Find(LobbyContentObjectName)
             .Find(CharactersSectionObjectName)
             .Find(CharactersSectionContentObjectName).gameObject;
@@ -67,16 +69,17 @@ namespace WOTRMultiplayer.UI.Lobby
             _mainThreadAccessor = mainThreadAccessor;
         }
 
-        public void InitializeContent(Transform parent)
+        public void InitializeContent(LobbyWindowOwner owner, Transform parent)
         {
-            if (_content != null)
+            if (!_contents.TryGetValue(owner, out var content) && content != null)
             {
-                _logger.LogError("Lobby content still exists on the scene");
+                _logger.LogError("Lobby content still exists on the scene. Owner={owner}", owner);
                 return;
             }
 
-            _content = _uIFactory.CreateLobbyWindowContent(parent);
-            _content.SetActive(false);
+            var lobbyContent = _uIFactory.CreateLobbyWindowContent(parent);
+            lobbyContent.SetActive(false);
+            _contents.TryAdd(owner, lobbyContent);
         }
 
         public void UpdatePlayers(List<NetworkPlayer> players)
@@ -96,7 +99,7 @@ namespace WOTRMultiplayer.UI.Lobby
 
         public void UpdateServerInfo(string serverAddress)
         {
-            _content.SetActive(true);
+            ContentOwner.SetActive(true);
 
             ServerInfoSectionContent.CleanupAllChildren();
 
@@ -218,12 +221,20 @@ namespace WOTRMultiplayer.UI.Lobby
 
         public void Reset()
         {
+            var current = ContentOwner;
+            var playerSection = PlayersSectionContent;
+            var serverSection = ServerInfoSectionContent;
             _mainThreadAccessor.MainThreadQueue.Enqueue(() =>
             {
-                _content.SetActive(false);
-                PlayersSectionContent.CleanupAllChildren();
-                ServerInfoSectionContent.CleanupAllChildren();
+                current.SetActive(false);
+                playerSection.CleanupAllChildren();
+                serverSection.CleanupAllChildren();
             });
+        }
+
+        public void SetActiveOwner(LobbyWindowOwner owner)
+        {
+           _activeOwner = owner;
         }
     }
 }

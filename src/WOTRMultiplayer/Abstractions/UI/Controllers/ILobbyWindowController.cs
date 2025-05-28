@@ -2,6 +2,7 @@
 using Kingmaker.UI.MVVM._VM.SaveLoad;
 using UnityEngine;
 using WOTRMultiplayer.Entities;
+using WOTRMultiplayer.UI.Lobby;
 
 namespace WOTRMultiplayer.Abstractions.UI.Controllers
 {
@@ -9,9 +10,10 @@ namespace WOTRMultiplayer.Abstractions.UI.Controllers
     {
         void UpdatePlayers(List<NetworkPlayer> playersList);
 
-        void InitializeContent(Transform parent);
+        void InitializeContent(LobbyWindowOwner owner, Transform parent);
         void Reset();
         void UpdateServerInfo(string serverAddress);
         void UpdateCharacters(SaveSlotVM value);
+        void SetActiveOwner(LobbyWindowOwner owner);
     }
 }
