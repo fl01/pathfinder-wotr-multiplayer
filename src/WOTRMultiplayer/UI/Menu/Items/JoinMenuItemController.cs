@@ -145,10 +145,13 @@ namespace WOTRMultiplayer.UI.Menu.Items
             var serverInfoInputObject = _uIFactory.CreateInput(joinLobbyControlsMenu.transform);
             serverInfoInputObject.name = ServerAddressInputObjectName;
             var serverPlaceholder = serverInfoInputObject.transform.Find(UIFactory.InputPlaceholderObjectName);
-            serverPlaceholder.GetComponent<TextMeshProUGUI>().SetText(StringConsts.MultiplayerWindow.JoinMenu.ServerInputPlaceholder);
-            var serverInfoInput = serverInfoInputObject.transform.Find(UIFactory.InputLabelObjectName);
-            serverInfoInput.GetComponent<TextMeshProUGUI>().overflowMode = TextOverflowModes.Truncate;
-            serverInfoInput.GetComponent<TextMeshProUGUI>().maxVisibleCharacters = 21;
+            var serverPlaceholderInput = serverPlaceholder.GetComponent<TextMeshProUGUI>();
+            serverPlaceholderInput.SetText(StringConsts.MultiplayerWindow.JoinMenu.ServerInputPlaceholder);
+            serverPlaceholderInput.alignment = TextAlignmentOptions.Center;
+            var serverInfoInputLabelObject = serverInfoInputObject.transform.Find(UIFactory.InputLabelObjectName);
+            var serverInfoInput = serverInfoInputLabelObject.GetComponent<TextMeshProUGUI>();
+            serverInfoInput.overflowMode = TextOverflowModes.Truncate;
+            serverInfoInput.alignment = TextAlignmentOptions.Center;
 
             // leave + ready buttons?
             var lobbyControlsMenu = _uIFactory.CreateDefaultGameObject(actionMenuContainer.transform);

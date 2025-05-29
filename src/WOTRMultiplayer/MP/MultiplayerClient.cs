@@ -9,6 +9,7 @@ using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Lobby;
+using WOTRMultiplayer.UI;
 
 namespace WOTRMultiplayer.MP
 {
@@ -53,12 +54,12 @@ namespace WOTRMultiplayer.MP
 
             if (!_ipEndPointParser.TryParse(address, out IPEndPoint endpoint))
             {
-                return JoinLobbyResult.Error("Unable to parse provided IP address. Please verify your input");
+                return JoinLobbyResult.Error(StringConsts.MultiplayerClient.Errors.InvalidIP);
             }
 
-            if (endpoint.Port == 0)
+            if (endpoint.Port <= 0 || endpoint.Port > ushort.MaxValue)
             {
-                return JoinLobbyResult.Error("Provided port is invalid. Please verify your input");
+                return JoinLobbyResult.Error(StringConsts.MultiplayerClient.Errors.InvalidPort);
             }
 
             RegisterHandlers();

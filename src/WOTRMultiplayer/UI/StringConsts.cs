@@ -10,6 +10,15 @@
             public const string MultiplayerMenu = "Multiplayer";
         }
 
+        public class MultiplayerClient
+        {
+            public class Errors
+            {
+                public const string InvalidIP = "Unable to parse provided server address.\nPlease verify your input.";
+                public const string InvalidPort = "Invalid port specified.\nAcceptable range is '0 > port <= 65535'.";
+            }
+        }
+
         public class MultiplayerWindow
         {
             public const string HostMenuLabel = "Host";
