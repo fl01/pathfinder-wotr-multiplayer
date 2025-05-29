@@ -12,7 +12,7 @@ namespace WOTRMultiplayer.Abstractions.UI
         GameObject CreateDropdown(float preferedWidth, Transform parent);
         GameObject CreateButton(Transform transform);
         GameObject CreateInput(Transform transform);
-        GameObject CreateLobbyWindowContent(Transform parent);
+        GameObject CreateLobbyWindowContent(Transform parent, bool interactableDropdown);
         SaveLoadPCView CreateSaveLoadPCView(Transform parent);
         void CreateBackgroundArt(Transform parent);
         WOTRMultiplayer.UI.Mesh GetDefaultMesh();

@@ -80,7 +80,8 @@ namespace WOTRMultiplayer.UI.Lobby
                 return;
             }
 
-            var lobbyContent = _uIFactory.CreateLobbyWindowContent(parent);
+            var canUseDropdown = owner == LobbyWindowOwner.HostMenu;
+            var lobbyContent = _uIFactory.CreateLobbyWindowContent(parent, canUseDropdown);
             lobbyContent.SetActive(false);
             _contents.TryAdd(owner, lobbyContent);
         }

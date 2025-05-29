@@ -150,7 +150,7 @@ namespace WOTRMultiplayer.UI
             UnityEngine.Object.DestroyImmediate(saveLoadView.gameObject.transform.Find("BackgroundWorldCover").gameObject);
             UnityEngine.Object.DestroyImmediate(saveLoadView.gameObject.transform.Find("Background").gameObject);
             var screen = saveLoadView.gameObject.transform.Find(HostMenuItemController.SaveLoadScreen);
-            UnityEngine.Object.DestroyImmediate(screen.Find("PapperBackground").GetComponent<Image>());
+            UnityEngine.Object.DestroyImmediate(screen.Find("PapperBackground").gameObject);
             var top = screen.Find("Top");
             UnityEngine.Object.DestroyImmediate(top.gameObject);
 
@@ -219,7 +219,7 @@ namespace WOTRMultiplayer.UI
             return UnityEngine.Object.Instantiate(_borderDecoration, parent);
         }
 
-        public GameObject CreateLobbyWindowContent(Transform parent)
+        public GameObject CreateLobbyWindowContent(Transform parent, bool interactableDropdown)
         {
             var lobbyContent = CreateDefaultGameObject(parent);
             lobbyContent.name = LobbyWindowController.LobbyScreenRootObjectName;
@@ -242,7 +242,7 @@ namespace WOTRMultiplayer.UI
             CreateLobbyPlayersSection(verticalContent.transform);
 
             var width = parent.GetComponent<RectTransform>().sizeDelta.x;
-            CreateLobbyCharactersSection(width, verticalContent.transform);
+            CreateLobbyCharactersSection(width, verticalContent.transform, interactableDropdown);
 
             return lobbyContent;
         }
@@ -297,7 +297,7 @@ namespace WOTRMultiplayer.UI
             playersSectionContentObject.AddComponent<VerticalLayoutGroup>();
         }
 
-        private void CreateLobbyCharactersSection(float width, Transform parent)
+        private void CreateLobbyCharactersSection(float width, Transform parent, bool interactableDropdown)
         {
             var charactersSectionObject = CreateDefaultGameObject(parent);
             var charactersSectionRect = charactersSectionObject.GetComponent<RectTransform>();
@@ -335,9 +335,13 @@ namespace WOTRMultiplayer.UI
                 portraitLayoutElement.preferredHeight = preferedWidth * 1.2f;
 
                 var dropdownContainerObject = Main.Multiplayer.Factory.CreateDropdown(preferedWidth, characterObject.transform);
+                dropdownContainerObject.name = LobbyWindowController.CharacterOwnerObjectName;
                 var characterIndexComponent = dropdownContainerObject.AddComponent<CharacterIndexMonoBehavior>();
                 characterIndexComponent.CharacterIndex = characterIndex;
-                dropdownContainerObject.name = LobbyWindowController.CharacterOwnerObjectName;
+
+                var dropdownObject = dropdownContainerObject.transform.Find(UIFactory.DropdownGameObjectName);
+                var tmpDropdown = dropdownObject.GetComponent<TMP_Dropdown>();
+                tmpDropdown.interactable = interactableDropdown;
             }
         }
 
