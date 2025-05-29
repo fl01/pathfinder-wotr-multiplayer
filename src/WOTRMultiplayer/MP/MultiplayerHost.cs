@@ -97,7 +97,7 @@ namespace WOTRMultiplayer.MP
 
                 existingPlayer.IsReady = readyStatusChanged.IsReady;
 
-                _lobbyWindowController.UpdatePlayers(_game.Players);
+                UpdatePlayersUI();
                 _logger.LogWarning("Sending ready status changed. PlayerId={playerId}, IsReady={isReady}", playerId, existingPlayer.IsReady);
                 _networkServer.SendAll(readyStatusChanged);
             }
@@ -123,7 +123,7 @@ namespace WOTRMultiplayer.MP
 
                 existingPlayer.Name = response.Name;
 
-                _lobbyWindowController.UpdatePlayers(_game.Players);
+                UpdatePlayersUI();
 
                 var players = _game.Players.Select(x => new Networking.Messages.NetworkPlayer { Id = x.Id, Name = x.Name, IsReady = x.IsReady }).ToList();
                 var playersChanged = new NotifyPlayersChanged { Players = players };
@@ -166,7 +166,7 @@ namespace WOTRMultiplayer.MP
                 _game.Players.Remove(existingPlayer);
                 if (!string.IsNullOrEmpty(existingPlayer.Name))
                 {
-                    _lobbyWindowController.UpdatePlayers(_game.Players);
+                    UpdatePlayersUI();
                 }
 
                 // send updates to other clients
@@ -180,8 +180,8 @@ namespace WOTRMultiplayer.MP
                 Name = Guid.NewGuid().ToString().Split('-').First()
             });
 
-            _lobbyWindowController.UpdateServerInfo(point.ToString());
-            _lobbyWindowController.UpdatePlayers(_game.Players);
+            UpdateServerUI(point);
+            UpdatePlayersUI();
         }
 
         private NetworkPlayer GetPlayer(long playerId)
@@ -204,6 +204,16 @@ namespace WOTRMultiplayer.MP
         {
             var message = new NotifyGameCharactersChanged { GameName = _game.Name, Portraits = _game.Portraits };
             return message;
+        }
+
+        private void UpdatePlayersUI()
+        {
+            _lobbyWindowController.UpdatePlayers(_game.Players);
+        }
+
+        private void UpdateServerUI(EndPoint endpoint)
+        {
+            _lobbyWindowController.UpdateServerInfo(endpoint.ToString());
         }
     }
 }
