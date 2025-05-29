@@ -8,8 +8,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
-using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Extensions;
+using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.Unity;
 
 namespace WOTRMultiplayer.UI.Lobby
@@ -38,11 +38,13 @@ namespace WOTRMultiplayer.UI.Lobby
         public const string CharacterContainerObjectName = "CharacterContainer";
         public const string CharacterPortraitObjectName = "CharacterPortrait";
         public const string CharacterOwnerObjectName = "CharacterOwner";
+
         private readonly ILogger<LobbyWindowController> _logger;
         private readonly IUIFactory _uIFactory;
         private readonly IMainThreadAccessor _mainThreadAccessor;
-        private ConcurrentDictionary<LobbyWindowOwner, GameObject> _contents = new();
+        private readonly ConcurrentDictionary<LobbyWindowOwner, GameObject> _contents = new();
         private LobbyWindowOwner _activeOwner;
+
         private GameObject ContentOwner => _contents[_activeOwner];
         private GameObject ServerInfoSectionContent => ContentOwner.transform
             .Find(LobbyContentObjectName)
@@ -234,7 +236,7 @@ namespace WOTRMultiplayer.UI.Lobby
 
         public void SetActiveOwner(LobbyWindowOwner owner)
         {
-           _activeOwner = owner;
+            _activeOwner = owner;
         }
     }
 }

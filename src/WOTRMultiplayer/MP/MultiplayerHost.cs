@@ -5,7 +5,7 @@ using System.Net;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
-using WOTRMultiplayer.Entities;
+using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Lobby;
 
@@ -16,8 +16,10 @@ namespace WOTRMultiplayer.MP
         private readonly ILogger<MultiplayerHost> _logger;
         private readonly INetworkServer _networkServer;
         private readonly ILobbyWindowController _lobbyWindowController;
+
         private readonly List<NetworkPlayer> _playersList = [];
         private readonly object _actionlock = new();
+        public const int LocalHostPlayerId = -1;
 
         public bool IsActive => _networkServer.IsActive;
 
@@ -57,8 +59,9 @@ namespace WOTRMultiplayer.MP
 
         public bool ReadyChanged()
         {
-            var player = _playersList.First(p => p.Id == 0); // host should be always present
-            var readyChanged = new PlayerReadyStatusChanged { IsReady = !player.IsReady };
+            var player = _playersList.First(p => p.Id == LocalHostPlayerId); // host should be always present
+            player.IsReady = !player.IsReady;
+            var readyChanged = new PlayerReadyStatusChanged { IsReady = player.IsReady };
             OnPlayerReadyStatusChanged(player.Id, readyChanged);
             return readyChanged.IsReady;
         }
@@ -162,7 +165,7 @@ namespace WOTRMultiplayer.MP
 
         private void OnServerStarted(EndPoint point)
         {
-            _playersList.Add(new NetworkPlayer(0)
+            _playersList.Add(new NetworkPlayer(LocalHostPlayerId)
             {
                 Name = Guid.NewGuid().ToString().Split('-').First()
             });

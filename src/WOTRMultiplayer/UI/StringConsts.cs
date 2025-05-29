@@ -17,12 +17,19 @@
 
             public class JoinMenu
             {
+                public const string LeaveGameMessage = "You are currently in a game. Proceeding with this action will result in leaving it";
+
                 public const string JoinButtonLabel = "Join";
-                public const string ServerInputPlaceholder = "Enter Server IP address";
+                public const string ReadyButtonLabel = "Ready";
+                public const string ReadyNotReadyButtonLabel = "Not Ready";
+                public const string LeaveButtonLabel = "Leave";
+                public const string ServerInputPlaceholder = "Enter ServerIP:Port";
             }
 
             public class HostMenu
             {
+                public const string TerminateServerMessage = "You are currently hosting a game. Proceeding with this action will result in its termination.";
+
                 public const string HostButtonLabel = "Host";
                 public const string HostButtonActiveLabel = "Select save";
                 public const string ReadyButtonLabel = "Ready";

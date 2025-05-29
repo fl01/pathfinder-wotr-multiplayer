@@ -1,4 +1,4 @@
-﻿namespace WOTRMultiplayer.Entities
+﻿namespace WOTRMultiplayer.MP.Entities
 {
     public class NetworkPlayer
     {

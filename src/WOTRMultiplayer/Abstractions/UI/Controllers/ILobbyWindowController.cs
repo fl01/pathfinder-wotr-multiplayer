@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Kingmaker.UI.MVVM._VM.SaveLoad;
 using UnityEngine;
-using WOTRMultiplayer.Entities;
+using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.UI.Lobby;
 
 namespace WOTRMultiplayer.Abstractions.UI.Controllers

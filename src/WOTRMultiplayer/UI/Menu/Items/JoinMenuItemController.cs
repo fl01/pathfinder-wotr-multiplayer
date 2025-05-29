@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Kingmaker.PubSubSystem;
+using Kingmaker.UI;
+using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
 using TMPro;
 using UnityEngine;
@@ -17,6 +19,13 @@ namespace WOTRMultiplayer.UI.Menu.Items
         public const string JoinMenuItemContentObjectName = "JoinMenuItemContent";
         public const string JoinLobbyScreenObjectName = "JoinLobbyScreen";
         public const string LobbyWindowObjectName = "MultiplayerLobby";
+        public const string JoinLobbyActionMenuObjectName = "JoinLobbyActionMenu";
+        public const string JoinLobbyControlsMenuObjectName = "JoinLobbyControlsMenu";
+        public const string ServerAddressInputObjectName = "ServerAddressInput";
+
+        public const string LobbyControlsMenuObjectName = "LobbyControlsMenu";
+        public const string LobbyControlsMenuReadyButtonObjectName = "ReadyButton";
+        public const string LobbyControlsMenuLeaveButtonObjectName = "LeaveButton";
 
         private readonly ILogger<JoinMenuItemController> _logger;
         private readonly ILobbyWindowController _lobbyWindowController;
@@ -25,6 +34,30 @@ namespace WOTRMultiplayer.UI.Menu.Items
         private GameObject _menuContent;
 
         protected override GameObject MenuContent => _menuContent;
+
+        protected GameObject JoinLobbyControlsObject => _menuContent.transform
+            .Find(JoinLobbyScreenObjectName)
+            .Find(JoinLobbyActionMenuObjectName)
+            .Find(JoinLobbyControlsMenuObjectName)
+            .gameObject;
+
+        protected GameObject ServerAddressObject => JoinLobbyControlsObject.transform
+            .Find(ServerAddressInputObjectName)
+            .gameObject;
+
+        protected GameObject LobbyControls => _menuContent.transform
+            .Find(JoinLobbyScreenObjectName)
+            .Find(JoinLobbyActionMenuObjectName)
+            .Find(LobbyControlsMenuObjectName)
+            .gameObject;
+
+        protected GameObject ReadyButtonObject => LobbyControls.transform
+            .Find(LobbyControlsMenuReadyButtonObjectName)
+            .gameObject;
+
+        protected GameObject LeaveButtonObject => LobbyControls.transform
+            .Find(LobbyControlsMenuLeaveButtonObjectName)
+            .gameObject;
 
         public JoinMenuItemController(
             ILogger<JoinMenuItemController> logger,
@@ -65,12 +98,12 @@ namespace WOTRMultiplayer.UI.Menu.Items
             menuContentRect.sizeDelta = new Vector2(menuContentRect.sizeDelta.x * 0.4f, menuContentRect.sizeDelta.y * 0.88f);
 
             var content = _uIFactory.CreateDefaultGameObject(_menuContent.transform);
-            content.name = "JoinLobbyScreen";
+            content.name = JoinLobbyScreenObjectName;
             content.AddComponent<VerticalLayoutGroup>();
 
             var lobbyWindow = _uIFactory.CreateDefaultGameObject(content.transform);
-            var aaaa = lobbyWindow.AddComponent<LayoutElement>();
-            aaaa.preferredHeight = menuContentRect.sizeDelta.y;
+            var lobbyWindowLayout = lobbyWindow.AddComponent<LayoutElement>();
+            lobbyWindowLayout.preferredHeight = menuContentRect.sizeDelta.y;
             lobbyWindow.AddComponent<VerticalLayoutGroup>();
             lobbyWindow.name = "LobbyWindow";
             var lobbyWindowRect = lobbyWindow.GetComponent<RectTransform>();
@@ -78,39 +111,105 @@ namespace WOTRMultiplayer.UI.Menu.Items
             _lobbyWindowController.InitializeContent(LobbyWindowOwner.JoinMenu, lobbyWindow.transform);
 
             var actionMenuContainer = _uIFactory.CreateDefaultGameObject(content.transform);
-            actionMenuContainer.AddComponent<Image>().color = Color.red;
+            actionMenuContainer.name = JoinLobbyActionMenuObjectName;
 
             actionMenuContainer.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0f);
             actionMenuContainer.AddComponent<HorizontalLayoutGroup>();
             var actionMenuContainerLayout = actionMenuContainer.AddComponent<LayoutElement>();
-            actionMenuContainerLayout.preferredHeight = menuContentRect.sizeDelta.y * 0.05f;
+            actionMenuContainerLayout.preferredHeight = menuContentRect.sizeDelta.y * 0.07f;
 
             // input + button ?
             var joinLobbyControlsMenu = _uIFactory.CreateDefaultGameObject(actionMenuContainer.transform);
-            joinLobbyControlsMenu.AddComponent<Image>().color = Color.green;
+            joinLobbyControlsMenu.name = JoinLobbyControlsMenuObjectName;
             joinLobbyControlsMenu.AddComponent<HorizontalLayoutGroup>();
-            var serverInfoInputObject = _uIFactory.CreateInput(joinLobbyControlsMenu.transform);
-            //serverInfoInputObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            serverInfoInputObject.transform.Find(UIFactory.InputPlaceholderObjectName)
-                .GetComponent<TextMeshProUGUI>()
-                .SetText(StringConsts.MultiplayerWindow.JoinMenu.ServerInputPlaceholder);
 
-            var buttonObject = _uIFactory.CreateButton(joinLobbyControlsMenu.transform);
-            var buttonObjectLayout = buttonObject.AddComponent<LayoutElement>();
-            var buttonObjectSizeFitter = buttonObject.AddComponent<ContentSizeFitter>();
-            buttonObject.GetComponentInChildren<TextMeshProUGUI>().SetText(StringConsts.MultiplayerWindow.JoinMenu.JoinButtonLabel);
-            var button = buttonObject.GetComponent<OwlcatButton>();
+            var joinLobbyButtonObject = _uIFactory.CreateButton(joinLobbyControlsMenu.transform);
+            var joinLobbyButtonObjectLayout = joinLobbyButtonObject.AddComponent<LayoutElement>();
+            joinLobbyButtonObjectLayout.preferredWidth = menuContentRect.sizeDelta.x * 0.2f;
+            joinLobbyButtonObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            joinLobbyButtonObject.GetComponentInChildren<TextMeshProUGUI>().SetText(StringConsts.MultiplayerWindow.JoinMenu.JoinButtonLabel);
+            var button = joinLobbyButtonObject.GetComponent<OwlcatButton>();
             button.OnLeftClick.AddListener(OnJoinButtonClicked);
+
+            var serverInfoInputObject = _uIFactory.CreateInput(joinLobbyControlsMenu.transform);
+            serverInfoInputObject.name = ServerAddressInputObjectName;
+            var serverPlaceholder = serverInfoInputObject.transform.Find(UIFactory.InputPlaceholderObjectName);
+            serverPlaceholder.GetComponent<TextMeshProUGUI>().SetText(StringConsts.MultiplayerWindow.JoinMenu.ServerInputPlaceholder);
+            var serverInfoInput = serverInfoInputObject.transform.Find(UIFactory.InputLabelObjectName);
+            serverInfoInput.GetComponent<TextMeshProUGUI>().overflowMode = TextOverflowModes.Truncate;
+            serverInfoInput.GetComponent<TextMeshProUGUI>().maxVisibleCharacters = 21;
 
             // leave + ready buttons?
             var lobbyControlsMenu = _uIFactory.CreateDefaultGameObject(actionMenuContainer.transform);
+            lobbyControlsMenu.name = LobbyControlsMenuObjectName;
             lobbyControlsMenu.SetActive(false);
             lobbyControlsMenu.AddComponent<HorizontalLayoutGroup>();
+
+            var readyButtonObject = _uIFactory.CreateButton(lobbyControlsMenu.transform);
+            readyButtonObject.name = LobbyControlsMenuReadyButtonObjectName;
+            var readyButtonObjectLayout = readyButtonObject.AddComponent<LayoutElement>();
+            readyButtonObjectLayout.preferredWidth = menuContentRect.sizeDelta.x * 0.2f;
+            readyButtonObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            readyButtonObject.GetComponentInChildren<TextMeshProUGUI>().SetText(StringConsts.MultiplayerWindow.JoinMenu.ReadyNotReadyButtonLabel);
+            var readyButton = readyButtonObject.GetComponent<OwlcatButton>();
+            readyButton.OnLeftClick.AddListener(OnReadyButtonClicked);
+
+            var leaveButtonObject = _uIFactory.CreateButton(lobbyControlsMenu.transform);
+            leaveButtonObject.name = LobbyControlsMenuLeaveButtonObjectName;
+            var leaveButtonObjectLayout = leaveButtonObject.AddComponent<LayoutElement>();
+            leaveButtonObjectLayout.preferredWidth = menuContentRect.sizeDelta.x * 0.2f;
+            leaveButtonObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            leaveButtonObject.GetComponentInChildren<TextMeshProUGUI>().SetText(StringConsts.MultiplayerWindow.JoinMenu.LeaveButtonLabel);
+            var leaveButton = leaveButtonObject.GetComponent<OwlcatButton>();
+            leaveButton.OnLeftClick.AddListener(OnLeaveButtonClicked);
+        }
+
+        private void OnReadyButtonClicked()
+        {
+            var isReady = _multiplayerClient.ReadyChanged();
+            var label = isReady ? StringConsts.MultiplayerWindow.HostMenu.ReadyButtonLabel
+                : StringConsts.MultiplayerWindow.HostMenu.ReadyNotReadyButtonLabel;
+            ReadyButtonObject.GetComponentInChildren<TextMeshProUGUI>().SetText(label);
+        }
+
+        private void OnLeaveButtonClicked()
+        {
+            _multiplayerClient.Dispose();
+            JoinLobbyControlsObject.SetActive(true);
+            LobbyControls.SetActive(false);
         }
 
         private void OnJoinButtonClicked()
         {
             _logger.LogInformation("Join button clicked");
+            var rawAddress = ServerAddressObject.transform.Find(UIFactory.InputLabelObjectName).GetComponent<TextMeshProUGUI>().text;
+            // thank you for zero-width space
+            var address = rawAddress.Trim('\u200B').Trim();
+            var result = _multiplayerClient.Join(address, new MP.MultiplayerSettings());
+            if (!result.IsOk)
+            {
+                EventBus.RaiseEvent<IMessageModalUIHandler>(delegate (IMessageModalUIHandler w)
+                {
+                    w.HandleOpen(result.Message, MessageModalBase.ModalType.Message, null, null, null, null, null, null, null, 0, uint.MaxValue, null);
+                }, true);
+                return;
+            }
+
+            JoinLobbyControlsObject.SetActive(false);
+            LobbyControls.SetActive(true);
+        }
+
+        protected override ModalActionConfirmation GetDeactivationConfirmationInternal()
+        {
+            if (!_multiplayerClient.IsActive)
+            {
+                return base.GetDeactivationConfirmationInternal();
+            }
+
+            return new ModalActionConfirmation
+            {
+                Text = StringConsts.MultiplayerWindow.JoinMenu.LeaveGameMessage
+            };
         }
     }
 }

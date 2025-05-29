@@ -23,6 +23,7 @@ namespace WOTRMultiplayer.UI
     {
         public const string DropdownGameObjectName = "Dropdown";
         public const string InputPlaceholderObjectName = "PlaceholderText";
+        public const string InputLabelObjectName = "Label_Input";
 
         public const int LobbySectionTitleHeight = 50;
         private GameObject _dropdownPrefab;

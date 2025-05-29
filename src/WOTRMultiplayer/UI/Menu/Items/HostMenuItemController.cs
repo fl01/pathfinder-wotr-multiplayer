@@ -266,7 +266,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
 
             return new ModalActionConfirmation
             {
-                Text = "You are currently hosting a game. Proceeding with this action will result in its termination."
+                Text = StringConsts.MultiplayerWindow.HostMenu.TerminateServerMessage
             };
         }
     }
