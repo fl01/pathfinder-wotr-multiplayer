@@ -1,4 +1,5 @@
-﻿using WOTRMultiplayer.MP;
+﻿using System;
+using WOTRMultiplayer.MP;
 using WOTRMultiplayer.MP.Entities;
 
 namespace WOTRMultiplayer.Abstractions.MP
@@ -12,5 +13,13 @@ namespace WOTRMultiplayer.Abstractions.MP
         bool ReadyChanged();
 
         bool IsActive { get; }
+
+        bool IsConnecting { get; }
+
+        Action<string> OnNetworkError { get; set; }
+
+        Action OnConnected { get; set; }
+
+        Action OnDisconnected { get; set; }
     }
 }

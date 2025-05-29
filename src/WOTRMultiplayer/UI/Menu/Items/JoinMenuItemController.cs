@@ -11,6 +11,7 @@ using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.UI.Lobby;
+using WOTRMultiplayer.Unity;
 
 namespace WOTRMultiplayer.UI.Menu.Items
 {
@@ -22,6 +23,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
         public const string JoinLobbyActionMenuObjectName = "JoinLobbyActionMenu";
         public const string JoinLobbyControlsMenuObjectName = "JoinLobbyControlsMenu";
         public const string ServerAddressInputObjectName = "ServerAddressInput";
+        public const string JoinServerButtonObjectName = "JoinServerButton";
 
         public const string LobbyControlsMenuObjectName = "LobbyControlsMenu";
         public const string LobbyControlsMenuReadyButtonObjectName = "ReadyButton";
@@ -29,6 +31,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
 
         private readonly ILogger<JoinMenuItemController> _logger;
         private readonly ILobbyWindowController _lobbyWindowController;
+        private readonly IMainThreadAccessor _mainThreadAccessor;
         private readonly IUIFactory _uIFactory;
         private readonly IMultiplayerClient _multiplayerClient;
         private GameObject _menuContent;
@@ -39,6 +42,10 @@ namespace WOTRMultiplayer.UI.Menu.Items
             .Find(JoinLobbyScreenObjectName)
             .Find(JoinLobbyActionMenuObjectName)
             .Find(JoinLobbyControlsMenuObjectName)
+            .gameObject;
+
+        protected GameObject JoinButtonObject => JoinLobbyControlsObject.transform
+            .Find(JoinServerButtonObjectName)
             .gameObject;
 
         protected GameObject ServerAddressObject => JoinLobbyControlsObject.transform
@@ -61,6 +68,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
 
         public JoinMenuItemController(
             ILogger<JoinMenuItemController> logger,
+            IMainThreadAccessor mainThreadAccessor,
             ILobbyWindowController lobbyWindowController,
             IMultiplayerClient multiplayerClient,
             IUIFactory uIFactory)
@@ -68,6 +76,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
         {
             _logger = logger;
             _lobbyWindowController = lobbyWindowController;
+            _mainThreadAccessor = mainThreadAccessor;
             _uIFactory = uIFactory;
             _multiplayerClient = multiplayerClient;
         }
@@ -94,6 +103,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
             _menuContent.name = JoinMenuItemContentObjectName;
             _menuContent.AddComponent<VerticalLayoutGroup>().padding = new RectOffset(0, 0, 25, 0);
             _menuContent.CleanupAllChildren();
+
             var menuContentRect = _menuContent.GetComponent<RectTransform>();
             menuContentRect.sizeDelta = new Vector2(menuContentRect.sizeDelta.x * 0.4f, menuContentRect.sizeDelta.y * 0.88f);
 
@@ -124,6 +134,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
             joinLobbyControlsMenu.AddComponent<HorizontalLayoutGroup>();
 
             var joinLobbyButtonObject = _uIFactory.CreateButton(joinLobbyControlsMenu.transform);
+            joinLobbyButtonObject.name = JoinServerButtonObjectName;
             var joinLobbyButtonObjectLayout = joinLobbyButtonObject.AddComponent<LayoutElement>();
             joinLobbyButtonObjectLayout.preferredWidth = menuContentRect.sizeDelta.x * 0.2f;
             joinLobbyButtonObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
@@ -150,7 +161,6 @@ namespace WOTRMultiplayer.UI.Menu.Items
             var readyButtonObjectLayout = readyButtonObject.AddComponent<LayoutElement>();
             readyButtonObjectLayout.preferredWidth = menuContentRect.sizeDelta.x * 0.2f;
             readyButtonObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-            readyButtonObject.GetComponentInChildren<TextMeshProUGUI>().SetText(StringConsts.MultiplayerWindow.JoinMenu.ReadyNotReadyButtonLabel);
             var readyButton = readyButtonObject.GetComponent<OwlcatButton>();
             readyButton.OnLeftClick.AddListener(OnReadyButtonClicked);
 
@@ -162,6 +172,38 @@ namespace WOTRMultiplayer.UI.Menu.Items
             leaveButtonObject.GetComponentInChildren<TextMeshProUGUI>().SetText(StringConsts.MultiplayerWindow.JoinMenu.LeaveButtonLabel);
             var leaveButton = leaveButtonObject.GetComponent<OwlcatButton>();
             leaveButton.OnLeftClick.AddListener(OnLeaveButtonClicked);
+
+            _multiplayerClient.OnNetworkError = OnMultiplayerClientError;
+            _multiplayerClient.OnConnected = OnMultiplayerClientConnected;
+            _multiplayerClient.OnDisconnected = OnMultiplayerClientDisconnected;
+        }
+
+        private void OnMultiplayerClientDisconnected()
+        {
+            EventBus.RaiseEvent<IMessageModalUIHandler>(delegate (IMessageModalUIHandler w)
+            {
+                w.HandleOpen("You have been disconnected", MessageModalBase.ModalType.Message, null, null, null, null, null, null, null, 0, uint.MaxValue, null);
+            }, true);
+
+            _multiplayerClient.Dispose();
+            ActivateJoinLobbyControls();
+            _lobbyWindowController.Reset();
+        }
+
+        private void OnMultiplayerClientConnected()
+        {
+            SetButtonActive(JoinButtonObject, true);
+            ActivateLobbyControls();
+        }
+
+        private void OnMultiplayerClientError(string errorMessage)
+        {
+            SetButtonActive(JoinButtonObject, true);
+
+            EventBus.RaiseEvent<IMessageModalUIHandler>(delegate (IMessageModalUIHandler w)
+            {
+                w.HandleOpen(errorMessage, MessageModalBase.ModalType.Message, null, null, null, null, null, null, null, 0, uint.MaxValue, null);
+            }, true);
         }
 
         private void OnReadyButtonClicked()
@@ -175,8 +217,28 @@ namespace WOTRMultiplayer.UI.Menu.Items
         private void OnLeaveButtonClicked()
         {
             _multiplayerClient.Dispose();
-            JoinLobbyControlsObject.SetActive(true);
-            LobbyControls.SetActive(false);
+
+            ActivateJoinLobbyControls();
+        }
+
+        private void ActivateLobbyControls()
+        {
+            _mainThreadAccessor.MainThreadQueue.Enqueue(() =>
+            {
+                ReadyButtonObject.GetComponentInChildren<TextMeshProUGUI>().SetText(StringConsts.MultiplayerWindow.HostMenu.ReadyNotReadyButtonLabel);
+
+                JoinLobbyControlsObject.SetActive(false);
+                LobbyControls.SetActive(true);
+            });
+        }
+
+        private void ActivateJoinLobbyControls()
+        {
+            _mainThreadAccessor.MainThreadQueue.Enqueue(() =>
+            {
+                JoinLobbyControlsObject.SetActive(true);
+                LobbyControls.SetActive(false);
+            });
         }
 
         private void OnJoinButtonClicked()
@@ -195,21 +257,44 @@ namespace WOTRMultiplayer.UI.Menu.Items
                 return;
             }
 
-            JoinLobbyControlsObject.SetActive(false);
-            LobbyControls.SetActive(true);
+            SetButtonActive(JoinButtonObject, false);
+        }
+
+        private void SetButtonActive(GameObject button, bool isActive)
+        {
+            _mainThreadAccessor.MainThreadQueue.Enqueue(() =>
+            {
+                button.GetComponent<OwlcatButton>().Interactable = isActive;
+            });
+        }
+
+        public override void Deactivate()
+        {
+            ActivateJoinLobbyControls();
+            _lobbyWindowController.Reset();
+
+            base.Deactivate();
         }
 
         protected override ModalActionConfirmation GetDeactivationConfirmationInternal()
         {
-            if (!_multiplayerClient.IsActive)
+            if (_multiplayerClient.IsActive)
             {
-                return base.GetDeactivationConfirmationInternal();
+                return new ModalActionConfirmation
+                {
+                    Text = StringConsts.MultiplayerWindow.JoinMenu.LeaveGameMessage
+                };
+            }
+            else if (_multiplayerClient.IsConnecting)
+            {
+                return new ModalActionConfirmation
+                {
+                    Text = "Can't leave while connecting. Please wait",
+                    ModalType = MessageModalBase.ModalType.Message
+                };
             }
 
-            return new ModalActionConfirmation
-            {
-                Text = StringConsts.MultiplayerWindow.JoinMenu.LeaveGameMessage
-            };
+            return base.GetDeactivationConfirmationInternal();
         }
     }
 }

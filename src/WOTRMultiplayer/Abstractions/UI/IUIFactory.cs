@@ -14,6 +14,7 @@ namespace WOTRMultiplayer.Abstractions.UI
         GameObject CreateInput(Transform transform);
         GameObject CreateLobbyWindowContent(Transform parent);
         SaveLoadPCView CreateSaveLoadPCView(Transform parent);
+        void CreateBackgroundArt(Transform parent);
         WOTRMultiplayer.UI.Mesh GetDefaultMesh();
         void StoreBorderDecoration(GameObject gameObject);
         void StoreDefaultGameObject(GameObject gameObject);
@@ -23,5 +24,6 @@ namespace WOTRMultiplayer.Abstractions.UI
         void StoreButtonPrefab(GameObject buttonObject);
 
         void StoreSaveLoadPCViewPrefab(SaveLoadPCView view);
+        void StoreBackgroundArt(GameObject gameObject);
     }
 }

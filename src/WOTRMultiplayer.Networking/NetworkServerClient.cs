@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Net;
 using System.Threading.Tasks;
 using BeetleX;
 using BeetleX.Clients;
@@ -14,7 +15,12 @@ namespace WOTRMultiplayer.Networking
         private readonly ConcurrentDictionary<Type, Action<object>> _handlers = new();
         private readonly ILogger<NetworkServerClient> _logger;
 
-        public bool IsActive => _client?.IsConnected ?? false;
+        public Action<Exception> OnError { get; set; }
+        public Action<EndPoint> OnConnected { get; set; }
+        public Action OnDisconnected { get; set; }
+
+        public bool IsActive => (_client?.IsConnected ?? false);
+        public bool IsConnecting { get; private set; } = false;
 
         public NetworkServerClient(ILogger<NetworkServerClient> logger)
         {
@@ -24,8 +30,33 @@ namespace WOTRMultiplayer.Networking
         public async Task ConnectAsync(string host, int port)
         {
             _client = SocketFactory.CreateClient<AsyncTcpClient>(new Messages.ProtobufClientPacket(), host, port);
+            _client.ClientError = OnClientError;
+            _client.Connected = OnClientConnected;
+            _client.Disconnected = OnClientDisconnected;
             _client.PacketReceive = OnPackedReceived;
+            IsConnecting = true;
             var status = await _client.Connect();
+        }
+
+        private void OnClientDisconnected(IClient client)
+        {
+            OnDisconnected?.Invoke();
+        }
+
+        private void OnClientConnected(IClient client)
+        {
+            IsConnecting = false;
+
+            var endpoint = client.Socket.RemoteEndPoint;
+            OnConnected?.Invoke(endpoint);
+        }
+
+        private void OnClientError(IClient client, ClientErrorArgs args)
+        {
+            IsConnecting = false;
+
+            _logger.LogError(args.Error, "Network client error");
+            OnError?.Invoke(args.Error);
         }
 
         public INetworkServerClient Register<TMessage>(Action<TMessage> handler)
@@ -45,6 +76,7 @@ namespace WOTRMultiplayer.Networking
         public void Dispose()
         {
             _logger.LogInformation("Disposing");
+            IsConnecting = false;
             _client?.Dispose();
         }
 

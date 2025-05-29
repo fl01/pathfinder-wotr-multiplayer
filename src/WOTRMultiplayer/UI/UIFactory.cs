@@ -29,6 +29,7 @@ namespace WOTRMultiplayer.UI
         private GameObject _dropdownPrefab;
         private GameObject _inputPrefab;
         private GameObject _buttonPrefab;
+        private GameObject _backgroundArtPrefab;
         private SaveLoadPCView _saveLoadPCView;
         private GameObject _defaultGameObject;
         private GameObject _borderDecoration;
@@ -149,6 +150,7 @@ namespace WOTRMultiplayer.UI
             UnityEngine.Object.DestroyImmediate(saveLoadView.gameObject.transform.Find("BackgroundWorldCover").gameObject);
             UnityEngine.Object.DestroyImmediate(saveLoadView.gameObject.transform.Find("Background").gameObject);
             var screen = saveLoadView.gameObject.transform.Find(HostMenuItemController.SaveLoadScreen);
+            UnityEngine.Object.DestroyImmediate(screen.Find("PapperBackground").GetComponent<Image>());
             var top = screen.Find("Top");
             UnityEngine.Object.DestroyImmediate(top.gameObject);
 
@@ -406,6 +408,34 @@ namespace WOTRMultiplayer.UI
                         {
                             button.OnLeftClick.SetPersistentListenerState(i, UnityEngine.Events.UnityEventCallState.Off);
                         }
+                    }
+                }
+            }
+        }
+
+        public void CreateBackgroundArt(Transform parent)
+        {
+            UnityEngine.Object.Instantiate(_backgroundArtPrefab, parent);
+        }
+
+        public void StoreBackgroundArt(GameObject backgroundArt)
+        {
+            if (backgroundArt == null)
+            {
+                return;
+            }
+
+            if (_backgroundArtPrefab == null)
+            {
+                lock (_actionLock)
+                {
+                    if (_backgroundArtPrefab == null)
+                    {
+                        _logger.LogInformation("Storing background art");
+
+                        _backgroundArtPrefab = UnityEngine.Object.Instantiate(backgroundArt);
+                        UnityEngine.Object.DestroyImmediate(_backgroundArtPrefab.GetComponent<Image>());
+                        UnityEngine.Object.DontDestroyOnLoad(_backgroundArtPrefab);
                     }
                 }
             }

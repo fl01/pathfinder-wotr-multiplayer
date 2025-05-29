@@ -139,6 +139,7 @@ namespace WOTRMultiplayer.UI.Menu
         private void SetupLayout()
         {
             var baseLayout = transform.Find("CreditsScreen")?.gameObject;
+
             var baseMenuItem = SetupBaseMenuItem(baseLayout);
             var hostMenuItem = CreateMenuItem(Screen.width * 0.33f, baseMenuItem, baseLayout.transform);
             _hostMenuController.Initialize(this, baseLayout, hostMenuItem);
@@ -174,9 +175,10 @@ namespace WOTRMultiplayer.UI.Menu
             var confirmation = menuItemController.GetDeactivationConfirmation();
             if (confirmation != null)
             {
+                var onModalClosed = confirmation.ModalType == MessageModalBase.ModalType.Dialog ? onResult : null;
                 EventBus.RaiseEvent<IMessageModalUIHandler>(delegate (IMessageModalUIHandler w)
                 {
-                    w.HandleOpen(confirmation.Text, MessageModalBase.ModalType.Dialog, onResult, null, null, null, null, null, null, 0, uint.MaxValue, null);
+                    w.HandleOpen(confirmation.Text, confirmation.ModalType, onModalClosed, null, null, null, null, null, null, 0, uint.MaxValue, null);
                 }, true);
                 return;
             }

@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
@@ -21,7 +23,14 @@ namespace WOTRMultiplayer.MP
         private readonly object _actionlock = new();
         private const int LocalPlayerId = -2;
 
+        public Action<string> OnNetworkError { get; set; }
+
+        public Action OnConnected { get; set; }
+        public Action OnDisconnected { get; set; }
+
         public bool IsActive => _networkServerClient.IsActive;
+
+        public bool IsConnecting => _networkServerClient.IsConnecting;
 
         public MultiplayerClient(
             ILogger<MultiplayerClient> logger,
@@ -42,8 +51,6 @@ namespace WOTRMultiplayer.MP
                 _networkServerClient.Dispose();
             }
 
-            RegisterHandlers();
-
             if (!_ipEndPointParser.TryParse(address, out IPEndPoint endpoint))
             {
                 return JoinLobbyResult.Error("Unable to parse provided IP address. Please verify your input");
@@ -54,7 +61,10 @@ namespace WOTRMultiplayer.MP
                 return JoinLobbyResult.Error("Provided port is invalid. Please verify your input");
             }
 
-            _networkServerClient.ConnectAsync(endpoint.Address.ToString(), endpoint.Port).Wait();
+            RegisterHandlers();
+
+            _networkServerClient.ConnectAsync(endpoint.Address.ToString(), endpoint.Port);
+
             _playersList.Add(new NetworkPlayer(LocalPlayerId) { Name = settings.PlayerName });
             return JoinLobbyResult.Ok();
         }
@@ -73,6 +83,35 @@ namespace WOTRMultiplayer.MP
             _networkServerClient
                 .Register<PlayerNameRequest>(OnPlayerNameRequest)
                 ;
+
+            _networkServerClient.OnError = OnNetworkClientError;
+            _networkServerClient.OnConnected = OnNetworkClientConnected;
+            _networkServerClient.OnDisconnected = OnNetworkClientDisconnected;
+        }
+
+        private void OnNetworkClientDisconnected()
+        {
+            _logger.LogInformation("Client disconnected");
+        }
+
+        private void OnNetworkClientConnected(EndPoint endpoint)
+        {
+            _lobbyWindowController.UpdateServerInfo(endpoint.ToString());
+            OnConnected?.Invoke();
+        }
+
+        private void OnNetworkClientError(Exception exception)
+        {
+            if (exception is SocketException socketException)
+            {
+                var code = socketException.ErrorCode;
+                var errorText = $"Network error occurred. Error code: {(SocketError)code}";
+                OnNetworkError?.Invoke(errorText);
+                return;
+            }
+
+            OnNetworkError?.Invoke("Generic network error occurred");
+            _logger.LogError(exception, "Generic network error occurred");
         }
 
         private void OnPlayerNameRequest(PlayerNameRequest request)
