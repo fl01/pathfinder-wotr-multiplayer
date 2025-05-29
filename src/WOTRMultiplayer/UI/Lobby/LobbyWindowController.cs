@@ -45,17 +45,17 @@ namespace WOTRMultiplayer.UI.Lobby
         private readonly ConcurrentDictionary<LobbyWindowOwner, GameObject> _contents = new();
         private LobbyWindowOwner _activeOwner;
 
-        private GameObject ServerInfoSectionContent => GetContentOwnedObject().transform
+        private GameObject ServerInfoSectionContent => GetContentOwnedObject()?.transform
             .Find(LobbyContentObjectName)
             .Find(ServerInfoSectionObjectName)
             .Find(ServerInfoSectionContentObjectName).gameObject;
 
-        private GameObject PlayersSectionContent => GetContentOwnedObject().transform
+        private GameObject PlayersSectionContent => GetContentOwnedObject()?.transform
             .Find(LobbyContentObjectName)
             .Find(PlayersSectionObjectName)
             .Find(PlayersSectionContentObjectName).gameObject;
 
-        private GameObject CharactersInfoContainer => GetContentOwnedObject().transform
+        private GameObject CharactersInfoContainer => GetContentOwnedObject()?.transform
             .Find(LobbyContentObjectName)
             .Find(CharactersSectionObjectName)
             .Find(CharactersSectionContentObjectName).gameObject;
@@ -72,6 +72,8 @@ namespace WOTRMultiplayer.UI.Lobby
 
         public void InitializeContent(LobbyWindowOwner owner, Transform parent)
         {
+            _logger.LogInformation("Initialize content. Owner={owner}", owner);
+
             if (!_contents.TryGetValue(owner, out var content) && content != null)
             {
                 _logger.LogError("Lobby content still exists on the scene. Owner={owner}", owner);
@@ -237,9 +239,9 @@ namespace WOTRMultiplayer.UI.Lobby
             var serverSection = ServerInfoSectionContent;
             _mainThreadAccessor.MainThreadQueue.Enqueue(() =>
             {
-                current.SetActive(false);
-                playerSection.CleanupAllChildren();
-                serverSection.CleanupAllChildren();
+                current?.SetActive(false);
+                playerSection?.CleanupAllChildren();
+                serverSection?.CleanupAllChildren();
             });
         }
 
@@ -257,6 +259,12 @@ namespace WOTRMultiplayer.UI.Lobby
             }
 
             return content;
+        }
+
+        public void ResetOwner(LobbyWindowOwner owner)
+        {
+            _logger.LogInformation("Reset owner content objects. Owner={owner}", owner);
+            _contents.TryRemove(owner, out var _);
         }
     }
 }

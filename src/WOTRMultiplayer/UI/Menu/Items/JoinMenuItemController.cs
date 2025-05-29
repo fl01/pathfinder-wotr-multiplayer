@@ -30,13 +30,13 @@ namespace WOTRMultiplayer.UI.Menu.Items
         public const string LobbyWindowObjectName = "LobbyWindow";
 
         private readonly ILogger<JoinMenuItemController> _logger;
-        private readonly ILobbyWindowController _lobbyWindowController;
         private readonly IMainThreadAccessor _mainThreadAccessor;
         private readonly IUIFactory _uIFactory;
         private readonly IMultiplayerClient _multiplayerClient;
         private GameObject _menuContent;
 
         protected override GameObject MenuContent => _menuContent;
+        protected override LobbyWindowOwner Owner => LobbyWindowOwner.JoinMenu;
 
         protected GameObject JoinLobbyControlsObject => _menuContent.transform
             .Find(RootContentScreenObjectName)
@@ -75,10 +75,9 @@ namespace WOTRMultiplayer.UI.Menu.Items
             ILobbyWindowController lobbyWindowController,
             IMultiplayerClient multiplayerClient,
             IUIFactory uIFactory)
-            : base(logger)
+            : base(logger, lobbyWindowController)
         {
             _logger = logger;
-            _lobbyWindowController = lobbyWindowController;
             _mainThreadAccessor = mainThreadAccessor;
             _uIFactory = uIFactory;
             _multiplayerClient = multiplayerClient;
@@ -93,7 +92,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
                 return;
             }
 
-            _lobbyWindowController.SetActiveOwner(LobbyWindowOwner.JoinMenu);
+            Lobby.SetActiveOwner(LobbyWindowOwner.JoinMenu);
             base.Activate();
         }
 
@@ -122,7 +121,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
             lobbyWindowVertical.padding = new RectOffset(0, 0, 0, 20);
             var lobbyWindowRect = lobbyWindow.GetComponent<RectTransform>();
             lobbyWindowRect.sizeDelta = menuContentRect.sizeDelta;
-            _lobbyWindowController.InitializeContent(LobbyWindowOwner.JoinMenu, lobbyWindow.transform);
+            Lobby.InitializeContent(LobbyWindowOwner.JoinMenu, lobbyWindow.transform);
 
             // input + button ?
             var joinLobbyControlsMenu = _uIFactory.CreateDefaultGameObject(content.transform);
@@ -192,7 +191,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
 
             _multiplayerClient.Dispose();
             ActivateJoinLobbyControls();
-            _lobbyWindowController.Reset();
+            Lobby.Reset();
         }
 
         private void OnMultiplayerClientConnected()
@@ -280,7 +279,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
         public override void Deactivate()
         {
             ActivateJoinLobbyControls();
-            _lobbyWindowController.Reset();
+            Lobby.Reset();
 
             base.Deactivate();
         }

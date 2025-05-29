@@ -221,8 +221,8 @@ namespace WOTRMultiplayer.UI.Menu
 
         public override void Dispose()
         {
-            _hostMenuController.Reset();
-            _joinMenuController.Reset();
+            _hostMenuController.Reset(false);
+            _joinMenuController.Reset(false);
             base.Dispose();
         }
     }

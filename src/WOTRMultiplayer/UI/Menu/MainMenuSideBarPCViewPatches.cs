@@ -4,7 +4,6 @@ using Kingmaker;
 using Kingmaker.UI.MVVM;
 using Kingmaker.UI.MVVM._PCView.Common;
 using Kingmaker.UI.MVVM._PCView.MainMenu;
-using Kingmaker.UI.MVVM._PCView.Settings;
 using Serilog;
 using TMPro;
 
@@ -13,24 +12,6 @@ namespace WOTRMultiplayer.UI.Menu
     [HarmonyPatch]
     public class MainMenuSideBarPCViewPatches
     {
-        [HarmonyPatch(typeof(SettingsPCView), "Initialize")]
-        [HarmonyPostfix]
-        public static void SettingsPCView_Initialize_Prefix(SettingsPCView __instance)
-        {
-            Log.Logger.Information("{methodName}: Applying", nameof(SettingsPCView_Initialize_Prefix));
-
-            try
-            {
-                Main.Multiplayer.Factory.StoreDropdownPrefab(__instance.m_SettingsViews.m_SettingsEntityDropdownViewPrefab);
-            }
-            catch (Exception ex)
-            {
-                Log.Logger.Error(ex, "Unable to apply SettingsPCView patch");
-                throw;
-            }
-        }
-
-
         [HarmonyPatch(typeof(MainMenuSideBarPCView), "BindViewImplementation")]
         [HarmonyPrefix]
         public static void MainMenuSideBarPCView_BindViewImplementation_Prefix(MainMenuSideBarPCView __instance)

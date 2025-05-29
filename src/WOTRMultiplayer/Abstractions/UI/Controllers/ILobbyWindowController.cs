@@ -15,5 +15,7 @@ namespace WOTRMultiplayer.Abstractions.UI.Controllers
         void UpdateServerInfo(string serverAddress);
         void UpdateCharacters(SaveSlotVM value);
         void SetActiveOwner(LobbyWindowOwner owner);
+
+        void ResetOwner(LobbyWindowOwner owner);
     }
 }

@@ -31,12 +31,12 @@ namespace WOTRMultiplayer.UI.Menu.Items
 
         private readonly ILogger<HostMenuItemController> _logger;
         private readonly IMultiplayerHost _multiplayerHost;
-        private readonly ILobbyWindowController _lobbyWindowController;
 
         private SaveLoadVM _saveLoadViewModel;
         private GameObject _menuContent;
 
         protected override GameObject MenuContent => _menuContent;
+        protected override LobbyWindowOwner Owner => LobbyWindowOwner.HostMenu;
 
         private TextMeshProUGUI Title => _menuContent
             .transform
@@ -69,11 +69,10 @@ namespace WOTRMultiplayer.UI.Menu.Items
             ILogger<HostMenuItemController> logger,
             IMultiplayerHost multiplayerHost,
             ILobbyWindowController lobbyWindowController)
-            : base(logger)
+            : base(logger, lobbyWindowController)
         {
             _logger = logger;
             _multiplayerHost = multiplayerHost;
-            _lobbyWindowController = lobbyWindowController;
         }
 
         public override void Activate()
@@ -85,7 +84,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
                 return;
             }
 
-            _lobbyWindowController.SetActiveOwner(LobbyWindowOwner.HostMenu);
+            Lobby.SetActiveOwner(LobbyWindowOwner.HostMenu);
 
             var saveLoad = _menuContent.transform.GetChild(0).GetComponent<SaveLoadPCView>();
             _saveLoadViewModel = new SaveLoadVM(SaveLoadMode.Load, true, OnCloseSaveLoadVM, RootUIContext.Instance.CommonVM);
@@ -139,7 +138,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
             var gameName = selectedSave.SaveName.Value;
             var titleText = UIUtility.GetSaberBookFormat(gameName);
             Title.SetText(titleText);
-            _lobbyWindowController.UpdateCharacters(_saveLoadViewModel.SelectedSaveSlot.Value);
+            Lobby.UpdateCharacters(_saveLoadViewModel.SelectedSaveSlot.Value);
             var portraits = selectedSave.PartyPortraits.Value.Select(p => p.Portrait.name).ToList();
 
             if (!_multiplayerHost.IsActive)
@@ -220,7 +219,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
             var lobbyWindowObjectRect = lobbyWindowObject.GetComponent<RectTransform>();
             lobbyWindowObjectRect.sizeDelta = new Vector2(parentContainerRect.sizeDelta.x * 0.9f, parentContainerRect.sizeDelta.y * 0.72f);
 
-            _lobbyWindowController.InitializeContent(LobbyWindowOwner.HostMenu, lobbyWindowObject.transform);
+            Lobby.InitializeContent(LobbyWindowOwner.HostMenu, lobbyWindowObject.transform);
         }
 
         private void SetupLoadSaveGamesLayout()
@@ -232,7 +231,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
         public override void Deactivate()
         {
             _multiplayerHost.Stop();
-            _lobbyWindowController.Reset();
+            Lobby.Reset();
             DisposeSaveLoadVM();
             base.Deactivate();
         }
