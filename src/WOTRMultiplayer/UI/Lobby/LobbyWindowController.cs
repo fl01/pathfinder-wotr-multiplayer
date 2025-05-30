@@ -255,6 +255,7 @@ namespace WOTRMultiplayer.UI.Lobby
                 current?.SetActive(false);
                 playerSection?.CleanupAllChildren();
                 serverSection?.CleanupAllChildren();
+                UpdateCharacters([]);
             });
         }
 
