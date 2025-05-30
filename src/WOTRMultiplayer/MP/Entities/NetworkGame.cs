@@ -10,9 +10,20 @@ namespace WOTRMultiplayer.MP.Entities
 
         public List<NetworkPlayer> Players { get; set; } = [];
 
-        public NetworkGame()
+        public string SavePath { get; set; }
+
+        public NetworkGame(string savePath)
         {
+            SavePath = savePath;
             Status = NetworkGameStatus.Lobby;
+        }
+
+        public void Reset()
+        {
+            Portraits.Clear();
+            Players.Clear();
+            SavePath = null;
+            Status = NetworkGameStatus.None;
         }
     }
 }

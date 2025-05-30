@@ -8,13 +8,13 @@ namespace WOTRMultiplayer.Abstractions.MP
 {
     public interface IMultiplayerHost
     {
-        void Create(List<string> portraits, MultiplayerSettings multiplayerSettings);
+        void Create(string savePath, List<string> portraits, MultiplayerSettings multiplayerSettings);
 
         void Dispose();
 
         bool ReadyChanged();
 
-        void NotifyGameCharactersChanged(List<string> portraits);
+        void NotifyGameCharactersChanged(string savePath, List<string> portraits);
 
         void Start();
 

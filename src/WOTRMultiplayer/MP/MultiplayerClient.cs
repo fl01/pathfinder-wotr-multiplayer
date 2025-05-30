@@ -143,7 +143,7 @@ namespace WOTRMultiplayer.MP
 
         private void OnNetworkClientConnected(EndPoint endpoint)
         {
-            _game = new NetworkGame();
+            _game = new NetworkGame(string.Empty);
             OnConnected?.Invoke(endpoint);
         }
 

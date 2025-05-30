@@ -35,7 +35,7 @@ namespace WOTRMultiplayer.MP
             _networkServer = networkServer;
         }
 
-        public void Create(List<string> portraits, MultiplayerSettings settings)
+        public void Create(string savePath, List<string> portraits, MultiplayerSettings settings)
         {
             if (_networkServer.IsActive)
             {
@@ -44,13 +44,14 @@ namespace WOTRMultiplayer.MP
 
             RegisterHandlers();
 
-            _game?.Players.Clear();
-            _game?.Portraits.Clear();
+            _game?.Reset();
 
-            _game = new NetworkGame();
+            _game = new NetworkGame(savePath);
             _game.Portraits.AddRange(portraits);
 
             _networkServer.Start();
+
+            _logger.LogInformation("Host has been created. SavePath={savePath}, Portraits={portraits}", _game.SavePath, string.Join(";", _game.Portraits));
         }
 
         public void Dispose()
@@ -73,12 +74,13 @@ namespace WOTRMultiplayer.MP
             return readyChanged.IsReady;
         }
 
-        public void NotifyGameCharactersChanged(List<string> portraits)
+        public void NotifyGameCharactersChanged(string savePath, List<string> portraits)
         {
             _game.Portraits.Clear();
             _game.Portraits.AddRange(portraits);
+            _game.SavePath = savePath;
 
-            _logger.LogInformation("Notifying game characters changed. Portraits={portraits}", string.Join(";", portraits));
+            _logger.LogInformation("Notifying game characters changed. Portraits={portraits}", string.Join(";", _game.Portraits));
             var message = CreateNotifyGameCharactersChanged();
             _networkServer.SendAll(message);
         }

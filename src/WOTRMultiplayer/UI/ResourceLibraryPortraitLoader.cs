@@ -1,18 +1,28 @@
 ﻿using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using Kingmaker.BundlesLoading;
-using UnityEngine;
+using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.UI;
 
 namespace WOTRMultiplayer.UI
 {
     public class ResourceLibraryPortraitLoader : IPortraitProvider
     {
-        private ImmutableDictionary<string, Sprite> _portraits;
+        public const string PlaceholderPortrait = "Mask_Portrait";
+        private readonly ILogger _logger;
+        private ConcurrentDictionary<string, UnityEngine.Sprite> _portraits;
 
-        public Sprite GetPortrait(string name)
+        public ResourceLibraryPortraitLoader(ILogger<ResourceLibraryPortraitLoader> logger)
         {
-            _portraits.TryGetValue(name, out var sprite);
+            _logger = logger;
+        }
+
+        public UnityEngine.Sprite GetPortrait(string name)
+        {
+            if (!_portraits.TryGetValue(name, out var sprite))
+            {
+                _logger.LogWarning("Unable to find requested portrait. Name={portraitName}", name);
+                _portraits.TryGetValue(PlaceholderPortrait, out sprite);
+            }
 
             return sprite;
         }
@@ -22,12 +32,12 @@ namespace WOTRMultiplayer.UI
             _portraits = LoadAssets();
         }
 
-        private ImmutableDictionary<string, Sprite> LoadAssets()
+        private ConcurrentDictionary<string, UnityEngine.Sprite> LoadAssets()
         {
             var bundle = BundlesLoadService.Instance.RequestBundle("portraits");
             // had no success to limit loading
-            var allPortraits = bundle.LoadAllAssets<Sprite>();
-            var characterPortraits = new ConcurrentDictionary<string, Sprite>();
+            var allPortraits = bundle.LoadAllAssets<UnityEngine.Sprite>();
+            var characterPortraits = new ConcurrentDictionary<string, UnityEngine.Sprite>();
             for (int i = 0; i < allPortraits.Length; i++)
             {
                 var portrait = allPortraits[i];
@@ -41,7 +51,7 @@ namespace WOTRMultiplayer.UI
                 UnityEngine.Object.DestroyImmediate(portrait);
             }
 
-            return characterPortraits.ToImmutableDictionary();
+            return characterPortraits;
         }
     }
 }

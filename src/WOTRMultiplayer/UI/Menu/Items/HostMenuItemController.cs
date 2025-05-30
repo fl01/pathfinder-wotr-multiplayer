@@ -181,6 +181,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
             var titleText = UIUtility.GetSaberBookFormat(gameName);
             Title.SetText(titleText);
             var portraits = selectedSave.PartyPortraits.Value.Select(p => p.Portrait.name).ToList();
+            var savePath = selectedSave.Reference.FolderName;
             Lobby.UpdateCharacters(portraits);
 
             if (!_multiplayerHost.IsActive)
@@ -188,12 +189,12 @@ namespace WOTRMultiplayer.UI.Menu.Items
                 StartButtonObject.SetActive(true);
                 ReadyButtonObject.SetActive(true);
                 ReadyButton.Interactable = true;
-                _multiplayerHost.Create(portraits, new MP.MultiplayerSettings());
+                _multiplayerHost.Create(savePath, portraits, new MP.MultiplayerSettings());
                 SetButtonLabel(HostButtonObject, StringConsts.MultiplayerWindow.HostMenu.HostButtonActiveLabel);
                 return;
             }
 
-            _multiplayerHost.NotifyGameCharactersChanged(portraits);
+            _multiplayerHost.NotifyGameCharactersChanged(savePath, portraits);
         }
 
         private void OnReadyButtonClicked()

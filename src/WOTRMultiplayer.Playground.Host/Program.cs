@@ -22,7 +22,7 @@ namespace WOTRMultiplayer.Playground.Host
                 "KitsuneFemaleRogue_Portrait","SeelahFemalePaladin_Portrait", "RegillMaleGnomeHellknight_Portrait",
                 "WenduagFemaleMongrelRanger_Portrait","EmberFemaleElfWitch_Portrait","NenioFemaleKitsuneWizard_Portrait"
             };
-            host.Create(portraits, new MultiplayerSettings());
+            host.Create(string.Empty, portraits, new MultiplayerSettings());
             var input = string.Empty;
 
             Console.Write(@$"
