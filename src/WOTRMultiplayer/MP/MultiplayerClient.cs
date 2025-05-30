@@ -75,6 +75,7 @@ namespace WOTRMultiplayer.MP
 
         public bool ReadyChanged()
         {
+            _logger.LogInformation("Ready changed");
             var player = _game.Players.First(p => p.Id == _localPlayerId); // local client should be always present
             player.IsReady = !player.IsReady;
             var readyChanged = new PlayerReadyStatusChanged { PlayerId = player.Id, IsReady = player.IsReady };
@@ -103,14 +104,31 @@ namespace WOTRMultiplayer.MP
                 .Register<PlayerReadyStatusChanged>(OnPlayerReadyStatusChanged)
                 .Register<NotifyPlayersChanged>(OnNotifyPlayersChanged)
                 .Register<NotifyGameCharactersChanged>(OnNotifyGameCharactersChanged)
+                .Register<NotifySaveGameAssigned>(OnNotifySaveGameAssigned)
+                .Register<NotifyGameStatusChanged>(OnNotifyGameStatusChanged)
                 ;
 
             _networkServerClient.OnError = OnNetworkClientError;
             _networkServerClient.OnConnected = OnNetworkClientConnected;
         }
 
+        private void OnNotifyGameStatusChanged(NotifyGameStatusChanged changed)
+        {
+            _logger.LogInformation("Received NotifyGameStatusChanged. Status={newGameStatus}", changed.Status);
+            _game.Status = (NetworkGameStatus)Enum.Parse(typeof(NetworkGameStatus), changed.Status, true);
+        }
+
+        private void OnNotifySaveGameAssigned(NotifySaveGameAssigned assigned)
+        {
+            _logger.LogInformation("Received save game file content. GameStatus={status} Size={contentSize}", _game.Status, assigned.Content.Length);
+            // save content somewhere
+            // send new is ready? (is ready to play)
+        }
+
         private void OnPlayerReadyStatusChanged(PlayerReadyStatusChanged readyStatusChanged)
         {
+            _logger.LogInformation("Player ready status changed received. PlayerId={playerId}, IsReady={isReady}", readyStatusChanged.PlayerId, readyStatusChanged.IsReady);
+
             lock (_actionlock)
             {
                 var existingPlayer = GetPlayer(readyStatusChanged.PlayerId);
@@ -133,7 +151,7 @@ namespace WOTRMultiplayer.MP
 
         private void OnNotifyPlayersChanged(NotifyPlayersChanged changed)
         {
-            _logger.LogInformation("{messageType} received", nameof(NotifyPlayersChanged));
+            _logger.LogInformation("{messageType} received. PlayersCount={playersCount}}", nameof(NotifyPlayersChanged), changed.Players.Count);
             _game.Players.Clear();
             var players = changed.Players.Select(p => new NetworkPlayer(p.Id) { IsReady = p.IsReady, Name = p.Name }).ToList();
             _game.Players.AddRange(players);

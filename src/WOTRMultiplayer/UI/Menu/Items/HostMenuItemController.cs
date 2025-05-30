@@ -20,6 +20,7 @@ using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.UI.Lobby;
+using WOTRMultiplayer.Unity;
 
 namespace WOTRMultiplayer.UI.Menu.Items
 {
@@ -35,7 +36,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
 
         private readonly ILogger<HostMenuItemController> _logger;
         private readonly IMultiplayerHost _multiplayerHost;
-
+        private readonly IMainThreadAccessor _mainThreadAccessor;
         private SaveLoadVM _saveLoadViewModel;
         private GameObject _menuContent;
 
@@ -71,11 +72,13 @@ namespace WOTRMultiplayer.UI.Menu.Items
         public HostMenuItemController(
             ILogger<HostMenuItemController> logger,
             IMultiplayerHost multiplayerHost,
+            IMainThreadAccessor mainThreadAccessor,
             ILobbyWindowController lobbyWindowController)
             : base(logger, lobbyWindowController)
         {
             _logger = logger;
             _multiplayerHost = multiplayerHost;
+            _mainThreadAccessor = mainThreadAccessor;
         }
 
         public override void Activate()
@@ -262,7 +265,12 @@ namespace WOTRMultiplayer.UI.Menu.Items
         private void OnMultiplayerHostPlayersChanged(List<NetworkPlayer> players)
         {
             Lobby.UpdatePlayers(players);
-            StartButton.Interactable = players.All(p => p.IsReady);
+            var canStart = players.All(p => p.IsReady);
+            _mainThreadAccessor.MainThreadQueue.Enqueue(() =>
+            {
+                StartButton.Interactable = canStart;
+            });
+            _logger.LogInformation("Players changed. Can start={canStart}", canStart);
         }
 
         private void SetupLoadSaveGamesLayout()

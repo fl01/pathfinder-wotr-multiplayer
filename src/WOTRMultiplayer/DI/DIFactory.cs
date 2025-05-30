@@ -2,10 +2,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
+using WOTRMultiplayer.IO;
 using WOTRMultiplayer.MP;
 using WOTRMultiplayer.Networking.Extensions;
 using WOTRMultiplayer.UI;
@@ -30,6 +32,7 @@ namespace WOTRMultiplayer.DI
 
             serviceCollection.AddSingleton<IMainThreadAccessor, MainThreadAccessor>();
 
+            serviceCollection.AddSingleton<IFileSystemService, FileSystemService>();
             serviceCollection.AddSingleton<IPortraitProvider, ResourceLibraryPortraitLoader>();
             serviceCollection.AddSingleton<IUIFactory, UIFactory>();
 

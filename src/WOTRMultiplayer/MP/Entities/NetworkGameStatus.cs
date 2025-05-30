@@ -4,7 +4,9 @@
     {
         None,
         Lobby,
-        Loading,
+        Initializing,
+        WaitingForPlayersInitialization,
+        Initialized,
         Playing
     }
 }

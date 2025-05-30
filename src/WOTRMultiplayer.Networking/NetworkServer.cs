@@ -61,7 +61,8 @@ namespace WOTRMultiplayer.Networking
 
         public void SendAll(object message)
         {
-            Server.AppServer.Send(message, Server.AppServer.GetOnlines());
+            var sessions = Server.AppServer.GetOnlines();
+            Server.AppServer.Send(message, sessions);
         }
 
         public void SendAllExcept(long clientId, object message)

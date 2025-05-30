@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.Networking.Abstractions;
@@ -14,6 +15,8 @@ namespace WOTRMultiplayer.MP
     {
         private readonly ILogger<MultiplayerHost> _logger;
         private readonly INetworkServer _networkServer;
+        private readonly IFileSystemService _fileSystemService;
+
         private NetworkGameStatus Status => _game?.Status ?? NetworkGameStatus.None;
 
         private readonly object _actionlock = new();
@@ -29,10 +32,12 @@ namespace WOTRMultiplayer.MP
 
         public MultiplayerHost(
             ILogger<MultiplayerHost> logger,
+            IFileSystemService fileSystemService,
             INetworkServer networkServer)
         {
             _logger = logger;
             _networkServer = networkServer;
+            _fileSystemService = fileSystemService;
         }
 
         public void Create(string savePath, List<string> portraits, MultiplayerSettings settings)
@@ -88,6 +93,24 @@ namespace WOTRMultiplayer.MP
         public void Start()
         {
             _logger.LogInformation("Starting game...");
+            // it should be fine to block current thread
+            var content = _fileSystemService.GetFileContent(_game.SavePath);
+            if (content == null)
+            {
+                _logger.LogError("Unable to start a game due to missing save file. Path={savePath}", _game.SavePath);
+                return;
+            }
+
+            _game.Status = NetworkGameStatus.Initializing;
+            var gameStatusChanged = new NotifyGameStatusChanged { Status = _game.Status.ToString() };
+            _networkServer.SendAll(gameStatusChanged);
+
+            var saveGameMessageAssigned = new NotifySaveGameAssigned { Content = content };
+            _logger.LogInformation($"Sending save game file content to all players. Size={saveGameMessageAssigned.Content.Length}");
+            _networkServer.SendAll(saveGameMessageAssigned);
+            _game.Status = NetworkGameStatus.WaitingForPlayersInitialization;
+            _logger.LogInformation("Waiting for players to confirm delivery. GameStatus={gameStatus}", _game.Status);
+            // wait for all players to receive save -> Initialized -> send load game command to clients -> load game for a host
         }
 
         private void RegisterHandlers()
@@ -123,32 +146,42 @@ namespace WOTRMultiplayer.MP
 
         private void OnPlayerNameResponse(long playerId, PlayerNameResponse response)
         {
-            _logger.LogInformation("Player name received. PlayerId={playerId}, Name={name}", playerId, response?.Name);
-            lock (_actionlock)
+            try
             {
-                var existingPlayer = GetPlayer(playerId);
-                if (existingPlayer == null)
+                _logger.LogInformation("Player name received. PlayerId={playerId}, Name={name}", playerId, response?.Name);
+                lock (_actionlock)
                 {
-                    _logger.LogWarning("Can't process player name update because player doesn't exist. PlayerId={playerId}, Name={name}", playerId, response?.Name);
-                    return;
+                    var existingPlayer = GetPlayer(playerId);
+                    if (existingPlayer == null)
+                    {
+                        _logger.LogWarning("Can't process player name update because player doesn't exist. PlayerId={playerId}, Name={name}", playerId, response?.Name);
+                        return;
+                    }
+
+                    if (string.IsNullOrEmpty(response.Name))
+                    {
+                        _logger.LogWarning("Can't process player name update because player name is missing. PlayerId={playerId}, Name={name}", playerId, response?.Name);
+                        return;
+                    }
+
+                    existingPlayer.Name = response.Name;
+
+                    OnPlayersChanged?.Invoke(_game.Players);
+
+                    var players = _game.Players.Select(x => new Networking.Messages.NetworkPlayer { Id = x.Id, Name = x.Name, IsReady = x.IsReady }).ToList();
+                    var playersChanged = new NotifyPlayersChanged { Players = players };
+                    _logger.LogInformation("Sending players changed to ALL players");
+                    _networkServer.SendAll(playersChanged);
+
+                    var notifyGameCharactersChanged = CreateNotifyGameCharactersChanged();
+                    _logger.LogInformation("Sending GameCharactersChanged to new player. PlayerId={playerId}", playerId);
+                    _networkServer.Send(playerId, notifyGameCharactersChanged);
                 }
-
-                if (string.IsNullOrEmpty(response.Name))
-                {
-                    _logger.LogWarning("Can't process player name update because player name is missing. PlayerId={playerId}, Name={name}", playerId, response?.Name);
-                    return;
-                }
-
-                existingPlayer.Name = response.Name;
-
-                OnPlayersChanged?.Invoke(_game.Players);
-
-                var players = _game.Players.Select(x => new Networking.Messages.NetworkPlayer { Id = x.Id, Name = x.Name, IsReady = x.IsReady }).ToList();
-                var playersChanged = new NotifyPlayersChanged { Players = players };
-                _networkServer.SendAll(playersChanged);
-
-                var notifyGameCharactersChanged = CreateNotifyGameCharactersChanged();
-                _networkServer.Send(playerId, notifyGameCharactersChanged);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle player name response");
+                throw;
             }
         }
 
