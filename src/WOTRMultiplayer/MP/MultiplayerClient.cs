@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Lobby;
@@ -16,6 +20,8 @@ namespace WOTRMultiplayer.MP
     {
         private readonly ILogger<MultiplayerClient> _logger;
         private readonly IIPEndPointParser _ipEndPointParser;
+        private readonly IFileSystemService _fileSystemService;
+        private readonly IUnityPathService _unityPathService;
         private readonly INetworkServerClient _networkServerClient;
 
         public const int LocalHostPlayerId = -1;
@@ -45,10 +51,14 @@ namespace WOTRMultiplayer.MP
         public MultiplayerClient(
             ILogger<MultiplayerClient> logger,
             IIPEndPointParser ipEndPointParser,
+            IUnityPathService unityPathService,
+            IFileSystemService fileSystemService,
             INetworkServerClient networkServerClient)
         {
             _logger = logger;
             _ipEndPointParser = ipEndPointParser;
+            _fileSystemService = fileSystemService;
+            _unityPathService = unityPathService;
             _networkServerClient = networkServerClient;
         }
 
@@ -146,7 +156,17 @@ namespace WOTRMultiplayer.MP
         private void OnNotifySaveGameAssigned(NotifySaveGameAssigned assigned)
         {
             _logger.LogInformation("Received save game file content. GameStatus={status} Size={contentSize}", _game.Status, assigned.Content.Length);
-            // save content somewhere
+
+            var baseUnityPath = _unityPathService.GetSaveGamePath();
+            var multiplayerPath = Regex.Replace(baseUnityPath, "(((\\\\|\\/)+)(Saved Games)((\\\\|\\/)+))$", "/Saved Multiplayer Games/");
+            _game.SavePath = Path.Combine(multiplayerPath, "latest save.zks");
+            _logger.LogInformation("Save game path changed. Path={path}", _game.SavePath);
+            if (!_fileSystemService.WriteFile(_game.SavePath, assigned.Content))
+            {
+                _logger.LogError("Unable to store save game");
+                // on error?
+                return;
+            }
             // send new is ready? (is ready to play)
         }
 

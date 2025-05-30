@@ -11,10 +11,10 @@ using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
+using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.UI.Lobby;
-using WOTRMultiplayer.Unity;
 
 namespace WOTRMultiplayer.UI.Menu.Items
 {

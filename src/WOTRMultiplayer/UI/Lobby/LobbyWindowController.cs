@@ -8,9 +8,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
+using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.MP.Entities;
-using WOTRMultiplayer.Unity;
+using WOTRMultiplayer.Unity.Behaviours;
 
 namespace WOTRMultiplayer.UI.Lobby
 {
@@ -244,11 +245,11 @@ namespace WOTRMultiplayer.UI.Lobby
                 return;
             }
 
-            var characterIndexComponent = dropdown.transform.parent?.GetComponent<CharacterIndexMonoBehavior>();
+            var characterIndexComponent = dropdown.transform.parent?.GetComponent<CharacterIndexMonoBehaviour>();
 
             if (characterIndexComponent == null)
             {
-                _logger.LogWarning($"Can't find ${nameof(CharacterIndexMonoBehavior)} to assign character control");
+                _logger.LogWarning($"Can't find ${nameof(CharacterIndexMonoBehaviour)} to assign character control");
                 return;
             }
 

@@ -7,6 +7,7 @@ using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
+using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.IO;
 using WOTRMultiplayer.MP;
 using WOTRMultiplayer.Networking.Extensions;
@@ -31,6 +32,7 @@ namespace WOTRMultiplayer.DI
             });
 
             serviceCollection.AddSingleton<IMainThreadAccessor, MainThreadAccessor>();
+            serviceCollection.AddSingleton<IUnityPathService, UnityPathService>();
 
             serviceCollection.AddSingleton<IFileSystemService, FileSystemService>();
             serviceCollection.AddSingleton<IPortraitProvider, ResourceLibraryPortraitLoader>();

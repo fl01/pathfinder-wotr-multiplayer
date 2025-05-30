@@ -1,6 +1,11 @@
 ﻿using System;
+using System.IO;
 using Microsoft.Extensions.DependencyInjection;
-using WOTRMultiplayer.Abstractions.MP;
+using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Abstractions.IO;
+using WOTRMultiplayer.Abstractions.Unity;
+using WOTRMultiplayer.MP;
+using WOTRMultiplayer.Networking.Abstractions;
 
 namespace WOTRMultiplayer.Playground.Client
 {
@@ -12,11 +17,16 @@ namespace WOTRMultiplayer.Playground.Client
         {
             Console.WriteLine("Hello World!");
             var serviceProvider = DI.DIFactory.Create(new Config.UnityMod.UnityModManagerSettings { UseDebugConsole = false });
+            var unityPathService = new DummyUnityPathService();
+            Console.WriteLine("Default save game dir=" + unityPathService.GetSaveGamePath());
             Console.WriteLine("Press enter to join");
             Console.ReadLine();
-
-
-            var client = serviceProvider.GetService<IMultiplayerClient>();
+            var client = new MultiplayerClient(
+                serviceProvider.GetService<ILogger<MultiplayerClient>>(),
+                serviceProvider.GetService<IIPEndPointParser>(),
+                unityPathService,
+                serviceProvider.GetService<IFileSystemService>(),
+                serviceProvider.GetService<INetworkServerClient>());
             client.Connect("127.0.0.1:1024", new MP.MultiplayerSettings { PlayerName = "hello" });
             var input = string.Empty;
 
@@ -34,6 +44,16 @@ namespace WOTRMultiplayer.Playground.Client
                     default:
                         break;
                 }
+            }
+        }
+
+        public class DummyUnityPathService : IUnityPathService
+        {
+            public string GetSaveGamePath()
+            {
+                var appData = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                var fullPath = Path.Combine(appData, "AppData\\LocalLow\\Owlcat Games\\Pathfinder Wrath Of The Righteous\\Saved Games\\");
+                return fullPath;
             }
         }
     }

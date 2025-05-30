@@ -15,7 +15,7 @@ using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.UI.Lobby;
 using WOTRMultiplayer.UI.Menu.Items;
-using WOTRMultiplayer.Unity;
+using WOTRMultiplayer.Unity.Behaviours;
 
 namespace WOTRMultiplayer.UI
 {
@@ -330,7 +330,7 @@ namespace WOTRMultiplayer.UI
 
                 var dropdownContainerObject = Main.Multiplayer.Factory.CreateDropdown(preferedWidth, characterObject.transform);
                 dropdownContainerObject.name = LobbyWindowController.CharacterOwnerObjectName;
-                var characterIndexComponent = dropdownContainerObject.AddComponent<CharacterIndexMonoBehavior>();
+                var characterIndexComponent = dropdownContainerObject.AddComponent<CharacterIndexMonoBehaviour>();
                 characterIndexComponent.CharacterIndex = characterIndex;
 
                 var dropdownObject = dropdownContainerObject.transform.Find(UIFactory.DropdownGameObjectName);

@@ -2,6 +2,8 @@
 {
     public interface IFileSystemService
     {
-        byte[] GetFileContent(string path);
+        byte[] GetFile(string path);
+
+        bool WriteFile(string path, byte[] content);
     }
 }

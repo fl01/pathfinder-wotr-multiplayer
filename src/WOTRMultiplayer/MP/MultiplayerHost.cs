@@ -125,7 +125,7 @@ namespace WOTRMultiplayer.MP
         {
             _logger.LogInformation("Starting game...");
             // it should be fine to block current thread
-            var content = _fileSystemService.GetFileContent(_game.SavePath);
+            var content = _fileSystemService.GetFile(_game.SavePath);
             if (content == null)
             {
                 _logger.LogError("Unable to start a game due to missing save file. Path={savePath}", _game.SavePath);
