@@ -36,19 +36,14 @@ namespace WOTRMultiplayer.UI
         {
             var bundle = BundlesLoadService.Instance.RequestBundle("portraits");
             // had no success to limit loading
+            // note: you can't delete (Object->Destroy or DestroyImmediate) redundant sprites as it causes texture errors later on
             var allPortraits = bundle.LoadAllAssets<UnityEngine.Sprite>();
             var characterPortraits = new ConcurrentDictionary<string, UnityEngine.Sprite>();
             for (int i = 0; i < allPortraits.Length; i++)
             {
                 var portrait = allPortraits[i];
-                if (!string.IsNullOrEmpty(portrait.name) && portrait.name.EndsWith("Portrait", System.StringComparison.OrdinalIgnoreCase))
-                {
-                    characterPortraits.TryAdd(portrait.name, portrait);
-                    continue;
-                }
 
-                // freeup memory
-                UnityEngine.Object.DestroyImmediate(portrait);
+                characterPortraits.TryAdd(portrait.name, portrait);
             }
 
             return characterPortraits;
