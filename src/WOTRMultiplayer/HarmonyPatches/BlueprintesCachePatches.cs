@@ -2,7 +2,7 @@
 using Kingmaker.Blueprints.JsonSystem;
 using Microsoft.Extensions.Logging;
 
-namespace WOTRMultiplayer.UI.Menu
+namespace WOTRMultiplayer.HarmonyPatches
 {
     [HarmonyPatch]
     public class BlueprintesCachePatches

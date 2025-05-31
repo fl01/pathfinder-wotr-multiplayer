@@ -5,13 +5,13 @@ using WOTRMultiplayer.Abstractions.UI;
 
 namespace WOTRMultiplayer.UI
 {
-    public class ResourceLibraryPortraitLoader : IPortraitProvider
+    public class ResourceLibraryPortraitProvider : IPortraitProvider
     {
         public const string PlaceholderPortrait = "Mask_Portrait";
         private readonly ILogger _logger;
         private ConcurrentDictionary<string, UnityEngine.Sprite> _portraits;
 
-        public ResourceLibraryPortraitLoader(ILogger<ResourceLibraryPortraitLoader> logger)
+        public ResourceLibraryPortraitProvider(ILogger<ResourceLibraryPortraitProvider> logger)
         {
             _logger = logger;
         }

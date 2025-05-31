@@ -4,7 +4,7 @@ using Kingmaker.UI.MVVM._PCView.Settings;
 using Microsoft.Extensions.Logging;
 using Serilog;
 
-namespace WOTRMultiplayer.UI.Menu
+namespace WOTRMultiplayer.HarmonyPatches
 {
     [HarmonyPatch]
     public class SettingsPCViewPatches

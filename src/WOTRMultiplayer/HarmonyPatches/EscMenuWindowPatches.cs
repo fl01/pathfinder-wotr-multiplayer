@@ -6,7 +6,7 @@ using Owlcat.Runtime.UI.Controls.Button;
 using TMPro;
 using UnityEngine;
 
-namespace WOTRMultiplayer.UI.Menu
+namespace WOTRMultiplayer.HarmonyPatches
 {
     [HarmonyPatch]
     public class EscMenuWindowPatches
@@ -27,7 +27,7 @@ namespace WOTRMultiplayer.UI.Menu
             }
             else if (mainMenu != null && !Main.Multiplayer.IsActive)
             {
-                UnityEngine.Object.DestroyImmediate(mainMenu);
+                Object.DestroyImmediate(mainMenu);
             }
         }
 
@@ -35,11 +35,11 @@ namespace WOTRMultiplayer.UI.Menu
         {
             logger.LogInformation("Creating MultiplayerMenu");
             var optionsButton = view.transform.Find("Window/ButtonBlock/OptionsButton");
-            var multiplayerMenu = UnityEngine.Object.Instantiate(optionsButton.gameObject, optionsButton.transform.parent);
+            var multiplayerMenu = Object.Instantiate(optionsButton.gameObject, optionsButton.transform.parent);
             multiplayerMenu.transform.SetSiblingIndex(optionsButton.GetSiblingIndex());
             multiplayerMenu.name = multiplayerMenuObjectName;
             var textObject = multiplayerMenu.transform.Find("Text");
-            UnityEngine.Object.DestroyImmediate(textObject.GetComponent<LocalizedUIText>());
+            Object.DestroyImmediate(textObject.GetComponent<LocalizedUIText>());
             textObject.GetComponent<TextMeshProUGUI>().SetText("Multiplayer Lobby");
             var button = multiplayerMenu.GetComponent<OwlcatButton>();
             button.OnLeftClick.RemoveAllListeners();

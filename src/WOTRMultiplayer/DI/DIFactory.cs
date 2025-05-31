@@ -37,7 +37,7 @@ namespace WOTRMultiplayer.DI
             serviceCollection.AddSingleton<ISaveGameService, SaveGameService>();
 
             serviceCollection.AddSingleton<IFileSystemService, FileSystemService>();
-            serviceCollection.AddSingleton<IPortraitProvider, ResourceLibraryPortraitLoader>();
+            serviceCollection.AddSingleton<IPortraitProvider, ResourceLibraryPortraitProvider>();
             serviceCollection.AddSingleton<IUIFactory, UIFactory>();
 
             serviceCollection.AddSingleton<ILobbyWindowController, LobbyWindowController>();

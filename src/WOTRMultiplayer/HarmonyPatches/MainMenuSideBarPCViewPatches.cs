@@ -6,7 +6,7 @@ using Kingmaker.UI.MVVM._PCView.MainMenu;
 using Microsoft.Extensions.Logging;
 using TMPro;
 
-namespace WOTRMultiplayer.UI.Menu
+namespace WOTRMultiplayer.HarmonyPatches
 {
     [HarmonyPatch]
     public class MainMenuSideBarPCViewPatches
