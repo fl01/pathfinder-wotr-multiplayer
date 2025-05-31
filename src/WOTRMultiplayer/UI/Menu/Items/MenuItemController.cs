@@ -101,8 +101,8 @@ namespace WOTRMultiplayer.UI.Menu.Items
 
         public virtual void Deactivate()
         {
-            ActiveImage?.SetActive(false);
-            MenuContent?.SetActive(false);
+            ActiveImage.SetActive(false);
+            MenuContent.SetActive(false);
 
             _logger.LogInformation("Deactivated");
 
