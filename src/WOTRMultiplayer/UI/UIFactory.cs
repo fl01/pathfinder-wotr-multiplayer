@@ -58,11 +58,11 @@ namespace WOTRMultiplayer.UI
                         _logger.LogInformation("Storing {prefabTypeName} prefab", nameof(SettingsEntityDropdownPCView));
 
                         _dropdownPrefab = UnityEngine.Object.Instantiate(view.gameObject);
-                        UnityEngine.Object.DontDestroyOnLoad(_dropdownPrefab);
                         UnityEngine.Object.DestroyImmediate(_dropdownPrefab.GetComponent<SettingsEntityDropdownPCView>());
                         UnityEngine.Object.DestroyImmediate(_dropdownPrefab.GetComponent<ContentSizeFitterExtended>());
                         UnityEngine.Object.DestroyImmediate(_dropdownPrefab.GetComponent<VerticalLayoutGroupWorkaround>());
                         UnityEngine.Object.DestroyImmediate(_dropdownPrefab.GetComponent<LayoutElement>());
+                        UnityEngine.Object.DontDestroyOnLoad(_dropdownPrefab);
                     }
                 }
             }
@@ -72,6 +72,7 @@ namespace WOTRMultiplayer.UI
         {
             if (view == null)
             {
+                _logger.LogError("SaveLoadPCView is null");
                 return;
             }
 
@@ -104,7 +105,6 @@ namespace WOTRMultiplayer.UI
                     {
                         _logger.LogInformation("Storing default prefab");
                         _defaultGameObject = UnityEngine.Object.Instantiate(gameObject);
-                        UnityEngine.Object.DontDestroyOnLoad(_defaultGameObject);
                         UnityEngine.Object.DestroyImmediate(_defaultGameObject.GetComponent<Image>());
                     }
                 }
@@ -369,7 +369,6 @@ namespace WOTRMultiplayer.UI
                         _logger.LogInformation("Storing input prefab");
 
                         _inputPrefab = UnityEngine.Object.Instantiate(inputObject);
-                        UnityEngine.Object.DontDestroyOnLoad(_inputPrefab);
                         var placeHolderTextObject = _inputPrefab.transform.Find(InputPlaceholderObjectName);
                         var localizedTextComponent = placeHolderTextObject.GetComponent<LocalizedUIText>();
                         if (localizedTextComponent != null)
@@ -401,7 +400,6 @@ namespace WOTRMultiplayer.UI
                         rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
                         rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
                         var button = _buttonPrefab.GetComponent<OwlcatButton>();
-                        UnityEngine.Object.DontDestroyOnLoad(_buttonPrefab);
                         for (var i = 0; i < button.OnLeftClick.GetPersistentEventCount(); i++)
                         {
                             button.OnLeftClick.SetPersistentListenerState(i, UnityEngine.Events.UnityEventCallState.Off);
@@ -432,8 +430,8 @@ namespace WOTRMultiplayer.UI
                         _logger.LogInformation("Storing background art");
 
                         _backgroundArtPrefab = UnityEngine.Object.Instantiate(backgroundArt);
-                        UnityEngine.Object.DontDestroyOnLoad(_backgroundArtPrefab);
                         UnityEngine.Object.DestroyImmediate(_backgroundArtPrefab.GetComponent<Image>());
+                        UnityEngine.Object.DontDestroyOnLoad(_backgroundArtPrefab);
                     }
                 }
             }
