@@ -13,7 +13,7 @@ namespace WOTRMultiplayer.Abstractions.UI.Controllers
         void InitializeContent(LobbyWindowOwner owner, Transform parent);
         void ResetData();
         void UpdateServerInfo(string serverAddress);
-        void UpdateCharacters(List<string> portraits);
+        void UpdatePortraits(List<string> portraits);
         void UpdateCharacterOwnerDropdown(int characterIndex, int playerIndex);
         void SetActiveOwner(LobbyWindowOwner owner);
 

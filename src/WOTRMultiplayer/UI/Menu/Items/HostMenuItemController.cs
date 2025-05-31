@@ -224,7 +224,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
             Title.SetText(titleText);
             var portraits = selectedSave.PartyPortraits.Value.Select(p => p.Portrait.name).ToList();
             var savePath = selectedSave.Reference.FolderName;
-            Lobby.UpdateCharacters(portraits);
+            Lobby.UpdatePortraits(portraits);
 
             if (!_multiplayerHost.IsActive)
             {

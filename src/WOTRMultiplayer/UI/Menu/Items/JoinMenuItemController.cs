@@ -261,7 +261,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
 
         private void OnMultiplayerGameCharactersChanged(List<string> portraits)
         {
-            Lobby.UpdateCharacters(portraits);
+            Lobby.UpdatePortraits(portraits);
         }
 
         private void OnMultiplayerError(string errorMessage)

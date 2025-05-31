@@ -102,12 +102,6 @@ namespace WOTRMultiplayer.UI.Menu.Windows
             gameObject.SetActive(false);
         }
 
-        public override void OnHide()
-        {
-            StopAllCoroutines();
-            base.OnHide();
-        }
-
         public override void Show(bool state)
         {
             Log.Logger.Information("Show/Hide {windowTypeName}, State={state}", nameof(MultiplayerWindow), state);
@@ -116,7 +110,7 @@ namespace WOTRMultiplayer.UI.Menu.Windows
                 IMultiplayerMenuItemController controllerToAsk = _hostMenuController.IsActive ?
                     _hostMenuController
                     : _joinMenuController;
-                OnDisposeMenuItem(controllerToAsk, Hide);
+                OnSelectMenuItem(controllerToAsk, Hide);
                 return;
             }
 
@@ -177,15 +171,15 @@ namespace WOTRMultiplayer.UI.Menu.Windows
 
         private void OnHostMenuItemClicked(object sender, EventArgs e)
         {
-            OnDisposeMenuItem(_joinMenuController, ActivateHostMenu);
+            OnSelectMenuItem(_joinMenuController, ActivateHostMenu);
         }
 
         private void OnJoinMenuItemClicked(object sender, EventArgs e)
         {
-            OnDisposeMenuItem(_hostMenuController, ActivateJoinMenu);
+            OnSelectMenuItem(_hostMenuController, ActivateJoinMenu);
         }
 
-        private void OnDisposeMenuItem(IMultiplayerMenuItemController menuItemController, Action<MessageModalBase.ButtonType> onResult)
+        private void OnSelectMenuItem(IMultiplayerMenuItemController menuItemController, Action<MessageModalBase.ButtonType> onResult)
         {
             var confirmation = menuItemController.GetDeactivationConfirmation();
             if (confirmation != null)

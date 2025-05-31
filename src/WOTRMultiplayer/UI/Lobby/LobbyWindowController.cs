@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using TMPro;
 using UnityEngine;
@@ -159,6 +160,49 @@ namespace WOTRMultiplayer.UI.Lobby
                 tmpDropdown.RefreshShownValue();
             });
         }
+        public void ResetData()
+        {
+            var current = GetContentOwnedObject();
+            var playerSection = PlayersSectionContent;
+            var serverSection = ServerInfoSectionContent;
+            _mainThreadAccessor.Enqueue(() =>
+            {
+                current?.SetActive(false);
+                playerSection?.CleanupAllChildren();
+                serverSection?.CleanupAllChildren();
+                UpdatePortraits([]);
+            });
+        }
+
+        public void SetActiveOwner(LobbyWindowOwner owner)
+        {
+            _activeOwner = owner;
+        }
+
+        public void ResetOwner(LobbyWindowOwner owner)
+        {
+            _logger.LogInformation("Reset owner content objects. Owner={owner}", owner);
+            _contents.TryRemove(owner, out var _);
+        }
+
+        public void UpdatePortraits(List<string> portraits)
+        {
+            if (GetContentOwnedObject() == null)
+            {
+                _logger.LogWarning("[{methodName}] Content doesn't exist for the current owner. Owner={owner}", nameof(UpdatePortraits), _activeOwner);
+                return;
+            }
+
+            _mainThreadAccessor.Enqueue(() =>
+            {
+                for (int characterIndex = 0; characterIndex < Main.MaxCharacters; characterIndex++)
+                {
+                    var portraitName = portraits.Count > characterIndex ? portraits[characterIndex] : null;
+                    var sprite = string.IsNullOrEmpty(portraitName) ? null : GetPortraitSprite(portraitName);
+                    UpdateCharacterPortrait(characterIndex, sprite);
+                }
+            });
+        }
 
         private void CreatePlayerObject(NetworkPlayer player)
         {
@@ -205,19 +249,6 @@ namespace WOTRMultiplayer.UI.Lobby
                 tmpDropdown.AddOptions(players);
                 tmpDropdown.onValueChanged.AddListener(index => OnOwnerDropdownChanged(tmpDropdown));
             }
-        }
-
-        public void UpdateCharacters(List<string> portraits)
-        {
-            _mainThreadAccessor.Enqueue(() =>
-            {
-                for (int characterIndex = 0; characterIndex < Main.MaxCharacters; characterIndex++)
-                {
-                    var portraitName = portraits.Count > characterIndex ? portraits[characterIndex] : null;
-                    var sprite = string.IsNullOrEmpty(portraitName) ? null : GetPortraitSprite(portraitName);
-                    UpdateCharacterPortrait(characterIndex, sprite);
-                }
-            });
         }
 
         private void UpdateCharacterPortrait(int characterIndex, Sprite portraitSprite)
@@ -268,40 +299,15 @@ namespace WOTRMultiplayer.UI.Lobby
             return portrait;
         }
 
-        public void ResetData()
-        {
-            var current = GetContentOwnedObject();
-            var playerSection = PlayersSectionContent;
-            var serverSection = ServerInfoSectionContent;
-            _mainThreadAccessor.Enqueue(() =>
-            {
-                current?.SetActive(false);
-                playerSection?.CleanupAllChildren();
-                serverSection?.CleanupAllChildren();
-                UpdateCharacters([]);
-            });
-        }
-
-        public void SetActiveOwner(LobbyWindowOwner owner)
-        {
-            _activeOwner = owner;
-        }
-
-        public GameObject GetContentOwnedObject()
+        private GameObject GetContentOwnedObject([CallerMemberName] string callerName = "")
         {
             if (!_contents.TryGetValue(_activeOwner, out var content) || content == null)
             {
-                _logger.LogWarning("Content doesn't exist for the current owner. Owner={owner}", _activeOwner);
+                _logger.LogWarning("[{callerName}] Content doesn't exist for the current owner. Owner={owner}", callerName, _activeOwner);
                 return null;
             }
 
             return content;
-        }
-
-        public void ResetOwner(LobbyWindowOwner owner)
-        {
-            _logger.LogInformation("Reset owner content objects. Owner={owner}", owner);
-            _contents.TryRemove(owner, out var _);
         }
     }
 }

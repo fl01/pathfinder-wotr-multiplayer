@@ -72,6 +72,7 @@ namespace WOTRMultiplayer.MP
             {
                 _logger.LogInformation("Multiplayer window is disposing.");
                 viewModel.Dispose();
+                multiplayerMenuView.Unbind();
             };
 
             return true;
