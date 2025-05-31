@@ -32,6 +32,8 @@ namespace WOTRMultiplayer.UI.Menu.Items
 
         public Action<object, EventArgs> OnClicked { get; set; }
 
+        public Action OnCloseWindow { get; set; }
+
         protected MenuItemController(
             Microsoft.Extensions.Logging.ILogger logger,
             ILobbyWindowController lobbyWindowController)

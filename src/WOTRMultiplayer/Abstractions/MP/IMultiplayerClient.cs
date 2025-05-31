@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using Kingmaker.EntitySystem.Persistence;
 using WOTRMultiplayer.MP;
 using WOTRMultiplayer.MP.Entities;
 
@@ -29,5 +30,7 @@ namespace WOTRMultiplayer.Abstractions.MP
         Action<List<string>> OnGameCharactersChanged { get; set; }
 
         Action<int, int> OnCharacterOwnerChanged { get; set; }
+
+        Action<SaveInfo> OnStartGame { get; set; }
     }
 }

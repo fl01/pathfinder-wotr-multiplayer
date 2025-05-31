@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Kingmaker.EntitySystem.Persistence;
 using Microsoft.Extensions.DependencyInjection;
-using WOTRMultiplayer.Abstractions.MP;
+using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.MP;
+using WOTRMultiplayer.Networking.Abstractions;
 
 namespace WOTRMultiplayer.Playground.Host
 {
@@ -18,14 +21,21 @@ namespace WOTRMultiplayer.Playground.Host
             Console.ReadLine();
 
             var serviceProvider = DI.DIFactory.Create(new Config.UnityMod.UnityModManagerSettings { UseDebugConsole = false });
-            var host = serviceProvider.GetService<IMultiplayerHost>();
+            var host = new MultiplayerHost(
+                serviceProvider.GetService<ILogger<MultiplayerHost>>(),
+                serviceProvider.GetService<IFileSystemService>(),
+                serviceProvider.GetService<INetworkServer>());
             var portraits = new List<string> {
                 "KitsuneFemaleRogue_Portrait","SeelahFemalePaladin_Portrait", "RegillMaleGnomeHellknight_Portrait",
                 "WenduagFemaleMongrelRanger_Portrait","EmberFemaleElfWitch_Portrait","NenioFemaleKitsuneWizard_Portrait"
             };
-            var saveGame = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            var saveGamePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                 "AppData\\LocalLow\\Owlcat Games\\Pathfinder Wrath Of The Righteous\\Saved Games\\Quick_12.zks");
-            host.Create(saveGame, portraits, new MultiplayerSettings());
+            var save = new SaveInfo
+            {
+                FolderName = saveGamePath,
+            };
+            host.Create(save, portraits, new MultiplayerSettings());
             var input = string.Empty;
 
             Console.Write(@$"

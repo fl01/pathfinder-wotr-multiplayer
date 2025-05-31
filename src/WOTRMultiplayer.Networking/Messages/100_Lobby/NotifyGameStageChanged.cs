@@ -4,9 +4,9 @@ namespace WOTRMultiplayer.Networking.Messages.Lobby
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType(105)]
-    public class NotifyGameStatusChanged
+    public class NotifyGameStageChanged
     {
         [ProtoMember(1)]
-        public string Status { get; set; }
+        public string Stage { get; set; }
     }
 }

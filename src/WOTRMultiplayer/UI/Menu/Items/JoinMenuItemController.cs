@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Net;
+using Kingmaker;
+using Kingmaker.EntitySystem.Persistence;
 using Kingmaker.PubSubSystem;
 using Kingmaker.UI;
 using Microsoft.Extensions.Logging;
@@ -229,6 +231,17 @@ namespace WOTRMultiplayer.UI.Menu.Items
             _multiplayerClient.OnPlayersChanged = enable ? OnMultiplayerPlayersChanged : null;
             _multiplayerClient.OnGameCharactersChanged = enable ? OnMultiplayerGameCharactersChanged : null;
             _multiplayerClient.OnCharacterOwnerChanged = enable ? OnMultiplayerCharacterOwnerChanged : null;
+            _multiplayerClient.OnStartGame = enable ? OnMultiplayerStartGame : null;
+        }
+
+        private void OnMultiplayerStartGame(SaveInfo info)
+        {
+            _logger.LogInformation("Starting multiplayer game as a client");
+            _mainThreadAccessor.MainThreadQueue.Enqueue(() =>
+            {
+                Game.Instance.UI.MainMenu.EnterGame(() => Game.Instance.LoadGame(info));
+                base.OnCloseWindow?.Invoke();
+            });
         }
 
         private void OnMultiplayerConnected(EndPoint endpoint)

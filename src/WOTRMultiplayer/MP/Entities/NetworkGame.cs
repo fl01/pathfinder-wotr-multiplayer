@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Kingmaker.EntitySystem.Persistence;
 
 namespace WOTRMultiplayer.MP.Entities
 {
@@ -6,18 +7,18 @@ namespace WOTRMultiplayer.MP.Entities
     {
         public List<string> Portraits { get; set; } = [];
 
-        public NetworkGameStatus Status { get; set; }
+        public NetworkGameStage Stage { get; set; }
 
         public List<NetworkPlayer> Players { get; set; } = [];
 
         public List<NetworkCharacterOwner> CharacterOwners { get; set; } = [];
 
-        public string SavePath { get; set; }
+        public SaveInfo Save { get; set; }
 
-        public NetworkGame(string savePath)
+        public NetworkGame(SaveInfo save)
         {
-            SavePath = savePath;
-            Status = NetworkGameStatus.Lobby;
+            Save = save;
+            Stage = NetworkGameStage.Lobby;
         }
 
         public void Reset()
@@ -25,8 +26,8 @@ namespace WOTRMultiplayer.MP.Entities
             Portraits.Clear();
             Players.Clear();
             CharacterOwners.Clear();
-            SavePath = null;
-            Status = NetworkGameStatus.None;
+            Save = null;
+            Stage = NetworkGameStage.None;
         }
     }
 }

@@ -16,6 +16,9 @@ namespace WOTRMultiplayer.Abstractions.UI.Controllers.Menu
         void Reset(bool isSoftReset);
 
         bool IsActive { get; }
+
         Action<object, EventArgs> OnClicked { get; set; }
+
+        Action OnCloseWindow { get; set; }
     }
 }

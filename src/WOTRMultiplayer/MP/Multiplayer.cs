@@ -41,9 +41,11 @@ namespace WOTRMultiplayer.MP
             _portraitProvider = portraitProvider;
         }
 
-        public bool InjectMultiplayerMenuWindow(GameObject menuItemPrototype, Transform parent)
+        public bool InitializeMultiplayer(GameObject menuItemPrototype, Transform parent)
         {
             _portraitProvider.Initialize();
+            _multiplayerHost.Dispose();
+            _multiplayerClient.Dispose();
 
             var multiplayerMenu = UnityEngine.Object.Instantiate(menuItemPrototype, parent);
             multiplayerMenu.transform.SetSiblingIndex(menuItemPrototype.transform.GetSiblingIndex());

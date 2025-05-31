@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
+using Kingmaker.EntitySystem.Persistence;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
@@ -37,6 +38,7 @@ namespace WOTRMultiplayer.MP
         public Action<List<NetworkPlayer>> OnPlayersChanged { get; set; }
         public Action<List<string>> OnGameCharactersChanged { get; set; }
         public Action<int, int> OnCharacterOwnerChanged { get; set; }
+        public Action<SaveInfo> OnStartGame { get; set; }
 
         public Action OnDisconnected { get; set; }
 
@@ -44,9 +46,9 @@ namespace WOTRMultiplayer.MP
 
         public bool IsConnecting => _networkServerClient.IsConnecting;
 
-        private NetworkGameStatus Status => _game?.Status ?? NetworkGameStatus.None;
+        private NetworkGameStage Status => _game?.Stage ?? NetworkGameStage.None;
 
-        public bool IsInLobby => IsActive && Status == NetworkGameStatus.Lobby;
+        public bool IsInLobby => IsActive && Status == NetworkGameStage.Lobby;
 
         public MultiplayerClient(
             ILogger<MultiplayerClient> logger,
@@ -113,12 +115,19 @@ namespace WOTRMultiplayer.MP
                 .Register<NotifyPlayersChanged>(OnNotifyPlayersChanged)
                 .Register<NotifyGameCharactersChanged>(OnNotifyGameCharactersChanged)
                 .Register<NotifySaveGameAssigned>(OnNotifySaveGameAssigned)
-                .Register<NotifyGameStatusChanged>(OnNotifyGameStatusChanged)
+                .Register<NotifyGameStageChanged>(OnNotifyGameStageChanged)
                 .Register<NotifyCharactersOwnerChanged>(OnNotifyCharactersOwnerChanged)
+                .Register<NotifyGameStarted>(OnNotifyGameStarted)
                 ;
 
             _networkServerClient.OnError = OnNetworkClientError;
             _networkServerClient.OnConnected = OnNetworkClientConnected;
+        }
+
+        private void OnNotifyGameStarted(NotifyGameStarted started)
+        {
+            _logger.LogInformation("NotifyGameStarted");
+            OnStartGame?.Invoke(_game.Save);
         }
 
         private void OnNotifyCharactersOwnerChanged(NotifyCharactersOwnerChanged changed)
@@ -147,29 +156,30 @@ namespace WOTRMultiplayer.MP
             }
         }
 
-        private void OnNotifyGameStatusChanged(NotifyGameStatusChanged changed)
+        private void OnNotifyGameStageChanged(NotifyGameStageChanged changed)
         {
-            _logger.LogInformation("Received NotifyGameStatusChanged. Status={newGameStatus}", changed.Status);
-            _game.Status = (NetworkGameStatus)Enum.Parse(typeof(NetworkGameStatus), changed.Status, true);
+            _logger.LogInformation("Received NotifyGameStatusChanged. Status={newGameStatus}", changed.Stage);
+            _game.Stage = (NetworkGameStage)Enum.Parse(typeof(NetworkGameStage), changed.Stage, true);
         }
 
         private void OnNotifySaveGameAssigned(NotifySaveGameAssigned assigned)
         {
-            _logger.LogInformation("Received save game file content. GameStatus={status} Size={contentSize}", _game.Status, assigned.Content.Length);
+            _logger.LogInformation("Received save game file content. GameStatus={status} Size={contentSize}", _game.Stage, assigned.Content.Length);
 
             var baseUnityPath = _saveGameService.GetSaveGamePath();
             var multiplayerPath = Regex.Replace(baseUnityPath, "(((\\\\|\\/)+)(Saved Games)((\\\\|\\/)+))$", "/Saved Multiplayer Games/");
-            _game.SavePath = Path.Combine(multiplayerPath, "latest save.zks");
-            _logger.LogInformation("Save game path changed. Path={path}", _game.SavePath);
-            if (!_fileSystemService.WriteFile(_game.SavePath, assigned.Content))
+            var savePath = Path.Combine(multiplayerPath, "latest save.zks");
+            _logger.LogInformation("Save game path changed. Path={path}", savePath);
+            if (!_fileSystemService.WriteFile(savePath, assigned.Content))
             {
                 _logger.LogError("Unable to store save game");
                 // on error?
                 return;
             }
-            var saveInfo = _saveGameService.LoadSave(_game.SavePath);
-            _logger.LogInformation("Game is ready to be started. SaveName={saveName}, Area={saveArea}", saveInfo.Name, saveInfo.Area.AreaDisplayName);
-            // send new is ready? (is ready to play)
+
+            _game.Save = _saveGameService.LoadSave(savePath);
+            _logger.LogInformation("Game is ready to be started. SaveName={saveName}, Area={saveArea}", _game.Save.Name, _game.Save.Area.AreaDisplayName);
+            _networkServerClient.SendAsync(new PlayerSaveGameSyncChanged { IsSynced = true }).Wait();
         }
 
         private void OnPlayerReadyStatusChanged(PlayerReadyStatusChanged readyStatusChanged)
@@ -211,7 +221,7 @@ namespace WOTRMultiplayer.MP
 
         private void OnNetworkClientConnected(EndPoint endpoint)
         {
-            _game = new NetworkGame(string.Empty);
+            _game = new NetworkGame(null);
             OnConnected?.Invoke(endpoint);
         }
 

@@ -1,6 +1,6 @@
 ﻿namespace WOTRMultiplayer.MP.Entities
 {
-    public enum NetworkGameStatus
+    public enum NetworkGameStage
     {
         None,
         Lobby,

@@ -47,6 +47,9 @@ namespace WOTRMultiplayer.UI.Menu
         {
             _hostMenuController = hostMenuItemController;
             _joinMenuController = joinMenuItemController;
+
+            hostMenuItemController.OnCloseWindow = OnButtonClose;
+            joinMenuItemController.OnCloseWindow = OnButtonClose;
         }
 
         void Update()

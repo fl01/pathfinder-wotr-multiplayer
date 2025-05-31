@@ -44,7 +44,7 @@ namespace WOTRMultiplayer.UI.Menu
                     var menuButton = menuButtons.GetChild(menuIndex).gameObject;
                     if (string.Equals(menuButton.name, "Settings"))
                     {
-                        var isOk = Main.Multiplayer.InjectMultiplayerMenuWindow(menuButton, menuButtons.transform);
+                        var isOk = Main.Multiplayer.InitializeMultiplayer(menuButton, menuButtons.transform);
                         if (!isOk)
                         {
                             Log.Logger.Error("Unable to inject multiplayer menu");

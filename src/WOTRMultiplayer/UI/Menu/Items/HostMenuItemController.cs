@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using Kingmaker;
+using Kingmaker.EntitySystem.Persistence;
 using Kingmaker.UI.Common;
 using Kingmaker.UI.MVVM;
 using Kingmaker.UI.MVVM._PCView.SaveLoad;
@@ -166,9 +168,21 @@ namespace WOTRMultiplayer.UI.Menu.Items
 
         private void SetupHandlers(bool enable)
         {
-            _multiplayerHost.OnConnected = enable ? OnMultiplayerHostConnected : null;
-            _multiplayerHost.OnPlayersChanged = enable ? OnMultiplayerHostPlayersChanged : null;
+            _multiplayerHost.OnConnected = enable ? OnMultiplayerConnected : null;
+            _multiplayerHost.OnPlayersChanged = enable ? OnMultiplayerPlayersChanged : null;
+            _multiplayerHost.OnStartGame = enable ? OnMultiplayerStartGame : null;
+
             Lobby.OnCharacterOwnerChanged = enable ? OnLobbyCharacterOwnerChanged : null;
+        }
+
+        private void OnMultiplayerStartGame(SaveInfo info)
+        {
+            _logger.LogInformation("Starting multiplayer game as a host");
+            _mainThreadAccessor.MainThreadQueue.Enqueue(() =>
+            {
+                Game.Instance.UI.MainMenu.EnterGame(() => Game.Instance.LoadGame(info));
+                base.OnCloseWindow?.Invoke();
+            });
         }
 
         private void SetupButtons()
@@ -204,12 +218,12 @@ namespace WOTRMultiplayer.UI.Menu.Items
                 StartButtonObject.SetActive(true);
                 ReadyButtonObject.SetActive(true);
                 ReadyButton.Interactable = true;
-                _multiplayerHost.Create(savePath, portraits, new MP.MultiplayerSettings());
+                _multiplayerHost.Create(selectedSave.Reference, portraits, new MP.MultiplayerSettings());
                 SetButtonLabel(HostButtonObject, UIStringConsts.MultiplayerWindow.HostMenu.HostButtonActiveLabel);
                 return;
             }
 
-            _multiplayerHost.NotifyGameCharactersChanged(savePath, portraits);
+            _multiplayerHost.NotifyGameCharactersChanged(selectedSave.Reference, portraits);
         }
 
         private void OnReadyButtonClicked()
@@ -273,12 +287,12 @@ namespace WOTRMultiplayer.UI.Menu.Items
             _multiplayerHost.ChangeCharacterOwner(characterIndex, playerIndex);
         }
 
-        private void OnMultiplayerHostConnected(EndPoint endpoint)
+        private void OnMultiplayerConnected(EndPoint endpoint)
         {
             Lobby.UpdateServerInfo(endpoint.ToString());
         }
 
-        private void OnMultiplayerHostPlayersChanged(List<NetworkPlayer> players)
+        private void OnMultiplayerPlayersChanged(List<NetworkPlayer> players)
         {
             Lobby.UpdatePlayers(players);
             var canStart = players.All(p => p.IsReady);
