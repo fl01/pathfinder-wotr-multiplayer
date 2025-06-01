@@ -163,7 +163,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
             lobbyWindowVertical.padding = new RectOffset(0, 0, 0, 20);
             var lobbyWindowRect = lobbyWindow.GetComponent<RectTransform>();
             lobbyWindowRect.sizeDelta = menuContentRect.sizeDelta;
-            Lobby.InitializeContent(LobbyWindowOwner.JoinMenu, lobbyWindow.transform);
+            Lobby.InitializeContent(LobbyWindowOwner.JoinMenu, lobbyWindow.transform, false);
 
             // input + button ?
             var joinLobbyControlsMenu = _uIFactory.CreateDefaultGameObject(content.transform);

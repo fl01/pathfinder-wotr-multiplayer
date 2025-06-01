@@ -288,7 +288,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
             var lobbyWindowObjectRect = lobbyWindowObject.GetComponent<RectTransform>();
             lobbyWindowObjectRect.sizeDelta = new Vector2(parentContainerRect.sizeDelta.x * 0.9f, parentContainerRect.sizeDelta.y * 0.72f);
 
-            Lobby.InitializeContent(LobbyWindowOwner.HostMenu, lobbyWindowObject.transform);
+            Lobby.InitializeContent(LobbyWindowOwner.HostMenu, lobbyWindowObject.transform, true);
         }
 
         private void OnLobbyCharacterOwnerChanged(int characterIndex, int playerIndex)

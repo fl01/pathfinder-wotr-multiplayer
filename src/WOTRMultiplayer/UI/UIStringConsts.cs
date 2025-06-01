@@ -10,6 +10,11 @@
             public const string MultiplayerMenu = "Multiplayer";
         }
 
+        public class EscMenu
+        {
+            public const string LobbyMenuItemTitle = "Multiplayer Lobby";
+        }
+
         public class MultiplayerClient
         {
             public class Errors

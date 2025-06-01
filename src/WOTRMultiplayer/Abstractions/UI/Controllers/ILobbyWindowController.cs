@@ -10,8 +10,10 @@ namespace WOTRMultiplayer.Abstractions.UI.Controllers
     {
         void UpdatePlayers(List<NetworkPlayer> playersList);
 
-        void InitializeContent(LobbyWindowOwner owner, Transform parent);
+        void InitializeContent(LobbyWindowOwner owner, Transform parent, bool canUseCharacterDropdown);
         void ResetData();
+        void ResetDataThreaded();
+
         void UpdateServerInfo(string serverAddress);
         void UpdatePortraits(List<string> portraits);
         void UpdateCharacterOwnerDropdown(int characterIndex, int playerIndex);

@@ -32,5 +32,7 @@ namespace WOTRMultiplayer.Abstractions.MP
         Action<int, int> OnCharacterOwnerChanged { get; set; }
 
         Action<SaveInfo> OnStartGame { get; set; }
+
+        NetworkGame CurrentGame { get; }
     }
 }

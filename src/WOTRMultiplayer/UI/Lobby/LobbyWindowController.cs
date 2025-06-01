@@ -77,17 +77,17 @@ namespace WOTRMultiplayer.UI.Lobby
             _portraitProvider = portraitProvider;
         }
 
-        public void InitializeContent(LobbyWindowOwner owner, Transform parent)
+        public void InitializeContent(LobbyWindowOwner owner, Transform parent, bool canUseCharacterDropdown)
         {
             _logger.LogInformation("Initialize content. Owner={owner}", owner);
 
-            if (!_contents.TryGetValue(owner, out var content) && content != null)
+            if (_contents.TryGetValue(owner, out var content) && content != null)
             {
-                _logger.LogError("Lobby content still exists on the scene. Owner={owner}", owner);
+                _logger.LogWarning("Lobby content still exists on the scene, skipping initialization. Owner={owner}", owner);
                 return;
             }
 
-            var canUseDropdown = owner == LobbyWindowOwner.HostMenu;
+            var canUseDropdown = canUseCharacterDropdown;
             var lobbyContent = _uIFactory.CreateLobbyWindowContent(parent, canUseDropdown);
             lobbyContent.SetActive(false);
             _contents.TryAdd(owner, lobbyContent);
@@ -163,6 +163,7 @@ namespace WOTRMultiplayer.UI.Lobby
         }
         public void ResetData()
         {
+            _logger.LogInformation("Reset all content");
             var current = GetContentOwnedObject();
             var playerSection = PlayersSectionContent;
             var serverSection = ServerInfoSectionContent;
@@ -173,6 +174,18 @@ namespace WOTRMultiplayer.UI.Lobby
                 serverSection?.CleanupAllChildren();
                 UpdatePortraits([]);
             });
+        }
+
+        public void ResetDataThreaded()
+        {
+            _logger.LogInformation("Reset all content");
+            var current = GetContentOwnedObject();
+            var playerSection = PlayersSectionContent;
+            var serverSection = ServerInfoSectionContent;
+            current?.SetActive(false);
+            playerSection?.CleanupAllChildren();
+            serverSection?.CleanupAllChildren();
+            UpdatePortraits([]);
         }
 
         public void SetActiveOwner(LobbyWindowOwner owner)

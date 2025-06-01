@@ -1,4 +1,5 @@
-﻿using Kingmaker.UI.MVVM._PCView.SaveLoad;
+﻿using Kingmaker.UI.MVVM._PCView.EscMenu;
+using Kingmaker.UI.MVVM._PCView.SaveLoad;
 using Kingmaker.UI.MVVM._PCView.Settings.Entities;
 using TMPro;
 using UnityEngine;
@@ -14,6 +15,7 @@ namespace WOTRMultiplayer.Abstractions.UI
         GameObject CreateInput(Transform transform);
         GameObject CreateLobbyWindowContent(Transform parent, bool interactableDropdown);
         SaveLoadPCView CreateSaveLoadPCView(Transform parent);
+        (GameObject menuItem, GameObject windowContainer) CreateEscMenuItem(EscMenuPCView view);
         void CreateBackgroundArt(Transform parent);
         WOTRMultiplayer.UI.Mesh GetDefaultMesh();
         void StoreBorderDecoration(GameObject gameObject);

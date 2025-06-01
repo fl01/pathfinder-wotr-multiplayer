@@ -30,5 +30,7 @@ namespace WOTRMultiplayer.Abstractions.MP
         Action<EndPoint> OnConnected { get; set; }
 
         Action<SaveInfo> OnStartGame { get; set; }
+
+        NetworkGame CurrentGame { get; }
     }
 }

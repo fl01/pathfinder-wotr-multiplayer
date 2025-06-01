@@ -1,4 +1,5 @@
 ﻿using System;
+using Kingmaker.UI.MVVM._PCView.EscMenu;
 using UnityEngine;
 using WOTRMultiplayer.Abstractions.UI;
 
@@ -11,6 +12,8 @@ namespace WOTRMultiplayer.Abstractions.MP
         bool InitializeMultiplayer(GameObject menuButtonToCopy, Transform parent);
 
         void TerminateMultiplayer();
+
+        void CreateEscMenuItem(EscMenuPCView view);
 
         bool IsActive { get; }
     }

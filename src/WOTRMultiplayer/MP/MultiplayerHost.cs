@@ -32,6 +32,8 @@ namespace WOTRMultiplayer.MP
 
         public bool IsInLobby => IsActive && Status == NetworkGameStage.Lobby;
 
+        public NetworkGame CurrentGame => _game;
+
         public MultiplayerHost(
             ILogger<MultiplayerHost> logger,
             IFileSystemService fileSystemService,
@@ -311,6 +313,8 @@ namespace WOTRMultiplayer.MP
             {
                 Name = Guid.NewGuid().ToString().Split('-').First()
             });
+
+            _game.Endpoint = endpoint;
 
             OnConnected?.Invoke(endpoint);
             OnPlayersChanged?.Invoke(_game.Players);

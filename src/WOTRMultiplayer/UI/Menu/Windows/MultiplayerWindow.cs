@@ -6,8 +6,8 @@ using Kingmaker.PubSubSystem;
 using Kingmaker.UI;
 using Kingmaker.UI.FullScreenUITypes;
 using Kingmaker.UI.ServiceWindow;
+using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
-using Serilog;
 using UnityEngine;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
@@ -31,7 +31,7 @@ namespace WOTRMultiplayer.UI.Menu.Windows
 
         private IHostMenuItemController _hostMenuController;
         private IJoinMenuItemController _joinMenuController;
-
+        private ILogger<MultiplayerWindow> _logger;
         private readonly object _actionLock = new();
 
         public MultiplayerWindow()
@@ -39,6 +39,11 @@ namespace WOTRMultiplayer.UI.Menu.Windows
             // I assume this should be used to display menu items content,
             // but I have no idea how to make it work, so have to rely on my own `MenuItemController.MenuContent` implementation
             SubWindowsList = [];
+        }
+
+        public void SetLogger(ILogger<MultiplayerWindow> logger)
+        {
+            _logger = logger;
         }
 
         public void AssignMenuItemControllers(IHostMenuItemController hostMenuItemController, IJoinMenuItemController joinMenuItemController)
@@ -51,6 +56,7 @@ namespace WOTRMultiplayer.UI.Menu.Windows
         {
             while (MainThreadQueue.TryDequeue(out var action))
             {
+                _logger.LogInformation("Executing action. RemainingActionsCount={remainingActionsCount}", MainThreadQueue.Count);
                 action();
             }
         }
@@ -59,11 +65,12 @@ namespace WOTRMultiplayer.UI.Menu.Windows
         {
             if (_isInitialized)
             {
-                Log.Logger.Warning("Trying to initialize already initialized window");
+                _logger.LogWarning("Trying to initialize already initialized window");
                 return;
             }
 
             _isInitialized = true;
+            _logger.LogInformation("Initalizing");
 
             Main.Multiplayer.Factory.StoreDefaultGameObject(gameObject.transform.Find("Black").gameObject);
 
@@ -100,7 +107,7 @@ namespace WOTRMultiplayer.UI.Menu.Windows
 
         public override void Show(bool state)
         {
-            Log.Logger.Information("Show/Hide {windowTypeName}, State={state}", nameof(MultiplayerWindow), state);
+            _logger.LogInformation("Show/Hide {windowTypeName}, State={state}", nameof(MultiplayerWindow), state);
             if (!state)
             {
                 IMultiplayerMenuItemController controllerToAsk = _hostMenuController.IsActive ?
@@ -168,6 +175,8 @@ namespace WOTRMultiplayer.UI.Menu.Windows
             var confirmation = menuItemController.GetDeactivationConfirmation();
             if (confirmation != null)
             {
+                _logger.LogInformation("Deactivation confirmation required");
+
                 var onModalClosed = confirmation.ModalType == MessageModalBase.ModalType.Dialog ? onResult : null;
                 EventBus.RaiseEvent<IMessageModalUIHandler>(window =>
                 {
@@ -214,6 +223,7 @@ namespace WOTRMultiplayer.UI.Menu.Windows
 
         public override void Dispose()
         {
+            _logger.LogInformation("Dispose");
             _hostMenuController.Dispose();
             _joinMenuController.Dispose();
             base.Dispose();

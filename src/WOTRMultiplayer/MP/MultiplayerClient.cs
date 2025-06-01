@@ -50,6 +50,8 @@ namespace WOTRMultiplayer.MP
 
         public bool IsInLobby => IsActive && Status == NetworkGameStage.Lobby;
 
+        public NetworkGame CurrentGame => _game;
+
         public MultiplayerClient(
             ILogger<MultiplayerClient> logger,
             IIPEndPointParser ipEndPointParser,
@@ -221,7 +223,10 @@ namespace WOTRMultiplayer.MP
 
         private void OnNetworkClientConnected(EndPoint endpoint)
         {
-            _game = new NetworkGame(null);
+            _game = new NetworkGame(null)
+            {
+                Endpoint = endpoint
+            };
             OnConnected?.Invoke(endpoint);
         }
 
