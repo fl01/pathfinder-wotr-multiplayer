@@ -9,9 +9,6 @@ namespace WOTRMultiplayer.UI.Menu.Windows
     public class LobbyWindow : UIWindow
     {
         private ILogger<LobbyWindow> _logger;
-
-        public ConcurrentQueue<Action> MainThreadQueue { get; } = new ConcurrentQueue<Action>();
-
         public Action OnClose { get; set; }
 
         public void SetLogger(ILogger<LobbyWindow> logger)
@@ -36,15 +33,6 @@ namespace WOTRMultiplayer.UI.Menu.Windows
             _logger.LogInformation("Close lobby window");
             OnClose?.Invoke();
             this.Show(false);
-        }
-
-        void Update()
-        {
-            while (MainThreadQueue.TryDequeue(out var action))
-            {
-                _logger.LogInformation("Executing action. RemainingActionsCount={remainingActionsCount}", MainThreadQueue.Count);
-                action();
-            }
         }
     }
 }

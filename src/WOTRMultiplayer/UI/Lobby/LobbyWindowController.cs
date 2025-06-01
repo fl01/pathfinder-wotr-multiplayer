@@ -176,18 +176,6 @@ namespace WOTRMultiplayer.UI.Lobby
             });
         }
 
-        public void ResetDataThreaded()
-        {
-            _logger.LogInformation("Reset all content");
-            var current = GetContentOwnedObject();
-            var playerSection = PlayersSectionContent;
-            var serverSection = ServerInfoSectionContent;
-            current?.SetActive(false);
-            playerSection?.CleanupAllChildren();
-            serverSection?.CleanupAllChildren();
-            UpdatePortraits([]);
-        }
-
         public void SetActiveOwner(LobbyWindowOwner owner)
         {
             _activeOwner = owner;

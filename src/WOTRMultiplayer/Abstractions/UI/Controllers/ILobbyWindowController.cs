@@ -12,7 +12,6 @@ namespace WOTRMultiplayer.Abstractions.UI.Controllers
 
         void InitializeContent(LobbyWindowOwner owner, Transform parent, bool canUseCharacterDropdown);
         void ResetData();
-        void ResetDataThreaded();
 
         void UpdateServerInfo(string serverAddress);
         void UpdatePortraits(List<string> portraits);

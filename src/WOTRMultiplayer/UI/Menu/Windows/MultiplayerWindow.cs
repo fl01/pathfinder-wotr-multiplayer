@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using DG.Tweening;
 using Kingmaker.PubSubSystem;
@@ -9,22 +8,18 @@ using Kingmaker.UI.ServiceWindow;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
 using UnityEngine;
-using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Extensions;
 
 namespace WOTRMultiplayer.UI.Menu.Windows
 {
-    public class MultiplayerWindow : FullScreenTabsWindow, IMultiplayerMenuWindow
+    public class MultiplayerWindow : FullScreenTabsWindow
     {
         private const string BaseLayoutName = "MultiplayerScreen";
         private const string SeparatorGameObjectName = "Separator";
         private const string MenuOverridesObjectName = "MenuEntity_NoOverrides";
 
         public override FullScreenUIType ActiveFullScreenUIType => (FullScreenUIType)555555;
-
-        public ConcurrentQueue<Action> MainThreadQueue { get; } = new ConcurrentQueue<Action>();
-
         private List<DOTweenAnimation> _animations = [];
 
         private bool _isInitialized = false;
@@ -50,15 +45,6 @@ namespace WOTRMultiplayer.UI.Menu.Windows
         {
             _hostMenuController = hostMenuItemController;
             _joinMenuController = joinMenuItemController;
-        }
-
-        void Update()
-        {
-            while (MainThreadQueue.TryDequeue(out var action))
-            {
-                _logger.LogInformation("Executing action. RemainingActionsCount={remainingActionsCount}", MainThreadQueue.Count);
-                action();
-            }
         }
 
         public override void Initialize()

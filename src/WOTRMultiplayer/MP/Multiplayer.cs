@@ -80,7 +80,6 @@ namespace WOTRMultiplayer.MP
             var element = Factory.CreateCopyOfCreditsScreen();
             _multiplayerWindow = element.AddComponent<MultiplayerWindow>();
             _multiplayerWindow.SetLogger(_serviceProvider.GetService<ILogger<MultiplayerWindow>>());
-            _mainThreadAccessor.SetQueue(_multiplayerWindow.MainThreadQueue);
             _multiplayerWindow.AssignMenuItemControllers(_hostMenuItemController, _joinMenuItemController);
             _multiplayerWindow.Initialize();
 
@@ -129,8 +128,6 @@ namespace WOTRMultiplayer.MP
 
         private void ShowEscMenuMultiplayerLobby(GameObject windowContainer)
         {
-            // TODO: try find some universal place for a queue
-            _mainThreadAccessor.SetQueue(_lobbyWindow.MainThreadQueue);
             _lobbyWindowController.SetActiveOwner(LobbyWindowOwner.EscMenu);
             _lobbyWindowController.InitializeContent(LobbyWindowOwner.EscMenu, windowContainer.transform, _multiplayerHost.IsActive);
 
