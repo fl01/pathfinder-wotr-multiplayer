@@ -9,7 +9,7 @@ namespace WOTRMultiplayer.HarmonyPatches
     [HarmonyPatch]
     public class SettingsPCViewPatches
     {
-        [HarmonyPatch(typeof(SettingsPCView), "Initialize")]
+        [HarmonyPatch(typeof(SettingsPCView), nameof(SettingsPCView.Initialize))]
         [HarmonyPostfix]
         public static void SettingsPCView_Initialize_Prefix(SettingsPCView __instance)
         {

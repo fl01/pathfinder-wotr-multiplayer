@@ -13,7 +13,7 @@ namespace WOTRMultiplayer.HarmonyPatches
     {
         public const string multiplayerMenuObjectName = "MultiplayerLobbyButton";
 
-        [HarmonyPatch(typeof(EscMenuPCView), "BindViewImplementation")]
+        [HarmonyPatch(typeof(EscMenuPCView), nameof(EscMenuPCView.BindViewImplementation))]
         [HarmonyPrefix]
         public static void EscMenuPCView_BindViewImplementation_Postfix(EscMenuPCView __instance)
         {

@@ -7,7 +7,7 @@ namespace WOTRMultiplayer.HarmonyPatches
     [HarmonyPatch]
     public class BlueprintesCachePatches
     {
-        [HarmonyPatch(typeof(BlueprintsCache), "Init")]
+        [HarmonyPatch(typeof(BlueprintsCache), nameof(BlueprintsCache.Init))]
         [HarmonyPostfix]
         public static void BlueprintesCachePatches_Init_Postfix()
         {

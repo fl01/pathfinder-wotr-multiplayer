@@ -8,7 +8,7 @@ namespace WOTRMultiplayer.HarmonyPatches
     [HarmonyPatch]
     public class EscMenuVMPatches
     {
-        [HarmonyPatch(typeof(EscMenuVM), "OnQuitToMainMenuAction")]
+        [HarmonyPatch(typeof(EscMenuVM), nameof(EscMenuVM.OnQuitToMainMenuAction))]
         [HarmonyPrefix]
         public static void EscMenuVM_OnQuitToMainMenuAction_Prefix(MessageModalBase.ButtonType buttonType)
         {
@@ -16,7 +16,7 @@ namespace WOTRMultiplayer.HarmonyPatches
             logger.LogInformation("Applying patch [{patchName}]", nameof(EscMenuVM_OnQuitToMainMenuAction_Prefix));
             if (buttonType == MessageModalBase.ButtonType.Yes)
             {
-                logger.LogInformation("Agreed to quit to main menu");
+                logger.LogInformation("quit to main menu");
                 Main.Multiplayer.TerminateMultiplayer();
             }
         }

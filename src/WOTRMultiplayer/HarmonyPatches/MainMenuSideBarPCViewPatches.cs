@@ -11,7 +11,7 @@ namespace WOTRMultiplayer.HarmonyPatches
     [HarmonyPatch]
     public class MainMenuSideBarPCViewPatches
     {
-        [HarmonyPatch(typeof(MainMenuSideBarPCView), "BindViewImplementation")]
+        [HarmonyPatch(typeof(MainMenuSideBarPCView), nameof(MainMenuSideBarPCView.BindViewImplementation))]
         [HarmonyPrefix]
         public static void MainMenuSideBarPCView_BindViewImplementation_Prefix(MainMenuSideBarPCView __instance)
         {
