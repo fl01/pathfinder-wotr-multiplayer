@@ -178,7 +178,11 @@ namespace WOTRMultiplayer.UI.Lobby
 
         public void SetActiveOwner(LobbyWindowOwner owner)
         {
-            _activeOwner = owner;
+            if (_activeOwner != owner)
+            {
+                _logger.LogInformation("Changing current owner. Previous={prevOwner}, NewOwner={newOwner}", _activeOwner, owner);
+                _activeOwner = owner;
+            }
         }
 
         public void ResetOwnerContent(LobbyWindowOwner owner)

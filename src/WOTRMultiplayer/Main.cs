@@ -74,8 +74,7 @@ namespace WOTRMultiplayer
 
         private static bool OnUnload(UnityModManager.ModEntry entry)
         {
-            _logger.LogInformation("Unloading");
-            Multiplayer.Dispose();
+            _logger.LogInformation("Unloading on the fly is not supported. Please restart the game");
             return true;
         }
 

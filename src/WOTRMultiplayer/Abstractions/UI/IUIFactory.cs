@@ -27,5 +27,7 @@ namespace WOTRMultiplayer.Abstractions.UI
 
         void StoreSaveLoadPCViewPrefab(SaveLoadPCView view);
         void StoreBackgroundArt(GameObject gameObject);
+
+        void DestroyImmediate(GameObject gameObject);
     }
 }

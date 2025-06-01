@@ -12,7 +12,6 @@ using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
-using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.UI;
 using WOTRMultiplayer.UI.Lobby;
 using WOTRMultiplayer.UI.Menu.Windows;
@@ -22,6 +21,7 @@ namespace WOTRMultiplayer.MP
     public class Multiplayer : IMultiplayer
     {
         private MultiplayerWindow _multiplayerWindow;
+        private GameObject _lobbyMenuItem;
         private LobbyWindow _lobbyWindow;
 
         private readonly IHostMenuItemController _hostMenuItemController;
@@ -36,14 +36,11 @@ namespace WOTRMultiplayer.MP
 
         public bool IsActive => _multiplayerClient.IsActive || _multiplayerHost.IsActive;
 
-        private readonly IMainThreadAccessor _mainThreadAccessor;
-
         public Multiplayer(
             ILogger<Multiplayer> logger,
             IServiceProvider serviceProvider,
             IUIFactory uiFactory,
             ILobbyWindowController lobbyWindowController,
-            IMainThreadAccessor mainThreadAccessor,
             IHostMenuItemController hostMenuItemController,
             IJoinMenuItemController joinMenuItemController,
             IMultiplayerHost multiplayerHost,
@@ -52,7 +49,6 @@ namespace WOTRMultiplayer.MP
             _logger = logger;
             _serviceProvider = serviceProvider;
             Factory = uiFactory;
-            _mainThreadAccessor = mainThreadAccessor;
             _multiplayerHost = multiplayerHost;
             _multiplayerClient = multiplayerClient;
             _hostMenuItemController = hostMenuItemController;
@@ -97,46 +93,33 @@ namespace WOTRMultiplayer.MP
             _multiplayerHost.Dispose();
             _multiplayerClient.Dispose();
             _lobbyWindowController.ResetOwnerContent(LobbyWindowOwner.EscMenu);
-        }
-
-        public void Dispose()
-        {
-            _multiplayerWindow?.Dispose();
-            _lobbyWindow?.Dispose();
+            _logger.LogInformation("Disposing Esc menu window game objects");
+            Factory.DestroyImmediate(_lobbyWindow?.gameObject);
+            Factory.DestroyImmediate(_lobbyMenuItem?.gameObject);
         }
 
         public void CreateEscMenuItem(EscMenuPCView view)
         {
+            _logger.LogInformation("Creating Esc menu lobby item");
             var (menuItem, windowContainer) = Factory.CreateEscMenuItem(view);
 
+            _lobbyMenuItem = menuItem;
             _lobbyWindow = windowContainer.AddComponent<LobbyWindow>();
             _lobbyWindow.SetLogger(_serviceProvider.GetService<ILogger<LobbyWindow>>());
-            _lobbyWindow.OnClose = CloseMP;
+            _lobbyWindow.AssignLobbyController(_lobbyWindowController);
+            _lobbyWindowController.InitializeContent(LobbyWindowOwner.EscMenu, windowContainer.transform, _multiplayerHost.IsActive);
+            _lobbyWindow.NetworkGame = () => _multiplayerHost.IsActive ? _multiplayerHost.CurrentGame : _multiplayerClient.CurrentGame;
             windowContainer.AddComponent<Image>().color = Color.green;
             windowContainer.SetActive(false);
 
-            var button = menuItem.GetComponent<OwlcatButton>();
+            var button = _lobbyMenuItem.GetComponent<OwlcatButton>();
             button.OnLeftClick.RemoveAllListeners();
-            button.OnLeftClick.AddListener(() => ShowEscMenuMultiplayerLobby(windowContainer));
+            button.OnLeftClick.AddListener(ShowEscMenuMultiplayerLobby);
         }
 
-        private void CloseMP()
+        private void ShowEscMenuMultiplayerLobby()
         {
-            _logger.LogInformation("Closing");
-            _lobbyWindowController.ResetData();
-        }
-
-        private void ShowEscMenuMultiplayerLobby(GameObject windowContainer)
-        {
-            _lobbyWindowController.SetActiveOwner(LobbyWindowOwner.EscMenu);
-            _lobbyWindowController.InitializeContent(LobbyWindowOwner.EscMenu, windowContainer.transform, _multiplayerHost.IsActive);
-
-            _logger.LogInformation("Updaing lobby info");
-            var game = _multiplayerClient.IsActive ? _multiplayerClient.CurrentGame : _multiplayerHost.CurrentGame;
-            _lobbyWindowController.UpdateServerInfo(game.Endpoint.ToString());
-            _lobbyWindowController.UpdatePlayers(game.Players);
-            _lobbyWindowController.UpdatePortraits(game.Portraits);
-            _logger.LogInformation("Show lobby");
+            _logger.LogInformation("Show lobby window");
             _lobbyWindow.Show(true);
         }
 

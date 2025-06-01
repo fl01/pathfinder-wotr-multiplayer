@@ -455,5 +455,16 @@ namespace WOTRMultiplayer.UI
                 tmpDropdown.interactable = interactableDropdown;
             }
         }
+
+        public void DestroyImmediate(GameObject gameObject)
+        {
+            if (gameObject == null)
+            {
+                _logger.LogWarning("Trying to delete null object");
+                return;
+            }
+
+            UnityEngine.Object.DestroyImmediate(gameObject);
+        }
     }
 }

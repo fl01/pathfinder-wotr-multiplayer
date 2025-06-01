@@ -1,19 +1,28 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using Kingmaker;
 using Kingmaker.UI.ServiceWindow;
 using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Abstractions.UI.Controllers;
+using WOTRMultiplayer.MP.Entities;
+using WOTRMultiplayer.UI.Lobby;
 
 namespace WOTRMultiplayer.UI.Menu.Windows
 {
     public class LobbyWindow : UIWindow
     {
         private ILogger<LobbyWindow> _logger;
-        public Action OnClose { get; set; }
+        private ILobbyWindowController _lobbyWindowController;
+
+        public Func<NetworkGame> NetworkGame { get; set; }
 
         public void SetLogger(ILogger<LobbyWindow> logger)
         {
             _logger = logger;
+        }
+
+        public void AssignLobbyController(ILobbyWindowController controller)
+        {
+            _lobbyWindowController = controller;
         }
 
         public override void OnHide()
@@ -24,14 +33,39 @@ namespace WOTRMultiplayer.UI.Menu.Windows
 
         public override void OnShow()
         {
-            Game.Instance.UI.EscManager.Subscribe(Close);
             _logger.LogInformation("OnShow");
+            try
+            {
+                _lobbyWindowController.SetActiveOwner(LobbyWindowOwner.EscMenu);
+
+                _logger.LogInformation("Updaing lobby info");
+                var game = NetworkGame();
+                _lobbyWindowController.UpdateServerInfo(game.Endpoint.ToString());
+                _lobbyWindowController.UpdatePlayers(game.Players);
+                _lobbyWindowController.UpdatePortraits(game.Portraits);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to update data within the window");
+            }
+
+            _logger.LogInformation("Subscribing for esc button click");
+            Game.Instance.UI.EscManager.Subscribe(Close);
+        }
+
+        public override void Dispose()
+        {
+            _logger.LogInformation("Dispose");
+
+            NetworkGame = null;
+            base.Dispose();
         }
 
         private void Close()
         {
             _logger.LogInformation("Close lobby window");
-            OnClose?.Invoke();
+            _lobbyWindowController?.ResetData();
             this.Show(false);
         }
     }

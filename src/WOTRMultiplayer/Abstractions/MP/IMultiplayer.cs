@@ -1,11 +1,10 @@
-﻿using System;
-using Kingmaker.UI.MVVM._PCView.EscMenu;
+﻿using Kingmaker.UI.MVVM._PCView.EscMenu;
 using UnityEngine;
 using WOTRMultiplayer.Abstractions.UI;
 
 namespace WOTRMultiplayer.Abstractions.MP
 {
-    public interface IMultiplayer : IDisposable
+    public interface IMultiplayer
     {
         IUIFactory Factory { get; }
 
