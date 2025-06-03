@@ -19,8 +19,6 @@ namespace WOTRMultiplayer.UI.Menu.Windows
 
         public GameObject MenuItem { get; set; }
 
-        public GameObject GameObject => this.gameObject;
-
         public void SetLogger(ILogger<LobbyWindow> logger)
         {
             _logger = logger;

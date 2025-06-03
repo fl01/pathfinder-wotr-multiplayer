@@ -9,8 +9,6 @@ namespace WOTRMultiplayer.Abstractions.UI.Windows
     {
         GameObject MenuItem { get; set; }
 
-        GameObject GameObject { get; }
-
         Func<NetworkGame> NetworkGame { get; set; }
 
         void Show(bool state);

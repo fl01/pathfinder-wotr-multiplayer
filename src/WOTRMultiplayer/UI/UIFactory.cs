@@ -46,8 +46,6 @@ namespace WOTRMultiplayer.UI
         private readonly object _actionLock = new();
         private readonly ILogger<UIFactory> _logger;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IHostMenuItemController _hostMenuItemController;
-        private readonly IJoinMenuItemController _joinMenuItemController;
 
         public UIFactory(ILogger<UIFactory> logger, IServiceProvider serviceProvider)
         {
@@ -520,14 +518,6 @@ namespace WOTRMultiplayer.UI
             }
 
             UnityEngine.Object.DestroyImmediate(lobbyWindow.MenuItem);
-
-            if (lobbyWindow.GameObject)
-            {
-                _logger.LogWarning("Lobby GameObject is null");
-                return;
-            }
-
-            UnityEngine.Object.DestroyImmediate(lobbyWindow.GameObject);
         }
     }
 }
