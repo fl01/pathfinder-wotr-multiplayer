@@ -89,10 +89,7 @@ namespace WOTRMultiplayer.MP
                 owner.CharacterIndex = characterIndex;
                 owner.PlayerId = player.Id;
 
-                var charactersOwnerChanged = new NotifyCharactersOwnerChanged
-                {
-                    Owners = [.. _game.CharacterOwners.Select(o => new Networking.Messages.NetworkCharacterOwner { CharacterIndex = o.CharacterIndex, PlayerId = o.PlayerId })]
-                };
+                var charactersOwnerChanged = CreateNotifyCharactersOwnerChanged();
                 _networkServer.SendAll(charactersOwnerChanged);
             }
         }
@@ -157,7 +154,7 @@ namespace WOTRMultiplayer.MP
             TryStartGame();
         }
 
-        protected virtual void TryStartGame()
+        private void TryStartGame()
         {
             var canStart = false;
 
@@ -173,6 +170,16 @@ namespace WOTRMultiplayer.MP
                 _networkServer.SendAll(new NotifyGameStarted());
                 OnStartGame?.Invoke(_game.Save);
             }
+        }
+
+        private NotifyCharactersOwnerChanged CreateNotifyCharactersOwnerChanged()
+        {
+            var charactersOwnerChanged = new NotifyCharactersOwnerChanged
+            {
+                Owners = [.. _game.CharacterOwners.Select(o => new Networking.Messages.NetworkCharacterOwner { CharacterIndex = o.CharacterIndex, PlayerId = o.PlayerId })]
+            };
+
+           return charactersOwnerChanged;
         }
 
         private NetworkPlayer GetHost()
@@ -262,6 +269,10 @@ namespace WOTRMultiplayer.MP
                     var notifyGameCharactersChanged = CreateNotifyGameCharactersChanged();
                     _logger.LogInformation("Sending GameCharactersChanged to new player. PlayerId={playerId}", playerId);
                     _networkServer.Send(playerId, notifyGameCharactersChanged);
+
+                    _logger.LogInformation("Sending CharactersOwnerChanged to new player. PlayerId={playerId}", playerId);
+                    var charactersOwnerChanged = CreateNotifyCharactersOwnerChanged();
+                    _networkServer.Send(playerId, charactersOwnerChanged);
                 }
             }
             catch (Exception ex)
