@@ -62,7 +62,7 @@ namespace WOTRMultiplayer.MP
             _game.Portraits.AddRange(portraits);
             _game.CharacterOwners = [.. Enumerable.Range(0, Main.MaxCharacters).Select(x => new NetworkCharacterOwner { CharacterIndex = x, PlayerId = LocalHostPlayerId })];
 
-            _networkServer.Start();
+            _networkServer.Start(_multiplayerSettingsProvider.Settings.HostPortRangeStart, _multiplayerSettingsProvider.Settings.HostPortRangeEnd);
 
             _logger.LogInformation("Host has been created. SavePath={savePath}, Portraits={portraits}", _game.Save.FolderName, string.Join(";", _game.Portraits));
         }

@@ -19,6 +19,6 @@ namespace WOTRMultiplayer.Networking.Abstractions
 
         void SendAllExcept(long clientId, object message);
 
-        void Start();
+        void Start(int hostPortRangeStart, int hostPortRangeEnd);
     }
 }

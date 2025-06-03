@@ -35,10 +35,10 @@ namespace WOTRMultiplayer.Networking
             return this;
         }
 
-        public void Start()
+        public void Start(int hostPortRangeStart, int hostPortRangeEnd)
         {
-            Server.ServerOptions.DefaultListen.StartRegionPort = 1024;
-            Server.ServerOptions.DefaultListen.EndRegionPort = ushort.MaxValue;
+            Server.ServerOptions.DefaultListen.StartRegionPort = hostPortRangeStart;
+            Server.ServerOptions.DefaultListen.EndRegionPort = hostPortRangeEnd;
             Server.OnOpened(OnOpened);
             Server.OnLog(OnServerLog)
                 .OnConnected(OnConnected)

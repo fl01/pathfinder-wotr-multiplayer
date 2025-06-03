@@ -22,6 +22,8 @@ namespace WOTRMultiplayer.MP
             return new MultiplayerSettings
             {
                 PlayerName = Guid.NewGuid().ToString().Split('-').First(),
+                HostPortRangeStart = 1024,
+                HostPortRangeEnd = ushort.MaxValue
             };
         }
     }
