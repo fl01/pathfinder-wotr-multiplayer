@@ -12,7 +12,9 @@ using WOTRMultiplayer.DI;
 namespace WOTRMultiplayer
 {
     // SettingsRoot.Game.TurnBased.EnableTurnBasedMode
+    // AutoPauseController
 
+    // EventBus -> make sure INetworkEventSub
     public class Main
     {
         private static UnityModManagerSettings _settings;

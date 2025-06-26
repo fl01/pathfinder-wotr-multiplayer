@@ -3,6 +3,7 @@ using System.IO;
 using Kingmaker.EntitySystem.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.Saves;
@@ -25,6 +26,7 @@ namespace WOTRMultiplayer.Playground.Client
             Console.ReadLine();
             var client = new MultiplayerClient(
                 serviceProvider.GetService<ILogger<MultiplayerClient>>(),
+                serviceProvider.GetService<IGameInteractionService>(),
                 serviceProvider.GetService<IIPEndPointParser>(),
                 serviceProvider.GetService<IMultiplayerSettingsProvider>(),
                 unityPathService,

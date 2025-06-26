@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Numerics;
 using Kingmaker.EntitySystem.Persistence;
 using WOTRMultiplayer.MP.Entities;
 
@@ -13,6 +14,8 @@ namespace WOTRMultiplayer.Abstractions.MP
         ConnectLobbyResult Connect(string address);
 
         bool ReadyChanged();
+
+        void MoveCharacter(string characterName, Vector3 destination, float delay, float orientation);
 
         bool IsActive { get; }
 

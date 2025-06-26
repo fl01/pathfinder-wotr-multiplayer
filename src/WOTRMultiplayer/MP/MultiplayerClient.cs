@@ -4,14 +4,17 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Numerics;
 using System.Text.RegularExpressions;
 using Kingmaker.EntitySystem.Persistence;
 using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.Saves;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.Networking.Abstractions;
+using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
 using WOTRMultiplayer.UI;
 
@@ -25,6 +28,7 @@ namespace WOTRMultiplayer.MP
         private readonly ISaveGameService _saveGameService;
         private readonly INetworkServerClient _networkServerClient;
         private readonly IMultiplayerSettingsProvider _multiplayerSettingsProvider;
+        private readonly IGameInteractionService _gameInteractionService;
         public const int LocalHostPlayerId = -1;
 
         private NetworkGame _game;
@@ -54,6 +58,7 @@ namespace WOTRMultiplayer.MP
 
         public MultiplayerClient(
             ILogger<MultiplayerClient> logger,
+            IGameInteractionService gameInteractionService,
             IIPEndPointParser ipEndPointParser,
             IMultiplayerSettingsProvider multiplayerSettingsProvider,
             ISaveGameService saveGameService,
@@ -66,6 +71,7 @@ namespace WOTRMultiplayer.MP
             _saveGameService = saveGameService;
             _networkServerClient = networkServerClient;
             _multiplayerSettingsProvider = multiplayerSettingsProvider;
+            _gameInteractionService = gameInteractionService;
         }
 
         public ConnectLobbyResult Connect(string address)
@@ -122,10 +128,19 @@ namespace WOTRMultiplayer.MP
                 .Register<NotifyGameStageChanged>(OnNotifyGameStageChanged)
                 .Register<NotifyCharactersOwnerChanged>(OnNotifyCharactersOwnerChanged)
                 .Register<NotifyGameStarted>(OnNotifyGameStarted)
+                .Register<NotifyCharacterMove>(OnNotifyCharacterMove)
                 ;
 
             _networkServerClient.OnError = OnNetworkClientError;
             _networkServerClient.OnConnected = OnNetworkClientConnected;
+        }
+
+        private void OnNotifyCharacterMove(NotifyCharacterMove move)
+        {
+            _logger.LogInformation("Received NotifyCharacterMove. PlayerId={playerId}, CharacterName={characterName}, DestinationX={x}, DestinationY={y}, DestinationZ={z}", move.CharacterName, move.DestinationX, move.DestinationY, move.DestinationZ);
+
+            var destination = new Vector3(move.DestinationX, move.DestinationY, move.DestinationZ);
+            _gameInteractionService.MoveCharacter(move.CharacterName, destination, move.Delay, move.Orientation);
         }
 
         private void OnNotifyGameStarted(NotifyGameStarted started)
@@ -278,6 +293,21 @@ namespace WOTRMultiplayer.MP
         private NetworkPlayer GetPlayer(long playerId)
         {
             return _game.Players.FirstOrDefault(p => p.Id == playerId);
+        }
+
+        public void MoveCharacter(string characterName, Vector3 destination, float delay, float orientation)
+        {
+            _logger.LogInformation("Sending CharacterMove. Name={characterName}, Destination={destination}", characterName, destination);
+            var message = new CharacterMove
+            {
+                CharacterName = characterName,
+                DestinationX = destination.X,
+                DestinationY = destination.Y,
+                DestinationZ = destination.Z,
+                Delay = delay,
+                Orientation = orientation
+            };
+            _networkServerClient.SendAsync(message).Wait();
         }
     }
 }

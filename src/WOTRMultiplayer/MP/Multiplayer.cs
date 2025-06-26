@@ -1,4 +1,6 @@
-﻿using Kingmaker.UI.MVVM._PCView.EscMenu;
+﻿using System.Numerics;
+using Kingmaker.Controllers.Clicks.Handlers;
+using Kingmaker.EntitySystem.Entities;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.UI;
@@ -85,6 +87,20 @@ namespace WOTRMultiplayer.MP
         {
             _logger.LogInformation("Show Multiplayer window");
             _multiplayerWindow.Show(true);
+        }
+
+        public void MoveCharacter(UnitEntityData unit, ClickGroundHandler.CommandSettings settings)
+        {
+            var destination = new Vector3(settings.Destination.x, settings.Destination.y, settings.Destination.z);
+            if (_multiplayerClient.IsActive)
+            {
+                _logger.LogInformation("MultiplayerClient is active. Moving character. Name={characterName}, Destination={destination}, Delay={delay}, Orientation={orientation}", unit.CharacterName, destination, settings.Delay, settings.Orientation);
+                _multiplayerClient.MoveCharacter(unit.CharacterName, destination, settings.Delay, settings.Orientation);
+                return;
+            }
+
+            _logger.LogInformation("MultiplayerHost is active. Moving character. Name={characterName}, Destination={destination}, Delay={delay}, Orientation={orientation}", unit.CharacterName, destination, settings.Delay, settings.Orientation);
+            _multiplayerHost.MoveCharacter(unit.CharacterName, destination, settings.Delay, settings.Orientation);
         }
     }
 }

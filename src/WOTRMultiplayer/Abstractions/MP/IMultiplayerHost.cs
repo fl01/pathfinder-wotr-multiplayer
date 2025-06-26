@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Numerics;
 using Kingmaker.EntitySystem.Persistence;
-using WOTRMultiplayer.MP;
 using WOTRMultiplayer.MP.Entities;
 
 namespace WOTRMultiplayer.Abstractions.MP
@@ -20,6 +20,7 @@ namespace WOTRMultiplayer.Abstractions.MP
         void Start();
 
         void ChangeCharacterOwner(int characterIndex, int playerIndex);
+        void MoveCharacter(string characterName, Vector3 destination, float delay, float orientation);
 
         bool IsInLobby { get; }
 

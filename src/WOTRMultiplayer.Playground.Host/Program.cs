@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 using Kingmaker.EntitySystem.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.MP;
@@ -24,6 +26,7 @@ namespace WOTRMultiplayer.Playground.Host
             var serviceProvider = DI.DIFactory.Create(new Config.UnityMod.UnityModManagerSettings { UseDebugConsole = false });
             var host = new MultiplayerHost(
                 serviceProvider.GetService<ILogger<MultiplayerHost>>(),
+                new DummyGameInteractionService(),
                 serviceProvider.GetService<IMultiplayerSettingsProvider>(),
                 serviceProvider.GetService<IFileSystemService>(),
                 serviceProvider.GetService<INetworkServer>());
@@ -46,6 +49,7 @@ namespace WOTRMultiplayer.Playground.Host
             owner_00 - change 0 char owner to 0 player
             owner_01 - change 0 char owner to 1 player
             start - start game
+            move - move xdd to 22.92498, 42.053, -9.376869
             {Environment.NewLine}");
             while ((input = Console.ReadLine()) != "exit")
             {
@@ -63,9 +67,20 @@ namespace WOTRMultiplayer.Playground.Host
                     case "start":
                         host.Start();
                         break;
+                    case "move":
+                        host.MoveCharacter("xdd", new System.Numerics.Vector3(22.92498f, 42.053f, -9.376869f), 0, 138.3618f);
+                        break;
                     default:
                         break;
                 }
+            }
+        }
+
+
+        private class DummyGameInteractionService : IGameInteractionService
+        {
+            public void MoveCharacter(string characterName, Vector3 destination, float delay, float orientation)
+            {
             }
         }
     }

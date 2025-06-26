@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Numerics;
 using Kingmaker.EntitySystem.Persistence;
 using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.Networking.Abstractions;
+using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
 
 namespace WOTRMultiplayer.MP
@@ -18,6 +21,7 @@ namespace WOTRMultiplayer.MP
         private readonly INetworkServer _networkServer;
         private readonly IFileSystemService _fileSystemService;
         private readonly IMultiplayerSettingsProvider _multiplayerSettingsProvider;
+        private readonly IGameInteractionService _gameInteractionService;
 
         private NetworkGameStage Status => _game?.Stage ?? NetworkGameStage.None;
 
@@ -37,6 +41,7 @@ namespace WOTRMultiplayer.MP
 
         public MultiplayerHost(
             ILogger<MultiplayerHost> logger,
+            IGameInteractionService gameInteractionService,
             IMultiplayerSettingsProvider multiplayerSettingsProvider,
             IFileSystemService fileSystemService,
             INetworkServer networkServer)
@@ -45,6 +50,7 @@ namespace WOTRMultiplayer.MP
             _networkServer = networkServer;
             _fileSystemService = fileSystemService;
             _multiplayerSettingsProvider = multiplayerSettingsProvider;
+            _gameInteractionService = gameInteractionService;
         }
 
         public void Create(SaveInfo save, List<string> portraits)
@@ -92,6 +98,21 @@ namespace WOTRMultiplayer.MP
                 var charactersOwnerChanged = CreateNotifyCharactersOwnerChanged();
                 _networkServer.SendAll(charactersOwnerChanged);
             }
+        }
+
+        public void MoveCharacter(string characterName, Vector3 destination, float delay, float orientation)
+        {
+            _logger.LogInformation("Moving character. Name={characterName}, Destination={destination}", characterName, destination);
+            var message = new NotifyCharacterMove
+            {
+                CharacterName = characterName,
+                DestinationX = destination.X,
+                DestinationY = destination.Y,
+                DestinationZ = destination.Z,
+                Delay = delay,
+                Orientation = orientation
+            };
+            _networkServer.SendAll(message);
         }
 
         public void Dispose()
@@ -179,7 +200,7 @@ namespace WOTRMultiplayer.MP
                 Owners = [.. _game.CharacterOwners.Select(o => new Networking.Messages.NetworkCharacterOwner { CharacterIndex = o.CharacterIndex, PlayerId = o.PlayerId })]
             };
 
-           return charactersOwnerChanged;
+            return charactersOwnerChanged;
         }
 
         private NetworkPlayer GetHost()
@@ -197,7 +218,27 @@ namespace WOTRMultiplayer.MP
                 .Register<PlayerReadyStatusChanged>(OnPlayerReadyStatusChanged)
                 .Register<PlayerNameResponse>(OnPlayerNameResponse)
                 .Register<PlayerSaveGameSyncChanged>(OnPlayerSaveGameSyncChanged)
+                .Register<CharacterMove>(OnCharacterMove)
                 ;
+        }
+
+        private void OnCharacterMove(long playerId, CharacterMove move)
+        {
+            _logger.LogInformation("Received OnCharacterMove. PlayerId={playerId}, CharacterName={characterName}, DestinationX={x}, DestinationY={y}, DestinationZ={z}", playerId, move.CharacterName, move.DestinationX, move.DestinationY, move.DestinationZ);
+
+            var destination = new Vector3(move.DestinationX, move.DestinationY, move.DestinationZ);
+            _gameInteractionService.MoveCharacter(move.CharacterName, destination, move.Delay, move.Orientation);
+
+            var notifyMove = new NotifyCharacterMove
+            {
+                CharacterName = move.CharacterName,
+                DestinationX = move.DestinationX,
+                DestinationY = move.DestinationY,
+                DestinationZ = move.DestinationZ,
+                Delay = move.Delay,
+                Orientation = move.Orientation
+            };
+            _networkServer.SendAllExcept(playerId, notifyMove);
         }
 
         private void OnPlayerSaveGameSyncChanged(long playerId, PlayerSaveGameSyncChanged changed)
