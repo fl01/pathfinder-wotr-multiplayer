@@ -58,17 +58,22 @@ namespace WOTRMultiplayer.HarmonyPatches.PubSub
         }
 
         [HarmonyPatch(typeof(UnitEntityData), nameof(UnitEntityData.IsDirectlyControllable), MethodType.Getter)]
-        [HarmonyPrefix]
-        public static bool UnitEntityData_IsDirectlyControllable_Prefix(UnitEntityData __instance, ref bool __result)
+        [HarmonyPostfix]
+        public static void UnitEntityData_IsDirectlyControllable_Postfix(UnitEntityData __instance, ref bool __result)
         {
-            var canControl = Main.Multiplayer.CanControlCharacter(__instance.CharacterName);
-            if (!canControl)
+            if (!__result)
             {
-                __result = false;
-                return false;
+                return;
             }
 
-            return true;
+            if (__instance.IsPet && __instance.Master == null)
+            {
+                Main.GetLogger<PubSubPatches>().LogError("Pet has no master, but still controllable");
+                return;
+            }
+
+            var characterName = __instance.IsPet ? __instance.Master.CharacterName : __instance.CharacterName;
+            __result = Main.Multiplayer.CanControlCharacter(characterName);
         }
     }
 }

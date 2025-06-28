@@ -73,7 +73,7 @@ namespace WOTRMultiplayer.MP
             _logger.LogInformation("Creating Esc menu lobby item");
             _lobbyWindow = Factory.InitializeEscMenuLobbyWindow(context, _multiplayerHost.IsActive, ShowEscMenuMultiplayerLobby);
 
-            _lobbyWindow.NetworkGame = () => _multiplayerHost.IsActive ? _multiplayerHost.CurrentGame : _multiplayerClient.CurrentGame;
+            _lobbyWindow.NetworkGame = GetNetworkGame;
             _lobbyWindow.AssignLobbyController(_lobbyWindowController);
         }
 
@@ -82,18 +82,17 @@ namespace WOTRMultiplayer.MP
             var destination = new Vector3(settings.Destination.x, settings.Destination.y, settings.Destination.z);
             if (_multiplayerClient.IsActive)
             {
-                _logger.LogInformation("MultiplayerClient is active. Moving character. Name={characterName}, Destination={destination}, Delay={delay}, Orientation={orientation}", unit.CharacterName, destination, settings.Delay, settings.Orientation);
                 _multiplayerClient.MoveCharacter(unit.CharacterName, destination, settings.Delay, settings.Orientation);
                 return;
             }
 
-            _logger.LogInformation("MultiplayerHost is active. Moving character. Name={characterName}, Destination={destination}, Delay={delay}, Orientation={orientation}", unit.CharacterName, destination, settings.Delay, settings.Orientation);
             _multiplayerHost.MoveCharacter(unit.CharacterName, destination, settings.Delay, settings.Orientation);
         }
 
         public bool CanControlCharacter(string characterName)
         {
-            return true;
+            // TBD
+            return characterName.StartsWith("Seelah") || characterName.StartsWith("xdd");
         }
 
         private void ShowEscMenuMultiplayerLobby()
@@ -106,6 +105,11 @@ namespace WOTRMultiplayer.MP
         {
             _logger.LogInformation("Show Multiplayer window");
             _multiplayerWindow.Show(true);
+        }
+
+        private NetworkGame GetNetworkGame()
+        {
+            return _multiplayerHost.IsActive ? _multiplayerHost.CurrentGame : _multiplayerClient.CurrentGame;
         }
     }
 }
