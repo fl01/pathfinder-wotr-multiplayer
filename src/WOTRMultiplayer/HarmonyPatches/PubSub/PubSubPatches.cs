@@ -1,6 +1,8 @@
 ﻿using HarmonyLib;
+using Kingmaker;
 using Kingmaker.Controllers.Clicks.Handlers;
 using Kingmaker.EntitySystem.Entities;
+using Kingmaker.GameModes;
 using Kingmaker.PubSubSystem;
 using Microsoft.Extensions.Logging;
 
@@ -52,6 +54,11 @@ namespace WOTRMultiplayer.HarmonyPatches.PubSub
         [HarmonyPrefix]
         public static void ClickGroundHandler_RunCommand_Prefix(UnitEntityData unit, ClickGroundHandler.CommandSettings settings)
         {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
             var logger = Main.GetLogger<ClickGroundHandler>();
             logger.LogInformation("Move command. CharacterName={characterName} Destination={destination}", unit.CharacterName, settings.Destination);
             Main.Multiplayer.MoveCharacter(unit, settings);
@@ -61,7 +68,7 @@ namespace WOTRMultiplayer.HarmonyPatches.PubSub
         [HarmonyPostfix]
         public static void UnitEntityData_IsDirectlyControllable_Postfix(UnitEntityData __instance, ref bool __result)
         {
-            if (!__result)
+            if (!__result || !Main.Multiplayer.IsActive)
             {
                 return;
             }
@@ -74,6 +81,22 @@ namespace WOTRMultiplayer.HarmonyPatches.PubSub
 
             var characterName = __instance.IsPet ? __instance.Master.CharacterName : __instance.CharacterName;
             __result = Main.Multiplayer.CanControlCharacter(characterName);
+        }
+
+        [HarmonyPatch(typeof(Game), nameof(Game.StartMode))]
+        [HarmonyPrefix]
+        public static bool Game_StartMode_Prefix(Game __instance, GameModeType type)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return true;
+            }
+
+            var allowedToRun = type != GameModeType.EscMode && type != GameModeType.FullScreenUi;
+
+            var logger = Main.GetLogger<PubSubPatches>();
+            logger.LogInformation("Trying to start GameModeType. Mode={mode}, AllowedToRun={allowedToRun}", type.Name, allowedToRun);
+            return allowedToRun;
         }
     }
 }
