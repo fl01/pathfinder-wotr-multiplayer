@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using ProtoBuf;
+﻿using ProtoBuf;
 
 namespace WOTRMultiplayer.Networking.Messages.Game
 {

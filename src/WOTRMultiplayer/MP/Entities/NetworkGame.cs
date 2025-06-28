@@ -8,13 +8,11 @@ namespace WOTRMultiplayer.MP.Entities
     {
         public EndPoint Endpoint { get; set; }
 
-        public List<string> Portraits { get; set; } = [];
-
         public NetworkGameStage Stage { get; set; }
 
         public List<NetworkPlayer> Players { get; set; } = [];
 
-        public List<NetworkCharacterOwner> CharacterOwners { get; set; } = [];
+        public List<NetworkCharacter> Characters { get; set; } = [];
 
         public SaveInfo Save { get; set; }
 
@@ -26,9 +24,8 @@ namespace WOTRMultiplayer.MP.Entities
 
         public void Reset()
         {
-            Portraits.Clear();
             Players.Clear();
-            CharacterOwners.Clear();
+            Characters.Clear();
             Save = null;
             Endpoint = null;
             Stage = NetworkGameStage.None;

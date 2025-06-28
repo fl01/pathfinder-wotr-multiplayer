@@ -56,5 +56,19 @@ namespace WOTRMultiplayer.HarmonyPatches.PubSub
             logger.LogInformation("Move command. CharacterName={characterName} Destination={destination}", unit.CharacterName, settings.Destination);
             Main.Multiplayer.MoveCharacter(unit, settings);
         }
+
+        [HarmonyPatch(typeof(UnitEntityData), nameof(UnitEntityData.IsDirectlyControllable), MethodType.Getter)]
+        [HarmonyPrefix]
+        public static bool UnitEntityData_IsDirectlyControllable_Prefix(UnitEntityData __instance, ref bool __result)
+        {
+            var canControl = Main.Multiplayer.CanControlCharacter(__instance.CharacterName);
+            if (!canControl)
+            {
+                __result = false;
+                return false;
+            }
+
+            return true;
+        }
     }
 }

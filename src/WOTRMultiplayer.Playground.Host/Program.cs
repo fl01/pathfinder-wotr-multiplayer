@@ -9,6 +9,7 @@ using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.MP;
+using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.Networking.Abstractions;
 
 namespace WOTRMultiplayer.Playground.Host
@@ -30,9 +31,13 @@ namespace WOTRMultiplayer.Playground.Host
                 serviceProvider.GetService<IMultiplayerSettingsProvider>(),
                 serviceProvider.GetService<IFileSystemService>(),
                 serviceProvider.GetService<INetworkServer>());
-            var portraits = new List<string> {
-                "KitsuneFemaleRogue_Portrait","SeelahFemalePaladin_Portrait", "RegillMaleGnomeHellknight_Portrait",
-                "WenduagFemaleMongrelRanger_Portrait","EmberFemaleElfWitch_Portrait","NenioFemaleKitsuneWizard_Portrait"
+            var characters = new List<NetworkCharacter> {
+                new() { Name = "KitsuneFemaleRogue_Portrait", Portrait = "KitsuneFemaleRogue_Portrait"},
+                new() { Name = "SeelahFemalePaladin_Portrait", Portrait = "SeelahFemalePaladin_Portrait"},
+                new() { Name = "RegillMaleGnomeHellknight_Portrait", Portrait = "RegillMaleGnomeHellknight_Portrait"},
+                new() { Name = "WenduagFemaleMongrelRanger_Portrait", Portrait = "WenduagFemaleMongrelRanger_Portrait"},
+                new() { Name = "EmberFemaleElfWitch_Portrait", Portrait = "EmberFemaleElfWitch_Portrait"},
+                new() { Name = "NenioFemaleKitsuneWizard_Portrait", Portrait = "NenioFemaleKitsuneWizard_Portrait"},
             };
             var saveGamePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                 "AppData\\LocalLow\\Owlcat Games\\Pathfinder Wrath Of The Righteous\\Saved Games\\Quick_12.zks");
@@ -40,7 +45,7 @@ namespace WOTRMultiplayer.Playground.Host
             {
                 FolderName = saveGamePath,
             };
-            host.Create(save, portraits);
+            host.Create(save, characters);
             var input = string.Empty;
 
             Console.Write(@$"

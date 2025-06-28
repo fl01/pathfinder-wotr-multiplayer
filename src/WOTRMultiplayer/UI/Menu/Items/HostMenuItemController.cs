@@ -218,21 +218,24 @@ namespace WOTRMultiplayer.UI.Menu.Items
             var gameName = selectedSave.SaveName.Value;
             var titleText = UIUtility.GetSaberBookFormat(gameName);
             Title.SetText(titleText);
+
             var portraits = selectedSave.PartyPortraits.Value.Select(p => p.Portrait.name).ToList();
             var savePath = selectedSave.Reference.FolderName;
-            Lobby.UpdatePortraits(portraits);
+            var characters = portraits.Select(x => new NetworkCharacter { Name = x, Portrait = x, Owner = null }).ToList();
+            characters.First().Name = selectedSave.CharacterName.Value;
+            Lobby.UpdateCharacters(characters);
 
             if (!_multiplayerHost.IsActive)
             {
                 StartButtonObject.SetActive(true);
                 ReadyButtonObject.SetActive(true);
                 ReadyButton.Interactable = true;
-                _multiplayerHost.Create(selectedSave.Reference, portraits);
+                _multiplayerHost.Create(selectedSave.Reference, characters);
                 SetButtonLabel(HostButtonObject, UIStringConsts.MultiplayerWindow.HostMenu.HostButtonActiveLabel);
                 return;
             }
 
-            _multiplayerHost.NotifyGameCharactersChanged(selectedSave.Reference, portraits);
+            _multiplayerHost.UpdateSaveGame(selectedSave.Reference, characters);
         }
 
         private void OnReadyButtonClicked()

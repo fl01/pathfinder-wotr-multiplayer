@@ -46,7 +46,7 @@ namespace WOTRMultiplayer.UI.Menu.Windows
                 var game = NetworkGame();
                 _lobbyWindowController.UpdateServerInfo(game.Endpoint.ToString());
                 _lobbyWindowController.UpdatePlayers(game.Players);
-                _lobbyWindowController.UpdatePortraits(game.Portraits);
+                _lobbyWindowController.UpdateCharacters(game.Characters);
 
             }
             catch (Exception ex)

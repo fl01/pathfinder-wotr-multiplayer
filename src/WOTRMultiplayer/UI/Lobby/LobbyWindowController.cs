@@ -172,7 +172,7 @@ namespace WOTRMultiplayer.UI.Lobby
                 current?.SetActive(false);
                 playerSection?.CleanupAllChildren();
                 serverSection?.CleanupAllChildren();
-                UpdatePortraits([]);
+                UpdateCharacters([]);
             });
         }
 
@@ -191,11 +191,11 @@ namespace WOTRMultiplayer.UI.Lobby
             _contents.TryRemove(owner, out var _);
         }
 
-        public void UpdatePortraits(List<string> portraits)
+        public void UpdateCharacters(List<NetworkCharacter> characters)
         {
             if (GetContentOwnedObject() == null)
             {
-                _logger.LogWarning("[{methodName}] Content doesn't exist for the current owner. Owner={owner}", nameof(UpdatePortraits), _activeOwner);
+                _logger.LogWarning("[{methodName}] Content doesn't exist for the current owner. Owner={owner}", nameof(UpdateCharacters), _activeOwner);
                 return;
             }
 
@@ -203,8 +203,8 @@ namespace WOTRMultiplayer.UI.Lobby
             {
                 for (int characterIndex = 0; characterIndex < Main.MaxCharacters; characterIndex++)
                 {
-                    var portraitName = portraits.Count > characterIndex ? portraits[characterIndex] : null;
-                    var sprite = string.IsNullOrEmpty(portraitName) ? null : GetPortraitSprite(portraitName);
+                    var character = characters.Count > characterIndex ? characters[characterIndex] : null;
+                    var sprite = string.IsNullOrEmpty(character?.Portrait) ? null : GetPortraitSprite(character.Portrait);
                     UpdateCharacterPortrait(characterIndex, sprite);
                 }
             });

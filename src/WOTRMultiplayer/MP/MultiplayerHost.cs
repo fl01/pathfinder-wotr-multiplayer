@@ -53,7 +53,7 @@ namespace WOTRMultiplayer.MP
             _gameInteractionService = gameInteractionService;
         }
 
-        public void Create(SaveInfo save, List<string> portraits)
+        public void Create(SaveInfo save, List<NetworkCharacter> characters)
         {
             if (_networkServer.IsActive)
             {
@@ -65,12 +65,27 @@ namespace WOTRMultiplayer.MP
             _game?.Reset();
 
             _game = new NetworkGame(save);
-            _game.Portraits.AddRange(portraits);
-            _game.CharacterOwners = [.. Enumerable.Range(0, Main.MaxCharacters).Select(x => new NetworkCharacterOwner { CharacterIndex = x, PlayerId = LocalHostPlayerId })];
+            _game.Characters.AddRange(characters);
 
             _networkServer.Start(_multiplayerSettingsProvider.Settings.HostPortRangeStart, _multiplayerSettingsProvider.Settings.HostPortRangeEnd);
 
-            _logger.LogInformation("Host has been created. SavePath={savePath}, Portraits={portraits}", _game.Save.FolderName, string.Join(";", _game.Portraits));
+            _logger.LogInformation("Host has been created. SavePath={savePath}, Portraits={portraits}", _game.Save.FolderName, string.Join(";", _game.Characters.Select(c => c.Portrait)));
+        }
+
+        public void UpdateSaveGame(SaveInfo save, List<NetworkCharacter> characters)
+        {
+            _game.Save = save;
+            _game.Characters.Clear();
+            _game.Characters.AddRange(characters);
+            var host = GetHost();
+            foreach (var character in characters)
+            {
+                character.Owner = host;
+            }
+
+            _logger.LogInformation("Notifying game characters changed. Portraits={portraits}", string.Join(";", _game.Characters.Select(c => c.Portrait)));
+            var message = CreateNotifyGameCharactersChanged();
+            _networkServer.SendAll(message);
         }
 
         public void ChangeCharacterOwner(int characterIndex, int playerIndex)
@@ -85,15 +100,14 @@ namespace WOTRMultiplayer.MP
 
                 var player = _game.Players[playerIndex];
 
-                if (_game.CharacterOwners.Count < characterIndex)
+                if (_game.Characters.Count < characterIndex)
                 {
-                    _logger.LogError("Unable to change character owner as characterIndex is out of range. CharacterOwnersCount={characterOwnersCount}, CharacterIndex={characterIndex}", _game.CharacterOwners.Count, characterIndex);
+                    _logger.LogError("Unable to change character owner as characterIndex is out of range. CharacterOwnersCount={characterOwnersCount}, CharacterIndex={characterIndex}", _game.Characters.Count, characterIndex);
                     return;
                 }
 
-                var owner = _game.CharacterOwners[characterIndex];
-                owner.CharacterIndex = characterIndex;
-                owner.PlayerId = player.Id;
+                var character = _game.Characters[characterIndex];
+                character.Owner = player;
 
                 var charactersOwnerChanged = CreateNotifyCharactersOwnerChanged();
                 _networkServer.SendAll(charactersOwnerChanged);
@@ -133,17 +147,6 @@ namespace WOTRMultiplayer.MP
             var readyChanged = new PlayerReadyStatusChanged { PlayerId = LocalHostPlayerId, IsReady = !player.IsReady };
             OnPlayerReadyStatusChanged(player.Id, readyChanged);
             return readyChanged.IsReady;
-        }
-
-        public void NotifyGameCharactersChanged(SaveInfo save, List<string> portraits)
-        {
-            _game.Portraits.Clear();
-            _game.Portraits.AddRange(portraits);
-            _game.Save = save;
-
-            _logger.LogInformation("Notifying game characters changed. Portraits={portraits}", string.Join(";", _game.Portraits));
-            var message = CreateNotifyGameCharactersChanged();
-            _networkServer.SendAll(message);
         }
 
         public void Start()
@@ -195,9 +198,10 @@ namespace WOTRMultiplayer.MP
 
         private NotifyCharactersOwnerChanged CreateNotifyCharactersOwnerChanged()
         {
+            _game.Characters.Select((character, index) => new Networking.Messages.NetworkCharacterOwner { CharacterIndex = index, PlayerId = character.Owner.Id });
             var charactersOwnerChanged = new NotifyCharactersOwnerChanged
             {
-                Owners = [.. _game.CharacterOwners.Select(o => new Networking.Messages.NetworkCharacterOwner { CharacterIndex = o.CharacterIndex, PlayerId = o.PlayerId })]
+                Owners = [.. _game.Characters.Select((character, index) => new Networking.Messages.NetworkCharacterOwner { CharacterIndex = index, PlayerId = character.Owner.Id })]
             };
 
             return charactersOwnerChanged;
@@ -372,6 +376,11 @@ namespace WOTRMultiplayer.MP
             _game.Players.Add(hostPlayer);
             _game.Endpoint = endpoint;
 
+            foreach (var character in _game.Characters)
+            {
+                character.Owner = hostPlayer;
+            }
+
             OnConnected?.Invoke(endpoint);
             OnPlayersChanged?.Invoke(_game.Players);
         }
@@ -383,7 +392,10 @@ namespace WOTRMultiplayer.MP
 
         private NotifyGameCharactersChanged CreateNotifyGameCharactersChanged()
         {
-            var message = new NotifyGameCharactersChanged { Portraits = _game.Portraits };
+            var message = new NotifyGameCharactersChanged
+            {
+                Characters = [.. _game.Characters.Select(c => new Networking.Messages.NetworkCharacter { Name = c.Name, Portrait = c.Portrait })]
+            };
             return message;
         }
     }

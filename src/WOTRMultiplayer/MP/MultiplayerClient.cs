@@ -40,7 +40,7 @@ namespace WOTRMultiplayer.MP
         public Action<EndPoint> OnConnected { get; set; }
 
         public Action<List<NetworkPlayer>> OnPlayersChanged { get; set; }
-        public Action<List<string>> OnGameCharactersChanged { get; set; }
+        public Action<List<NetworkCharacter>> OnGameCharactersChanged { get; set; }
         public Action<int, int> OnCharacterOwnerChanged { get; set; }
         public Action<SaveInfo> OnStartGame { get; set; }
 
@@ -151,21 +151,22 @@ namespace WOTRMultiplayer.MP
 
         private void OnNotifyCharactersOwnerChanged(NotifyCharactersOwnerChanged changed)
         {
-            _logger.LogInformation("NotifyCharactersOwnerChanged. CharacterIndex={characterIndex}, PlayerName={playerId}");
-
-            _game.CharacterOwners = [.. changed.Owners.Select(o => new NetworkCharacterOwner { CharacterIndex = o.CharacterIndex, PlayerId = o.PlayerId })];
+            _logger.LogInformation("NotifyCharactersOwnerChanged");
             try
             {
-                foreach (var owner in _game.CharacterOwners)
+                for (int i = 0; i < changed.Owners.Count; i++)
                 {
+                    var owner = changed.Owners[i];
                     var player = _game.Players.FirstOrDefault(p => p.Id == owner.PlayerId);
                     if (player == null)
                     {
-                        _logger.LogWarning("Unable to find player for owner sync. PlayerId={playerId}", owner.PlayerId);
-                        continue;
+                        _logger.LogWarning("Unable to assign character ownership for missing player. PlayerId={playerId}", owner.PlayerId);
+                        player = _game.Players.First();
                     }
 
+                    _game.Characters[owner.CharacterIndex].Owner = player;
                     OnCharacterOwnerChanged?.Invoke(owner.CharacterIndex, _game.Players.IndexOf(player));
+
                 }
             }
             catch (Exception ex)
@@ -221,10 +222,10 @@ namespace WOTRMultiplayer.MP
 
         private void OnNotifyGameCharactersChanged(NotifyGameCharactersChanged changed)
         {
-            _logger.LogInformation("{messageType} received. Portraits={portraits}", nameof(NotifyGameCharactersChanged), string.Join(";", changed.Portraits));
-            _game.Portraits.Clear();
-            _game.Portraits.AddRange(changed.Portraits);
-            OnGameCharactersChanged?.Invoke(_game.Portraits);
+            _logger.LogInformation("{messageType} received. Portraits={portraits}", nameof(NotifyGameCharactersChanged), string.Join(";", changed.Characters.Select(c => c.Portrait)));
+            _game.Characters.Clear();
+            _game.Characters.AddRange(changed.Characters.Select(c => new NetworkCharacter { Name = c.Name, Portrait = c.Portrait }));
+            OnGameCharactersChanged?.Invoke(_game.Characters);
         }
 
         private void OnNotifyPlayersChanged(NotifyPlayersChanged changed)
@@ -235,7 +236,10 @@ namespace WOTRMultiplayer.MP
             _game.Players.AddRange(players);
 
             // add or remove players should cause owner reset
-            _game.CharacterOwners = [.. Enumerable.Range(0, Main.MaxCharacters).Select(x => new NetworkCharacterOwner { CharacterIndex = x, PlayerId = LocalHostPlayerId })];
+            foreach (var character in _game.Characters)
+            {
+                character.Owner = _game.Players.First();
+            }
 
             OnPlayersChanged?.Invoke(_game.Players);
         }

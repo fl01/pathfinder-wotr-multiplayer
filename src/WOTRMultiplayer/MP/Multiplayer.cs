@@ -77,18 +77,6 @@ namespace WOTRMultiplayer.MP
             _lobbyWindow.AssignLobbyController(_lobbyWindowController);
         }
 
-        private void ShowEscMenuMultiplayerLobby()
-        {
-            _logger.LogInformation("Show lobby window");
-            _lobbyWindow.Show(true);
-        }
-
-        private void ShowMultiplayerWindow()
-        {
-            _logger.LogInformation("Show Multiplayer window");
-            _multiplayerWindow.Show(true);
-        }
-
         public void MoveCharacter(UnitEntityData unit, ClickGroundHandler.CommandSettings settings)
         {
             var destination = new Vector3(settings.Destination.x, settings.Destination.y, settings.Destination.z);
@@ -101,6 +89,23 @@ namespace WOTRMultiplayer.MP
 
             _logger.LogInformation("MultiplayerHost is active. Moving character. Name={characterName}, Destination={destination}, Delay={delay}, Orientation={orientation}", unit.CharacterName, destination, settings.Delay, settings.Orientation);
             _multiplayerHost.MoveCharacter(unit.CharacterName, destination, settings.Delay, settings.Orientation);
+        }
+
+        public bool CanControlCharacter(string characterName)
+        {
+            return true;
+        }
+
+        private void ShowEscMenuMultiplayerLobby()
+        {
+            _logger.LogInformation("Show lobby window");
+            _lobbyWindow.Show(true);
+        }
+
+        private void ShowMultiplayerWindow()
+        {
+            _logger.LogInformation("Show Multiplayer window");
+            _multiplayerWindow.Show(true);
         }
     }
 }

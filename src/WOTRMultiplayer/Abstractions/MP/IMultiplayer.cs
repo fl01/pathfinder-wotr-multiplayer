@@ -17,6 +17,8 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         void MoveCharacter(UnitEntityData unit, ClickGroundHandler.CommandSettings settings);
 
+        bool CanControlCharacter(string characterName);
+
         bool IsActive { get; }
     }
 }
