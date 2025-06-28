@@ -204,10 +204,15 @@ namespace WOTRMultiplayer.UI
             rect.anchorMax = new Vector2(1, 0);
             rect.anchoredPosition = Vector2.zero;
             rect.sizeDelta = new Vector2(sizeDeltaX, rect.sizeDelta.y);
+
             var dropdown = dropdownObject.GetComponent<TMP_Dropdown>();
+            dropdown.ClearOptions();
+
             var templateRect = dropdownObject.Find("Template").GetComponent<RectTransform>();
             templateRect.sizeDelta = new Vector2(Math.Abs(templateRect.sizeDelta.x * 5), templateRect.sizeDelta.y);
-            dropdown.ClearOptions();
+
+            var labelRect = dropdownObject.Find("Label").GetComponent<RectTransform>();
+            labelRect.sizeDelta = new Vector2(labelRect.sizeDelta.x * 0.5f, labelRect.sizeDelta.y);
 
             return dropdownContainerObject;
         }
@@ -281,7 +286,7 @@ namespace WOTRMultiplayer.UI
             var windowContainer = CreateDefaultGameObject(context.View.transform.parent);
             windowContainer.name = "EscMultiplayerLobbyWindowContainer";
             var windowContainerRect = windowContainer.GetComponent<RectTransform>();
-            windowContainerRect.sizeDelta = new Vector2(Screen.width * 0.35f, Screen.height * 0.6f);
+            windowContainerRect.sizeDelta = new Vector2(Screen.width * 0.45f, Screen.height * 0.65f);
             windowContainerRect.anchorMin = new Vector2(0.5f, 0.5f);
             windowContainerRect.anchorMax = new Vector2(0.5f, 0.5f);
             var background = CreateBackgroundArt(windowContainer.transform);
