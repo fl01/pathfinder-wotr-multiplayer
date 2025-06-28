@@ -39,6 +39,7 @@ namespace WOTRMultiplayer.Playground.Client
             Console.Write(@$"
             exit - exit the program
             ready - toggle client ready status
+            loaded - send gameloaded
             {Environment.NewLine}");
             while ((input = Console.ReadLine()) != "exit")
             {
@@ -46,6 +47,9 @@ namespace WOTRMultiplayer.Playground.Client
                 {
                     case "ready":
                         client.ReadyChanged();
+                        break;
+                    case "loaded":
+                        client.GameLoaded();
                         break;
                     default:
                         break;
@@ -71,6 +75,10 @@ namespace WOTRMultiplayer.Playground.Client
         private class DummyGameInteractionService : IGameInteractionService
         {
             public void MoveCharacter(string characterName, Vector3 destination, float delay, float orientation)
+            {
+            }
+
+            public void Pause(bool isPaused)
             {
             }
         }

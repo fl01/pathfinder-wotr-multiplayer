@@ -5,6 +5,7 @@ using Serilog;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.Abstractions.PubSub;
 using WOTRMultiplayer.Abstractions.Saves;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
@@ -14,6 +15,7 @@ using WOTRMultiplayer.GameInteraction;
 using WOTRMultiplayer.IO;
 using WOTRMultiplayer.MP;
 using WOTRMultiplayer.Networking.Extensions;
+using WOTRMultiplayer.PubSub;
 using WOTRMultiplayer.Saves;
 using WOTRMultiplayer.UI;
 using WOTRMultiplayer.UI.Lobby;
@@ -48,6 +50,7 @@ namespace WOTRMultiplayer.DI
             serviceCollection.AddSingleton<IJoinMenuItemController, JoinMenuItemController>();
 
             serviceCollection.AddSingleton<IGameInteractionService, GameInteractionService>();
+            serviceCollection.AddSingleton<IGlobalMultiplayerSubscriber, GlobalSubscriber>();
 
             serviceCollection.AddSingleton<IMultiplayer, Multiplayer>();
             serviceCollection.AddSingleton<IMultiplayerHost, MultiplayerHost>();

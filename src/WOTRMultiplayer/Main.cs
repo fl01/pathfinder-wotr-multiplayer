@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Reflection;
 using HarmonyLib;
+using Kingmaker.PubSubSystem;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using UnityModManagerNet;
 using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.Abstractions.PubSub;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Config.UnityMod;
 using WOTRMultiplayer.DI;
@@ -37,6 +39,8 @@ namespace WOTRMultiplayer
                 _settings = UnityModManager.ModSettings.Load<UnityModManagerSettings>(entry);
                 _serviceProvider = DIFactory.Create(_settings);
                 _logger = _serviceProvider.GetService<ILogger<Main>>();
+                var globalSubscriber = _serviceProvider.GetService<IGlobalMultiplayerSubscriber>();
+                EventBus.Subscribe(globalSubscriber);
             }
             catch (Exception ex)
             {

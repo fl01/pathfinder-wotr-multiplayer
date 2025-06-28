@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Numerics;
 using Kingmaker;
+using Kingmaker.GameModes;
 using Kingmaker.UnitLogic.Commands;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.GameInteraction;
@@ -33,6 +34,18 @@ namespace WOTRMultiplayer.GameInteraction
                 CreatedByPlayer = true
             };
             character.Commands.Run(command);
+        }
+
+        public void Pause(bool isPaused)
+        {
+            _logger.LogInformation("Pause game. Value={isPaused}", isPaused);
+            if (isPaused)
+            {
+                Game.Instance.StartMode(GameModeType.Pause);
+                return;
+            }
+
+            Game.Instance.StopMode(GameModeType.Pause);
         }
     }
 }

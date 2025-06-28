@@ -119,6 +119,11 @@ namespace WOTRMultiplayer.MP
 
         public bool CanControlCharacter(string characterName)
         {
+            if (_game == null)
+            {
+                return false;
+            }
+
             var character = _game.Characters.FirstOrDefault(c => c.Name.Contains(characterName)); // should be a strict match later on
             if (character == null)
             {
@@ -127,6 +132,30 @@ namespace WOTRMultiplayer.MP
             }
 
             return character.Owner != null && character.Owner.Id == _localPlayerId;
+        }
+
+        public void MoveCharacter(string characterName, Vector3 destination, float delay, float orientation)
+        {
+            _logger.LogInformation("Sending CharacterMove. Name={characterName}, Destination={destination}", characterName, destination);
+            var message = new CharacterMove
+            {
+                CharacterName = characterName,
+                DestinationX = destination.X,
+                DestinationY = destination.Y,
+                DestinationZ = destination.Z,
+                Delay = delay,
+                Orientation = orientation
+            };
+            _networkServerClient.SendAsync(message).Wait();
+        }
+
+        public void GameLoaded()
+        {
+            _logger.LogInformation("Game loaded");
+
+            _gameInteractionService.Pause(true);
+
+            _networkServerClient.SendAsync(new GameLoaded()).Wait();
         }
 
         private void RegisterHandlers()
@@ -141,15 +170,22 @@ namespace WOTRMultiplayer.MP
                 .Register<NotifyCharactersOwnerChanged>(OnNotifyCharactersOwnerChanged)
                 .Register<NotifyGameStarted>(OnNotifyGameStarted)
                 .Register<NotifyCharacterMove>(OnNotifyCharacterMove)
+                .Register<NotifyGamePauseChanged>(OnNotifyGamePauseChanged)
                 ;
 
             _networkServerClient.OnError = OnNetworkClientError;
             _networkServerClient.OnConnected = OnNetworkClientConnected;
         }
 
+        private void OnNotifyGamePauseChanged(NotifyGamePauseChanged changed)
+        {
+            _logger.LogInformation("NotifyGamePauseChanged. Value={value}", changed.IsPaused);
+            _gameInteractionService.Pause(changed.IsPaused);
+        }
+
         private void OnNotifyCharacterMove(NotifyCharacterMove move)
         {
-            _logger.LogInformation("Received NotifyCharacterMove. PlayerId={playerId}, CharacterName={characterName}, DestinationX={x}, DestinationY={y}, DestinationZ={z}", move.CharacterName, move.DestinationX, move.DestinationY, move.DestinationZ);
+            _logger.LogInformation("Received NotifyCharacterMove. CharacterName={characterName}, DestinationX={x}, DestinationY={y}, DestinationZ={z}", move.CharacterName, move.DestinationX, move.DestinationY, move.DestinationZ);
 
             var destination = new Vector3(move.DestinationX, move.DestinationY, move.DestinationZ);
             _gameInteractionService.MoveCharacter(move.CharacterName, destination, move.Delay, move.Orientation);
@@ -308,21 +344,6 @@ namespace WOTRMultiplayer.MP
         private NetworkPlayer GetPlayer(long playerId)
         {
             return _game.Players.FirstOrDefault(p => p.Id == playerId);
-        }
-
-        public void MoveCharacter(string characterName, Vector3 destination, float delay, float orientation)
-        {
-            _logger.LogInformation("Sending CharacterMove. Name={characterName}, Destination={destination}", characterName, destination);
-            var message = new CharacterMove
-            {
-                CharacterName = characterName,
-                DestinationX = destination.X,
-                DestinationY = destination.Y,
-                DestinationZ = destination.Z,
-                Delay = delay,
-                Orientation = orientation
-            };
-            _networkServerClient.SendAsync(message).Wait();
         }
     }
 }

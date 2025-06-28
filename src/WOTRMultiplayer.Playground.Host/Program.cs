@@ -55,6 +55,7 @@ namespace WOTRMultiplayer.Playground.Host
             owner_01 - change 0 char owner to 1 player
             start - start game
             move - move xdd to 22.92498, 42.053, -9.376869
+            loaded - make host loaded
             {Environment.NewLine}");
             while ((input = Console.ReadLine()) != "exit")
             {
@@ -75,6 +76,9 @@ namespace WOTRMultiplayer.Playground.Host
                     case "move":
                         host.MoveCharacter("xdd", new System.Numerics.Vector3(22.92498f, 42.053f, -9.376869f), 0, 138.3618f);
                         break;
+                    case "loaded":
+                        host.GameLoaded();
+                        break;
                     default:
                         break;
                 }
@@ -84,6 +88,10 @@ namespace WOTRMultiplayer.Playground.Host
         private class DummyGameInteractionService : IGameInteractionService
         {
             public void MoveCharacter(string characterName, Vector3 destination, float delay, float orientation)
+            {
+            }
+
+            public void Pause(bool isPaused)
             {
             }
         }

@@ -143,6 +143,11 @@ namespace WOTRMultiplayer.MP
 
         public bool CanControlCharacter(string characterName)
         {
+            if (_game == null)
+            {
+                return false;
+            }
+
             var character = _game.Characters.FirstOrDefault(c => c.Name.Contains(characterName)); // should be a strict match later on
             if (character == null)
             {
@@ -186,8 +191,55 @@ namespace WOTRMultiplayer.MP
                 GetHost().IsSyncedToStartGame = true;
             }
 
-
             TryStartGame();
+        }
+
+        public void GameLoaded()
+        {
+            _logger.LogInformation("Game loaded, pausing...");
+            _gameInteractionService.Pause(true);
+
+            var host = GetHost();
+            host.IsLoading = false;
+
+            TryUnpauseGame();
+        }
+
+        private void TryUnpauseGame()
+        {
+            var canUnpause = false;
+
+            lock (_actionlock)
+            {
+                canUnpause = _game.Players.All(p => !p.IsLoading);
+            }
+
+            if (canUnpause)
+            {
+                _logger.LogInformation("Unpausing game");
+
+                var message = new NotifyGamePauseChanged { IsPaused = false };
+                _networkServer.SendAll(message);
+                _gameInteractionService.Pause(message.IsPaused);
+            }
+        }
+
+        private void OnGameLoaded(long playerId, GameLoaded loaded)
+        {
+            _logger.LogInformation("OnGameLoaded. PlayerId={playerId}", playerId);
+            lock (_actionlock)
+            {
+                var player = GetPlayer(playerId);
+                if (player == null)
+                {
+                    _logger.LogError("Can't set loading status for missing player. PlayerId={playerId}", playerId);
+                    return;
+                }
+
+                player.IsLoading = false;
+            }
+
+            TryUnpauseGame();
         }
 
         private void TryStartGame()
@@ -202,6 +254,10 @@ namespace WOTRMultiplayer.MP
             if (canStart)
             {
                 _logger.LogInformation("Starting game");
+                foreach (var player in _game.Players)
+                {
+                    player.IsLoading = true;
+                }
 
                 _networkServer.SendAll(new NotifyGameStarted());
                 OnStartGame?.Invoke(_game.Save);
@@ -235,6 +291,7 @@ namespace WOTRMultiplayer.MP
                 .Register<PlayerNameResponse>(OnPlayerNameResponse)
                 .Register<PlayerSaveGameSyncChanged>(OnPlayerSaveGameSyncChanged)
                 .Register<CharacterMove>(OnCharacterMove)
+                .Register<GameLoaded>(OnGameLoaded)
                 ;
         }
 

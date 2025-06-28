@@ -10,6 +10,8 @@
 
         public bool IsSyncedToStartGame { get; set; }
 
+        public bool IsLoading { get; set; }
+
         public NetworkPlayer(long id)
         {
             Id = id;
