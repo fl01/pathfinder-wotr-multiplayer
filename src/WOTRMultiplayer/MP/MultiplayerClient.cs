@@ -214,7 +214,7 @@ namespace WOTRMultiplayer.MP
 
         private void OnNotifyCharactersOwnerChanged(NotifyCharactersOwnerChanged changed)
         {
-            _logger.LogInformation("NotifyCharactersOwnerChanged");
+            _logger.LogInformation("NotifyCharactersOwnerChanged. OwnersCount={ownersCount}", changed.Owners.Count);
             try
             {
                 for (int i = 0; i < changed.Owners.Count; i++)
