@@ -452,7 +452,7 @@ namespace WOTRMultiplayer.MP
                     OnPlayersChanged?.Invoke(_game.Players);
                 }
 
-                // send updates to other clients
+                // TBD send updates to other clients
             }
         }
 
