@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using WOTRMultiplayer.Abstractions.GameInteraction;
+using WOTRMultiplayer.Abstractions.Hashing;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.PubSub;
@@ -12,6 +13,7 @@ using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.GameInteraction;
+using WOTRMultiplayer.Hashing;
 using WOTRMultiplayer.IO;
 using WOTRMultiplayer.MP;
 using WOTRMultiplayer.Networking.Extensions;
@@ -43,7 +45,8 @@ namespace WOTRMultiplayer.DI
             serviceCollection.AddSingleton<IFileSystemService, FileSystemService>();
             serviceCollection.AddSingleton<IPortraitProvider, ResourceLibraryPortraitProvider>();
             serviceCollection.AddSingleton<IUIFactory, UIFactory>();
-            serviceCollection.AddSingleton<IUIFactory, UIFactory>();
+            serviceCollection.AddSingleton<IHashService, HashService>();
+            serviceCollection.AddSingleton<IRollStorage, InMemoryRollStorage>();
 
             serviceCollection.AddSingleton<ILobbyWindowController, LobbyWindowController>();
             serviceCollection.AddSingleton<IHostMenuItemController, HostMenuItemController>();

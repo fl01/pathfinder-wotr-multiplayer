@@ -41,12 +41,15 @@
 			xcopy /q /y ".\Microsoft.Extensions.Options.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
 			xcopy /q /y ".\Microsoft.Extensions.Primitives.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
 			xcopy /q /y ".\System.ValueTuple.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+
+			xcopy /q /y ".\MurmurHash.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
 		</PostBuildEvent>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
+		<PackageReference Include="murmurhash" Version="1.0.3" />
 		<ProjectReference Include="..\WOTRMultiplayer.Logging\WOTRMultiplayer.Logging.csproj" />
 		<ProjectReference Include="..\WOTRMultiplayer.Networking\WOTRMultiplayer.Networking.csproj" />
 
@@ -72,7 +75,7 @@
 			<HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\UnityEngine.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.AssetBundleModule">
-		  <HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
+			<HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.CoreModule">
 			<HintPath>..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Wrath_Data\Managed\UnityEngine.CoreModule.dll</HintPath>

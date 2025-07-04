@@ -10,6 +10,7 @@ using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.MP;
 using WOTRMultiplayer.MP.Entities;
+using WOTRMultiplayer.MP.Entities.Rolls;
 using WOTRMultiplayer.Networking.Abstractions;
 
 namespace WOTRMultiplayer.Playground.Host
@@ -31,17 +32,21 @@ namespace WOTRMultiplayer.Playground.Host
                 gameInteractionService,
                 serviceProvider.GetService<IMultiplayerSettingsProvider>(),
                 serviceProvider.GetService<IFileSystemService>(),
-                serviceProvider.GetService<INetworkServer>());
+                serviceProvider.GetService<INetworkServer>(),
+                new DummyRollStorage());
+            //var characters = new List<NetworkCharacter> {
+            //    new() { Name = "xdd", Portrait = "KitsuneFemaleRogue_Portrait"},
+            //    new() { Name = "SeelahFemalePaladin_Portrait", Portrait = "SeelahFemalePaladin_Portrait"},
+            //    new() { Name = "RegillMaleGnomeHellknight_Portrait", Portrait = "RegillMaleGnomeHellknight_Portrait"},
+            //    new() { Name = "WenduagFemaleMongrelRanger_Portrait", Portrait = "WenduagFemaleMongrelRanger_Portrait"},
+            //    new() { Name = "EmberFemaleElfWitch_Portrait", Portrait = "EmberFemaleElfWitch_Portrait"},
+            //    new() { Name = "NenioFemaleKitsuneWizard_Portrait", Portrait = "NenioFemaleKitsuneWizard_Portrait"},
+            //};
             var characters = new List<NetworkCharacter> {
-                new() { Name = "xdd", Portrait = "KitsuneFemaleRogue_Portrait"},
-                new() { Name = "SeelahFemalePaladin_Portrait", Portrait = "SeelahFemalePaladin_Portrait"},
-                new() { Name = "RegillMaleGnomeHellknight_Portrait", Portrait = "RegillMaleGnomeHellknight_Portrait"},
-                new() { Name = "WenduagFemaleMongrelRanger_Portrait", Portrait = "WenduagFemaleMongrelRanger_Portrait"},
-                new() { Name = "EmberFemaleElfWitch_Portrait", Portrait = "EmberFemaleElfWitch_Portrait"},
-                new() { Name = "NenioFemaleKitsuneWizard_Portrait", Portrait = "NenioFemaleKitsuneWizard_Portrait"},
+                new() { Name = "Taolynn", Portrait = "KitsuneFemaleRogue_Portrait"}
             };
             var saveGamePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                "AppData\\LocalLow\\Owlcat Games\\Pathfinder Wrath Of The Righteous\\Saved Games\\Manual_31_Area_Exit.zks");
+                "AppData\\LocalLow\\Owlcat Games\\Pathfinder Wrath Of The Righteous\\Saved Games\\Manual_33_DIALOGUE_SKILL_CHECK.zks");
             var save = new SaveInfo
             {
                 FolderName = saveGamePath,
@@ -112,6 +117,38 @@ namespace WOTRMultiplayer.Playground.Host
             }
 
             public void Pause(bool isPaused)
+            {
+            }
+        }
+
+        private class DummyRollStorage : IRollStorage
+        {
+            public void Add(RollDice rollDice)
+            {
+            }
+
+            public RollDice Get(int rollId, int playerId)
+            {
+                if (rollId == 1469590275)
+                {
+                    return new RollDice
+                    {
+                        Result = 25
+                    };
+                }
+
+                return new RollDice
+                {
+                    Result = 99
+                };
+            }
+
+            public int GetUniqueId(RollDice roll)
+            {
+                return -1;
+            }
+
+            public void Reset()
             {
             }
         }

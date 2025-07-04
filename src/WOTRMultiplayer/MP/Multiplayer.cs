@@ -1,7 +1,4 @@
-﻿using System;
-using System.Numerics;
-using System.Text;
-using System.Threading;
+﻿using System.Numerics;
 using Kingmaker.Controllers.Clicks.Handlers;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.GameModes;
@@ -11,8 +8,8 @@ using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Windows;
-using WOTRMultiplayer.HarmonyPatches.PubSub;
 using WOTRMultiplayer.MP.Entities;
+using WOTRMultiplayer.MP.Entities.Rolls;
 using WOTRMultiplayer.UI.Lobby;
 
 namespace WOTRMultiplayer.MP
@@ -23,6 +20,7 @@ namespace WOTRMultiplayer.MP
         private ILobbyWindow _lobbyWindow;
 
         private readonly ILobbyWindowController _lobbyWindowController;
+        private readonly IRollStorage _rollStorage;
         private readonly IMultiplayerClient _multiplayerClient;
         private readonly IMultiplayerHost _multiplayerHost;
         private readonly ILogger _logger;
@@ -36,13 +34,15 @@ namespace WOTRMultiplayer.MP
             IUIFactory uiFactory,
             ILobbyWindowController lobbyWindowController,
             IMultiplayerHost multiplayerHost,
-            IMultiplayerClient multiplayerClient)
+            IMultiplayerClient multiplayerClient,
+            IRollStorage rollStorage)
         {
             _logger = logger;
             Factory = uiFactory;
             _multiplayerHost = multiplayerHost;
             _multiplayerClient = multiplayerClient;
             _lobbyWindowController = lobbyWindowController;
+            _rollStorage = rollStorage;
         }
 
         public bool InitializeMultiplayer(InitializeMultiplayerContext context)
@@ -73,6 +73,9 @@ namespace WOTRMultiplayer.MP
             _lobbyWindowController.OnCharacterOwnerChanged = null;
             _logger.LogInformation("Disposing Esc menu window game objects");
             Factory.DestroyLobbyWindow(_lobbyWindow);
+            _logger.LogInformation("Disposing stored rolls");
+            _rollStorage.Reset();
+
         }
 
         public void InitializeEscMenuLobbyWindow(InitializeEscMenuLobbyWindowContext context)
@@ -143,22 +146,15 @@ namespace WOTRMultiplayer.MP
                 return;
             }
 
-            var initiator = ruleRollDice.Initiator?.UniqueId;
-            var dice = ruleRollDice.DiceFormula.Dice;
-            var resultOverride = ruleRollDice.ResultOverride;
-            var result = ruleRollDice.Result;
-            var ruleType = ruleRollDice.Reason.Rule.GetType().Name;
-            var ruleName = ruleRollDice.Reason.Name;
-
             switch (ruleRollDice.Reason.Rule)
             {
                 case RulePartyStatCheck rulePartyStatCheck:
-                    var rollUniqueId = Convert.ToBase64String(Encoding.UTF8.GetBytes(initiator + dice + ruleType + ruleName + rulePartyStatCheck.DifficultyClass + rulePartyStatCheck.StatType));
-                    Main.GetLogger<PubSubPatches>().LogWarning("RuleRollDice_OnTrigger_Postfix. Initiator={initiator}, Dice={dice}, ResultOverride={resultOverride}, Result={result}, RuleName={ruleName} RuleType={ruleType}, RuleUniqueId={rollUniqueId}", initiator, dice, resultOverride, result, ruleName, ruleType, rollUniqueId);
+                    var roll = CreatePartyStatCheckRoll(ruleRollDice, rulePartyStatCheck);
+                    _rollStorage.Add(roll);
                     break;
                 case RuleRollD20:
                 default:
-                    Main.GetLogger<PubSubPatches>().LogWarning("RuleRollDice_OnTrigger_Postfix - Skipping dice roll. Type={rollType}", ruleRollDice.Reason.Rule.GetType().Name);
+                    _logger.LogWarning("Roll saving has been skipped. Type={rollType}", ruleRollDice.Reason.Rule.GetType().Name);
                     break;
             }
         }
@@ -176,30 +172,46 @@ namespace WOTRMultiplayer.MP
                 return true;
             }
 
-            var initiator = ruleRollDice.Initiator?.UniqueId;
-            var dice = ruleRollDice.DiceFormula.Dice;
-            var resultOverride = ruleRollDice.ResultOverride;
-            var ruleType = ruleRollDice.Reason.Rule.GetType().Name;
-            var ruleName = ruleRollDice.Reason.Name;
-
             switch (ruleRollDice.Reason.Rule)
             {
                 case RulePartyStatCheck rulePartyStatCheck:
-                    var rollUniqueId = Convert.ToBase64String(Encoding.UTF8.GetBytes(initiator + dice + ruleType + ruleName + rulePartyStatCheck.DifficultyClass + rulePartyStatCheck.StatType));
-                    if (rollUniqueId == "YTk1MGFkNzUtNjVjZC00ZGMxLTk2ZTktNDQ0ZTI5MWZlZDdlRDIwUnVsZVBhcnR5U3RhdENoZWNrMTJDaGVja0RpcGxvbWFjeQ==")
+                    var roll = CreatePartyStatCheckRoll(ruleRollDice, rulePartyStatCheck);
+                    var uniqueId = _rollStorage.GetUniqueId(roll);
+                    var hostRoll = _multiplayerClient.GetRoll(uniqueId);
+                    if (hostRoll == null)
                     {
-                        Thread.Sleep(200); // network latency
-                        Main.GetLogger<PubSubPatches>().LogWarning("RuleRollDice_OnTrigger_Prefix - Using pregenerated values for RulePartyStatCheck");
-                        ruleRollDice.m_Result = 36;
-                        return false;
+                        _logger.LogError("Roll is missing => it will be rolled by the game");
+                        return true;
                     }
-                    break;
+                    ruleRollDice.m_Result = hostRoll.Result;
+                    ruleRollDice.RollHistory.AddRange(hostRoll.RollHistory);
+                    _logger.LogInformation("Roll results has been acquired from host. RollId={rollId}, Result={result}", uniqueId, ruleRollDice.Result);
+                    return false;
                 case RuleRollD20:
                 default:
+                    _logger.LogWarning("Roll retrieving has been skipped. Type={rollType}", ruleRollDice.Reason.Rule.GetType().Name);
                     break;
             }
 
             return true;
+        }
+
+        private PartyStatCheckRoll CreatePartyStatCheckRoll(RuleRollDice ruleRollDice, RulePartyStatCheck rulePartySkillCheck)
+        {
+            var roll = new PartyStatCheckRoll
+            {
+                InitiatorId = ruleRollDice.Initiator?.UniqueId,
+                DifficultyClass = rulePartySkillCheck.DifficultyClass,
+                StatType = rulePartySkillCheck.StatType,
+                Result = ruleRollDice.Result,
+                ResultOverride = ruleRollDice.ResultOverride,
+                RollHistory = [.. ruleRollDice.RollHistory ?? []],
+                RuleRollName = ruleRollDice.Reason.Name,
+                RuleRollType = ruleRollDice.Reason.Rule.GetType().Name,
+                DiceType = ruleRollDice.DiceFormula.Dice
+            };
+
+            return roll;
         }
 
         private IMultiplayerParticipant GetMultiplayerParticipant()

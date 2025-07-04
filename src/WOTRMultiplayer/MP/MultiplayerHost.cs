@@ -22,6 +22,7 @@ namespace WOTRMultiplayer.MP
         private readonly IFileSystemService _fileSystemService;
         private readonly IMultiplayerSettingsProvider _multiplayerSettingsProvider;
         private readonly IGameInteractionService _gameInteractionService;
+        private readonly IRollStorage _rollStorage;
 
         private NetworkGameStage Status => _game?.Stage ?? NetworkGameStage.None;
 
@@ -44,13 +45,15 @@ namespace WOTRMultiplayer.MP
             IGameInteractionService gameInteractionService,
             IMultiplayerSettingsProvider multiplayerSettingsProvider,
             IFileSystemService fileSystemService,
-            INetworkServer networkServer)
+            INetworkServer networkServer,
+            IRollStorage rollStorage)
         {
             _logger = logger;
             _networkServer = networkServer;
             _fileSystemService = fileSystemService;
             _multiplayerSettingsProvider = multiplayerSettingsProvider;
             _gameInteractionService = gameInteractionService;
+            _rollStorage = rollStorage;
         }
 
         public void Create(SaveInfo save, List<NetworkCharacter> characters)

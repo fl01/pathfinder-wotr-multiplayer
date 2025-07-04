@@ -13,6 +13,7 @@ using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.Saves;
 using WOTRMultiplayer.MP.Entities;
+using WOTRMultiplayer.MP.Entities.Rolls;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
@@ -171,6 +172,12 @@ namespace WOTRMultiplayer.MP
             _logger.LogInformation("Sending unpausing notification");
             var message = new GamePauseChanged { IsPaused = false };
             _networkServerClient.SendAsync(message).Wait();
+        }
+
+        public RollDice GetRoll(int rollId)
+        {
+            _logger.LogError("Not implemented");
+            return null;
         }
 
         private void RegisterHandlers()
