@@ -55,6 +55,7 @@ namespace WOTRMultiplayer.PubSub
                 return;
             }
 
+            // TODO: update party members since saveinfo doesn't contain exact character names
             multiplayerParticipant.GameLoaded();
         }
 
