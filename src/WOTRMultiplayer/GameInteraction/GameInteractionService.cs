@@ -77,9 +77,9 @@ namespace WOTRMultiplayer.GameInteraction
                 var dialogView = (Game.Instance.RootUiContext.m_UIView as InGamePCView)?.m_StaticPartPCView?.m_DialogContextPCView?.m_DialogPCView;
                 var gameObject = dialogView.gameObject;
                 var answers = gameObject.transform.Find("Body/View/Scroll View/Viewport/Content/AnswersPanel");
-                for (int i = 0; i < answers.childCount; i++)
+                for (int answerIndex = 0; answerIndex < answers.childCount; answerIndex++)
                 {
-                    var answer = answers.GetChild(i);
+                    var answer = answers.GetChild(answerIndex);
                     var answerView = answer.GetComponent<DialogAnswerPCView>();
                     var answerName = (answerView.GetViewModel() as AnswerVM).Answer.Value.name;
                     var suggestedAnswer = suggestions.FirstOrDefault(s => string.Equals(s.AnswerName, answerName));
@@ -98,13 +98,14 @@ namespace WOTRMultiplayer.GameInteraction
                         var portrait = _portraitProvider.GetPortrait("Mask_Portrait");
                         image.sprite = portrait;
                         PlaySound(UISoundType.GlobalMapRandomEncounter);
+                        _logger.LogInformation("Created answer suggestion icon. AnswerIndex={answerIndex}, AnswerName={answerName}", answerIndex, suggestedAnswer.AnswerName);
+                        return;
                     }
-                    else
+
+                    if (existingSuggestionObject != null)
                     {
-                        if (existingSuggestionObject != null)
-                        {
-                            UnityEngine.Object.DestroyImmediate(existingSuggestionObject);
-                        }
+                        _logger.LogInformation("Deleted answer suggestion icon. AnswerIndex={answerIndex}", answerIndex);
+                        UnityEngine.Object.DestroyImmediate(existingSuggestionObject);
                     }
                 }
             });
