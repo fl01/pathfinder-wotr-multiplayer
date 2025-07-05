@@ -14,6 +14,8 @@ namespace WOTRMultiplayer.MP.Entities
 
         public ConcurrentDictionary<string, HashSet<long>> CueViews { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
+        public ConcurrentDictionary<long, string> AnswerSuggestions { get; set; } = new();
+
         public NetworkDialog(string name)
         {
             Name = name;

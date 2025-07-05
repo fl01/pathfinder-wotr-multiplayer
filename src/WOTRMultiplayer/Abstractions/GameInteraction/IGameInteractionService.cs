@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using System.Collections.Generic;
+using System.Numerics;
+using WOTRMultiplayer.MP.Entities;
 
 namespace WOTRMultiplayer.Abstractions.GameInteraction
 {
@@ -7,7 +9,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         bool IsPaused { get; }
 
         void LeaveArea(string areaExitId);
-
+        void MarkSuggestedDialogAnswers(List<NetworkDialogAnswerSuggestion> suggestions);
         void MoveCharacter(string characterName, Vector3 destination, float delay, float orientation);
 
         void Pause(bool isPaused);

@@ -247,6 +247,7 @@ namespace WOTRMultiplayer.MP
 
             _game.Dialog ??= new NetworkDialog(dialogName);
             _game.Dialog.CurrentCueName = cueName;
+            _game.Dialog.AnswerSuggestions.Clear();
 
             AddCueWitness(cueName, LocalHostPlayerId);
 
@@ -483,17 +484,21 @@ namespace WOTRMultiplayer.MP
                 return;
             }
 
-            // TODO: mark answer suggestion
-            _logger.LogError("TODO mark answer suggestion");
+            _game.Dialog.AnswerSuggestions.AddOrUpdate(playerId, suggested.AnswerName, (key, existing) =>
+            {
+                return suggested.AnswerName;
+            });
+
+            List<NetworkDialogAnswerSuggestion> suggestions = [.. _game.Dialog.AnswerSuggestions.GroupBy(x => x.Value, x => x.Key).Select(x => new NetworkDialogAnswerSuggestion { AnswerName = x.Key, Players = [.. x] })];
+            _gameInteractionService.MarkSuggestedDialogAnswers(suggestions);
 
             var notifyMessage = new NotifyDialogCueAnswerSuggested
             {
-                PlayerId = playerId,
                 DialogName = suggested.DialogName,
                 CueName = suggested.CueName,
-                AnswerName = suggested.AnswerName
+                Suggestions = [.. suggestions.Select(x => new Networking.Messages.NetworkDialogAnswerSuggestion { AnswerName = x.AnswerName, Players = [.. x.Players] })],
             };
-            _networkServer.SendAllExcept(playerId, notifyMessage);
+            _networkServer.SendAll(notifyMessage);
         }
 
         private void OnCueWitnessed(long playerId, CueWitnessed witnessed)

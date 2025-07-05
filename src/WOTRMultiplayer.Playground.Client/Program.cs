@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using Kingmaker.EntitySystem.Persistence;
@@ -9,6 +10,7 @@ using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.Saves;
 using WOTRMultiplayer.MP;
+using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.Networking.Abstractions;
 
 namespace WOTRMultiplayer.Playground.Client
@@ -90,6 +92,10 @@ namespace WOTRMultiplayer.Playground.Client
             public bool IsPaused { get; set; }
 
             public void LeaveArea(string areaExitId)
+            {
+            }
+
+            public void MarkSuggestedDialogAnswers(List<NetworkDialogAnswerSuggestion> suggestions)
             {
             }
 

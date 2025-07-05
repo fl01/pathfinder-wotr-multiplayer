@@ -1,4 +1,5 @@
-﻿using ProtoBuf;
+﻿using System.Collections.Generic;
+using ProtoBuf;
 
 namespace WOTRMultiplayer.Networking.Messages.Game
 {
@@ -7,15 +8,12 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     public class NotifyDialogCueAnswerSuggested
     {
         [ProtoMember(1)]
-        public long PlayerId { get; set; }
+        public string DialogName { get; set; }
 
         [ProtoMember(2)]
         public string CueName { get; set; }
 
         [ProtoMember(3)]
-        public string DialogName { get; set; }
-
-        [ProtoMember(4)]
-        public string AnswerName { get; set; }
+        public List<NetworkDialogAnswerSuggestion> Suggestions { get; set; } = [];
     }
 }

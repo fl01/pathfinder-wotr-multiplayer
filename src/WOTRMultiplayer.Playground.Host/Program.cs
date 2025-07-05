@@ -65,7 +65,11 @@ namespace WOTRMultiplayer.Playground.Host
             pause - pause game
             unpause - unpause game
             leave-area - send leavearea notification 1b018b52-c1be-40bf-8937-1f2a77b96049
+            dialog-answer_continue[0001-0005] - walk through first part of first dialog (until after cutscene)
             {Environment.NewLine}");
+
+            const string DialogName = "MeetSeelahAnevia_Dialogue";
+
             while ((input = Console.ReadLine()) != "exit")
             {
                 switch (input)
@@ -98,6 +102,66 @@ namespace WOTRMultiplayer.Playground.Host
                     case "leave-area":
                         host.LeaveArea("1b018b52-c1be-40bf-8937-1f2a77b96049");
                         break;
+                    case "dialog-answer_continue0001":
+                        host.CurrentGame.Dialog = new NetworkDialog(DialogName)
+                        {
+                            Answer = new NetworkDialogAnswer
+                            {
+                                AnswerName = "DefaultContinue",
+                                CueName = "Cue_0001",
+                                ManualUnitSelectionId = null
+                            }
+                        };
+                        host.SendSelectedAnswer();
+                        break;
+                    case "dialog-answer_continue0002":
+                        host.CurrentGame.Dialog = new NetworkDialog(DialogName)
+                        {
+                            Answer = new NetworkDialogAnswer
+                            {
+                                AnswerName = "DefaultContinue",
+                                CueName = "Cue_0002",
+                                ManualUnitSelectionId = null
+                            }
+                        };
+                        host.SendSelectedAnswer();
+                        break;
+                    case "dialog-answer_continue0003":
+                        host.CurrentGame.Dialog = new NetworkDialog(DialogName)
+                        {
+                            Answer = new NetworkDialogAnswer
+                            {
+                                AnswerName = "DefaultContinue",
+                                CueName = "Cue_0003",
+                                ManualUnitSelectionId = null
+                            }
+                        };
+                        host.SendSelectedAnswer();
+                        break;
+                    case "dialog-answer_continue0004":
+                        host.CurrentGame.Dialog = new NetworkDialog(DialogName)
+                        {
+                            Answer = new NetworkDialogAnswer
+                            {
+                                AnswerName = "Answer_0042",
+                                CueName = "Cue_0004",
+                                ManualUnitSelectionId = null
+                            }
+                        };
+                        host.SendSelectedAnswer();
+                        break;
+                    case "dialog-answer_continue0005":
+                        host.CurrentGame.Dialog = new NetworkDialog(DialogName)
+                        {
+                            Answer = new NetworkDialogAnswer
+                            {
+                                AnswerName = "DefaultContinue",
+                                CueName = "Cue_0044",
+                                ManualUnitSelectionId = null
+                            }
+                        };
+                        host.SendSelectedAnswer();
+                        break;
                     default:
                         break;
                 }
@@ -109,6 +173,10 @@ namespace WOTRMultiplayer.Playground.Host
             public bool IsPaused { get; set; }
 
             public void LeaveArea(string areaExitId)
+            {
+            }
+
+            public void MarkSuggestedDialogAnswers(List<NetworkDialogAnswerSuggestion> suggestions)
             {
             }
 
@@ -141,7 +209,7 @@ namespace WOTRMultiplayer.Playground.Host
                 {
                     return new RollDice
                     {
-                        Result = 25
+                        Result = 66
                     };
                 }
 

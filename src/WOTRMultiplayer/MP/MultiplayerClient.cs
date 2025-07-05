@@ -236,9 +236,9 @@ namespace WOTRMultiplayer.MP
             }
 
             if (!string.Equals(_game.Dialog.Name, dialogName, StringComparison.OrdinalIgnoreCase)
-                || !string.Equals(_game.Dialog.Answer.CueName, cueName, StringComparison.OrdinalIgnoreCase))
+                || !string.Equals(_game.Dialog.CurrentCueName, cueName, StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogError("Dialog answer mismatch. ExpectedDialogName={expectedDialogName}, ExpectedCueName={expectedCueName}, ActualDialogName={actualDialogName}, ActualCueName={actualCueName}", _game.Dialog.Name, _game.Dialog.Answer.CueName, dialogName, cueName);
+                _logger.LogError("Dialog answer mismatch. ExpectedDialogName={expectedDialogName}, ExpectedCueName={expectedCueName}, ActualDialogName={actualDialogName}, ActualCueName={actualCueName}", _game.Dialog.Name, _game.Dialog.CurrentCueName, dialogName, cueName);
                 return false;
             }
 
@@ -250,10 +250,8 @@ namespace WOTRMultiplayer.MP
                 return true;
             }
 
-            // TODO: mark answer suggestion
-            _logger.LogError("TODO mark answer suggestion");
-
             var message = new DialogCueAnswerSuggested { DialogName = dialogName, CueName = cueName, AnswerName = answerName };
+            _logger.LogInformation("Sending dialog answer suggestion. DialogName={dialogName}, CueName={cueName}, AnswerName={answerName}", message.DialogName, message.CueName, message.AnswerName);
             _networkServerClient.SendAsync(message).Wait();
 
             return false;
@@ -314,11 +312,11 @@ namespace WOTRMultiplayer.MP
 
         private void OnNotifyDialogCueAnswerSuggested(NotifyDialogCueAnswerSuggested suggested)
         {
-            _logger.LogInformation("Received NotifyDialogCueAnswerSuggested. PlayerId={playerId}, DialogName={dialogName}, CueName={cueName}, AnswerName={answerName}", suggested.PlayerId, suggested.DialogName, suggested.CueName, suggested.AnswerName);
+            _logger.LogInformation("Received NotifyDialogCueAnswerSuggested. DialogName={dialogName}, CueName={cueName}, Suggestions={suggestionsCount}", suggested.DialogName, suggested.CueName, suggested.Suggestions.Count);
 
             if (_game.Dialog == null)
             {
-                _logger.LogError("Received dialog answer suggestion, but there is no active dialog right now. SuggestedDialogName={suggestedDialogName}, SuggestedCueName={suggestedCueName}, SuggestedAnswer={suggestedAnswerName}", suggested.DialogName, suggested.CueName, suggested.AnswerName);
+                _logger.LogError("Received dialog answer suggestion, but there is no active dialog right now. SuggestedDialogName={suggestedDialogName}, SuggestedCueName={suggestedCueName}, SuggestedAnswer={suggestedAnswerName}", suggested.DialogName, suggested.CueName);
                 return;
             }
 
@@ -334,8 +332,8 @@ namespace WOTRMultiplayer.MP
                 return;
             }
 
-            // TODO: mark answer suggestion
-            _logger.LogError("TODO mark answer suggestion");
+            List<NetworkDialogAnswerSuggestion> suggestions = [.. suggested.Suggestions.Select(x => new NetworkDialogAnswerSuggestion { AnswerName = x.AnswerName, Players = [.. x.Players] })];
+            _gameInteractionService.MarkSuggestedDialogAnswers(suggestions);
         }
 
         private void OnNotifyPartyLeaveArea(NotifyPartyLeaveArea area)

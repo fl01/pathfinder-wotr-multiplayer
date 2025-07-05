@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Kingmaker;
@@ -13,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.Unity;
+using WOTRMultiplayer.MP.Entities;
 using static UnityEngine.UI.Button;
 
 namespace WOTRMultiplayer.GameInteraction
@@ -61,6 +63,11 @@ namespace WOTRMultiplayer.GameInteraction
 
         }
 
+        public void MarkSuggestedDialogAnswers(List<NetworkDialogAnswerSuggestion> suggestions)
+        {
+            _logger.LogError("TODO MarkSuggestedDialogAnswers");
+        }
+
         public void MoveCharacter(string characterName, Vector3 destination, float delay, float orientation)
         {
             var character = Game.Instance.Player.PartyAndPets.FirstOrDefault(f => string.Equals(f.CharacterName, characterName));
@@ -94,7 +101,15 @@ namespace WOTRMultiplayer.GameInteraction
 
         public void SelectDialogAnswer(string dialogName, string cueName, string answerName, string manualUnitSelectionId)
         {
-            _logger.LogError("Answer selection has not been implemented yet");
+            var answer = Game.Instance.DialogController.Answers.FirstOrDefault(a => string.Equals(a.name, answerName, StringComparison.OrdinalIgnoreCase));
+            if (answer == null)
+            {
+                _logger.LogError("Unable to find requested answer. AnswerName={answerName}", answerName);
+                return;
+            }
+
+            var unit = manualUnitSelectionId == null ? null : Game.Instance.Player.PartyAndPets.FirstOrDefault(u => string.Equals(u.UniqueId, manualUnitSelectionId));
+            Game.Instance.DialogController.SelectAnswer(answer, unit);
         }
 
         public void SetDialogContinueButtonState(bool isEnabled)
