@@ -269,7 +269,8 @@ namespace WOTRMultiplayer.MP
             {
                 DialogName = dialogName,
                 CueName = cueName,
-                AnswerName = answerName
+                AnswerName = answerName,
+                ManualUnitSelectionId = manualUnitSelectionId
             };
             _networkServer.SendAll(message);
 

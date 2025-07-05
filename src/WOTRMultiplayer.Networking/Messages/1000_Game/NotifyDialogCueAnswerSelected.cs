@@ -14,5 +14,8 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 
         [ProtoMember(3)]
         public string AnswerName { get; set; }
+
+        [ProtoMember(4)]
+        public string ManualUnitSelectionId { get; set; }
     }
 }
