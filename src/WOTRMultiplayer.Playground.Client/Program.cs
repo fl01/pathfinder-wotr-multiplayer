@@ -96,6 +96,10 @@ namespace WOTRMultiplayer.Playground.Client
             public void Pause(bool isPaused)
             {
             }
+
+            public void SetDialogContinueButtonState(bool isEnabled)
+            {
+            }
         }
     }
 }

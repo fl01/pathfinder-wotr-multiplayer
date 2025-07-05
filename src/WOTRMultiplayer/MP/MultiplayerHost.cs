@@ -223,6 +223,19 @@ namespace WOTRMultiplayer.MP
             _networkServer.SendAll(message);
         }
 
+        public void LeaveArea(string areaExitId)
+        {
+            _logger.LogInformation("Sending NotifyPartyLeaveArea. AreaExitId={areaExitId}", areaExitId);
+            var message = new NotifyPartyLeaveArea { AreaExitId = areaExitId };
+            _networkServer.SendAll(message);
+        }
+
+        public void OnAfterCueShow(string dialogName, string cueName, bool hasSystemAnswer)
+        {
+            _logger.LogInformation("Showing dialog Cue. DialogName={dialogName}, CueName={cueName}, HasSystemAnswer={hasSystemAnswer}", dialogName, cueName, hasSystemAnswer);
+            _gameInteractionService.SetDialogContinueButtonState(!hasSystemAnswer);
+        }
+
         private void TryUnpauseGame()
         {
             var canUnpause = false;
@@ -505,13 +518,6 @@ namespace WOTRMultiplayer.MP
                 Characters = [.. _game.Characters.Select(c => new Networking.Messages.NetworkCharacter { Name = c.Name, Portrait = c.Portrait })]
             };
             return message;
-        }
-
-        public void LeaveArea(string areaExitId)
-        {
-            _logger.LogInformation("Sending NotifyPartyLeaveArea. AreaExitId={areaExitId}", areaExitId);
-            var message = new NotifyPartyLeaveArea { AreaExitId = areaExitId };
-            _networkServer.SendAll(message);
         }
     }
 }

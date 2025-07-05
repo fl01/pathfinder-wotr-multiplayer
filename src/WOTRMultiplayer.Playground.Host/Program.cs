@@ -83,7 +83,7 @@ namespace WOTRMultiplayer.Playground.Host
                         host.Start();
                         break;
                     case "move":
-                        host.MoveCharacter("xdd", new System.Numerics.Vector3(22.92498f, 42.053f, -9.376869f), 0, 138.3618f);
+                        host.MoveCharacter("xdd", new Vector3(22.92498f, 42.053f, -9.376869f), 0, 138.3618f);
                         break;
                     case "loaded":
                         host.GameLoaded();
@@ -117,6 +117,10 @@ namespace WOTRMultiplayer.Playground.Host
             }
 
             public void Pause(bool isPaused)
+            {
+            }
+
+            public void SetDialogContinueButtonState(bool isEnabled)
             {
             }
         }

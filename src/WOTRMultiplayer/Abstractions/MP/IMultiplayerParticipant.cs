@@ -32,5 +32,6 @@ namespace WOTRMultiplayer.Abstractions.MP
         void GameLoaded();
         void Pause();
         void Unpause();
+        void OnAfterCueShow(string dialogName, string cueName, bool hasSystemAnswer);
     }
 }

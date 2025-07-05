@@ -196,9 +196,10 @@ namespace WOTRMultiplayer.MP
             return true;
         }
 
-        public bool CanManuallyUseDialogContinueButton()
+        public void OnAfterCueShow(string dialogName, string cueName, bool hasSystemAnswer)
         {
-            return _multiplayerHost.IsActive;
+            var participant = GetMultiplayerParticipant();
+            participant.OnAfterCueShow(dialogName, cueName, hasSystemAnswer);
         }
 
         private PartyStatCheckRoll CreatePartyStatCheckRoll(RuleRollDice ruleRollDice, RulePartyStatCheck rulePartySkillCheck)

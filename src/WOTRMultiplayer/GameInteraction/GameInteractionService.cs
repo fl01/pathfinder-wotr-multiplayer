@@ -1,12 +1,16 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Numerics;
 using Kingmaker;
 using Kingmaker.Blueprints.Root;
 using Kingmaker.GameModes;
 using Kingmaker.Globalmap.Blueprints;
+using Kingmaker.UI.MVVM._PCView.Dialog.Dialog;
+using Kingmaker.UI.MVVM._PCView.InGame;
 using Kingmaker.UnitLogic.Commands;
 using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
+using Owlcat.Runtime.UI.Controls.Button;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.Unity;
 
@@ -85,6 +89,46 @@ namespace WOTRMultiplayer.GameInteraction
             }
 
             Game.Instance.StopMode(GameModeType.Pause);
+        }
+
+        public void SetDialogContinueButtonState(bool isEnabled)
+        {
+            const string NextOrEndBindingName = "NextOrEnd";
+            try
+            {
+                var dialogView = (Game.Instance.RootUiContext.m_UIView as InGamePCView)?.m_StaticPartPCView?.m_DialogContextPCView;
+                var systemButtonGameObject = dialogView?.m_DialogPCView?.gameObject.transform.Find("Body/SystemButton");
+                var continueButton = systemButtonGameObject?.GetComponent<OwlcatButton>();
+                if (continueButton == null)
+                {
+                    _logger.LogError("Continue button - unable to find");
+                    return;
+                }
+
+                continueButton.Interactable = isEnabled;
+                _logger.LogInformation("Continue button - state changed. State={state}", isEnabled);
+
+                if (Game.Instance.Keyboard.m_BindingCallbacks.TryGetValue(NextOrEndBindingName, out var callbacks))
+                {
+                    static bool hasConfiguredCallback(Action x) => x.Target is DialogSystemAnswerPCView or GameInteractionService;
+
+                    if (isEnabled && !callbacks.Any(hasConfiguredCallback))
+                    {
+                        Game.Instance.Keyboard.Bind(NextOrEndBindingName, continueButton.OnLeftClick.Invoke);
+                        _logger.LogInformation("Continue button - hotkeys have been enabled");
+                    }
+                    else if (!isEnabled)
+                    {
+                        callbacks.RemoveAll(hasConfiguredCallback);
+                        _logger.LogInformation("Continue button - hotkeys have been disabled");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Continue button - unable to change state due to error");
+                throw;
+            }
         }
     }
 }

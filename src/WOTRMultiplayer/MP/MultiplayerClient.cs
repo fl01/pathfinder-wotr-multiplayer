@@ -204,6 +204,12 @@ namespace WOTRMultiplayer.MP
             };
         }
 
+        public void OnAfterCueShow(string dialogName, string cueName, bool hasSystemAnswer)
+        {
+            _logger.LogInformation("Showing dialog Cue. DialogName={dialogName}, CueName={cueName}, HasSystemAnswer={hasSystemAnswer}", dialogName, cueName, hasSystemAnswer);
+            _gameInteractionService.SetDialogContinueButtonState(!hasSystemAnswer);
+        }
+
         private void RegisterHandlers()
         {
             _networkServerClient
