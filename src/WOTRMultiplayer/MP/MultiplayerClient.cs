@@ -222,6 +222,8 @@ namespace WOTRMultiplayer.MP
             _game.Dialog.CurrentCueName = cueName;
             _game.Dialog.Answer = null;
 
+            _gameInteractionService.MarkSuggestedDialogAnswers([]);
+
             var message = new CueWitnessed { CueName = cueName, DialogName = dialogName };
             _networkServerClient.SendAsync(message).Wait();
         }
