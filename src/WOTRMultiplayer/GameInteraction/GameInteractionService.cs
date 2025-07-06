@@ -161,15 +161,26 @@ namespace WOTRMultiplayer.GameInteraction
 
         public void SelectDialogAnswer(string dialogName, string cueName, string answerName, string manualUnitSelectionId)
         {
-            var answer = Game.Instance.DialogController.Answers.FirstOrDefault(a => string.Equals(a.name, answerName, StringComparison.OrdinalIgnoreCase));
-            if (answer == null)
+            _mainThreadAccessor.Enqueue(() =>
             {
-                _logger.LogError("Unable to find requested answer. AnswerName={answerName}", answerName);
-                return;
-            }
+                try
+                {
+                    var answer = Game.Instance.DialogController.Answers.FirstOrDefault(a => string.Equals(a.name, answerName, StringComparison.OrdinalIgnoreCase));
+                    if (answer == null)
+                    {
+                        _logger.LogError("Unable to find requested answer. AnswerName={answerName}", answerName);
+                        return;
+                    }
 
-            var unit = manualUnitSelectionId == null ? null : Game.Instance.Player.PartyAndPets.FirstOrDefault(u => string.Equals(u.UniqueId, manualUnitSelectionId));
-            Game.Instance.DialogController.SelectAnswer(answer, unit);
+                    var unit = manualUnitSelectionId == null ? null : Game.Instance.Player.PartyAndPets.FirstOrDefault(u => string.Equals(u.UniqueId, manualUnitSelectionId));
+                    Game.Instance.DialogController.SelectAnswer(answer, unit);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Unable to select dialog answer");
+                    throw;
+                }
+            });
         }
 
         public void SetDialogContinueButtonState(bool isEnabled)

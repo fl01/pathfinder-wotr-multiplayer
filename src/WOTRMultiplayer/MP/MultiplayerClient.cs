@@ -199,17 +199,17 @@ namespace WOTRMultiplayer.MP
 
         public void Pause()
         {
-            _logger.LogInformation("Sending pausing notification");
+            //_logger.LogInformation("Sending pausing notification");
 
-            var message = new GamePauseChanged { IsPaused = true };
-            _networkServerClient.SendAsync(message).Wait();
+            //var message = new GamePauseChanged { IsPaused = true };
+            //_networkServerClient.SendAsync(message).Wait();
         }
 
         public void Unpause()
         {
-            _logger.LogInformation("Sending unpausing notification");
-            var message = new GamePauseChanged { IsPaused = false };
-            _networkServerClient.SendAsync(message).Wait();
+            //_logger.LogInformation("Sending unpausing notification");
+            //var message = new GamePauseChanged { IsPaused = false };
+            //_networkServerClient.SendAsync(message).Wait();
         }
 
         public NetworkDiceRoll GetRoll(int rollId)
@@ -350,13 +350,12 @@ namespace WOTRMultiplayer.MP
         private async void OnNotifyDialogStarted(NotifyDialogStarted started)
         {
             _logger.LogInformation("Received NotifyDialogStarted.  DialogueName={dialogName},  TargetUnitId={targetId}, InitiatorUnitId={initiatorId}", started.DialogName, started.TargetUnitId, started.InitiatorUnitId);
-            if (_game.Dialog != null)
+            if (_game.Dialog == null || _game.Dialog.Name != started.DialogName)
             {
-                _logger.LogWarning("Previous dialog has not been disposed correctly. PreviousDialogName={previousDialogName}, CurrentDialogName={currentDialogName}", _game.Dialog.Name, started.DialogName);
-                _game.Dialog = null;
+                _logger.LogInformation("New dialog has been initiated. PreviousDialog={previousDialogName}, CurrentDialogName={dialogName}", _game.Dialog?.Name, started.DialogName);
+                _game.Dialog = new NetworkDialog(started.DialogName);
             }
 
-            _game.Dialog ??= new NetworkDialog(started.DialogName);
             var hasStartedDialog = await _gameInteractionService.StartDialogAsync(started.DialogName, started.TargetUnitId, started.InitiatorUnitId, started.MapObjectId, started.SpeakerKey);
             if (!hasStartedDialog)
             {

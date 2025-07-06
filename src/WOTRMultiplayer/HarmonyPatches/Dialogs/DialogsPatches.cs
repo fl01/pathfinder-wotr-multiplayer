@@ -23,6 +23,11 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
             }
 
             var canContinue = Main.Multiplayer.StartDialog(dialog?.name, unit?.UniqueId, initiator?.UniqueId, mapObject?.UniqueId, customSpeakerName?.Key);
+            if (!canContinue)
+            {
+                Game.Instance.Player.Dialog.Scheduled = null;
+            }
+
             return canContinue;
         }
 
