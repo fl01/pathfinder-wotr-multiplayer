@@ -86,35 +86,39 @@ namespace WOTRMultiplayer.GameInteraction
                     var suggestedAnswer = suggestions.FirstOrDefault(s => string.Equals(s.AnswerName, answerName));
 
                     answer.gameObject.CleanupAllChildren(x => x.name.StartsWith(SuggestionIconName));
-
-                    if (suggestedAnswer != null)
+                    if (suggestedAnswer == null)
                     {
-                        var portrait = _resourceProvider.GetUISprite("UI_Inventory_IconHeart");
-
-                        var maxIcons = Math.Min(3, suggestedAnswer.Players.Count);
-                        for (int i = maxIcons; i > 0; i--)
-                        {
-                            var arrow = answer.Find("Arrow");
-                            var suggestionIconObject = UnityEngine.Object.Instantiate(arrow.gameObject, answer);
-                            suggestionIconObject.name = SuggestionIconName + i.ToString();
-                            suggestionIconObject.SetActive(true);
-
-                            var rect = suggestionIconObject.GetComponent<UnityEngine.RectTransform>();
-                            var preferedSize = Math.Min(rect.sizeDelta.x, rect.sizeDelta.y);
-                            rect.sizeDelta = new UnityEngine.Vector2(preferedSize, preferedSize);
-
-                            var newPosition = new UnityEngine.Vector3(suggestionIconObject.transform.position.x + 4 - (5 * i), suggestionIconObject.transform.position.y, suggestionIconObject.transform.position.z);
-                            suggestionIconObject.transform.SetPositionAndRotation(newPosition, suggestionIconObject.transform.rotation);
-
-                            var image = suggestionIconObject.GetComponent<Image>();
-                            image.color = UnityEngine.Color.white;
-                            image.sprite = portrait;
-                        }
-
-                        PlaySound(UISoundType.GlobalMapRandomEncounter);
-                        _logger.LogInformation("Created answer suggestion icon. AnswerIndex={answerIndex}, AnswerName={answerName}, PlayersCount={playersCount}", answerIndex, suggestedAnswer.AnswerName, suggestedAnswer.Players.Count);
                         continue;
                     }
+
+                    var portrait = _resourceProvider.GetUISprite("UI_Inventory_IconHeart");
+                    var maxIcons = Math.Min(3, suggestedAnswer.Players.Count);
+                    for (int i = maxIcons; i > 0; i--)
+                    {
+                        var arrow = answer.Find("Arrow");
+                        var suggestionIconObject = UnityEngine.Object.Instantiate(arrow.gameObject, answer);
+                        suggestionIconObject.name = SuggestionIconName + i.ToString();
+                        suggestionIconObject.SetActive(true);
+
+                        var rect = suggestionIconObject.GetComponent<UnityEngine.RectTransform>();
+                        var preferedSize = Math.Min(rect.sizeDelta.x, rect.sizeDelta.y);
+                        rect.sizeDelta = new UnityEngine.Vector2(preferedSize, preferedSize);
+
+                        var newPosition = new UnityEngine.Vector3(suggestionIconObject.transform.position.x + 4 - (5 * i), suggestionIconObject.transform.position.y, suggestionIconObject.transform.position.z);
+                        suggestionIconObject.transform.SetPositionAndRotation(newPosition, suggestionIconObject.transform.rotation);
+
+                        var image = suggestionIconObject.GetComponent<Image>();
+                        image.color = UnityEngine.Color.white;
+                        image.sprite = portrait;
+                    }
+
+                    _logger.LogInformation("Created answer suggestion icon. AnswerIndex={answerIndex}, AnswerName={answerName}, PlayersCount={playersCount}", answerIndex, suggestedAnswer.AnswerName, suggestedAnswer.Players.Count);
+                }
+
+                // single sound for all suggestions
+                if (suggestions.Count > 0)
+                {
+                    PlaySound(UISoundType.GlobalMapRandomEncounter);
                 }
             });
         }
