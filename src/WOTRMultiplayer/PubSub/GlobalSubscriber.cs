@@ -1,4 +1,5 @@
 ﻿using Kingmaker.Blueprints.Area;
+using Kingmaker.EntitySystem.Entities;
 using Kingmaker.PubSubSystem;
 using Kingmaker.UI;
 using Kingmaker.View.MapObjects;
@@ -8,7 +9,11 @@ using WOTRMultiplayer.Abstractions.PubSub;
 
 namespace WOTRMultiplayer.PubSub
 {
-    public class GlobalSubscriber : IGlobalMultiplayerSubscriber, ISubscriber, IGlobalSubscriber, IWarningNotificationUIHandler, IPartyLeaveAreaHandler
+    public class GlobalSubscriber : IGlobalMultiplayerSubscriber, ISubscriber, IGlobalSubscriber,
+        IWarningNotificationUIHandler,
+        IPartyLeaveAreaHandler,
+        IPartyChangedUIHandler,
+        IPartyHandler
     {
         private readonly ILogger<GlobalSubscriber> _logger;
         private readonly IMultiplayerHost _multiplayerHost;
@@ -22,6 +27,66 @@ namespace WOTRMultiplayer.PubSub
             _logger = logger;
             _multiplayerHost = multiplayerHost;
             _multiplayerClient = multiplayerClient;
+        }
+
+        public void HandleAddCompanion(UnitEntityData unit)
+        {
+            var multiplayerParticipant = GetMultiplayerParticipant();
+            if (!multiplayerParticipant?.IsActive ?? false)
+            {
+                return;
+            }
+
+            _logger.LogInformation("HandleAddCompanion");
+            multiplayerParticipant.PartyChanged();
+        }
+
+        public void HandleCapitalModeChanged()
+        {
+            var multiplayerParticipant = GetMultiplayerParticipant();
+            if (!multiplayerParticipant?.IsActive ?? false)
+            {
+                return;
+            }
+
+            _logger.LogInformation("HandleCapitalModeChanged");
+            multiplayerParticipant.PartyChanged();
+        }
+
+        public void HandleCompanionActivated(UnitEntityData unit)
+        {
+            var multiplayerParticipant = GetMultiplayerParticipant();
+            if (!multiplayerParticipant?.IsActive ?? false)
+            {
+                return;
+            }
+
+            _logger.LogInformation("HandleCompanionActivated");
+            multiplayerParticipant.PartyChanged();
+        }
+
+        public void HandleCompanionRemoved(UnitEntityData unit, bool stayInGame)
+        {
+            var multiplayerParticipant = GetMultiplayerParticipant();
+            if (!multiplayerParticipant?.IsActive ?? false)
+            {
+                return;
+            }
+
+            _logger.LogInformation("HandleCompanionRemoved");
+            multiplayerParticipant.PartyChanged();
+        }
+
+        public void HandlePartyChanged()
+        {
+            var multiplayerParticipant = GetMultiplayerParticipant();
+            if (!multiplayerParticipant?.IsActive ?? false)
+            {
+                return;
+            }
+
+            _logger.LogInformation("HandlePartyChanged");
+            multiplayerParticipant.PartyChanged();
         }
 
         public void HandlePartyLeaveArea(BlueprintArea currentArea, BlueprintAreaEnterPoint targetArea, AreaTransitionPart areaTransition)

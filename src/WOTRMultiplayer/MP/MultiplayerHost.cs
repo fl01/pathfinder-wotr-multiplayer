@@ -206,6 +206,23 @@ namespace WOTRMultiplayer.MP
             // assumption: should be done after each area load aswell
             SoftReset();
 
+            PartyChanged();
+
+            _gameInteractionService.Pause(true);
+
+            var host = GetHost();
+            host.IsLoading = false;
+
+            TryUnpauseGame();
+        }
+
+        /// <summary>
+        /// Reloads current party characters and tries to merge ownership
+        /// </summary>
+        public void PartyChanged()
+        {
+            _logger.LogInformation("Updating current characters & merging ownership");
+
             // could be synced from host, but state is the same anyway
             var partyCharacters = _gameInteractionService.GetPartyPlayers();
             var oldCharacters = _game.Characters.ToList();
@@ -225,13 +242,6 @@ namespace WOTRMultiplayer.MP
                 character.Owner = defaultOwner;
                 _logger.LogInformation("Character ownership has been assigned to default player (host). CharacterName={characterName}, Owner={ownerId}", character.Name, character.Owner.Id);
             }
-
-            _gameInteractionService.Pause(true);
-
-            var host = GetHost();
-            host.IsLoading = false;
-
-            TryUnpauseGame();
         }
 
         public void Pause()

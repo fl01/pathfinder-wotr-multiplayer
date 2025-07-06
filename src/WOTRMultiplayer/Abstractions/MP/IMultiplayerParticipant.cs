@@ -35,5 +35,6 @@ namespace WOTRMultiplayer.Abstractions.MP
         void OnAfterCueShow(string dialogName, string cueName, bool hasSystemAnswer);
         bool OnBeforeSelectDialogAnswer(string dialogName, string cueName, string answerName, bool isExitAnswer, string manualUnitSelectionId);
         bool StartDialog(string dialogName, string targetUnitId, string initiatorUnitId, string mapObjectId, string speakerKey);
+        void PartyChanged();
     }
 }
