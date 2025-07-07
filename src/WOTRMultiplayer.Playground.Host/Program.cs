@@ -76,7 +76,7 @@ namespace WOTRMultiplayer.Playground.Host
             dialog-answer_continue0004 - walk through first part of first dialog (until after cutscene)
             dialog-answer_continue0005 - walk through first part of first dialog (until after cutscene)
             start-unit-dialog - Vendor_Quartermaster_Dialogue 2C1EE7 98fd05f4-4458-4d2d-97f6-752be49667c0
-
+            start-dialog - MeetSeelahAnevia_Dialogue
             {Environment.NewLine}");
 
             const string DialogName = "MeetSeelahAnevia_Dialogue";
@@ -219,6 +219,10 @@ namespace WOTRMultiplayer.Playground.Host
             }
 
             public void SetDialogContinueButtonState(bool isEnabled)
+            {
+            }
+
+            public void ShowModalMessage(string error)
             {
             }
 

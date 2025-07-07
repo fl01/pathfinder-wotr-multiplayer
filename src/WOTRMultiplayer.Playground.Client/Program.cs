@@ -157,6 +157,10 @@ namespace WOTRMultiplayer.Playground.Client
             {
             }
 
+            public void ShowModalMessage(string error)
+            {
+            }
+
             public Task<bool> StartDialogAsync(string dialogName, string targetUnitId, string initiatorUnitId, string mapObjectId, string speakerKey)
             {
                 return Task.FromResult(true);

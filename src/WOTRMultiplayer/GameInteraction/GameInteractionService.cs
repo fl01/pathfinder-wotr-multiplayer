@@ -11,6 +11,7 @@ using Kingmaker.EntitySystem.Entities;
 using Kingmaker.GameModes;
 using Kingmaker.Globalmap.Blueprints;
 using Kingmaker.Localization;
+using Kingmaker.PubSubSystem;
 using Kingmaker.UI;
 using Kingmaker.UI.MVVM._PCView.Dialog.Dialog;
 using Kingmaker.UI.MVVM._PCView.InGame;
@@ -267,6 +268,17 @@ namespace WOTRMultiplayer.GameInteraction
                 .ToList();
 
             return partyCharacters;
+        }
+
+        public void ShowModalMessage(string error)
+        {
+            _mainThreadAccessor.Enqueue(() =>
+            {
+                EventBus.RaiseEvent<IMessageModalUIHandler>(window =>
+                {
+                    window.HandleOpen(error, MessageModalBase.ModalType.Message, null);
+                });
+            });
         }
 
         private MapObjectView GetMapObjectView(string mapObjectId)

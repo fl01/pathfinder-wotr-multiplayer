@@ -271,15 +271,6 @@ namespace WOTRMultiplayer.UI.Menu.Items
         private void OnMultiplayerError(string errorMessage)
         {
             _logger.LogError("Multiplayer client error. ErrorText={errorMessage}", errorMessage);
-
-            _mainThreadAccessor.Enqueue(() =>
-            {
-                EventBus.RaiseEvent<IMessageModalUIHandler>(window =>
-                {
-                    window.HandleOpen(errorMessage, MessageModalBase.ModalType.Message, null);
-                });
-            });
-
             ActivateJoinLobbyControls();
         }
 

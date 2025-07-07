@@ -567,17 +567,19 @@ namespace WOTRMultiplayer.MP
                         break;
                 }
 
-                if (!string.IsNullOrEmpty(error))
-                {
-                    OnNetworkError?.Invoke(error);
-                }
-
+                InvokeOnNetworkError(error);
                 return;
             }
 
             // should never happen?
             _logger.LogError(exception, "Generic network error occurred");
-            OnNetworkError?.Invoke("Generic network error occurred.");
+            InvokeOnNetworkError("Generic network error occurred.");
+        }
+
+        private void InvokeOnNetworkError(string error)
+        {
+            OnNetworkError?.Invoke(error);
+            _gameInteractionService.ShowModalMessage(error);
         }
 
         private void OnPlayerNameRequest(PlayerNameRequest request)
