@@ -127,6 +127,12 @@ namespace WOTRMultiplayer.MP
 
         public void MoveCharacter(string characterName, Vector3 destination, float delay, float orientation)
         {
+            // TODO: current trigger couldn't be used in combat
+            if (_game.Combat != null)
+            {
+                return;
+            }
+
             _logger.LogInformation("Moving character. Name={characterName}, Destination={destination}", characterName, destination);
             var message = new NotifyCharacterMove
             {
@@ -386,6 +392,7 @@ namespace WOTRMultiplayer.MP
 
             // it's impossible to differentiate rolls between multiple combats
             _rollStorage.Reset<InitiativeRoll>();
+            _rollStorage.Reset<AttackWithWeaponRoll>();
         }
 
         public void CombatEnded()
@@ -412,6 +419,8 @@ namespace WOTRMultiplayer.MP
                 return true;
             }
 
+            // it's a bit random when we start blocking this continuation
+            // anyway both 0 and 1 rounds are fine to start syncing as combat is already initializated at these points
             if (_game.Combat.Round <= 1 && !_game.Combat.IsInitialized)
             {
                 var unitsInCombat = _gameInteractionService.GetUnitsInCombat();
@@ -466,8 +475,10 @@ namespace WOTRMultiplayer.MP
 
         private void SoftReset()
         {
+            _logger.LogInformation("Doing soft reset");
             _game.Dialog = null;
             _game.Save = null;
+            _game.Combat = null;
             _rollStorage.Reset();
         }
 

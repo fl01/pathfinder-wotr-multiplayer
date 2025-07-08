@@ -269,12 +269,16 @@ namespace WOTRMultiplayer.MP
         public bool CanTickUnitCombatPrepareController()
         {
             var participant = GetMultiplayerParticipant();
+            // host - always true
+            // client - block until confirmation from host
             return participant.CanInitializeCombat();
         }
 
         public bool CanTickCombatController()
         {
             var participant = GetMultiplayerParticipant();
+            // host - confirm initialization with clients
+            // client - block until confirmation from host
             return participant.CanContinueCombat();
         }
 
@@ -319,9 +323,14 @@ namespace WOTRMultiplayer.MP
                 RuleRollName = ruleRollDice.Reason.Name,
                 RuleRollType = ruleRollDice.Reason.Rule.GetType().Name,
                 DiceType = ruleRollDice.DiceFormula.Dice,
+                CombatRound = combatRound,
                 TotalModifiersBonus = ruleAttackWithWeapon.AttackRoll.AttackBonus,
                 AttackNumber = ruleAttackWithWeapon.AttackNumber,
-                CombatRound = combatRound
+                IsAttackOfOpportunity = ruleAttackWithWeapon.IsAttackOfOpportunity,
+                TargetId = ruleAttackWithWeapon.Target.UniqueId,
+                ExtraAttack = ruleAttackWithWeapon.ExtraAttack,
+                IsFirstAttack = ruleAttackWithWeapon.IsFirstAttack,
+                AttacksCount = ruleAttackWithWeapon.AttacksCount
             };
 
             return roll;

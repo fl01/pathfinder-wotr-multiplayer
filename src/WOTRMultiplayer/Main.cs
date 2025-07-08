@@ -37,8 +37,7 @@ namespace WOTRMultiplayer
                 _settings = UnityModManager.ModSettings.Load<UnityModManagerSettings>(entry);
                 _serviceProvider = DIFactory.Create(_settings);
                 _logger = _serviceProvider.GetService<ILogger<Main>>();
-                var globalSubscriber = _serviceProvider.GetService<IGlobalMultiplayerSubscriber>();
-                EventBus.Subscribe(globalSubscriber);
+                Subscribe();
             }
             catch (Exception ex)
             {
@@ -74,6 +73,15 @@ namespace WOTRMultiplayer
         {
             _logger.LogInformation("Initializing portrait sprites");
             _serviceProvider.GetService<IResourceProvider>().Initialize();
+        }
+
+        private static void Subscribe()
+        {
+            var globalMultiplayerSubscriber = _serviceProvider.GetService<IGlobalMultiplayerSubscriber>();
+            EventBus.Subscribe(globalMultiplayerSubscriber);
+
+            var globalMultiplayerUnitCommandSubscriber = _serviceProvider.GetService<IGlobalMultiplayerUnitCommandSubscriber>();
+            EventBus.Subscribe(globalMultiplayerUnitCommandSubscriber);
         }
 
         private static bool OnUnload(UnityModManager.ModEntry entry)

@@ -137,6 +137,12 @@ namespace WOTRMultiplayer.MP
 
         public void MoveCharacter(string characterName, Vector3 destination, float delay, float orientation)
         {
+            // TODO: current trigger couldn't be used in combat
+            if (_game.Combat != null)
+            {
+                return;
+            }
+
             _logger.LogInformation("Sending CharacterMove. Name={characterName}, Destination={destination}", characterName, destination);
             var message = new CharacterMove
             {
@@ -385,6 +391,7 @@ namespace WOTRMultiplayer.MP
         {
             _game.Dialog = null;
             _game.Save = null;
+            _game.Combat = null;
         }
 
         private void RegisterHandlers()

@@ -10,7 +10,10 @@ using WOTRMultiplayer.Abstractions.PubSub;
 
 namespace WOTRMultiplayer.PubSub
 {
-    public class GlobalSubscriber : IGlobalMultiplayerSubscriber, ISubscriber, IGlobalSubscriber,
+    public class GlobalMultiplayerSubscriber : GlobalMultiplayerSubscriberBase,
+        IGlobalMultiplayerSubscriber,
+        ISubscriber,
+        IGlobalSubscriber,
         IWarningNotificationUIHandler,
         IPartyLeaveAreaHandler,
         IPartyChangedUIHandler,
@@ -19,89 +22,83 @@ namespace WOTRMultiplayer.PubSub
         IPartyCombatHandler,
         ITurnBasedModeHandler
     {
-        private readonly ILogger<GlobalSubscriber> _logger;
-        private readonly IMultiplayerHost _multiplayerHost;
-        private readonly IMultiplayerClient _multiplayerClient;
-
-        public GlobalSubscriber(
-            ILogger<GlobalSubscriber> logger,
+        public GlobalMultiplayerSubscriber(
+            ILogger<GlobalMultiplayerSubscriber> logger,
             IMultiplayerHost multiplayerHost,
             IMultiplayerClient multiplayerClient)
+            : base(logger, multiplayerHost, multiplayerClient)
         {
-            _logger = logger;
-            _multiplayerHost = multiplayerHost;
-            _multiplayerClient = multiplayerClient;
         }
 
         public void HandleAddCompanion(UnitEntityData unit)
         {
             var multiplayerParticipant = GetMultiplayerParticipant();
-            if (!multiplayerParticipant?.IsActive ?? false)
+            if (multiplayerParticipant == null)
             {
                 return;
             }
 
-            _logger.LogInformation("HandleAddCompanion");
+            Logger.LogInformation("HandleAddCompanion");
             multiplayerParticipant.PartyChanged();
         }
 
         public void HandleCapitalModeChanged()
         {
             var multiplayerParticipant = GetMultiplayerParticipant();
-            if (!multiplayerParticipant?.IsActive ?? false)
+            if (multiplayerParticipant == null)
             {
                 return;
             }
 
-            _logger.LogInformation("HandleCapitalModeChanged");
+            Logger.LogInformation("HandleCapitalModeChanged");
             multiplayerParticipant.PartyChanged();
         }
 
         public void HandleCompanionActivated(UnitEntityData unit)
         {
             var multiplayerParticipant = GetMultiplayerParticipant();
-            if (!multiplayerParticipant?.IsActive ?? false)
+            if (multiplayerParticipant == null)
             {
                 return;
             }
 
-            _logger.LogInformation("HandleCompanionActivated");
+            Logger.LogInformation("HandleCompanionActivated");
             multiplayerParticipant.PartyChanged();
         }
 
         public void HandleCompanionRemoved(UnitEntityData unit, bool stayInGame)
         {
             var multiplayerParticipant = GetMultiplayerParticipant();
-            if (!multiplayerParticipant?.IsActive ?? false)
+            if (multiplayerParticipant == null)
             {
                 return;
             }
 
-            _logger.LogInformation("HandleCompanionRemoved");
+            Logger.LogInformation("HandleCompanionRemoved");
             multiplayerParticipant.PartyChanged();
         }
 
         public void HandlePartyChanged()
         {
             var multiplayerParticipant = GetMultiplayerParticipant();
-            if (!multiplayerParticipant?.IsActive ?? false)
+            if (multiplayerParticipant == null)
             {
                 return;
             }
 
-            _logger.LogInformation("HandlePartyChanged");
+            Logger.LogInformation("HandlePartyChanged");
             multiplayerParticipant.PartyChanged();
         }
 
         public void HandlePartyCombatStateChanged(bool inCombat)
         {
             var multiplayerParticipant = GetMultiplayerParticipant();
-            if (!multiplayerParticipant?.IsActive ?? false)
+            if (multiplayerParticipant == null)
             {
                 return;
             }
 
-            _logger.LogInformation("Combat state changed. InCombat={inCombat}", inCombat);
+            Logger.LogInformation("Combat state changed. InCombat={inCombat}", inCombat);
             if (inCombat)
             {
                 multiplayerParticipant.CombatStarted();
@@ -113,7 +110,7 @@ namespace WOTRMultiplayer.PubSub
 
         public void HandlePartyLeaveArea(BlueprintArea currentArea, BlueprintAreaEnterPoint targetArea, AreaTransitionPart areaTransition)
         {
-            if (!_multiplayerHost.IsActive)
+            if (!Host.IsActive)
             {
                 return;
             }
@@ -121,11 +118,11 @@ namespace WOTRMultiplayer.PubSub
             var areaExitId = areaTransition.View?.UniqueId;
             if (string.IsNullOrEmpty(areaExitId))
             {
-                _logger.LogError("Missing area transition unique id");
+                Logger.LogError("Missing area transition unique id");
                 return;
             }
 
-            _multiplayerHost.LeaveArea(areaExitId);
+            Host.LeaveArea(areaExitId);
         }
 
         public void HandleRoundStarted(int round)
@@ -183,21 +180,13 @@ namespace WOTRMultiplayer.PubSub
         public void OnAreaScenesLoaded()
         {
             var multiplayerParticipant = GetMultiplayerParticipant();
-            if (!multiplayerParticipant?.IsActive ?? false)
+            if (multiplayerParticipant == null)
             {
                 return;
             }
 
-            _logger.LogInformation("OnAreaScenesLoaded");
+            Logger.LogInformation("OnAreaScenesLoaded");
             multiplayerParticipant.PartyChanged();
-        }
-
-        private IMultiplayerParticipant GetMultiplayerParticipant()
-        {
-            return _multiplayerHost.IsActive ?
-                _multiplayerHost
-                : _multiplayerClient.IsActive ?
-                    _multiplayerClient : null;
         }
     }
 }

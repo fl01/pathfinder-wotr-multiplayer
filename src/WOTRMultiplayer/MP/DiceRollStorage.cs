@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.Hashing;
@@ -30,11 +29,11 @@ namespace WOTRMultiplayer.MP
                 var entry = new DiceRollEntry(diceRoll);
                 if (!_rolls.TryAdd(rollId, entry))
                 {
-                    _logger.LogError("Collision has been detected. RollId={rollId}", rollId);
+                    _logger.LogError("Collision has been detected. Type={type}, RollId={rollId}", diceRoll.GetType().Name, rollId);
                     return;
                 }
 
-                _logger.LogInformation("Roll has been preserved. UniqueId={rollId}, Result={result}, TotalBonus={totalBonus}, Initiator={initiator}, HistoryCount={historyCount}", rollId, diceRoll.Result, diceRoll.TotalModifiersBonus, diceRoll.InitiatorId, diceRoll.RollHistory.Count);
+                _logger.LogInformation("Roll has been preserved. Type={type}, UniqueId={rollId}, Result={result}, TotalBonus={totalBonus}, Initiator={initiator}, HistoryCount={historyCount}", diceRoll.GetType().Name, rollId, diceRoll.Result, diceRoll.TotalModifiersBonus, diceRoll.InitiatorId, diceRoll.RollHistory.Count);
             }
             catch (System.Exception ex)
             {
