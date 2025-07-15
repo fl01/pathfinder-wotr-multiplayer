@@ -39,7 +39,7 @@ namespace WOTRMultiplayer.Abstractions.MP
         void CombatStarted();
         void CombatEnded();
         bool CanInitializeCombat();
-        bool OnBeforeStartTurn(string unitId);
+        bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound);
         bool OnBeforeEndTurn(string unitId);
         void CombatRoundStarted(int round);
         int GetCombatRound();

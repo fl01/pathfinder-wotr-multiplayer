@@ -279,10 +279,15 @@ namespace WOTRMultiplayer.MP
             return participant.CanContinueCombat();
         }
 
-        public bool OnBeforeStartTurn(string unitId)
+        public bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound)
         {
             var participant = GetMultiplayerParticipant();
-            return participant.OnBeforeStartTurn(unitId);
+            if (participant == null)
+            {
+                return true;
+            }
+
+            return participant.OnBeforeStartTurn(unitId, actingInSurpriseRound);
         }
 
         public bool OnBeforeEndTurn(string unitId)

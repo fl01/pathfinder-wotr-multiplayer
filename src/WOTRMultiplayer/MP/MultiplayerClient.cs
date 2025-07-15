@@ -359,12 +359,13 @@ namespace WOTRMultiplayer.MP
             return _game.Combat.IsInitialized;
         }
 
-        public bool OnBeforeStartTurn(string unitId)
+        public bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound)
         {
             _game.Combat.TurnOwner = unitId;
             _game.Combat.IsMyTurn = CanControlCharacter(unitId);
             _game.Combat.IsAITurn = _gameInteractionService.IsUnitAI(unitId);
-            _logger.LogInformation("OnBeforeStartTurn. UnitId={unitId}, IsMyTurn={isMyTurn}, IsAITurn={isAITurn}", unitId, _game.Combat.IsMyTurn, _game.Combat.IsAITurn);
+            _game.Combat.IsActingInSurpriseRound = actingInSurpriseRound;
+            _logger.LogInformation("OnBeforeStartTurn. UnitId={unitId}, IsMyTurn={isMyTurn}, IsAITurn={isAITurn}, IsActingInSurpriseRound={isActingInSurpriseRound}", unitId, _game.Combat.IsMyTurn, _game.Combat.IsAITurn, _game.Combat.IsActingInSurpriseRound);
 
             return true;
         }

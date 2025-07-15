@@ -35,7 +35,7 @@ namespace WOTRMultiplayer.Abstractions.MP
         bool CanTickUnitCombatPrepareController();
         bool CanTickCombatController();
 
-        bool OnBeforeStartTurn(string unitId);
+        bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound);
 
         bool OnBeforeEndTurn(string unitId);
         void ForceLoadGame(SaveInfo saveInfo);

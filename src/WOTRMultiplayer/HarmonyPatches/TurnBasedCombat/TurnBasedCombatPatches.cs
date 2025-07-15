@@ -39,7 +39,7 @@ namespace WOTRMultiplayer.HarmonyPatches.TurnBasedCombat
 
         [HarmonyPatch(typeof(TurnController), nameof(TurnController.Start))]
         [HarmonyPrefix]
-        public static bool TurnController_Start_Prefix(TurnController __instance)
+        public static bool TurnController_Start_Prefix(TurnController __instance, bool actingInSurpriseRound)
         {
             if (!Main.Multiplayer.IsActive)
             {
@@ -47,7 +47,7 @@ namespace WOTRMultiplayer.HarmonyPatches.TurnBasedCombat
             }
 
             // block on host/client until everyone is not trying to start same turn
-            var canContinue = Main.Multiplayer.OnBeforeStartTurn(__instance.Rider.UniqueId);
+            var canContinue = Main.Multiplayer.OnBeforeStartTurn(__instance.Rider.UniqueId, actingInSurpriseRound);
             return canContinue;
         }
 

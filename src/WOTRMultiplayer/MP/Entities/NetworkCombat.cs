@@ -15,5 +15,6 @@ namespace WOTRMultiplayer.MP.Entities
         public bool IsAITurn { get; set; }
 
         public bool IsMyTurn { get; set; }
+        public bool IsActingInSurpriseRound { get; set; }
     }
 }
