@@ -437,11 +437,11 @@ namespace WOTRMultiplayer.MP
                 };
                 _networkServer.SendAll(message);
                 _game.Combat.IsInitialized = true;
-                _game.Combat.PlayersInitialization.TryAdd(_game.LocalPlayerId, true);
+                _game.Combat.PlayersCombatInitialization.TryAdd(_game.LocalPlayerId, true);
                 _logger.LogInformation("Sending NotifyCombatStarted. UnitsInCombat={unitsCount}", message.Units.Count);
             }
 
-            return _game.Combat.PlayersInitialization.Count >= _game.Players.Count;
+            return _game.Combat.PlayersCombatInitialization.Count >= _game.Players.Count;
         }
 
         public bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound)
@@ -745,7 +745,7 @@ namespace WOTRMultiplayer.MP
                 return;
             }
 
-            if (!_game.Combat.PlayersInitialization.TryAdd(playerId, true))
+            if (!_game.Combat.PlayersCombatInitialization.TryAdd(playerId, true))
             {
                 _logger.LogWarning("Received duplicate client initialization. PlayerId={playerId}", playerId);
             }
