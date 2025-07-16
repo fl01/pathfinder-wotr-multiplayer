@@ -434,13 +434,16 @@ namespace WOTRMultiplayer.GameInteraction
         public void StartTurnBasedCombatTurn(bool isActingInSurpriseRound)
         {
             _logger.LogInformation("Starting turn. IsActingInSurpriseRound={isActingInSurpriseRound}", isActingInSurpriseRound);
-            Game.Instance.TurnBasedCombatController.CurrentTurn.Start(isActingInSurpriseRound);
+            _mainThreadAccessor.Enqueue(() =>
+            {
+                Game.Instance.TurnBasedCombatController.CurrentTurn.Start(isActingInSurpriseRound);
+            });
         }
 
         public void EndTurnBasedCombatTurn()
         {
             _logger.LogInformation("Ending turn.");
-            Game.Instance.TurnBasedCombatController.CurrentTurn.End();
+            _mainThreadAccessor.Enqueue(Game.Instance.TurnBasedCombatController.CurrentTurn.End);
         }
     }
 }

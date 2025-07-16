@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 using Kingmaker.EntitySystem.Persistence;
 using Kingmaker.UI;
+using Kingmaker.UI.MVVM._VM.Tooltip.Templates;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.GameInteraction;
@@ -98,6 +99,51 @@ namespace WOTRMultiplayer.Playground.Client
                         break;
                     case "combat-started":
                         client.CombatStarted();
+                        break;
+                    case "combat-round-1":
+                        client.CombatRoundStarted(1);
+                        break;
+                    case "combat-round-2":
+                        client.CombatRoundStarted(2);
+                        break;
+                    case "combat-round-3":
+                        client.CombatRoundStarted(3);
+                        break;
+                    case "combat-turn-started-camellia":
+                        client.OnBeforeStartTurn("3996", false);
+                        break;
+                    case "combat-turn-ended-camellia":
+                        client.OnBeforeEndTurn("3996");
+                        break;
+                    case "combat-turn-started-main":
+                        client.OnBeforeStartTurn("a950ad75-65cd-4dc1-96e9-444e291fed7e", false);
+                        break;
+                    case "combat-turn-ended-main":
+                        client.OnBeforeEndTurn("a950ad75-65cd-4dc1-96e9-444e291fed7e");
+                        break;
+                    case "combat-turn-started-seelah":
+                        client.OnBeforeStartTurn("38AF", false);
+                        break;
+                    case "combat-turn-ended-seelah":
+                        client.OnBeforeEndTurn("38AF");
+                        break;
+                    case "combat-turn-started-3502":
+                        client.OnBeforeStartTurn("3502", false);
+                        break;
+                    case "combat-turn-ended-3502":
+                        client.OnBeforeEndTurn("3502");
+                        break;
+                    case "combat-turn-started-3521":
+                        client.OnBeforeStartTurn("3521", false);
+                        break;
+                    case "combat-turn-ended-3521":
+                        client.OnBeforeEndTurn("3521");
+                        break;
+                    case "combat-turn-started-3560":
+                        client.OnBeforeStartTurn("3560", false);
+                        break;
+                    case "combat-turn-ended-3560":
+                        client.OnBeforeEndTurn("3560");
                         break;
                     default:
                         break;
