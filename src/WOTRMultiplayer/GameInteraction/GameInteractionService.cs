@@ -356,13 +356,12 @@ namespace WOTRMultiplayer.GameInteraction
 
         public List<NetworkUnit> GetUnitsInCombat()
         {
-            var inCombat = Game.Instance.State.Units.InCombat().ToList();
-
-            var units = inCombat
+            var inCombat = Game.Instance.State.Units
+                .InCombat()
                 .Select(c => new NetworkUnit { Id = c.UniqueId, Position = new Vector3(c.Position.x, c.Position.y, c.Position.z) })
                 .ToList();
 
-            return units;
+            return inCombat;
         }
 
         public void UpdateUnitsPosition(List<NetworkUnit> networkUnits)
