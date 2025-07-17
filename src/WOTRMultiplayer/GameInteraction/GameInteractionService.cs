@@ -305,55 +305,6 @@ namespace WOTRMultiplayer.GameInteraction
             return unit == null;
         }
 
-        private MapObjectView GetMapObjectView(string mapObjectId)
-        {
-            if (string.IsNullOrEmpty(mapObjectId))
-            {
-                return null;
-            }
-
-            var mapObject = Game.Instance.State.MapObjects.FirstOrDefault(m => string.Equals(m.UniqueId, mapObjectId, StringComparison.OrdinalIgnoreCase));
-            return mapObject?.View;
-        }
-
-        private void StartDialog(TaskCompletionSource<bool> hasStartedDialogTask, BlueprintDialog dialog, UnitEntityData initiator, UnitEntityData target, MapObjectView mapObjectView, LocalizedString customSpeakerName)
-        {
-            if (string.Equals(Game.Instance.DialogController.Dialog?.name, dialog.name, StringComparison.OrdinalIgnoreCase))
-            {
-                _logger.LogInformation("Requested dialog already started (most likely due to scripted zone), nothing to do here. DialogName={dialogName}", dialog.name);
-                hasStartedDialogTask.SetResult(false);
-                return;
-            }
-
-            Game.Instance.DialogController.StartDialog(dialog, initiator, target, mapObjectView, customSpeakerName);
-            hasStartedDialogTask.SetResult(true);
-        }
-
-        private UnitEntityData GetUnitEntity(string uniqueId)
-        {
-            return GetUnitEntityFromLoadedArea(uniqueId) ?? GetUnitEntityFromParty(uniqueId);
-        }
-
-        private UnitEntityData GetUnitEntityFromParty(string uniqueId)
-        {
-            if (string.IsNullOrEmpty(uniqueId))
-            {
-                return null;
-            }
-
-            return Game.Instance.Player.PartyAndPets.FirstOrDefault(p => string.Equals(p.UniqueId, uniqueId, StringComparison.OrdinalIgnoreCase));
-        }
-
-        private UnitEntityData GetUnitEntityFromLoadedArea(string uniqueId)
-        {
-            if (string.IsNullOrEmpty(uniqueId))
-            {
-                return null;
-            }
-
-            return Game.Instance.LoadedAreaState.AllEntityData.FirstOrDefault(e => string.Equals(e.UniqueId, uniqueId, StringComparison.OrdinalIgnoreCase)) as UnitEntityData;
-        }
-
         public List<NetworkUnit> GetUnitsInCombat()
         {
             var inCombat = Game.Instance.State.Units
@@ -443,6 +394,54 @@ namespace WOTRMultiplayer.GameInteraction
         {
             _logger.LogInformation("Ending turn.");
             _mainThreadAccessor.Enqueue(Game.Instance.TurnBasedCombatController.CurrentTurn.End);
+        }
+        private MapObjectView GetMapObjectView(string mapObjectId)
+        {
+            if (string.IsNullOrEmpty(mapObjectId))
+            {
+                return null;
+            }
+
+            var mapObject = Game.Instance.State.MapObjects.FirstOrDefault(m => string.Equals(m.UniqueId, mapObjectId, StringComparison.OrdinalIgnoreCase));
+            return mapObject?.View;
+        }
+
+        private void StartDialog(TaskCompletionSource<bool> hasStartedDialogTask, BlueprintDialog dialog, UnitEntityData initiator, UnitEntityData target, MapObjectView mapObjectView, LocalizedString customSpeakerName)
+        {
+            if (string.Equals(Game.Instance.DialogController.Dialog?.name, dialog.name, StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogInformation("Requested dialog already started (most likely due to scripted zone), nothing to do here. DialogName={dialogName}", dialog.name);
+                hasStartedDialogTask.SetResult(false);
+                return;
+            }
+
+            Game.Instance.DialogController.StartDialog(dialog, initiator, target, mapObjectView, customSpeakerName);
+            hasStartedDialogTask.SetResult(true);
+        }
+
+        private UnitEntityData GetUnitEntity(string uniqueId)
+        {
+            return GetUnitEntityFromLoadedArea(uniqueId) ?? GetUnitEntityFromParty(uniqueId);
+        }
+
+        private UnitEntityData GetUnitEntityFromParty(string uniqueId)
+        {
+            if (string.IsNullOrEmpty(uniqueId))
+            {
+                return null;
+            }
+
+            return Game.Instance.Player.PartyAndPets.FirstOrDefault(p => string.Equals(p.UniqueId, uniqueId, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private UnitEntityData GetUnitEntityFromLoadedArea(string uniqueId)
+        {
+            if (string.IsNullOrEmpty(uniqueId))
+            {
+                return null;
+            }
+
+            return Game.Instance.LoadedAreaState.AllEntityData.FirstOrDefault(e => string.Equals(e.UniqueId, uniqueId, StringComparison.OrdinalIgnoreCase)) as UnitEntityData;
         }
     }
 }
