@@ -169,15 +169,16 @@ namespace WOTRMultiplayer.MP
             var combatRound = multiplayerParticipant.GetCombatRound();
             NetworkDiceRoll roll = CreateNetworkDiceRoll(ruleRollDice, combatRound);
 
+            var rollType = ruleRollDice.Reason.Rule.GetType().Name;
             if (roll == null)
             {
-                _logger.LogWarning("Roll saving has been skipped. Type={rollType}, InitiatorName={initiatorName}, InitiatorId={initiatorId}", ruleRollDice.Reason.Rule.GetType().Name, ruleRollDice.Initiator?.CharacterName, ruleRollDice.Initiator?.UniqueId);
+                _logger.LogWarning("Roll saving has been skipped. Type={rollType}, InitiatorName={initiatorName}, InitiatorId={initiatorId}", rollType, ruleRollDice.Initiator?.CharacterName, ruleRollDice.Initiator?.UniqueId);
                 return;
             }
 
             if (!_rollStorage.Save(roll))
             {
-                var message = "Roll has not been saved which guarantees to cause desync in the game";
+                var message = $"Roll has not been saved which guarantees to cause desync in the game. RollType={rollType}";
                 _logger.LogCritical(message);
                 _gameInteractionService.ShowModalMessage(message);
             }
