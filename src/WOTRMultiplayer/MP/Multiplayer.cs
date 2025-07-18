@@ -320,7 +320,7 @@ namespace WOTRMultiplayer.MP
             return partyMember == null;
         }
 
-        public void OnUnitCommandDidStart(NetworkUnitCommand networkCommand)
+        public void OnClickUnit(NetworkClick click)
         {
             var multiplayerParticipant = GetMultiplayerParticipant();
             if (multiplayerParticipant == null)
@@ -328,7 +328,7 @@ namespace WOTRMultiplayer.MP
                 return;
             }
 
-            multiplayerParticipant.OnUnitCommandDidStart(networkCommand);
+            multiplayerParticipant.OnClickUnit(click);
         }
 
         private NetworkDiceRoll CreateNetworkDiceRoll(RuleRollDice ruleRollDice, int combatRound)

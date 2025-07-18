@@ -450,16 +450,8 @@ namespace WOTRMultiplayer.MP
                 && _game.Combat.Turn.IsLocalPlayer;
         }
 
-        public void OnUnitCommandDidStart(NetworkUnitCommand networkCommand)
+        public void OnClickUnit(NetworkClick click)
         {
-            if (!networkCommand.CreatedByPlayer
-                || !(_game.Combat?.Turn?.IsLocalPlayer ?? false))
-            {
-                return;
-            }
-
-            // TODO:
-            _logger.LogError("Sync unit command started. CommandType={commandType}", networkCommand.CommandType);
         }
 
         private void SoftReset()

@@ -47,6 +47,6 @@ namespace WOTRMultiplayer.Abstractions.MP
         void ForceLoadGame(string savePath);
         bool ShouldStoreRoll();
         NetworkDiceRoll RetrieveRoll(int networkDiceRollId, string initiatorId);
-        void OnUnitCommandDidStart(NetworkUnitCommand networkCommand);
+        void OnClickUnit(NetworkClick click);
     }
 }

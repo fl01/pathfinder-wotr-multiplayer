@@ -52,7 +52,7 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         bool CanBeControlledByAI(string unitId);
 
-        void OnUnitCommandDidStart(NetworkUnitCommand command);
+        void OnClickUnit(NetworkClick click);
 
         bool IsActive { get; }
     }
