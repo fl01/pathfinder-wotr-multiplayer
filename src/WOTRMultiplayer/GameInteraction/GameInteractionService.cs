@@ -434,20 +434,13 @@ namespace WOTRMultiplayer.GameInteraction
                 Game.Instance.SelectionCharacter.SelectedUnits.Clear();
                 Game.Instance.SelectionCharacter.SelectedUnits.AddRange(selectedUnits);
 
-                var isnull = Game.Instance.TurnBasedCombatController.CurrentTurn.SelectedUnit == null;
-                var actionStates = Game.Instance.TurnBasedCombatController.CurrentTurn.GetActionsStates(selectedUnit);
-
-                //Game.Instance.TurnBasedCombatController.CurrentTurn.UpdateActionPredictions
-                //PathVisualizer.Instance.CalculatePathForCommand(selectedUnit, actionStates, true, false);
                 if (click.VectorPath.Count > 0)
                 {
                     var unityVectorPath = click.VectorPath.Select(v => new UnityEngine.Vector3(v.X, v.Y, v.Z)).ToList();
                     PathVisualizer.Instance.m_CurrentPath = ABPath.FakePath(unityVectorPath);
-                    var path = PathVisualizer.Instance.CurrentPathForUnit(selectedUnit.View);
                 }
 
-                var clickResult = clickUnitHandler.OnClick(targetUnit.View.gameObject, worldPosition, click.Button, simulate: false, click.MuteEvents, IsTMBClick: false);
-                _logger.LogInformation("Clicking unit result. Result={result}", clickResult);
+                clickUnitHandler.OnClick(targetUnit.View.gameObject, worldPosition, click.Button, simulate: false, click.MuteEvents, IsTMBClick: false);
             });
         }
 
