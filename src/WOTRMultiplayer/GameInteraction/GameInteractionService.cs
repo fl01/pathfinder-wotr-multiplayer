@@ -319,8 +319,9 @@ namespace WOTRMultiplayer.GameInteraction
             return inCombat;
         }
 
-        public void UpdateUnitsPosition(List<NetworkUnit> networkUnits)
+        public Task UpdateUnitsPositionAsync(List<NetworkUnit> networkUnits)
         {
+            var taskCompletion = new TaskCompletionSource<bool>();
             _mainThreadAccessor.Enqueue(() =>
             {
                 foreach (var networkUnit in networkUnits)
@@ -357,7 +358,11 @@ namespace WOTRMultiplayer.GameInteraction
                         continue;
                     }
                 }
+
+                taskCompletion.SetResult(true);
             });
+
+            return taskCompletion.Task;
         }
 
         public void QuickLoadGame(string savePath)
@@ -436,8 +441,12 @@ namespace WOTRMultiplayer.GameInteraction
 
                 if (click.VectorPath.Count > 0)
                 {
-                    var unityVectorPath = click.VectorPath.Select(v => new UnityEngine.Vector3(v.X, v.Y, v.Z)).ToList();
-                    PathVisualizer.Instance.m_CurrentPath = ABPath.FakePath(unityVectorPath);
+                    var movementPath = click.VectorPath.Select(v => new UnityEngine.Vector3(v.X, v.Y, v.Z)).ToList();
+                    // Commands are using m_CurrentPath in case of extra movement is needed, e.g. UnitAttack command with far away target
+                    PathVisualizer.Instance.m_CurrentPath = ABPath.FakePath(movementPath);
+                    // I have no idea what are consequences of 'fake' claiming the path (sorry not reading docs), but atleast it suppresses exceptions in dev mode
+                    // let's hope it's not going to cause a lot of problems since this path is fake anyway (transfered from another player)
+                    PathVisualizer.Instance.m_CurrentPath.Claim(this);
                 }
 
                 clickUnitHandler.OnClick(targetUnit.View.gameObject, worldPosition, click.Button, simulate: false, click.MuteEvents, IsTMBClick: false);

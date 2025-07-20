@@ -277,8 +277,9 @@ namespace WOTRMultiplayer.Playground.Host
             {
             }
 
-            public void UpdateUnitsPosition(List<NetworkUnit> networkUnits)
+            public Task UpdateUnitsPositionAsync(List<NetworkUnit> networkUnits)
             {
+                return Task.CompletedTask;
             }
 
             public void ClickUnitInCombat(NetworkClick click)

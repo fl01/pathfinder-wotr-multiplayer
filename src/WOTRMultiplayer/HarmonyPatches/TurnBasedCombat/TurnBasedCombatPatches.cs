@@ -86,8 +86,9 @@ namespace WOTRMultiplayer.HarmonyPatches.TurnBasedCombat
                 // I believe this could reworked by using transpiler to replace generic condition 'IsDirectlyControllable' in TurnController.Tick => (Status == TurnStatus.Acting && Rider.Commands.Empty && !Rider.IsDirectlyControllable)
                 // with something smarter, but resetting counters work fine for now
                 Game.Instance.TurnBasedCombatController.CurrentTurn.AIForcedTickCount = 0;
-                Game.Instance.TurnBasedCombatController.CurrentTurn.FramesWaitedForStuckAI = 0;
-                Game.Instance.TurnBasedCombatController.CurrentTurn.TimeWaitedForIdleAI = 0;
+
+                // Game.Instance.TurnBasedCombatController.CurrentTurn.FramesWaitedForStuckAI = 0;
+                // Game.Instance.TurnBasedCombatController.CurrentTurn.TimeWaitedForIdleAI = 0;
             }
 
             return canContinue;

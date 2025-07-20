@@ -381,7 +381,7 @@ namespace WOTRMultiplayer.MP
                 IsAI = _gameInteractionService.IsUnitAI(unitId)
             };
 
-            _logger.LogInformation("Turn start has been initialized. UnitId={unitId}, IsLocalPlayer={isLocalPlayer}, IsAI={isAI}, IsActingInSurpriseRound={isActingInSurpriseRound}",
+            _logger.LogInformation("Turn start has been initialized, notifying host. UnitId={unitId}, IsLocalPlayer={isLocalPlayer}, IsAI={isAI}, IsActingInSurpriseRound={isActingInSurpriseRound}",
                 unitId, _game.Combat.Turn.IsLocalPlayer, _game.Combat.Turn.IsAI, _game.Combat.Turn.IsActingInSurpriseRound);
 
             var message = new ClientCombatTurnStarted { Round = _game.Combat.Round, UnitId = _game.Combat.Turn.UnitId };
@@ -475,6 +475,29 @@ namespace WOTRMultiplayer.MP
             _networkServerClient.SendAsync(message).Wait();
         }
 
+        public void OnClickGround(NetworkClick click)
+        {
+            if (!(_game.Combat?.Turn?.IsLocalPlayer ?? false))
+            {
+                return;
+            }
+
+            // TODO:
+            _logger.LogError("TODO: Sending ground click. WorldPosition=<{x},{y},{z}>, VectorPathCount={pathCount}", click.WorldPosition.X, click.WorldPosition.Y, click.WorldPosition.Z, click.VectorPath.Count);
+        }
+
+
+        public void OnClickWithSelectedAbility(NetworkClick click)
+        {
+            if (!(_game.Combat?.Turn?.IsLocalPlayer ?? false))
+            {
+                return;
+            }
+
+            // TODO:
+            _logger.LogError("TODO: Sending Ability click. TargetUnitId={targetUnitId}, AbilityId={abilityId}, WorldPosition=<{x},{y},{z}>, VectorPathCount={pathCount}", click.TargetUnitId, click.AbilityId, click.WorldPosition.X, click.WorldPosition.Y, click.WorldPosition.Z, click.VectorPath.Count);
+        }
+
         private void SoftReset()
         {
             _game.Dialog = null;
@@ -523,7 +546,7 @@ namespace WOTRMultiplayer.MP
                 SelectedUnits = clicked.Click.SelectedUnits,
                 TargetUnitId = clicked.Click.TargetUnitId,
                 WorldPosition = new NetworkVector3(clicked.Click.WorldPosition.X, clicked.Click.WorldPosition.Y, clicked.Click.WorldPosition.Z),
-                VectorPath = [..clicked.Click.VectorPath.Select(v => new NetworkVector3(v.X, v.Y, v.Z))]
+                VectorPath = [.. clicked.Click.VectorPath.Select(v => new NetworkVector3(v.X, v.Y, v.Z))]
             };
 
             if (_game.Combat != null)
@@ -612,7 +635,7 @@ namespace WOTRMultiplayer.MP
                 .Select(u => new NetworkUnit { Id = u.Id, Position = new Vector3(u.PositionX, u.PositionY, u.PositionZ) })
                 .ToList();
 
-            _gameInteractionService.UpdateUnitsPosition(units);
+            await _gameInteractionService.UpdateUnitsPositionAsync(units);
 
             _game.Combat.IsInitialized = true;
 

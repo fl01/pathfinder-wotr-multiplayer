@@ -331,6 +331,28 @@ namespace WOTRMultiplayer.MP
             multiplayerParticipant.OnClickUnit(click);
         }
 
+        public void OnClickGround(NetworkClick click)
+        {
+            var multiplayerParticipant = GetMultiplayerParticipant();
+            if (multiplayerParticipant == null)
+            {
+                return;
+            }
+
+            multiplayerParticipant.OnClickGround(click);
+        }
+
+        public void OnClickWithSelectedAbility(NetworkClick click)
+        {
+            var multiplayerParticipant = GetMultiplayerParticipant();
+            if (multiplayerParticipant == null)
+            {
+                return;
+            }
+
+            multiplayerParticipant.OnClickWithSelectedAbility(click);
+        }
+
         private NetworkDiceRoll CreateNetworkDiceRoll(RuleRollDice ruleRollDice, int combatRound)
         {
             NetworkDiceRoll roll = ruleRollDice.Reason.Rule switch

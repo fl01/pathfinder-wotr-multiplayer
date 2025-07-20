@@ -596,6 +596,28 @@ namespace WOTRMultiplayer.MP
             _networkServer.SendAll(message);
         }
 
+        public void OnClickGround(NetworkClick click)
+        {
+            if (!(_game.Combat?.Turn?.IsLocalPlayer ?? false))
+            {
+                return;
+            }
+
+            // TODO:
+            _logger.LogError("TODO: Sending ground click. WorldPosition=<{x},{y},{z}>, VectorPathCount={pathCount}", click.WorldPosition.X, click.WorldPosition.Y, click.WorldPosition.Z, click.VectorPath.Count);
+        }
+
+        public void OnClickWithSelectedAbility(NetworkClick click)
+        {
+            if (!(_game.Combat?.Turn?.IsLocalPlayer ?? false))
+            {
+                return;
+            }
+
+            // TODO:
+            _logger.LogError("TODO: Sending Ability click. TargetUnitId={targetUnitId}, AbilityId={abilityId}, WorldPosition=<{x},{y},{z}>, VectorPathCount={pathCount}", click.TargetUnitId, click.AbilityId, click.WorldPosition.X, click.WorldPosition.Y, click.WorldPosition.Z, click.VectorPath.Count);
+        }
+
         private void TryStartCombatTurn()
         {
             if (_game.Combat.Turn == null)
