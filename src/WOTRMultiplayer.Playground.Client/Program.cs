@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using AutoMapper;
 using Kingmaker.EntitySystem.Persistence;
 using Kingmaker.UI;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,7 +36,8 @@ namespace WOTRMultiplayer.Playground.Client
                 serviceProvider.GetService<IMultiplayerSettingsProvider>(),
                 serviceProvider.GetService<IFileSystemService>(),
                 serviceProvider.GetService<INetworkServerClient>(),
-                new DummyDiceRollStorage());
+                new DummyDiceRollStorage(),
+                serviceProvider.GetService<IMapper>());
             client.Connect("127.0.0.1:1024");
             var input = string.Empty;
 

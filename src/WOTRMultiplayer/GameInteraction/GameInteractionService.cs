@@ -12,11 +12,13 @@ using Kingmaker.Controllers.Clicks.Handlers;
 using Kingmaker.DialogSystem.Blueprints;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.EntitySystem.Persistence;
+using Kingmaker.EntitySystem.Persistence.JsonUtility;
 using Kingmaker.GameModes;
 using Kingmaker.Globalmap.Blueprints;
 using Kingmaker.Localization;
 using Kingmaker.PubSubSystem;
 using Kingmaker.TurnBasedMode;
+using Kingmaker.TurnBasedMode.Controllers;
 using Kingmaker.UI;
 using Kingmaker.UI.MVVM._PCView.Dialog.Dialog;
 using Kingmaker.UI.MVVM._PCView.InGame;
@@ -34,6 +36,7 @@ using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.MP.Entities;
+using static Kingmaker.TurnBasedMode.Controllers.CombatAction;
 
 namespace WOTRMultiplayer.GameInteraction
 {
@@ -554,15 +557,18 @@ namespace WOTRMultiplayer.GameInteraction
                         var movementPath = click.VectorPath.Select(v => new UnityEngine.Vector3(v.X, v.Y, v.Z)).ToList();
                         // Commands are using m_CurrentPath in case of extra movement is needed, e.g. UnitAttack command with far away target
                         PathVisualizer.Instance.m_CurrentPath = ABPath.FakePath(movementPath);
+                        PathVisualizer.Instance.m_CurrentPath.Claim(this);
                         PathVisualizer.Instance.m_CurrentPath.Claim(PathVisualizer.Instance);
+                        _logger.LogInformation("Configured unit path. Vectors={vectorsCount}", PathVisualizer.Instance.CurrentPathForUnit(Game.Instance.TurnBasedCombatController.CurrentTurn.SelectedUnit.View)?.vectorPath.Count);
                     }
 
                     var actionStates = Game.Instance.TurnBasedCombatController.CurrentTurn.GetActionsStates(Game.Instance.TurnBasedCombatController.CurrentTurn.SelectedUnit);
 
-                    actionStates.ApproachPoint = new UnityEngine.Vector3(click.ActionsState.ApproachPoint.X, click.ActionsState.ApproachPoint.Y, click.ActionsState.ApproachPoint.Z);
-                    actionStates.ApproachRadius = click.ActionsState.ApproachRadius;
+                    UpdateActionsState(click.ActionsState);
 
-                    _logger.LogWarning("Unit action states. UnitId={unitID}, ApproachPoint={approachPoint}, ApproachRadius={approachRadius}", Game.Instance.TurnBasedCombatController.CurrentTurn.SelectedUnit.UniqueId, actionStates.ApproachPoint, actionStates.ApproachRadius);
+                    // TODO: remove json dump
+                    //var json = OwlcatJsonConvert.SerializeObject(actionStates);
+                    //_logger.LogInformation("Unit action states. UnitId={unitID}, ApproachPoint={approachPoint}, ApproachRadius={approachRadius}, Data={data}", Game.Instance.TurnBasedCombatController.CurrentTurn?.SelectedUnit?.UniqueId, actionStates?.ApproachPoint, actionStates?.ApproachRadius, json);
 
                     clickEventHandler.OnClick(targetUnit?.View?.gameObject, worldPosition, click.Button, simulate: false, click.MuteEvents, IsTMBClick: false);
                 }
@@ -572,6 +578,53 @@ namespace WOTRMultiplayer.GameInteraction
                     throw;
                 }
             });
+        }
+
+        private void UpdateActionsState(NetworkActionsState networkActionsState)
+        {
+            // could use OwlcatJsonConvert.DeserializeObject instead, but transfering/blidnly using big black box is kinda bad due to zero understanding of whats happening inside and what could cause errors in future
+
+            var actionStates = Game.Instance.TurnBasedCombatController.CurrentTurn.GetActionsStates(Game.Instance.TurnBasedCombatController.CurrentTurn.SelectedUnit);
+            if (actionStates == null)
+            {
+                _logger.LogError("Unable to update missing actions state");
+                return;
+            }
+
+            actionStates.ApproachPoint = new UnityEngine.Vector3(networkActionsState.ApproachPoint.X, networkActionsState.ApproachPoint.Y, networkActionsState.ApproachPoint.Z);
+            actionStates.ApproachRadius = networkActionsState.ApproachRadius;
+            UpdateCombatAction(actionStates.FiveFootStep, networkActionsState.FiveFootStep);
+            UpdateCombatAction(actionStates.Free, networkActionsState.Free);
+            UpdateCombatAction(actionStates.Move, networkActionsState.Move);
+            UpdateCombatAction(actionStates.Standard, networkActionsState.Standard);
+            UpdateCombatAction(actionStates.Swift, networkActionsState.Swift);
+        }
+
+        private void UpdateCombatAction(CombatAction action, NetworkCombatAction networkCombatAction)
+        {
+            action.m_MovementActivityStatePredicted = ParseEnum<ActivityState>(networkCombatAction.MovementActivityStatePredicted);
+            action.m_MovementActivityStateCurrent = ParseEnum<ActivityState>(networkCombatAction.MovementActivityStateCurrent);
+            action.m_AttackActivityStatePredicted = ParseEnum<ActivityState>(networkCombatAction.AttackActivityStatePredicted);
+            action.m_AttackActivityStateCurrent = ParseEnum<ActivityState>(networkCombatAction.AttackActivityStateCurrent);
+            action.m_AbilityActivityStatePredicted = ParseEnum<ActivityState>(networkCombatAction.AbilityActivityStatePredicted);
+            action.m_AbilityActivityStateCurrent = ParseEnum<ActivityState>(networkCombatAction.AbilityActivityStateCurrent);
+            action.LockType = networkCombatAction.LockType;
+            action.HasMovePossibility = networkCombatAction.HasMovePossibility;
+            action.MaxMoveDistance = networkCombatAction.MaxMoveDistance;
+            action.RemainingMoveDistance = networkCombatAction.RemainingMoveDistance;
+            action.PredictedMoveDistance = networkCombatAction.PredictedMoveDistance;
+            action.Type = ParseEnum<UsageType>(networkCombatAction.Type) ?? default;
+        }
+
+        private T? ParseEnum<T>(string value)
+            where T : struct
+        {
+            if (Enum.TryParse<T>(value, out var parsed))
+            {
+                return parsed;
+            }
+
+            return null;
         }
 
         private MapObjectView GetMapObjectView(string mapObjectId)

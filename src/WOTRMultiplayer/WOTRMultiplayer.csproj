@@ -43,10 +43,15 @@
 			xcopy /q /y ".\System.ValueTuple.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
 
 			xcopy /q /y ".\MurmurHash.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+
+			xcopy /q /y ".\AutoMapper.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
+			xcopy /q /y ".\AutoMapper.Extensions.Microsoft.DependencyInjection.dll" "..\..\..\..\..\..\..\Games\Steam\steamapps\common\Pathfinder Second Adventure\Mods\WOTRMultiplayer\*"
 		</PostBuildEvent>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="AutoMapper" Version="10.1.1" />
+		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.1" />
 		<PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
 		<PackageReference Include="murmurhash" Version="1.0.3" />

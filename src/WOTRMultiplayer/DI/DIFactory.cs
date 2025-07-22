@@ -14,6 +14,7 @@ using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.GameInteraction;
 using WOTRMultiplayer.Hashing;
 using WOTRMultiplayer.IO;
+using WOTRMultiplayer.Mapping;
 using WOTRMultiplayer.MP;
 using WOTRMultiplayer.Networking.Extensions;
 using WOTRMultiplayer.PubSub;
@@ -35,6 +36,11 @@ namespace WOTRMultiplayer.DI
             {
                 x.ClearProviders();
                 x.AddSerilog(Log.Logger);
+            });
+
+            serviceCollection.AddAutoMapper(cfg =>
+            {
+                cfg.AddProfile<NetworkMessagesProfile>();
             });
 
             serviceCollection.AddSingleton<IMainThreadAccessor, MainThreadAccessor>();

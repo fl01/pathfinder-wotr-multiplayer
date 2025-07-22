@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.IO;
@@ -22,6 +23,8 @@ namespace WOTRMultiplayer.MP
 {
     public class MultiplayerClient : IMultiplayerClient
     {
+        public const int LocalHostPlayerId = -1;
+
         private readonly ILogger<MultiplayerClient> _logger;
         private readonly IIPEndPointParser _ipEndPointParser;
         private readonly IFileSystemService _fileSystemService;
@@ -29,7 +32,7 @@ namespace WOTRMultiplayer.MP
         private readonly IMultiplayerSettingsProvider _multiplayerSettingsProvider;
         private readonly IGameInteractionService _gameInteractionService;
         private readonly IDiceRollStorage _diceRollStorage;
-        public const int LocalHostPlayerId = -1;
+        private readonly IMapper _mapper;
 
         private NetworkGame _game;
         private readonly object _actionlock = new();
@@ -62,7 +65,8 @@ namespace WOTRMultiplayer.MP
             IMultiplayerSettingsProvider multiplayerSettingsProvider,
             IFileSystemService fileSystemService,
             INetworkServerClient networkServerClient,
-            IDiceRollStorage diceRollStorage)
+            IDiceRollStorage diceRollStorage,
+            IMapper mapper)
         {
             _logger = logger;
             _ipEndPointParser = ipEndPointParser;
@@ -71,6 +75,7 @@ namespace WOTRMultiplayer.MP
             _multiplayerSettingsProvider = multiplayerSettingsProvider;
             _gameInteractionService = gameInteractionService;
             _diceRollStorage = diceRollStorage;
+            _mapper = mapper;
         }
 
         public ConnectLobbyResult Connect(string address)
@@ -354,7 +359,6 @@ namespace WOTRMultiplayer.MP
 
         public bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound)
         {
-            _logger.LogInformation("OnBeforeStartTurn. UnitId={unitId}, IsActingInSurpriseRound={isActingInSurpriseRound}", unitId, actingInSurpriseRound);
             if (_game.Combat.Turn != null && _game.Combat.Turn.IsInProgress)
             {
                 _logger.LogInformation("Turn start is allowed.");
@@ -454,7 +458,7 @@ namespace WOTRMultiplayer.MP
 
             var message = new NotifyUnitClicked
             {
-                Click = CreateNetworkClick(click)
+                Click = _mapper.Map<Networking.Messages.NetworkClick>(click)
             };
 
             _networkServerClient.SendAsync(message).Wait();
@@ -470,7 +474,7 @@ namespace WOTRMultiplayer.MP
             _logger.LogInformation("Sending ground click. WorldPosition={worldPosition}, VectorPathCount={pathCount}, SelectedUnits={selectedUnits}", click.WorldPosition, click.VectorPath.Count, string.Join(";", click.SelectedUnits));
             var message = new NotifyGroundClicked
             {
-                Click = CreateNetworkClick(click)
+                Click = _mapper.Map<Networking.Messages.NetworkClick>(click)
             };
 
             _networkServerClient.SendAsync(message).Wait();
@@ -488,7 +492,7 @@ namespace WOTRMultiplayer.MP
 
             var message = new NotifyAbilityClicked
             {
-                Click = CreateNetworkClick(click)
+                Click = _mapper.Map<Networking.Messages.NetworkClick>(click)
             };
 
             _networkServerClient.SendAsync(message).Wait();
@@ -500,29 +504,6 @@ namespace WOTRMultiplayer.MP
             _game.SaveFilePath = null;
             _game.Combat = null;
             _diceRollStorage.Reset();
-        }
-
-        private Networking.Messages.NetworkClick CreateNetworkClick(NetworkClick click)
-        {
-            return new Networking.Messages.NetworkClick
-            {
-                Button = click.Button,
-                MuteEvents = click.MuteEvents,
-                SelectedUnits = click.SelectedUnits,
-                TargetUnitId = click.TargetUnitId,
-                WorldPosition = new Networking.Messages.NetworkVector3(click.WorldPosition.X, click.WorldPosition.Y, click.WorldPosition.Z),
-                VectorPath = [.. click.VectorPath.Select(x => new Networking.Messages.NetworkVector3(x.X, x.Y, x.Z))],
-                Ability = click.Ability == null ? null : new Networking.Messages.NetworkAbility
-                {
-                    Id = click.Ability.Id,
-                    SpellbookId = click.Ability.SpellbookId,
-                },
-                ActionsState = click.ActionsState == null ? null : new Networking.Messages.NetworkActionsState
-                {
-                    ApproachPoint = click.ActionsState.ApproachPoint == null ? null : new Networking.Messages.NetworkVector3(click.ActionsState.ApproachPoint.X, click.ActionsState.ApproachPoint.Y, click.ActionsState.ApproachPoint.Z),
-                    ApproachRadius = click.ActionsState.ApproachRadius
-                }
-            };
         }
 
         private void RegisterHandlers()
@@ -581,8 +562,7 @@ namespace WOTRMultiplayer.MP
                 return;
             }
 
-            var click = CreateNetworkClick(clicked.Click);
-
+            var click = _mapper.Map<NetworkClick>(clicked.Click);
             _gameInteractionService.ClickAbilityInCombat(click);
         }
 
@@ -595,8 +575,7 @@ namespace WOTRMultiplayer.MP
                 return;
             }
 
-            var click = CreateNetworkClick(clicked.Click);
-
+            var click = _mapper.Map<NetworkClick>(clicked.Click);
             _gameInteractionService.ClickGroundInCombat(click);
         }
 
@@ -610,32 +589,8 @@ namespace WOTRMultiplayer.MP
                 return;
             }
 
-            var click = CreateNetworkClick(clicked.Click);
-
+            var click = _mapper.Map<NetworkClick>(clicked.Click);
             _gameInteractionService.ClickUnitInCombat(click);
-        }
-
-        private NetworkClick CreateNetworkClick(Networking.Messages.NetworkClick click)
-        {
-            return new NetworkClick
-            {
-                Button = click.Button,
-                MuteEvents = click.MuteEvents,
-                SelectedUnits = click.SelectedUnits,
-                TargetUnitId = click.TargetUnitId,
-                WorldPosition = new NetworkVector3(click.WorldPosition.X, click.WorldPosition.Y, click.WorldPosition.Z),
-                VectorPath = [.. click.VectorPath.Select(v => new NetworkVector3(v.X, v.Y, v.Z))],
-                Ability = click.Ability == null ? null : new NetworkAbility
-                {
-                    Id = click.Ability.Id,
-                    SpellbookId = click.Ability.SpellbookId,
-                },
-                ActionsState = click.ActionsState == null ? null : new NetworkActionsState
-                {
-                    ApproachPoint = click.ActionsState.ApproachPoint == null ? null : new NetworkVector3(click.ActionsState.ApproachPoint.X, click.ActionsState.ApproachPoint.Y, click.ActionsState.ApproachPoint.Z),
-                    ApproachRadius = click.ActionsState.ApproachRadius
-                }
-            };
         }
 
         private async void OnRollRequest(RollRequest request)

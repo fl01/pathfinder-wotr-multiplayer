@@ -3,7 +3,9 @@ using HarmonyLib;
 using Kingmaker;
 using Kingmaker.Controllers.Clicks.Handlers;
 using Kingmaker.EntitySystem.Entities;
+using Kingmaker.EntitySystem.Persistence.JsonUtility;
 using Kingmaker.TurnBasedMode;
+using Kingmaker.TurnBasedMode.Controllers;
 using Kingmaker.View;
 using Microsoft.Extensions.Logging;
 using UnityEngine;
@@ -43,9 +45,16 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
                 return;
             }
 
-            var click = CreateClick(gameObject, button, worldPosition, muteEvents, null);
-
-            Main.Multiplayer.OnClickGround(click);
+            try
+            {
+                var click = CreateClick(gameObject, button, worldPosition, muteEvents, null);
+                Main.Multiplayer.OnClickGround(click);
+            }
+            catch (System.Exception ex)
+            {
+                Main.GetLogger<ClicksPatches>().LogError(ex, "Unable to process ClickGround click");
+                throw;
+            }
         }
 
         [HarmonyPatch(typeof(ClickWithSelectedAbilityHandler), nameof(ClickWithSelectedAbilityHandler.OnClick))]
@@ -83,9 +92,16 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
                 return;
             }
 
-            var click = CreateClick(gameObject, button, worldPosition, muteEvents, __state);
-
-            Main.Multiplayer.OnClickWithSelectedAbility(click);
+            try
+            {
+                var click = CreateClick(gameObject, button, worldPosition, muteEvents, __state);
+                Main.Multiplayer.OnClickWithSelectedAbility(click);
+            }
+            catch (System.Exception ex)
+            {
+                Main.GetLogger<ClicksPatches>().LogError(ex, "Unable to process ClickAbility click");
+                throw;
+            }
         }
 
         [HarmonyPatch(typeof(ClickUnitHandler), nameof(ClickUnitHandler.OnClick))]
@@ -97,18 +113,26 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
                 return;
             }
 
-            var click = CreateClick(gameObject, button, worldPosition, muteEvents, null);
-
-            Main.Multiplayer.OnClickUnit(click);
+            try
+            {
+                var click = CreateClick(gameObject, button, worldPosition, muteEvents, null);
+                Main.Multiplayer.OnClickUnit(click);
+            }
+            catch (System.Exception ex)
+            {
+                Main.GetLogger<ClicksPatches>().LogError(ex, "Unable to process ClickUnit click");
+                throw;
+            }
         }
 
         private static NetworkClick CreateClick(GameObject gameObject, int button, UnityEngine.Vector3 worldPosition, bool muteEvents, ClickAbilityState state)
         {
             var selectedUnits = Game.Instance.SelectionCharacter.SelectedUnits.Select(x => x.UniqueId)?.ToList();
             var targetUnitId = gameObject?.GetComponent<UnitEntityView>()?.UniqueId;
-            var path = PathVisualizer.Instance.CurrentPathForUnit(Game.Instance.SelectionCharacter.FirstSelectedUnit?.View);
-            var actionStates = Game.Instance.TurnBasedCombatController.CurrentTurn?.GetActionsStates(Game.Instance.TurnBasedCombatController.CurrentTurn?.SelectedUnit);
-            Main.GetLogger<ClicksPatches>().LogInformation("Unit action states. UnitId={unitID}, ApproachPoint={approachPoint}, ApproachRadius={approachRadius}", Game.Instance.TurnBasedCombatController.CurrentTurn?.SelectedUnit?.UniqueId, actionStates?.ApproachPoint, actionStates?.ApproachRadius);
+            var path = PathVisualizer.Instance.CurrentPathForUnit(Game.Instance.SelectionCharacter?.FirstSelectedUnit?.View);
+            //var actionStates = Game.Instance.TurnBasedCombatController.CurrentTurn?.GetActionsStates(Game.Instance.TurnBasedCombatController.CurrentTurn?.SelectedUnit);
+            //var json = OwlcatJsonConvert.SerializeObject(actionStates);
+            //Main.GetLogger<ClicksPatches>().LogInformation("Unit action states. UnitId={unitID}, ApproachPoint={approachPoint}, ApproachRadius={approachRadius}, Data={data}", Game.Instance.TurnBasedCombatController.CurrentTurn?.SelectedUnit?.UniqueId, actionStates?.ApproachPoint, actionStates?.ApproachRadius, json);
 
             return new NetworkClick
             {
@@ -123,11 +147,51 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
                     Id = state.AbilityId,
                     SpellbookId = state.SpellbookId
                 },
-                ActionsState = new NetworkActionsState
-                {
-                    ApproachPoint = actionStates?.ApproachPoint == null ? null : new NetworkVector3(actionStates.ApproachPoint.x, actionStates.ApproachPoint.y, actionStates.ApproachPoint.z),
-                    ApproachRadius = actionStates?.ApproachRadius ?? 0
-                }
+                ActionsState = CreateNetworkActionsState()
+            };
+        }
+
+        private static NetworkActionsState CreateNetworkActionsState()
+        {
+            var actionStates = Game.Instance.TurnBasedCombatController.CurrentTurn?.GetActionsStates(Game.Instance.TurnBasedCombatController.CurrentTurn?.SelectedUnit);
+            if (actionStates == null)
+            {
+                return null;
+            }
+
+            return new NetworkActionsState
+            {
+                ApproachPoint = new NetworkVector3(actionStates.ApproachPoint.x, actionStates.ApproachPoint.y, actionStates.ApproachPoint.z),
+                ApproachRadius = actionStates.ApproachRadius,
+                FiveFootStep = CreateNetworkCombatAction(actionStates.FiveFootStep),
+                Free = CreateNetworkCombatAction(actionStates.Free),
+                Standard = CreateNetworkCombatAction(actionStates.Standard),
+                Swift = CreateNetworkCombatAction(actionStates.Swift),
+                Move = CreateNetworkCombatAction(actionStates.Move),
+            };
+        }
+
+        private static NetworkCombatAction CreateNetworkCombatAction(CombatAction action)
+        {
+            if (action == null)
+            {
+                return null;
+            }
+
+            return new NetworkCombatAction
+            {
+                MovementActivityStatePredicted = action.m_MovementActivityStatePredicted?.ToString(),
+                MovementActivityStateCurrent = action.m_MovementActivityStateCurrent?.ToString(),
+                AttackActivityStatePredicted = action.m_AttackActivityStatePredicted?.ToString(),
+                AttackActivityStateCurrent = action.m_AttackActivityStateCurrent?.ToString(),
+                AbilityActivityStatePredicted = action.m_AbilityActivityStatePredicted?.ToString(),
+                AbilityActivityStateCurrent = action.m_AbilityActivityStateCurrent?.ToString(),
+                LockType = action.LockType,
+                HasMovePossibility = action.HasMovePossibility,
+                MaxMoveDistance = action.MaxMoveDistance,
+                RemainingMoveDistance = action.RemainingMoveDistance,
+                PredictedMoveDistance = action.PredictedMoveDistance,
+                Type = action.Type.ToString(),
             };
         }
 

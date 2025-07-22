@@ -161,27 +161,35 @@ namespace WOTRMultiplayer.MP
         /// <param name="ruleRollDice"></param>
         public void OnAfterRuleRollDiceTrigger(RuleRollDice ruleRollDice)
         {
-            var multiplayerParticipant = GetMultiplayerParticipant();
-            if (multiplayerParticipant == null || !multiplayerParticipant.ShouldStoreRoll())
+            try
             {
-                return;
+                var multiplayerParticipant = GetMultiplayerParticipant();
+                if (multiplayerParticipant == null || !multiplayerParticipant.ShouldStoreRoll())
+                {
+                    return;
+                }
+
+                var combatRound = multiplayerParticipant.GetCombatRound();
+                NetworkDiceRoll roll = CreateNetworkDiceRoll(ruleRollDice, combatRound);
+
+                var rollType = ruleRollDice.Reason.Rule.GetType().Name;
+                if (roll == null)
+                {
+                    _logger.LogWarning("Roll saving has been skipped. Type={rollType}, InitiatorName={initiatorName}, InitiatorId={initiatorId}", rollType, ruleRollDice.Initiator?.CharacterName, ruleRollDice.Initiator?.UniqueId);
+                    return;
+                }
+
+                if (!_diceRollStorage.Save(roll))
+                {
+                    var message = $"Roll has not been saved which guarantees to cause desync in the game. RollType={rollType}";
+                    _logger.LogCritical(message);
+                    _gameInteractionService.ShowModalMessage(message);
+                }
             }
-
-            var combatRound = multiplayerParticipant.GetCombatRound();
-            NetworkDiceRoll roll = CreateNetworkDiceRoll(ruleRollDice, combatRound);
-
-            var rollType = ruleRollDice.Reason.Rule.GetType().Name;
-            if (roll == null)
+            catch (System.Exception ex)
             {
-                _logger.LogWarning("Roll saving has been skipped. Type={rollType}, InitiatorName={initiatorName}, InitiatorId={initiatorId}", rollType, ruleRollDice.Initiator?.CharacterName, ruleRollDice.Initiator?.UniqueId);
-                return;
-            }
-
-            if (!_diceRollStorage.Save(roll))
-            {
-                var message = $"Roll has not been saved which guarantees to cause desync in the game. RollType={rollType}";
-                _logger.LogCritical(message);
-                _gameInteractionService.ShowModalMessage(message);
+                _logger.LogError(ex, "Unable to handle OnAfterRuleRollDiceTrigger");
+                throw;
             }
         }
 
@@ -192,42 +200,50 @@ namespace WOTRMultiplayer.MP
         /// <returns>true-roll should be performed by game</returns>
         public bool OnBeforeRuleRollDiceTrigger(RuleRollDice ruleRollDice)
         {
-            var multiplayerParticipant = GetMultiplayerParticipant();
-            if (multiplayerParticipant == null || multiplayerParticipant.ShouldStoreRoll())
+            try
             {
-                return true;
+                var multiplayerParticipant = GetMultiplayerParticipant();
+                if (multiplayerParticipant == null || multiplayerParticipant.ShouldStoreRoll())
+                {
+                    return true;
+                }
+
+                var initiatorId = ruleRollDice.Initiator.UniqueId;
+                var combatRound = multiplayerParticipant.GetCombatRound();
+                var rollType = ruleRollDice.Reason?.Rule?.GetType().Name;
+
+                var networkDiceRoll = CreateNetworkDiceRoll(ruleRollDice, combatRound);
+                if (networkDiceRoll == null)
+                {
+                    _logger.LogWarning("Roll retrieving has been skipped. Type={rollType}, InitiatorName={initiatorName}, InitiatorId={initiatorId}", rollType, ruleRollDice.Initiator?.CharacterName, ruleRollDice.Initiator?.UniqueId);
+                    return true;
+                }
+
+                var networkDiceRollId = _diceRollStorage.GetUniqueId(networkDiceRoll);
+
+                var roll = multiplayerParticipant.RetrieveRoll(networkDiceRollId, initiatorId);
+                if (roll == null)
+                {
+                    _logger.LogCritical("Failed to acquire roll from remote player which guarantees desync in the game. RollType={rollType}", rollType);
+                    _gameInteractionService.ShowModalMessage($"Failed to acquire roll from remote player which guarantees desync in the game. RollType={rollType}");
+                    return true;
+                }
+
+                ruleRollDice.m_Result = roll.Result;
+                if (ruleRollDice.RollHistory?.Count > 0)
+                {
+                    _logger.LogWarning("Roll history is not empty. RollId={rollId}, RollType={rollType}", networkDiceRollId, rollType);
+                }
+
+                ruleRollDice.RollHistory = [.. roll.RollHistory];
+                _logger.LogInformation("Roll result has been acquired from another player. RollId={rollId}, Result={result}, RollType={rollType}", networkDiceRollId, ruleRollDice.Result, rollType);
+                return false;
             }
-
-            var initiatorId = ruleRollDice.Initiator.UniqueId;
-            var combatRound = multiplayerParticipant.GetCombatRound();
-            var rollType = ruleRollDice.Reason.Rule.GetType().Name;
-
-            var networkDiceRoll = CreateNetworkDiceRoll(ruleRollDice, combatRound);
-            if (networkDiceRoll == null)
+            catch (System.Exception ex)
             {
-                _logger.LogWarning("Roll retrieving has been skipped. Type={rollType}, InitiatorName={initiatorName}, InitiatorId={initiatorId}", rollType, ruleRollDice.Initiator?.CharacterName, ruleRollDice.Initiator?.UniqueId);
-                return true;
+                _logger.LogError(ex, "Unable to handle OnBeforeRuleRollDiceTrigger");
+                throw;
             }
-
-            var networkDiceRollId = _diceRollStorage.GetUniqueId(networkDiceRoll);
-
-            var roll = multiplayerParticipant.RetrieveRoll(networkDiceRollId, initiatorId);
-            if (roll == null)
-            {
-                _logger.LogCritical("Failed to acquire roll from remote player which guarantees desync in the game. RollType={rollType}", rollType);
-                _gameInteractionService.ShowModalMessage($"Failed to acquire roll from remote player which guarantees desync in the game. RollType={rollType}");
-                return true;
-            }
-
-            ruleRollDice.m_Result = roll.Result;
-            if (ruleRollDice.RollHistory?.Count > 0)
-            {
-                _logger.LogWarning("Roll history is not empty. RollId={rollId}, RollType={rollType}", networkDiceRollId, rollType);
-            }
-
-            ruleRollDice.RollHistory = [.. roll.RollHistory];
-            _logger.LogInformation("Roll result has been acquired from another player. RollId={rollId}, Result={result}, RollType={rollType}", networkDiceRollId, ruleRollDice.Result, rollType);
-            return false;
         }
 
         public void OnAfterCueShow(string dialogName, string cueName, bool hasSystemAnswer)
@@ -356,7 +372,7 @@ namespace WOTRMultiplayer.MP
 
         private NetworkDiceRoll CreateNetworkDiceRoll(RuleRollDice ruleRollDice, int combatRound)
         {
-            NetworkDiceRoll roll = ruleRollDice.Reason.Rule switch
+            NetworkDiceRoll roll = ruleRollDice.Reason?.Rule switch
             {
                 RulePartyStatCheck rulePartyStatCheck => CreatePartyStatCheckRoll(ruleRollDice, rulePartyStatCheck),
                 RuleInitiativeRoll ruleInitiativeRoll => CreateInitiativeRoll(ruleRollDice, ruleInitiativeRoll),
