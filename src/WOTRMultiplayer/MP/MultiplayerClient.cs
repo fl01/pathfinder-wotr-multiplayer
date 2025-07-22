@@ -454,15 +454,7 @@ namespace WOTRMultiplayer.MP
 
             var message = new NotifyUnitClicked
             {
-                Click = new Networking.Messages.NetworkClick
-                {
-                    Button = click.Button,
-                    MuteEvents = click.MuteEvents,
-                    SelectedUnits = click.SelectedUnits,
-                    TargetUnitId = click.TargetUnitId,
-                    WorldPosition = new Networking.Messages.NetworkVector3(click.WorldPosition.X, click.WorldPosition.Y, click.WorldPosition.Z),
-                    VectorPath = [.. click.VectorPath.Select(x => new Networking.Messages.NetworkVector3(x.X, x.Y, x.Z))]
-                }
+                Click = CreateNetworkClick(click)
             };
 
             _networkServerClient.SendAsync(message).Wait();
@@ -478,15 +470,7 @@ namespace WOTRMultiplayer.MP
             _logger.LogInformation("Sending ground click. WorldPosition={worldPosition}, VectorPathCount={pathCount}, SelectedUnits={selectedUnits}", click.WorldPosition, click.VectorPath.Count, string.Join(";", click.SelectedUnits));
             var message = new NotifyGroundClicked
             {
-                Click = new Networking.Messages.NetworkClick
-                {
-                    Button = click.Button,
-                    MuteEvents = click.MuteEvents,
-                    SelectedUnits = click.SelectedUnits,
-                    TargetUnitId = click.TargetUnitId,
-                    WorldPosition = new Networking.Messages.NetworkVector3(click.WorldPosition.X, click.WorldPosition.Y, click.WorldPosition.Z),
-                    VectorPath = [.. click.VectorPath.Select(x => new Networking.Messages.NetworkVector3(x.X, x.Y, x.Z))]
-                }
+                Click = CreateNetworkClick(click)
             };
 
             _networkServerClient.SendAsync(message).Wait();
@@ -504,20 +488,7 @@ namespace WOTRMultiplayer.MP
 
             var message = new NotifyAbilityClicked
             {
-                Click = new Networking.Messages.NetworkClick
-                {
-                    Button = click.Button,
-                    MuteEvents = click.MuteEvents,
-                    SelectedUnits = click.SelectedUnits,
-                    TargetUnitId = click.TargetUnitId,
-                    Ability = new Networking.Messages.NetworkAbility
-                    {
-                        Id = click.Ability.Id,
-                        SpellbookId = click.Ability.SpellbookId
-                    },
-                    WorldPosition = new Networking.Messages.NetworkVector3(click.WorldPosition.X, click.WorldPosition.Y, click.WorldPosition.Z),
-                    VectorPath = [.. click.VectorPath.Select(x => new Networking.Messages.NetworkVector3(x.X, x.Y, x.Z))]
-                }
+                Click = CreateNetworkClick(click)
             };
 
             _networkServerClient.SendAsync(message).Wait();
@@ -529,6 +500,29 @@ namespace WOTRMultiplayer.MP
             _game.SaveFilePath = null;
             _game.Combat = null;
             _diceRollStorage.Reset();
+        }
+
+        private Networking.Messages.NetworkClick CreateNetworkClick(NetworkClick click)
+        {
+            return new Networking.Messages.NetworkClick
+            {
+                Button = click.Button,
+                MuteEvents = click.MuteEvents,
+                SelectedUnits = click.SelectedUnits,
+                TargetUnitId = click.TargetUnitId,
+                WorldPosition = new Networking.Messages.NetworkVector3(click.WorldPosition.X, click.WorldPosition.Y, click.WorldPosition.Z),
+                VectorPath = [.. click.VectorPath.Select(x => new Networking.Messages.NetworkVector3(x.X, x.Y, x.Z))],
+                Ability = click.Ability == null ? null : new Networking.Messages.NetworkAbility
+                {
+                    Id = click.Ability.Id,
+                    SpellbookId = click.Ability.SpellbookId,
+                },
+                ActionsState = click.ActionsState == null ? null : new Networking.Messages.NetworkActionsState
+                {
+                    ApproachPoint = click.ActionsState.ApproachPoint == null ? null : new Networking.Messages.NetworkVector3(click.ActionsState.ApproachPoint.X, click.ActionsState.ApproachPoint.Y, click.ActionsState.ApproachPoint.Z),
+                    ApproachRadius = click.ActionsState.ApproachRadius
+                }
+            };
         }
 
         private void RegisterHandlers()
@@ -554,6 +548,7 @@ namespace WOTRMultiplayer.MP
                 .Register<NotifyCombatStarted>(OnNotifyCombatStarted)
                 .Register<NotifyCombatTurnStarted>(OnNotifyCombatTurnStarted)
                 .Register<NotifyCombatTurnEnded>(OnNotifyCombatTurnEnded)
+
                 .Register<NotifyUnitClicked>(OnNotifyUnitClicked)
                 .Register<NotifyGroundClicked>(OnNotifyGroundClicked)
                 .Register<NotifyAbilityClicked>(OnNotifyAbilityClicked)
@@ -586,20 +581,7 @@ namespace WOTRMultiplayer.MP
                 return;
             }
 
-            var click = new NetworkClick
-            {
-                Button = clicked.Click.Button,
-                MuteEvents = clicked.Click.MuteEvents,
-                SelectedUnits = clicked.Click.SelectedUnits,
-                Ability = new NetworkAbility
-                {
-                    Id = clicked.Click.Ability.Id,
-                    SpellbookId = clicked.Click.Ability.SpellbookId
-                },
-                TargetUnitId = clicked.Click.TargetUnitId,
-                WorldPosition = new NetworkVector3(clicked.Click.WorldPosition.X, clicked.Click.WorldPosition.Y, clicked.Click.WorldPosition.Z),
-                VectorPath = [.. clicked.Click.VectorPath.Select(v => new NetworkVector3(v.X, v.Y, v.Z))]
-            };
+            var click = CreateNetworkClick(clicked.Click);
 
             _gameInteractionService.ClickAbilityInCombat(click);
         }
@@ -613,14 +595,7 @@ namespace WOTRMultiplayer.MP
                 return;
             }
 
-            var click = new NetworkClick
-            {
-                Button = clicked.Click.Button,
-                MuteEvents = clicked.Click.MuteEvents,
-                SelectedUnits = clicked.Click.SelectedUnits,
-                WorldPosition = new NetworkVector3(clicked.Click.WorldPosition.X, clicked.Click.WorldPosition.Y, clicked.Click.WorldPosition.Z),
-                VectorPath = [.. clicked.Click.VectorPath.Select(v => new NetworkVector3(v.X, v.Y, v.Z))]
-            };
+            var click = CreateNetworkClick(clicked.Click);
 
             _gameInteractionService.ClickGroundInCombat(click);
         }
@@ -635,17 +610,32 @@ namespace WOTRMultiplayer.MP
                 return;
             }
 
-            var click = new NetworkClick
-            {
-                Button = clicked.Click.Button,
-                MuteEvents = clicked.Click.MuteEvents,
-                SelectedUnits = clicked.Click.SelectedUnits,
-                TargetUnitId = clicked.Click.TargetUnitId,
-                WorldPosition = new NetworkVector3(clicked.Click.WorldPosition.X, clicked.Click.WorldPosition.Y, clicked.Click.WorldPosition.Z),
-                VectorPath = [.. clicked.Click.VectorPath.Select(v => new NetworkVector3(v.X, v.Y, v.Z))]
-            };
+            var click = CreateNetworkClick(clicked.Click);
 
             _gameInteractionService.ClickUnitInCombat(click);
+        }
+
+        private NetworkClick CreateNetworkClick(Networking.Messages.NetworkClick click)
+        {
+            return new NetworkClick
+            {
+                Button = click.Button,
+                MuteEvents = click.MuteEvents,
+                SelectedUnits = click.SelectedUnits,
+                TargetUnitId = click.TargetUnitId,
+                WorldPosition = new NetworkVector3(click.WorldPosition.X, click.WorldPosition.Y, click.WorldPosition.Z),
+                VectorPath = [.. click.VectorPath.Select(v => new NetworkVector3(v.X, v.Y, v.Z))],
+                Ability = click.Ability == null ? null : new NetworkAbility
+                {
+                    Id = click.Ability.Id,
+                    SpellbookId = click.Ability.SpellbookId,
+                },
+                ActionsState = click.ActionsState == null ? null : new NetworkActionsState
+                {
+                    ApproachPoint = click.ActionsState.ApproachPoint == null ? null : new NetworkVector3(click.ActionsState.ApproachPoint.X, click.ActionsState.ApproachPoint.Y, click.ActionsState.ApproachPoint.Z),
+                    ApproachRadius = click.ActionsState.ApproachRadius
+                }
+            };
         }
 
         private async void OnRollRequest(RollRequest request)

@@ -26,5 +26,8 @@ namespace WOTRMultiplayer.Networking.Messages
 
         [ProtoMember(7)]
         public NetworkAbility Ability { get; set; }
+
+        [ProtoMember(8)]
+        public NetworkActionsState ActionsState { get; set; }
     }
 }

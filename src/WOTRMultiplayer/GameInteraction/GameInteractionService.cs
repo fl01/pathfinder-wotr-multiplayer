@@ -558,6 +558,10 @@ namespace WOTRMultiplayer.GameInteraction
                     }
 
                     var actionStates = Game.Instance.TurnBasedCombatController.CurrentTurn.GetActionsStates(Game.Instance.TurnBasedCombatController.CurrentTurn.SelectedUnit);
+
+                    actionStates.ApproachPoint = new UnityEngine.Vector3(click.ActionsState.ApproachPoint.X, click.ActionsState.ApproachPoint.Y, click.ActionsState.ApproachPoint.Z);
+                    actionStates.ApproachRadius = click.ActionsState.ApproachRadius;
+
                     _logger.LogWarning("Unit action states. UnitId={unitID}, ApproachPoint={approachPoint}, ApproachRadius={approachRadius}", Game.Instance.TurnBasedCombatController.CurrentTurn.SelectedUnit.UniqueId, actionStates.ApproachPoint, actionStates.ApproachRadius);
 
                     clickEventHandler.OnClick(targetUnit?.View?.gameObject, worldPosition, click.Button, simulate: false, click.MuteEvents, IsTMBClick: false);
