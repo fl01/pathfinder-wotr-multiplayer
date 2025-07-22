@@ -21,7 +21,9 @@ using Kingmaker.UI;
 using Kingmaker.UI.MVVM._PCView.Dialog.Dialog;
 using Kingmaker.UI.MVVM._PCView.InGame;
 using Kingmaker.UI.MVVM._VM.Dialog.Dialog;
+using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.UnitLogic.Commands;
+using Kingmaker.Utility;
 using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
@@ -306,18 +308,28 @@ namespace WOTRMultiplayer.GameInteraction
 
         public bool IsUnitAI(string unitId)
         {
-            var unit = GetUnitEntityFromParty(unitId);
+            var unit = Game.Instance.Player.PartyAndPets.FirstOrDefault(p => string.Equals(p.UniqueId, unitId, StringComparison.OrdinalIgnoreCase));
             return unit == null;
         }
 
         public List<NetworkUnit> GetUnitsInCombat()
         {
-            var inCombat = Game.Instance.State.Units
-                .InCombat()
+            var unitsToSync = Game.Instance.State.Units.InCombat().ToList();
+
+            switch (Game.Instance.CurrentlyLoadedArea.name)
+            {
+                case "Prologue_Caves_1":
+                    unitsToSync.Add(GetUnitEntity("34BD")); // Anevia, constantly joins midfight
+                    break;
+                default:
+                    break;
+            }
+
+            var units = unitsToSync
                 .Select(c => new NetworkUnit { Id = c.UniqueId, Position = new Vector3(c.Position.x, c.Position.y, c.Position.z) })
                 .ToList();
 
-            return inCombat;
+            return units;
         }
 
         public Task UpdateUnitsPositionAsync(List<NetworkUnit> networkUnits)
@@ -460,10 +472,21 @@ namespace WOTRMultiplayer.GameInteraction
             try
             {
                 var clickUnitHandler = Game.Instance.DefaultPointerController.m_ClickHandlers.FirstOrDefault(c => c is ClickWithSelectedAbilityHandler);
+                var clickUnitId = click.SelectedUnits.FirstOrDefault();
+                var caster = GetUnitEntity(clickUnitId);
+                if (caster == null)
+                {
+                    _logger.LogError("Can't click ability on missing unit. UnitId={unitID}", clickUnitId);
+                    return;
+                }
 
-                var caster = GetUnitEntity(click.SelectedUnits.FirstOrDefault());
-                var ability = caster?.Abilities.Enumerable.FirstOrDefault(a => string.Equals(a.UniqueId, click.AbilityId, StringComparison.OrdinalIgnoreCase));
-                ((ClickWithSelectedAbilityHandler)clickUnitHandler).SelectedAbility = ability.Data;
+                var abilityData = FindAbility(caster, click.Ability);
+                if (abilityData == null)
+                {
+                    return;
+                }
+
+                ((ClickWithSelectedAbilityHandler)clickUnitHandler).SelectedAbility = abilityData;
 
                 ExecuteClickHandler(clickUnitHandler, click);
             }
@@ -475,12 +498,46 @@ namespace WOTRMultiplayer.GameInteraction
             }
         }
 
+        private AbilityData FindAbility(UnitEntityData unit, NetworkAbility ability)
+        {
+            if (!string.IsNullOrEmpty(ability.SpellbookId))
+            {
+                var spellbook = unit.Spellbooks.FirstOrDefault(s => string.Equals(s.Blueprint.Name.Key, ability.SpellbookId));
+                if (spellbook == null)
+                {
+                    _logger.LogError("Unable to find ability due to missing spellbook. UnitId={unitId}, AbilityId={abilityId}, SpellbookId={spellbookId}", unit.UniqueId, ability.Id, ability.SpellbookId);
+                    return null;
+                }
+
+                foreach (var spellSlot in spellbook.m_MemorizedSpells)
+                {
+                    var spell = spellSlot.FirstOrDefault(s => string.Equals(s.Spell.UniqueId, ability.Id, StringComparison.OrdinalIgnoreCase));
+                    if (spell != null)
+                    {
+                        _logger.LogInformation("Spell has been found. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}", unit.UniqueId, ability.Id, spellbook.Blueprint.Name);
+                        return spell.Spell;
+                    }
+                }
+            }
+
+            var byAbilityId = unit.Abilities.Enumerable.FirstOrDefault(a => !string.IsNullOrEmpty(ability.Id) && string.Equals(a.Data.UniqueId, ability.Id, StringComparison.OrdinalIgnoreCase));
+            if (byAbilityId != null)
+            {
+                _logger.LogInformation("Ability has been found by abilityId. UnitId={unitId}, AbilityId={abilityId}", unit.UniqueId, ability.Id);
+                return byAbilityId.Data;
+            }
+
+            _logger.LogError("Unable to find ability. UnitId={unitId}, AbilityId={abilityId}, SpellbookBlueprintId={spellbookBlueprintId}", unit.UniqueId, ability.Id, ability.SpellbookId);
+            return null;
+        }
+
         private void ExecuteClickHandler(IClickEventHandler clickEventHandler, NetworkClick click)
         {
             var targetUnit = GetUnitEntity(click.TargetUnitId);
             var selectedUnits = click.SelectedUnits.Select(GetUnitEntity)?.ToList();
             var selectedUnit = selectedUnits.FirstOrDefault();
             var worldPosition = new UnityEngine.Vector3(click.WorldPosition.X, click.WorldPosition.Y, click.WorldPosition.Z);
+
             _mainThreadAccessor.Enqueue(() =>
             {
                 try
@@ -497,10 +554,11 @@ namespace WOTRMultiplayer.GameInteraction
                         var movementPath = click.VectorPath.Select(v => new UnityEngine.Vector3(v.X, v.Y, v.Z)).ToList();
                         // Commands are using m_CurrentPath in case of extra movement is needed, e.g. UnitAttack command with far away target
                         PathVisualizer.Instance.m_CurrentPath = ABPath.FakePath(movementPath);
-                        // I have no idea what are consequences of 'fake' claiming the path (sorry not reading docs), but atleast it suppresses exceptions in dev mode
-                        // let's hope it's not going to cause a lot of problems since this path is fake anyway (transfered from another player)
-                        PathVisualizer.Instance.m_CurrentPath.Claim(this);
+                        PathVisualizer.Instance.m_CurrentPath.Claim(PathVisualizer.Instance);
                     }
+
+                    var actionStates = Game.Instance.TurnBasedCombatController.CurrentTurn.GetActionsStates(Game.Instance.TurnBasedCombatController.CurrentTurn.SelectedUnit);
+                    _logger.LogWarning("Unit action states. UnitId={unitID}, ApproachPoint={approachPoint}, ApproachRadius={approachRadius}", Game.Instance.TurnBasedCombatController.CurrentTurn.SelectedUnit.UniqueId, actionStates.ApproachPoint, actionStates.ApproachRadius);
 
                     clickEventHandler.OnClick(targetUnit?.View?.gameObject, worldPosition, click.Button, simulate: false, click.MuteEvents, IsTMBClick: false);
                 }
@@ -543,27 +601,14 @@ namespace WOTRMultiplayer.GameInteraction
                 return null;
             }
 
-            return GetUnitEntityFromLoadedArea(uniqueId) ?? GetUnitEntityFromParty(uniqueId);
+            return Game.Instance.State.Units.FirstOrDefault(u => string.Equals(u.UniqueId, uniqueId, StringComparison.OrdinalIgnoreCase));
         }
 
-        private UnitEntityData GetUnitEntityFromParty(string uniqueId)
+        public bool CombatTurnHasBeenFinished()
         {
-            if (string.IsNullOrEmpty(uniqueId))
-            {
-                return null;
-            }
-
-            return Game.Instance.Player.PartyAndPets.FirstOrDefault(p => string.Equals(p.UniqueId, uniqueId, StringComparison.OrdinalIgnoreCase));
-        }
-
-        private UnitEntityData GetUnitEntityFromLoadedArea(string uniqueId)
-        {
-            if (string.IsNullOrEmpty(uniqueId))
-            {
-                return null;
-            }
-
-            return Game.Instance.LoadedAreaState.AllEntityData.FirstOrDefault(e => string.Equals(e.UniqueId, uniqueId, StringComparison.OrdinalIgnoreCase)) as UnitEntityData;
+            return Game.Instance.TurnBasedCombatController.CurrentTurn == null
+                || Game.Instance.TurnBasedCombatController.CurrentTurn.Status == TurnBased.Controllers.TurnController.TurnStatus.Ended
+                || Game.Instance.TurnBasedCombatController.CurrentTurn.Status == TurnBased.Controllers.TurnController.TurnStatus.Ending;
         }
     }
 }

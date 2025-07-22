@@ -15,7 +15,7 @@ namespace WOTRMultiplayer.Networking
         private readonly ConcurrentDictionary<Type, Action<object>> _handlers = new();
         private readonly ConcurrentDictionary<Type, TaskCompletionSource<object>> _awaiters = new();
         private readonly ILogger<NetworkServerClient> _logger;
-        private readonly TimeSpan _defaultAwaiterTimeout = TimeSpan.FromSeconds(10);
+        private readonly TimeSpan _defaultAwaiterTimeout = TimeSpan.FromSeconds(30);
 
         public Action<Exception> OnError { get; set; }
         public Action<EndPoint> OnConnected { get; set; }

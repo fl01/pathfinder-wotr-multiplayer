@@ -5,6 +5,8 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
 {
     public class NetworkDiceRoll
     {
+        protected const string IdSeparator = ":::";
+
         public int Result { get; set; }
 
         public List<int> RollHistory { get; set; } = [];
@@ -23,7 +25,7 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
 
         public virtual string GetIdString()
         {
-            return GetType().Name + InitiatorId + DiceType.ToString() + RuleRollType + RuleRollName + TotalModifiersBonus;
+            return string.Join(IdSeparator, GetType().Name, InitiatorId, DiceType.ToString(), RuleRollType, RuleRollName, TotalModifiersBonus);
         }
     }
 }

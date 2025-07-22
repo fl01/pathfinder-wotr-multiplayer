@@ -364,6 +364,11 @@ namespace WOTRMultiplayer.MP
                 _ => null
             };
 
+            if (roll != null)
+            {
+                _logger.LogInformation("Created roll. Type={type}, IdString={id}", roll.GetType().Name, roll.GetIdString());
+            }
+
             return roll;
         }
 

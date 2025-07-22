@@ -292,6 +292,11 @@ namespace WOTRMultiplayer.Playground.Host
             public void ClickAbilityInCombat(NetworkClick click)
             {
             }
+
+            public bool CombatTurnHasBeenFinished()
+            {
+                return true;
+            }
         }
 
         private class DummyDiceRollStorage : IDiceRollStorage

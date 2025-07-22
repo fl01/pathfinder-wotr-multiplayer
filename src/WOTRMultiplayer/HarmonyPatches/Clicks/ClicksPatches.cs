@@ -5,6 +5,7 @@ using Kingmaker.Controllers.Clicks.Handlers;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.TurnBasedMode;
 using Kingmaker.View;
+using Microsoft.Extensions.Logging;
 using UnityEngine;
 using WOTRMultiplayer.MP.Entities;
 
@@ -53,6 +54,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
                 VectorPath = [.. path?.vectorPath?.Select(v => new NetworkVector3 { X = v.x, Y = v.y, Z = v.z }) ?? []]
             };
 
+            var actionStates = Game.Instance.TurnBasedCombatController.CurrentTurn?.GetActionsStates(Game.Instance.TurnBasedCombatController.CurrentTurn?.SelectedUnit);
+            Main.GetLogger<ClicksPatches>().LogInformation("Unit action states. UnitId={unitID}, ApproachPoint={approachPoint}, ApproachRadius={approachRadius}", Game.Instance.TurnBasedCombatController.CurrentTurn?.SelectedUnit?.UniqueId, actionStates?.ApproachPoint, actionStates?.ApproachRadius);
+
             Main.Multiplayer.OnClickGround(click);
         }
 
@@ -67,10 +71,19 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
             }
 
             // already set to null in postfix, but is required for network communication
-            __state = new ClickWithSelectedAbilityHandlerOnClickState
+            try
             {
-                AbilityId = __instance.SelectedAbility?.UniqueId
-            };
+                __state = new ClickWithSelectedAbilityHandlerOnClickState
+                {
+                    AbilityId = __instance.SelectedAbility?.UniqueId,
+                    SpellbookId = __instance.SelectedAbility.Spellbook?.Blueprint.Name.Key
+                };
+            }
+            catch (System.Exception ex)
+            {
+                Main.GetLogger<ClicksPatches>().LogError(ex, "Unable to retrieve ability data");
+                throw;
+            }
         }
 
         [HarmonyPatch(typeof(ClickWithSelectedAbilityHandler), nameof(ClickWithSelectedAbilityHandler.OnClick))]
@@ -93,8 +106,15 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
                 WorldPosition = new NetworkVector3(worldPosition.x, worldPosition.y, worldPosition.z),
                 MuteEvents = muteEvents,
                 VectorPath = [.. path?.vectorPath?.Select(v => new NetworkVector3 { X = v.x, Y = v.y, Z = v.z }) ?? []],
-                AbilityId = __state.AbilityId
+                Ability = new NetworkAbility
+                {
+                    Id = __state.AbilityId,
+                    SpellbookId = __state.SpellbookId
+                }
             };
+
+            var actionStates = Game.Instance.TurnBasedCombatController.CurrentTurn?.GetActionsStates(Game.Instance.TurnBasedCombatController.CurrentTurn?.SelectedUnit);
+            Main.GetLogger<ClicksPatches>().LogInformation("Unit action states. UnitId={unitID}, ApproachPoint={approachPoint}, ApproachRadius={approachRadius}", Game.Instance.TurnBasedCombatController.CurrentTurn?.SelectedUnit?.UniqueId, actionStates?.ApproachPoint, actionStates?.ApproachRadius);
 
             Main.Multiplayer.OnClickWithSelectedAbility(click);
         }
@@ -121,12 +141,17 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
                 VectorPath = [.. path?.vectorPath?.Select(v => new NetworkVector3 { X = v.x, Y = v.y, Z = v.z }) ?? []]
             };
 
+            var actionStates = Game.Instance.TurnBasedCombatController.CurrentTurn?.GetActionsStates(Game.Instance.TurnBasedCombatController.CurrentTurn?.SelectedUnit);
+            Main.GetLogger<ClicksPatches>().LogInformation("Unit action states. UnitId={unitID}, ApproachPoint={approachPoint}, ApproachRadius={approachRadius}", Game.Instance.TurnBasedCombatController.CurrentTurn?.SelectedUnit?.UniqueId, actionStates?.ApproachPoint, actionStates?.ApproachRadius);
+
             Main.Multiplayer.OnClickUnit(click);
         }
 
         public class ClickWithSelectedAbilityHandlerOnClickState
         {
             public string AbilityId { get; set; }
+
+            public string SpellbookId { get; set; }
         }
     }
 }

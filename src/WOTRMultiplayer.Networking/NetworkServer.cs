@@ -14,7 +14,7 @@ namespace WOTRMultiplayer.Networking
 {
     public class NetworkServer : INetworkServer
     {
-        private readonly TimeSpan _defaultAwaiterTimeout = TimeSpan.FromSeconds(10);
+        private readonly TimeSpan _defaultAwaiterTimeout = TimeSpan.FromSeconds(30);
 
         private ServerBuilder<NetworkServerApp, NetworkClientToken, ProtobufPacket> _server;
         private ServerBuilder<NetworkServerApp, NetworkClientToken, ProtobufPacket> Server => _server ??= new ServerBuilder<NetworkServerApp, NetworkClientToken, ProtobufPacket>();

@@ -126,18 +126,11 @@ namespace WOTRMultiplayer.MP
             var realCharacterId = _gameInteractionService.GetPetOwnerId(unitId) ?? unitId;
 
             var character = _game.Characters.FirstOrDefault(c => string.Equals(c.UnitId, realCharacterId, StringComparison.OrdinalIgnoreCase));
-            if (character == null)
-            {
-                _logger.LogWarning("Unable to find character in the list. UnitId={unitId}", realCharacterId);
-                return false;
-            }
-
-            return character.Owner != null && character.Owner.Id == _game.LocalPlayerId;
+            return character == null || character.Owner != null && character.Owner.Id == _game.LocalPlayerId;
         }
 
         public void MoveNonCombatCharacter(string unitId, NetworkVector3 destination, float delay, float orientation)
         {
-            // TODO: current trigger couldn't be used in combat
             if (_game.Combat != null)
             {
                 return;
@@ -377,7 +370,7 @@ namespace WOTRMultiplayer.MP
                 IsAI = _gameInteractionService.IsUnitAI(unitId)
             };
 
-            _logger.LogInformation("Turn start has been initialized, notifying host. UnitId={unitId}, IsLocalPlayer={isLocalPlayer}, IsAI={isAI}, IsActingInSurpriseRound={isActingInSurpriseRound}",
+            _logger.LogInformation("OnBeforeStartTurn. UnitId={unitId}, IsLocalPlayer={isLocalPlayer}, IsAI={isAI}, IsActingInSurpriseRound={isActingInSurpriseRound}",
                 unitId, _game.Combat.Turn.IsLocalPlayer, _game.Combat.Turn.IsAI, _game.Combat.Turn.IsActingInSurpriseRound);
 
             var message = new ClientCombatTurnStarted { Round = _game.Combat.Round, UnitId = _game.Combat.Turn.UnitId };
@@ -399,11 +392,15 @@ namespace WOTRMultiplayer.MP
                 return false;
             }
 
-            _logger.LogInformation("OnBeforeEndTurn. UnitId={unitId}", unitId);
+            _logger.LogInformation("OnBeforeEndTurn. UnitId={unitId}, IsLocalPlayer={isLocalPlayer}, IsAI={isAI}, IsActingInSurpriseRound={isActingInSurpriseRound}, IsInProgress={isInProgress}",
+                unitId, _game.Combat.Turn.IsLocalPlayer, _game.Combat.Turn.IsAI, _game.Combat.Turn.IsActingInSurpriseRound, _game.Combat.Turn.IsInProgress);
 
-            var message = new ClientCombatTurnEnded { Round = _game.Combat.Round, UnitId = _game.Combat.Turn.UnitId };
-            _networkServerClient.SendAsync(message).Wait();
-            _game.Combat.Turn.IsInProgress = false;
+            if (_game.Combat.Turn.IsInProgress)
+            {
+                var message = new CombatTurnEnded { Round = _game.Combat.Round, UnitId = _game.Combat.Turn.UnitId };
+                _networkServerClient.SendAsync(message).Wait();
+                _game.Combat.Turn.IsInProgress = false;
+            }
 
             return false;
         }
@@ -448,7 +445,7 @@ namespace WOTRMultiplayer.MP
 
         public void OnClickUnit(NetworkClick click)
         {
-            if (!(_game.Combat?.Turn?.IsLocalPlayer ?? false))
+            if (!(_game.Combat?.Turn?.IsLocalPlayer ?? false) || _gameInteractionService.CombatTurnHasBeenFinished())
             {
                 return;
             }
@@ -473,12 +470,12 @@ namespace WOTRMultiplayer.MP
 
         public void OnClickGround(NetworkClick click)
         {
-            if (!(_game.Combat?.Turn?.IsLocalPlayer ?? false))
+            if (!(_game.Combat?.Turn?.IsLocalPlayer ?? false) || _gameInteractionService.CombatTurnHasBeenFinished())
             {
                 return;
             }
 
-            _logger.LogInformation("Sending ground click. WorldPosition={worldPosition}, VectorPathCount={pathCount}", click.WorldPosition, click.VectorPath.Count);
+            _logger.LogInformation("Sending ground click. WorldPosition={worldPosition}, VectorPathCount={pathCount}, SelectedUnits={selectedUnits}", click.WorldPosition, click.VectorPath.Count, string.Join(";", click.SelectedUnits));
             var message = new NotifyGroundClicked
             {
                 Click = new Networking.Messages.NetworkClick
@@ -497,13 +494,13 @@ namespace WOTRMultiplayer.MP
 
         public void OnClickWithSelectedAbility(NetworkClick click)
         {
-            if (!(_game.Combat?.Turn?.IsLocalPlayer ?? false))
+            if (!(_game.Combat?.Turn?.IsLocalPlayer ?? false) || _gameInteractionService.CombatTurnHasBeenFinished())
             {
                 return;
             }
 
             _logger.LogInformation("Sending ability click. TargetUnitId={targetUnitId}, AbilityId={abilityId}, WorldPosition={worldPosition}, VectorPathCount={pathCount}",
-                click.TargetUnitId, click.AbilityId, click.WorldPosition, click.VectorPath.Count);
+                click.TargetUnitId, click.Ability.Id, click.WorldPosition, click.VectorPath.Count);
 
             var message = new NotifyAbilityClicked
             {
@@ -513,7 +510,11 @@ namespace WOTRMultiplayer.MP
                     MuteEvents = click.MuteEvents,
                     SelectedUnits = click.SelectedUnits,
                     TargetUnitId = click.TargetUnitId,
-                    AbilityId = click.AbilityId,
+                    Ability = new Networking.Messages.NetworkAbility
+                    {
+                        Id = click.Ability.Id,
+                        SpellbookId = click.Ability.SpellbookId
+                    },
                     WorldPosition = new Networking.Messages.NetworkVector3(click.WorldPosition.X, click.WorldPosition.Y, click.WorldPosition.Z),
                     VectorPath = [.. click.VectorPath.Select(x => new Networking.Messages.NetworkVector3(x.X, x.Y, x.Z))]
                 }
@@ -556,15 +557,29 @@ namespace WOTRMultiplayer.MP
                 .Register<NotifyUnitClicked>(OnNotifyUnitClicked)
                 .Register<NotifyGroundClicked>(OnNotifyGroundClicked)
                 .Register<NotifyAbilityClicked>(OnNotifyAbilityClicked)
+
+                .Register<CombatTurnEnded>(OnCombatTurnEnded)
                 ;
 
             _networkServerClient.OnError = OnNetworkClientError;
             _networkServerClient.OnConnected = OnNetworkClientConnected;
         }
 
+        private void OnCombatTurnEnded(CombatTurnEnded ended)
+        {
+            _logger.LogInformation($"Received {nameof(CombatTurnEnded)}. Round={{round}}, UnitId={{unitId}}", ended.Round, ended.UnitId);
+
+            if (!_game.Combat.Turn.IsAI && !_game.Combat.Turn.IsLocalPlayer)
+            {
+                _logger.LogInformation("Current turn is owned by another player. Ending it locally. Round={round}, UnitId={unitId}", ended.Round, ended.UnitId);
+                OnBeforeEndTurn(ended.UnitId);
+                return;
+            }
+        }
+
         private void OnNotifyAbilityClicked(NotifyAbilityClicked clicked)
         {
-            _logger.LogInformation($"Received {nameof(NotifyAbilityClicked)}. AbilityId={{abilityId}}, TargetUnitId={{targetUnitId}}, SelectedUnitId={{selectedUnits}}, WorldPosition={{worldPosition}}", clicked.Click.AbilityId, clicked.Click.TargetUnitId, clicked.Click.SelectedUnits.Count, clicked.Click.WorldPosition);
+            _logger.LogInformation($"Received {nameof(NotifyAbilityClicked)}. AbilityId={{abilityId}}, TargetUnitId={{targetUnitId}}, SelectedUnitId={{selectedUnits}}, WorldPosition={{worldPosition}}", clicked.Click.Ability.Id, clicked.Click.TargetUnitId, clicked.Click.SelectedUnits.Count, clicked.Click.WorldPosition);
             if (_game.Combat == null)
             {
                 _logger.LogWarning($"{nameof(NotifyAbilityClicked)} is ignored out of combat");
@@ -576,7 +591,11 @@ namespace WOTRMultiplayer.MP
                 Button = clicked.Click.Button,
                 MuteEvents = clicked.Click.MuteEvents,
                 SelectedUnits = clicked.Click.SelectedUnits,
-                AbilityId = clicked.Click.AbilityId,
+                Ability = new NetworkAbility
+                {
+                    Id = clicked.Click.Ability.Id,
+                    SpellbookId = clicked.Click.Ability.SpellbookId
+                },
                 TargetUnitId = clicked.Click.TargetUnitId,
                 WorldPosition = new NetworkVector3(clicked.Click.WorldPosition.X, clicked.Click.WorldPosition.Y, clicked.Click.WorldPosition.Z),
                 VectorPath = [.. clicked.Click.VectorPath.Select(v => new NetworkVector3(v.X, v.Y, v.Z))]

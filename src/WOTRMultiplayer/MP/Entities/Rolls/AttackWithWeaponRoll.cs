@@ -19,8 +19,8 @@
 
         public override string GetIdString()
         {
-            return base.GetIdString() + AttackNumber.ToString() + CombatRound.ToString() + IsAttackOfOpportunity
-                + TargetId + ExtraAttack + IsFirstAttack + AttacksCount + IsCriticalRoll;
+            return string.Join(IdSeparator, base.GetIdString(), AttackNumber.ToString(), CombatRound.ToString(), IsAttackOfOpportunity
+                , TargetId, ExtraAttack, IsFirstAttack, AttacksCount, IsCriticalRoll);
         }
     }
 }

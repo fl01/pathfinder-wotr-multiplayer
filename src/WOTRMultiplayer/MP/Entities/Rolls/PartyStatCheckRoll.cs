@@ -10,7 +10,7 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
 
         public override string GetIdString()
         {
-            return base.GetIdString() + DifficultyClass + StatType.ToString();
+            return string.Join(IdSeparator, base.GetIdString(), DifficultyClass, StatType.ToString());
         }
     }
 }

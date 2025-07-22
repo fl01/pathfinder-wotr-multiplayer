@@ -16,6 +16,6 @@ namespace WOTRMultiplayer.MP.Entities
 
         public List<NetworkVector3> VectorPath { get; set; } = [];
 
-        public string AbilityId { get; set; }
+        public NetworkAbility Ability { get; set; }
     }
 }

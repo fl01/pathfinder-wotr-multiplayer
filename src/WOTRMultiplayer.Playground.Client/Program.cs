@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Numerics;
 using System.Threading.Tasks;
 using Kingmaker.EntitySystem.Persistence;
 using Kingmaker.UI;
@@ -256,6 +255,11 @@ namespace WOTRMultiplayer.Playground.Client
 
             public void ClickAbilityInCombat(NetworkClick click)
             {
+            }
+
+            public bool CombatTurnHasBeenFinished()
+            {
+                return true;
             }
         }
 
