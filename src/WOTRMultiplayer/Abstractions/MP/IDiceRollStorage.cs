@@ -8,7 +8,7 @@ namespace WOTRMultiplayer.Abstractions.MP
     {
         bool Save(NetworkDiceRoll rollDice);
 
-        NetworkDiceRoll Get(int rollId, long playerId);
+        NetworkDiceRoll Get(int rollId, long playerId, bool ensureCompleted = true);
 
         int GetUniqueId(NetworkDiceRoll roll);
 

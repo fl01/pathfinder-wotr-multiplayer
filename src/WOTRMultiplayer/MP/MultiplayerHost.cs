@@ -21,14 +21,8 @@ namespace WOTRMultiplayer.MP
     public class MultiplayerHost : MultiplayerActorBase, IMultiplayerHost
     {
         private readonly INetworkServer _networkServer;
-        private readonly IFileSystemService _fileSystemService;
-        private readonly IMultiplayerSettingsProvider _multiplayerSettingsProvider;
-        private readonly IGameInteractionService _gameInteractionService;
-        private readonly IDiceRollStorage _diceRollStorage;
 
         private NetworkGameStage Status => Game?.Stage ?? NetworkGameStage.None;
-
-        private readonly object _actionlock = new();
 
         public Action<List<NetworkPlayer>> OnPlayersChanged { get; set; }
         public Action<EndPoint> OnConnected { get; set; }
@@ -49,13 +43,9 @@ namespace WOTRMultiplayer.MP
             IFileSystemService fileSystemService,
             INetworkServer networkServer,
             IDiceRollStorage diceRollStorage,
-            IMapper mapper) : base(logger, mapper)
+            IMapper mapper) : base(logger, mapper, multiplayerSettingsProvider, gameInteractionService, diceRollStorage, fileSystemService)
         {
             _networkServer = networkServer;
-            _fileSystemService = fileSystemService;
-            _multiplayerSettingsProvider = multiplayerSettingsProvider;
-            _gameInteractionService = gameInteractionService;
-            _diceRollStorage = diceRollStorage;
         }
 
         public void Create(string saveFilePath, List<NetworkCharacterOwnership> characters)
@@ -76,7 +66,7 @@ namespace WOTRMultiplayer.MP
 
             Game.Characters.AddRange(characters);
 
-            _networkServer.Start(_multiplayerSettingsProvider.Settings.HostPortRangeStart, _multiplayerSettingsProvider.Settings.HostPortRangeEnd);
+            _networkServer.Start(SettingsProvider.Settings.HostPortRangeStart, SettingsProvider.Settings.HostPortRangeEnd);
 
             Logger.LogInformation("Host has been created. SavePath={savePath}, Portraits={portraits}", saveFilePath, string.Join(";", Game.Characters.Select(c => c.Portrait)));
         }
@@ -99,7 +89,7 @@ namespace WOTRMultiplayer.MP
 
         public void ChangeCharacterOwner(int characterIndex, int playerIndex)
         {
-            lock (_actionlock)
+            lock (ActionLock)
             {
                 if (Game.Players.Count < playerIndex)
                 {
@@ -147,26 +137,12 @@ namespace WOTRMultiplayer.MP
         {
             Logger.LogInformation("Dispose");
 
-            lock (_actionlock)
+            lock (ActionLock)
             {
                 Game?.Reset();
             }
 
             _networkServer.Dispose();
-        }
-
-        public bool CanControlCharacter(string unitId)
-        {
-            if (Game == null)
-            {
-                return false;
-            }
-
-            var realCharacterId = _gameInteractionService.GetPetOwnerId(unitId) ?? unitId;
-
-            var character = GetCharacterOwnership(realCharacterId);
-
-            return character == null || character.Owner != null && character.Owner.Id == Game.LocalPlayerId;
         }
 
         public bool ReadyChanged()
@@ -181,7 +157,7 @@ namespace WOTRMultiplayer.MP
         {
             Logger.LogInformation("Starting game...");
             // it should be fine to block current thread
-            var content = _fileSystemService.GetFile(Game.SaveFilePath);
+            var content = FileSystem.GetFile(Game.SaveFilePath);
             if (content == null)
             {
                 Logger.LogError("Unable to start a game due to missing save file. Path={savePath}", Game.SaveFilePath);
@@ -192,7 +168,7 @@ namespace WOTRMultiplayer.MP
             var gameStageChanged = new NotifyGameStageChanged { Stage = Game.Stage.ToString() };
             _networkServer.SendAll(gameStageChanged);
 
-            lock (_actionlock)
+            lock (ActionLock)
             {
                 var saveGameMessageAssigned = new NotifySaveGameAssigned { Content = content, IsForceLoad = false };
                 Logger.LogInformation("Sending save game file content to all players. Size={saveFileSize}", saveGameMessageAssigned.Content.Length);
@@ -212,7 +188,7 @@ namespace WOTRMultiplayer.MP
             // assumption: should be done after each area load aswell
             SoftReset();
 
-            _gameInteractionService.Pause(true);
+            GameInteraction.Pause(true);
 
             var host = GetHost();
             host.IsLoading = false;
@@ -228,7 +204,7 @@ namespace WOTRMultiplayer.MP
             Logger.LogInformation("Updating current characters & merging ownership");
 
             // could be synced from host, but state is the same anyway
-            var partyCharacters = _gameInteractionService.GetPartyPlayers();
+            var partyCharacters = GameInteraction.GetPartyPlayers();
             if (partyCharacters.Count == 0)
             {
                 return;
@@ -279,7 +255,7 @@ namespace WOTRMultiplayer.MP
             Logger.LogInformation("Showing dialog Cue. DialogName={dialogName}, CueName={cueName}, HasSystemAnswer={hasSystemAnswer}", dialogName, cueName, hasSystemAnswer);
             if (hasSystemAnswer)
             {
-                _gameInteractionService.SetDialogContinueButtonState(false);
+                GameInteraction.SetDialogContinueButtonState(false);
             }
 
             if (Game.Dialog != null && Game.Dialog.Name != dialogName)
@@ -321,7 +297,7 @@ namespace WOTRMultiplayer.MP
             }
 
             // resets all suggested cue answers
-            _gameInteractionService.MarkSuggestedDialogAnswers([]);
+            GameInteraction.MarkSuggestedDialogAnswers([]);
             Game.Dialog.AnswerSuggestions.Clear();
 
             return true;
@@ -383,8 +359,8 @@ namespace WOTRMultiplayer.MP
             Game.Combat = new NetworkCombat();
 
             // it's impossible to differentiate rolls between multiple combats
-            _diceRollStorage.Reset<InitiativeRoll>();
-            _diceRollStorage.Reset<AttackWithWeaponRoll>();
+            DiceRollStorage.Reset<InitiativeRoll>();
+            DiceRollStorage.Reset<AttackWithWeaponRoll>();
         }
 
         public void CombatEnded()
@@ -413,16 +389,10 @@ namespace WOTRMultiplayer.MP
 
             if (Game.Combat.Round == 1 && !Game.Combat.IsInitialized)
             {
-                var unitsInCombat = _gameInteractionService.GetUnitsInCombat();
+                var unitsInCombat = GameInteraction.GetUnitsInCombat();
                 var message = new NotifyCombatStarted
                 {
-                    Units = [.. unitsInCombat.Select(x => new Networking.Messages.NetworkUnit
-                    {
-                        Id = x.Id,
-                        PositionX = x.Position.X,
-                        PositionY = x.Position.Y,
-                        PositionZ = x.Position.Z
-                    })]
+                    Units = Mapper.Map<List<Networking.Messages.NetworkUnit>>(unitsInCombat)
                 };
                 _networkServer.SendAll(message);
                 Game.Combat.IsInitialized = true;
@@ -437,29 +407,7 @@ namespace WOTRMultiplayer.MP
         {
             try
             {
-                if (Game.Combat.Turn != null && Game.Combat.Turn.IsInProgress)
-                {
-                    Logger.LogInformation("Turn start is allowed. UnitId={unitId}", unitId);
-                    return true;
-                }
-
-                Game.Combat.Turn = new NetworkCombatTurn
-                {
-                    UnitId = unitId,
-                    IsInProgress = false,
-                    IsActingInSurpriseRound = actingInSurpriseRound,
-                    IsLocalPlayer = CanControlCharacter(unitId),
-                    IsAI = _gameInteractionService.IsUnitAI(unitId)
-                };
-
-                Logger.LogInformation("OnBeforeStartTurn. UnitId={unitId}, IsLocalPlayer={isLocalPlayer}, IsAI={isAI}, IsActingInSurpriseRound={isActingInSurpriseRound}",
-                    unitId, Game.Combat.Turn.IsLocalPlayer, Game.Combat.Turn.IsAI, Game.Combat.Turn.IsActingInSurpriseRound);
-
-                AddCombatTurnStartInitialization(Game.LocalPlayerId, Game.Combat.Round, unitId);
-
-                TryStartCombatTurn();
-
-                return false;
+                return OnTurnStart(unitId, actingInSurpriseRound);
             }
             catch (Exception ex)
             {
@@ -472,35 +420,7 @@ namespace WOTRMultiplayer.MP
         {
             try
             {
-                if (Game.Combat.Turn == null)
-                {
-                    Logger.LogInformation("Turn end is allowed. UnitId={unitId}", unitId);
-                    return true;
-                }
-
-                // game calls this hook constantly even if you skip original (FYI: but this is not the case for OnBeforeStartTurn)
-                // but we need to setup everything only once
-                if (!Game.Combat.Turn.IsInProgress)
-                {
-                    return false;
-                }
-
-                Logger.LogInformation("OnBeforeEndTurn. UnitId={unitId}, IsLocalPlayer={isLocalPlayer}, IsAI={isAI}, IsActingInSurpriseRound={isActingInSurpriseRound}, IsInProgress={isInProgress}",
-                             unitId, Game.Combat.Turn.IsLocalPlayer, Game.Combat.Turn.IsAI, Game.Combat.Turn.IsActingInSurpriseRound, Game.Combat.Turn.IsInProgress);
-
-                AddCombatTurnEndInitialization(Game.LocalPlayerId, Game.Combat.Round, unitId);
-                Game.Combat.Turn.IsInProgress = false;
-
-                if (!Game.Combat.Turn.IsAI && Game.Combat.Turn.IsLocalPlayer)
-                {
-                    Logger.LogInformation("Sending turn ended to other clients. UnitId={unitId}", unitId);
-                    var message = new CombatTurnEnded { Round = Game.Combat.Round, UnitId = unitId };
-                    _networkServer.SendAll(message);
-                }
-
-                TryEndCombatTurn();
-
-                return false;
+                return OnTurnEnd();
             }
             catch (Exception ex)
             {
@@ -509,30 +429,18 @@ namespace WOTRMultiplayer.MP
             }
         }
 
-        public void CombatRoundStarted(int round)
+        public void ForceLoadGame(string savePath)
         {
-            Logger.LogInformation("Combat round started. Round={round}", round);
-            if (Game.Combat == null)
+            if (!string.IsNullOrEmpty(Game.SaveFilePath))
             {
-                Logger.LogWarning("Combat has not started yet");
                 return;
             }
 
-            Game.Combat.Round = round;
-        }
-
-        public int GetCombatRound()
-        {
-            return Game.Combat?.Round ?? 0;
-        }
-
-        public void ForceLoadGame(string savePath)
-        {
             Logger.LogInformation("Notifying clients to force load save game. Path={savePath}", savePath);
-
+            Game.SaveFilePath = savePath;
             var message = new NotifySaveGameAssigned
             {
-                Content = _fileSystemService.GetFile(savePath),
+                Content = FileSystem.GetFile(savePath),
                 IsForceLoad = true
             };
 
@@ -553,7 +461,7 @@ namespace WOTRMultiplayer.MP
         {
             Logger.LogInformation("Retrieving roll from other player. RollId={rollId}, UnitId={unitId}", networkDiceRollId, unitId);
 
-            var realCharacterId = _gameInteractionService.GetPetOwnerId(unitId) ?? unitId;
+            var realCharacterId = GameInteraction.GetPetOwnerId(unitId) ?? unitId;
             var character = GetCharacterOwnership(realCharacterId);
             if (character == null)
             {
@@ -583,7 +491,7 @@ namespace WOTRMultiplayer.MP
 
         public void OnClickUnit(NetworkClick click)
         {
-            if (!(Game.Combat?.Turn?.IsLocalPlayer ?? false) || _gameInteractionService.CombatTurnHasBeenFinished())
+            if (!(Game.Combat?.Turn?.IsLocalPlayer ?? false) || GameInteraction.CombatTurnHasBeenFinished())
             {
                 return;
             }
@@ -600,7 +508,7 @@ namespace WOTRMultiplayer.MP
 
         public void OnClickGround(NetworkClick click)
         {
-            if (!(Game.Combat?.Turn?.IsLocalPlayer ?? false) || _gameInteractionService.CombatTurnHasBeenFinished())
+            if (!(Game.Combat?.Turn?.IsLocalPlayer ?? false) || GameInteraction.CombatTurnHasBeenFinished())
             {
                 return;
             }
@@ -616,7 +524,7 @@ namespace WOTRMultiplayer.MP
 
         public void OnClickWithSelectedAbility(NetworkClick click)
         {
-            if (!(Game.Combat?.Turn?.IsLocalPlayer ?? false) || _gameInteractionService.CombatTurnHasBeenFinished())
+            if (!(Game.Combat?.Turn?.IsLocalPlayer ?? false) || GameInteraction.CombatTurnHasBeenFinished())
             {
                 return;
             }
@@ -632,136 +540,69 @@ namespace WOTRMultiplayer.MP
             _networkServer.SendAll(message);
         }
 
-        private void TryStartCombatTurn()
+        protected override void OnLocalPlayerTurnStart()
         {
-            if (Game.Combat.Turn == null)
+            Game.Combat.Turn.RequiresTurnEntitiesSynchronization = true;
+
+            AddPlayerReadyStatus(PlayerReadinessType.TurnStart, Game.LocalPlayerId, Game.Combat.Round, Game.Combat.Turn.UnitId);
+            AddPlayerReadyStatus(PlayerReadinessType.TurnSynchronization, Game.LocalPlayerId, Game.Combat.Round, Game.Combat.Turn.UnitId);
+
+            TryStartTurn();
+        }
+
+        protected override void OnTurnStartConfirmed()
+        {
+            var message = new NotifyCombatTurnStarted
             {
-                // could only happen when client starts turn before the host
-                Logger.LogWarning("Trying to start turn, but it has not been initialized yet. Round={round}", Game.Combat.Round);
+                Round = Game.Combat.Round,
+                UnitId = Game.Combat.Turn.UnitId
+            };
+            _networkServer.SendAll(message);
+        }
+
+        protected void TryStartTurn()
+        {
+            Logger.LogInformation("Checking if turn could be started. Round={round}, UnitId={unitId}", Game.Combat.Round, Game.Combat.Turn.UnitId);
+
+            var turnReadinessKey = GetTurnReadinessKey(Game.Combat.Round, Game.Combat.Turn.UnitId);
+            var notInitializedPlayers = GetMissingPlayers(turnReadinessKey, Game.Combat.PlayersTurnStartInitialization);
+            if (notInitializedPlayers.Count > 0)
+            {
+                Logger.LogInformation("Unable to start turn due to missing players turn initialization. MissingPlayers={players}", string.Join(";", notInitializedPlayers.Select(p => p.Name)));
                 return;
             }
 
-            if (Game.Combat.Turn.IsInProgress)
+            lock (ActionLock)
             {
-                Logger.LogWarning("Turn is already in progress. Round={round}, UnitId={unitId}", Game.Combat.Round, Game.Combat.Turn.UnitId);
-                return;
-            }
-
-            List<NetworkPlayer> notReadyPlayers = [.. Game.Players];
-            lock (_actionlock)
-            {
-                var key = GetTurnInitializationKey(Game.Combat.Round, Game.Combat.Turn.UnitId);
-                if (Game.Combat.PlayersTurnStartInitialization.TryGetValue(key, out var readyToStartPlayers))
+                if (Game.Combat.Turn.RequiresTurnEntitiesSynchronization)
                 {
-                    notReadyPlayers.RemoveAll(p => readyToStartPlayers.Contains(p.Id));
-                }
-
-                if (notReadyPlayers.Count == 0)
-                {
-                    var message = new NotifyCombatTurnStarted { Round = Game.Combat.Round, UnitId = Game.Combat.Turn.UnitId };
-                    _networkServer.SendAll(message);
-
-                    Game.Combat.Turn.IsInProgress = true;
-                    _gameInteractionService.StartTurnBasedCombatTurn(Game.Combat.Turn.IsActingInSurpriseRound);
-                    return;
-                }
-            }
-
-            Logger.LogInformation("Turn can't be started yet. Round={round}, UnitId={unitId}, NotReadyPlayers={notReadyPlayers}", Game.Combat.Round, Game.Combat.Turn.UnitId, string.Join(";", notReadyPlayers.Select(p => p.Name)));
-        }
-
-        private void AddCombatTurnStartInitialization(long playerId, int round, string unitId)
-        {
-            try
-            {
-                lock (_actionlock)
-                {
-                    var key = GetTurnInitializationKey(round, unitId);
-                    Game.Combat.PlayersTurnStartInitialization.AddOrUpdate(key,
-                        key => new HashSet<long>(collection: [playerId]),
-                        (key, existing) =>
-                        {
-                            existing.Add(playerId);
-                            return existing;
-                        });
-
-                    Logger.LogInformation("TurnStart initialization has been added. Key={key}, PlayersCount={playersCount}, KeysCount={keysCount}", key, Game.Combat.PlayersTurnStartInitialization[key].Count, Game.Combat.PlayersTurnStartInitialization.Keys.Count);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Unable to add TurnStart initialization. PlayerId={playerId}, Round={round}, UnitId={unitId}", playerId, round, unitId);
-                throw;
-            }
-        }
-
-        private void AddCombatTurnEndInitialization(long playerId, int round, string unitId)
-        {
-            try
-            {
-                lock (_actionlock)
-                {
-                    var key = GetTurnInitializationKey(round, unitId);
-                    Game.Combat.PlayersTurnEndInitialization.AddOrUpdate(key,
-                        key => new HashSet<long>(collection: [playerId]),
-                        (key, existing) =>
-                        {
-                            existing.Add(playerId);
-                            return existing;
-                        });
-                    Logger.LogInformation("TurnEnd initialization has been added. Key={key}, PlayersCount={playersCount}, KeysCount={keysCount}", key, Game.Combat.PlayersTurnEndInitialization[key].Count, Game.Combat.PlayersTurnStartInitialization.Keys.Count);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Unable to add TurnEnd initialization. PlayerId={playerId}, Round={round}, UnitId={unitId}", playerId, round, unitId);
-                throw;
-            }
-        }
-
-        private string GetTurnInitializationKey(int round, string unitId)
-        {
-            return $"{round}-{unitId}";
-        }
-
-        private void TryEndCombatTurn()
-        {
-            if (Game.Combat.Turn == null)
-            {
-                // could only happen when client starts turn before the host
-                Logger.LogWarning("Trying to end already ended turn. Round={round}", Game.Combat.Round);
-                return;
-            }
-
-            List<NetworkPlayer> notReadyPlayers = [.. Game.Players];
-            lock (_actionlock)
-            {
-                var key = GetTurnInitializationKey(Game.Combat.Round, Game.Combat.Turn.UnitId);
-                if (Game.Combat.PlayersTurnEndInitialization.TryGetValue(key, out var readyToEndPlayers))
-                {
-                    notReadyPlayers.RemoveAll(p => readyToEndPlayers.Contains(p.Id));
-                }
-
-                if (notReadyPlayers.Count == 0)
-                {
-                    var message = new NotifyCombatTurnEnded { Round = Game.Combat.Round, UnitId = Game.Combat.Turn.UnitId };
-                    _networkServer.SendAll(message);
-
-                    if (Game.Combat.Turn != null)
+                    Game.Combat.Turn.RequiresTurnEntitiesSynchronization = false;
+                    var unitsToSync = GameInteraction.GetUnitsInCombat();
+                    var message = new NotifyCombatTurnSynchronizationRequired
                     {
-                        Game.Combat.Turn = null;
-                        _gameInteractionService.EndTurnBasedCombatTurn();
-                    }
-                    return;
+                        Units = Mapper.Map<List<Networking.Messages.NetworkUnit>>(unitsToSync)
+                    };
+                    _networkServer.SendAll(message);
                 }
             }
 
-            Logger.LogInformation("Turn can't be ended yet. NotReadyPlayers={notReadyPlayers}", string.Join(";", notReadyPlayers.Select(p => p.Name)));
+            var notSynchronizedPlayers = GetMissingPlayers(turnReadinessKey, Game.Combat.PlayersTurnSynchronization);
+            if (notSynchronizedPlayers.Count > 0)
+            {
+                Logger.LogInformation("Unable to start turn due to missing players turn synchronization. MissingPlayers={players}", string.Join(";", notSynchronizedPlayers.Select(p => p.Name)));
+                return;
+            }
+
+            OnTurnStartConfirmed();
+
+            Game.Combat.Turn.IsInProgress = true;
+            GameInteraction.StartTurnBasedCombatTurn(Game.Combat.Turn.IsActingInSurpriseRound);
         }
 
-        private NetworkCharacterOwnership GetCharacterOwnership(string unitId)
+        protected override void OnLocalPlayerTurnEnded()
         {
-            return Game.Characters.FirstOrDefault(c => string.Equals(c.UnitId, unitId, StringComparison.OrdinalIgnoreCase));
+            var message = new PlayerCombatTurnEnded { Round = Game.Combat.Round, UnitId = Game.Combat.Turn.UnitId };
+            _networkServer.SendAll(message);
         }
 
         private void SoftReset()
@@ -770,7 +611,7 @@ namespace WOTRMultiplayer.MP
             Game.Dialog = null;
             Game.SaveFilePath = null;
             Game.Combat = null;
-            _diceRollStorage.Reset();
+            DiceRollStorage.Reset();
         }
 
         private void AddCueWitness(string cueName, long playerId)
@@ -831,14 +672,14 @@ namespace WOTRMultiplayer.MP
             }
 
             Logger.LogInformation("All players have witnessed current cue. CueName={cueName}", currentCue);
-            _gameInteractionService.SetDialogContinueButtonState(true);
+            GameInteraction.SetDialogContinueButtonState(true);
         }
 
         private void TryUnpauseGame()
         {
             var canUnpause = false;
 
-            lock (_actionlock)
+            lock (ActionLock)
             {
                 canUnpause = Game.Players.All(p => !p.IsLoading);
             }
@@ -847,14 +688,14 @@ namespace WOTRMultiplayer.MP
             {
                 Logger.LogInformation("All players have finished loading. Game will be unpaused");
                 Game.Stage = NetworkGameStage.Playing;
-                _gameInteractionService.Pause(false);
+                GameInteraction.Pause(false);
             }
         }
 
         private void OnClientGameLoaded(long playerId, ClientGameLoaded loaded)
         {
             Logger.LogInformation($"Received {nameof(ClientGameLoaded)}. PlayerId={{playerId}}", playerId);
-            lock (_actionlock)
+            lock (ActionLock)
             {
                 var player = GetPlayer(playerId);
                 if (player == null)
@@ -873,7 +714,7 @@ namespace WOTRMultiplayer.MP
         {
             var canStart = false;
 
-            lock (_actionlock)
+            lock (ActionLock)
             {
                 canStart = Game.Players.All(p => p.IsSyncedToStartGame);
             }
@@ -933,15 +774,48 @@ namespace WOTRMultiplayer.MP
                 .Register<CueWitnessed>(OnCueWitnessed)
                 .Register<DialogCueAnswerSuggested>(OnDialogCueAnswerSuggested)
                 .Register<StartDialogRequested>(OnStartDialogRequested)
+
+                .Register<PlayerCombatTurnEnded>(OnPlayerCombatTurnEnded)
                 .Register<ClientCombatInitialized>(OnClientCombatInitialized)
                 .Register<ClientCombatTurnStarted>(OnClientCombatTurnStarted)
-                .Register<CombatTurnEnded>(OnCombatTurnEnded)
+                .Register<ClientCombatTurnSynchronized>(OnClientCombatTurnSynchronized)
                 ;
+        }
+
+        private void OnClientCombatTurnSynchronized(long playerId, ClientCombatTurnSynchronized synchronized)
+        {
+            Logger.LogInformation($"Received {nameof(ClientCombatTurnSynchronized)}. PlayerId={{playerId}}, Round={{round}}, UnitId={{unitId}}", playerId, synchronized.Round, synchronized.UnitId);
+            AddPlayerReadyStatus(PlayerReadinessType.TurnSynchronization, playerId, synchronized.Round, synchronized.UnitId);
+            TryStartTurn();
+        }
+
+        private void OnPlayerCombatTurnEnded(long playerId, PlayerCombatTurnEnded ended)
+        {
+            Logger.LogInformation($"Received {nameof(PlayerCombatTurnEnded)}. PlayerId={{playerId}}, Round={{round}}, UnitId={{unitId}}", playerId, ended.Round, ended.UnitId);
+
+            _networkServer.SendAllExcept(playerId, ended);
+
+            if (Game.Combat.Round == ended.Round && string.Equals(Game.Combat.Turn?.UnitId, ended.UnitId))
+            {
+                EndLocalTurn();
+            }
+        }
+
+        private void OnClientCombatTurnStarted(long playerId, ClientCombatTurnStarted started)
+        {
+            Logger.LogInformation($"Received {nameof(ClientCombatTurnStarted)}. PlayerId={{playerId}}, Round={{round}}, UnitId={{unitId}}", playerId, started.Round, started.UnitId);
+            AddPlayerReadyStatus(PlayerReadinessType.TurnStart, playerId, started.Round, started.UnitId);
+
+            // player turn could be started earlier than host so recording readiness is enough
+            if (started.Round == Game.Combat.Round && string.Equals(started.UnitId, Game.Combat.Turn?.UnitId, StringComparison.OrdinalIgnoreCase))
+            {
+                TryStartTurn();
+            }
         }
 
         private void OnNotifyAbilityClicked(long playerId, NotifyAbilityClicked clicked)
         {
-            Logger.LogInformation($"Received {nameof(NotifyAbilityClicked)}. AbilityId={{abilityId}}, TargetUnitId={{targetUnitId}}, SelectedUnitId={{selectedUnits}}, WorldPosition={{worldPosition}}", clicked.Click.Ability.Id, clicked.Click.TargetUnitId, clicked.Click.SelectedUnits.Count, clicked.Click.WorldPosition);
+            Logger.LogInformation($"Received {nameof(NotifyAbilityClicked)}. PlayerId={{playerId}} AbilityId={{abilityId}}, TargetUnitId={{targetUnitId}}, SelectedUnitId={{selectedUnits}}, WorldPosition={{worldPosition}}", playerId, clicked.Click.Ability.Id, clicked.Click.TargetUnitId, clicked.Click.SelectedUnits.Count, clicked.Click.WorldPosition);
             if (Game.Combat == null)
             {
                 Logger.LogWarning($"{nameof(NotifyAbilityClicked)} is ignored out of combat");
@@ -949,7 +823,7 @@ namespace WOTRMultiplayer.MP
             }
 
             var click = Mapper.Map<NetworkClick>(clicked.Click);
-            _gameInteractionService.ClickAbilityInCombat(click);
+            GameInteraction.ClickAbilityInCombat(click);
 
             Logger.LogInformation($"Resending {nameof(NotifyAbilityClicked)} to other players");
             _networkServer.SendAllExcept(playerId, clicked);
@@ -965,7 +839,7 @@ namespace WOTRMultiplayer.MP
             }
 
             var click = Mapper.Map<NetworkClick>(clicked.Click);
-            _gameInteractionService.ClickGroundInCombat(click);
+            GameInteraction.ClickGroundInCombat(click);
 
             Logger.LogInformation($"Resending {nameof(NotifyGroundClicked)} to other players");
             _networkServer.SendAllExcept(playerId, click);
@@ -981,34 +855,10 @@ namespace WOTRMultiplayer.MP
             }
 
             var click = Mapper.Map<NetworkClick>(clicked.Click);
-            _gameInteractionService.ClickUnitInCombat(click);
+            GameInteraction.ClickUnitInCombat(click);
 
             Logger.LogInformation($"Resending {nameof(NotifyUnitClicked)} to other players");
             _networkServer.SendAllExcept(playerId, click);
-        }
-
-        private void OnCombatTurnEnded(long playerId, CombatTurnEnded ended)
-        {
-            Logger.LogInformation($"Received {nameof(CombatTurnEnded)}. PlayerId={{playerId}}, Round={{round}}, UnitId={{unitId}}", playerId, ended.Round, ended.UnitId);
-
-            AddCombatTurnEndInitialization(playerId, ended.Round, ended.UnitId);
-
-            if (!Game.Combat.Turn.IsAI && !Game.Combat.Turn.IsLocalPlayer)
-            {
-                Logger.LogInformation("Current turn is owned by another player. Ending it locally.  PlayerId={playerId}, Round={round}, UnitId={unitId}", playerId, ended.Round, ended.UnitId);
-                OnBeforeEndTurn(ended.UnitId);
-                _networkServer.SendAllExcept(playerId, ended);
-                return;
-            }
-
-            TryEndCombatTurn();
-        }
-
-        private void OnClientCombatTurnStarted(long playerId, ClientCombatTurnStarted started)
-        {
-            Logger.LogInformation($"Received {nameof(ClientCombatTurnStarted)}. PlayerId={{playerId}}, Round={{round}}, UnitId={{unitId}}", playerId, started.Round, started.UnitId);
-            AddCombatTurnStartInitialization(playerId, started.Round, started.UnitId);
-            TryStartCombatTurn();
         }
 
         private void OnNotifySaveGameAssigned(long playerId, NotifySaveGameAssigned assigned)
@@ -1017,11 +867,11 @@ namespace WOTRMultiplayer.MP
 
             _networkServer.SendAllExcept(playerId, assigned);
 
-            var baseUnityPath = _gameInteractionService.GetSaveGamePath();
+            var baseUnityPath = GameInteraction.GetSaveGamePath();
             var multiplayerPath = Regex.Replace(baseUnityPath, "(((\\\\|\\/)+)(Saved Games)((\\\\|\\/)+))$", "/Saved Multiplayer Games/");
             var savePath = Path.Combine(multiplayerPath, "latest save.zks");
             Logger.LogInformation("Save game path changed. Path={path}", savePath);
-            if (!_fileSystemService.WriteFile(savePath, assigned.Content))
+            if (!FileSystem.WriteFile(savePath, assigned.Content))
             {
                 Logger.LogError("Unable to store save game");
                 // on error?
@@ -1030,11 +880,15 @@ namespace WOTRMultiplayer.MP
 
             Game.SaveFilePath = savePath;
 
-            Logger.LogInformation("Game is ready to be started. SavePath={savePath}", savePath);
             if (assigned.IsForceLoad)
             {
+                foreach (var player in Game.Players)
+                {
+                    player.IsLoading = true;
+                }
+
                 Logger.LogInformation("Force loading save game. SavePath={savePath}", savePath);
-                _gameInteractionService.QuickLoadGame(savePath);
+                GameInteraction.QuickLoadGame(savePath);
             }
         }
 
@@ -1058,7 +912,7 @@ namespace WOTRMultiplayer.MP
             Logger.LogInformation($"Received {nameof(StartDialogRequested)}. PlayerId={{playerId}}, DialogName={{dialogName}}, TargetUnitId={{targetUnitId}}, InitiatorUnitId={{initiatorUnitId}}, MapObjectId={{mapObjectId}}, SpeakerKey={{speakerKey}}",
                 playerId, requested.DialogName, requested.TargetUnitId, requested.InitiatorUnitId, requested.MapObjectId, requested.SpeakerKey);
 
-            var hasStartedDialog = await _gameInteractionService.StartDialogAsync(requested.DialogName, requested.TargetUnitId, requested.InitiatorUnitId, requested.MapObjectId, requested.SpeakerKey);
+            var hasStartedDialog = await GameInteraction.StartDialogAsync(requested.DialogName, requested.TargetUnitId, requested.InitiatorUnitId, requested.MapObjectId, requested.SpeakerKey);
             if (!hasStartedDialog)
             {
                 Logger.LogInformation("Host dialog is already in progress. Sending dialog confirmation");
@@ -1103,7 +957,7 @@ namespace WOTRMultiplayer.MP
             });
 
             List<NetworkDialogAnswerSuggestion> suggestions = [.. Game.Dialog.AnswerSuggestions.GroupBy(x => x.Value, x => x.Key).Select(x => new NetworkDialogAnswerSuggestion { AnswerName = x.Key, Players = [.. x] })];
-            _gameInteractionService.MarkSuggestedDialogAnswers(suggestions);
+            GameInteraction.MarkSuggestedDialogAnswers(suggestions);
 
             var notifyMessage = new NotifyDialogCueAnswerSuggested
             {
@@ -1137,7 +991,7 @@ namespace WOTRMultiplayer.MP
         {
             Logger.LogInformation($"Received {nameof(RollRequest)}. PlayerId={{playerId}}, RollId={{rollId}}", playerId, request.RollId);
             // some events would occur at around the same time on client/host, but client MUST receive this dice roll from the host
-            var roll = await _diceRollStorage.GetAsync(request.RollId, playerId, request.Timeout);
+            var roll = await DiceRollStorage.GetAsync(request.RollId, playerId, request.Timeout);
 
             var response = new RollResponse
             {
@@ -1153,7 +1007,7 @@ namespace WOTRMultiplayer.MP
             Logger.LogInformation($"Received {nameof(GamePauseChanged)}. PlayerId={{playerId}}, IsPaused={{isPaused}}", playerId, pauseChanged.IsPaused);
             var message = new NotifyGamePauseChanged { IsPaused = pauseChanged.IsPaused };
             _networkServer.SendAllExcept(playerId, message);
-            _gameInteractionService.Pause(pauseChanged.IsPaused);
+            GameInteraction.Pause(pauseChanged.IsPaused);
         }
 
         private void OnCharacterMove(long playerId, CharacterMove move)
@@ -1161,7 +1015,7 @@ namespace WOTRMultiplayer.MP
             Logger.LogInformation($"Received {nameof(CharacterMove)}. PlayerId={{playerId}}, UnitId={{unitId}}, Destination={{destination}}", playerId, move.UnitId, move.Destination);
 
             var destination = new NetworkVector3(move.Destination.X, move.Destination.Y, move.Destination.Z);
-            _gameInteractionService.MoveNonCombatCharacter(move.UnitId, destination, move.Delay, move.Orientation);
+            GameInteraction.MoveNonCombatCharacter(move.UnitId, destination, move.Delay, move.Orientation);
 
             var notifyMove = new NotifyCharacterMove
             {
@@ -1176,7 +1030,7 @@ namespace WOTRMultiplayer.MP
         private void OnPlayerSaveGameSyncChanged(long playerId, PlayerSaveGameSyncChanged changed)
         {
             Logger.LogInformation($"Received {nameof(PlayerSaveGameSyncChanged)}. PlayerId={{playerId}}, SyncStatus={{syncStatus}}", playerId, changed.IsSynced);
-            lock (_actionlock)
+            lock (ActionLock)
             {
                 var player = GetPlayer(playerId);
                 if (player == null)
@@ -1193,7 +1047,7 @@ namespace WOTRMultiplayer.MP
 
         private void OnPlayerReadyStatusChanged(long playerId, PlayerReadyStatusChanged readyStatusChanged)
         {
-            lock (_actionlock)
+            lock (ActionLock)
             {
                 var existingPlayer = GetPlayer(playerId);
                 if (existingPlayer == null)
@@ -1215,7 +1069,7 @@ namespace WOTRMultiplayer.MP
             try
             {
                 Logger.LogInformation($"Received {nameof(PlayerNameResponse)}. PlayerId={{playerId}}, Name={{name}}", playerId, response?.Name);
-                lock (_actionlock)
+                lock (ActionLock)
                 {
                     var existingPlayer = GetPlayer(playerId);
                     if (existingPlayer == null)
@@ -1257,7 +1111,7 @@ namespace WOTRMultiplayer.MP
 
         private void OnPlayerConnected(long playerId)
         {
-            lock (_actionlock)
+            lock (ActionLock)
             {
                 var existingPlayer = GetPlayer(playerId);
                 if (existingPlayer != null)
@@ -1275,7 +1129,7 @@ namespace WOTRMultiplayer.MP
 
         private void OnPlayerDisconnected(long playerId)
         {
-            lock (_actionlock)
+            lock (ActionLock)
             {
                 var existingPlayer = GetPlayer(playerId);
                 if (existingPlayer == null)
@@ -1295,7 +1149,7 @@ namespace WOTRMultiplayer.MP
 
                 if (Game.Stage == NetworkGameStage.Playing)
                 {
-                    _gameInteractionService.ShowModalMessage($"Player {existingPlayer.Name} has left the game");
+                    GameInteraction.ShowModalMessage($"Player {existingPlayer.Name} has left the game");
                 }
             }
         }
@@ -1304,7 +1158,7 @@ namespace WOTRMultiplayer.MP
         {
             var hostPlayer = new NetworkPlayer(LocalHostPlayerId)
             {
-                Name = _multiplayerSettingsProvider.Settings.PlayerName
+                Name = SettingsProvider.Settings.PlayerName
             };
 
             Game.Players.Add(hostPlayer);
@@ -1319,11 +1173,6 @@ namespace WOTRMultiplayer.MP
             OnPlayersChanged?.Invoke(Game.Players);
         }
 
-        private NetworkPlayer GetPlayer(long playerId)
-        {
-            return Game.Players.FirstOrDefault(p => p.Id == playerId);
-        }
-
         private NotifyGameCharactersChanged CreateNotifyGameCharactersChanged()
         {
             var message = new NotifyGameCharactersChanged
@@ -1331,6 +1180,44 @@ namespace WOTRMultiplayer.MP
                 Characters = [.. Game.Characters.Select(c => new Networking.Messages.NetworkCharacterOwnership { Name = c.Name, Portrait = c.Portrait })]
             };
             return message;
+        }
+
+        private bool AddPlayerReadyStatus(PlayerReadinessType playerReadinessType, long playerId, int round, string unitId)
+        {
+            try
+            {
+                lock (ActionLock)
+                {
+                    var tracker = GetReadinessTracker(playerReadinessType);
+                    if (tracker == null)
+                    {
+                        Logger.LogError("Unable to find readiness tracker for provided type. Type={type}, PlayerId={playerId}, Round={round}, UnitId={unitId}", playerReadinessType, playerId, round, unitId);
+                        return false;
+                    }
+
+                    var key = GetTurnInitializationKey(round, unitId);
+                    tracker.AddOrUpdate(key,
+                        key => new HashSet<long>(collection: [playerId]),
+                        (key, existing) =>
+                        {
+                            existing.Add(playerId);
+                            return existing;
+                        });
+                    Logger.LogInformation("Player ready status has been confirmed. Type={readinessTypeName}, Key={key}, PlayersCount={playersCount}, KeysCount={keysCount}", playerReadinessType, key, tracker[key].Count, tracker.Keys.Count);
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Unable to confirm player readiness. PlayerId={playerId}, Round={round}, UnitId={unitId}", playerId, round, unitId);
+                throw;
+            }
+        }
+
+        private string GetTurnInitializationKey(int round, string unitId)
+        {
+            return $"{round}-{unitId}";
         }
     }
 }

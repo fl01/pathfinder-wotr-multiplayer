@@ -9,12 +9,6 @@ namespace WOTRMultiplayer.Networking.Messages
         public string Id { get; set; }
 
         [ProtoMember(2)]
-        public float PositionX { get; set; }
-
-        [ProtoMember(3)]
-        public float PositionY { get; set; }
-
-        [ProtoMember(4)]
-        public float PositionZ { get; set; }
+        public NetworkVector3 Position { get; set; }
     }
 }

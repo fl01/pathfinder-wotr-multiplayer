@@ -3,7 +3,7 @@
 namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
-    [BeetleX.Packets.MessageType(10014)]
+    [BeetleX.Packets.MessageType(1014)]
     public class ClientCombatTurnStarted
     {
         [ProtoMember(1)]

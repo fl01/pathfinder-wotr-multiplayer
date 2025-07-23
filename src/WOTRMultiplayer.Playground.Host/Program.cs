@@ -308,7 +308,7 @@ namespace WOTRMultiplayer.Playground.Host
                 return true;
             }
 
-            public NetworkDiceRoll Get(int rollId, long playerId)
+            public NetworkDiceRoll Get(int rollId, long playerId, bool ensureCompleted = true)
             {
                 if (rollId == -1301660035)
                 {

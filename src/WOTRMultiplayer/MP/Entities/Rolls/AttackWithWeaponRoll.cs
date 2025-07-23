@@ -28,7 +28,13 @@
 
         public override bool IsCompleted()
         {
-            return !IsHit || DamageValues.Count > 0;
+            if (!IsHit)
+            {
+                return true;
+            }
+
+            // Hit requires damage calculation which happens few fractions later
+            return DamageValues.Count > 0;
         }
     }
 }

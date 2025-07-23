@@ -177,6 +177,8 @@ namespace WOTRMultiplayer.MP
                     return true;
                 }
 
+                _logger.LogInformation("Retrieving Damage roll. Type={type}, IdString={id}", roll.GetType().Name, roll.GetIdString());
+
                 var networkDiceRollId = _diceRollStorage.GetUniqueId(roll);
                 var networkRoll = multiplayerParticipant.RetrieveRoll(networkDiceRollId, ruleCalculateDamage.Initiator.UniqueId);
 
@@ -233,16 +235,16 @@ namespace WOTRMultiplayer.MP
                 }
 
                 var rollUniqueId = _diceRollStorage.GetUniqueId(roll);
-                var storedDiceRoll = _diceRollStorage.Get(rollUniqueId, multiplayerParticipant.CurrentGame.LocalPlayerId);
+                var storedDiceRoll = _diceRollStorage.Get(rollUniqueId, multiplayerParticipant.CurrentGame.LocalPlayerId, ensureCompleted: false);
                 if (storedDiceRoll == null)
                 {
-                    _logger.LogError("Unable to attach damage values to missing roll. RuleType={ruleType}, RollUniqueId={rollUniqueId}", ruleCalculateDamage.Reason.Rule.GetType().Name, rollUniqueId);
+                    _logger.LogError("Unable to attach damage values to missing roll. RuleType={ruleType}, RollUniqueId={rollUniqueId}", rollType, rollUniqueId);
                     return;
                 }
 
                 if (storedDiceRoll.DamageValues.Count > 0)
                 {
-                    _logger.LogWarning("Damage values already exist. RuleType={ruleType}, RollUniqueId={rollUniqueId}", ruleCalculateDamage.Reason.Rule.GetType().Name, rollUniqueId);
+                    _logger.LogWarning("Damage values already exist. RuleType={ruleType}, RollUniqueId={rollUniqueId}", rollType, rollUniqueId);
                 }
 
                 storedDiceRoll.DamageValues = [.. ruleCalculateDamage.CalculatedDamage.Select(x => new NetworkDamageValueRoll
@@ -254,7 +256,7 @@ namespace WOTRMultiplayer.MP
                     ValueWithoutReduction = x.ValueWithoutReduction
                 })];
 
-                _logger.LogInformation("Damage values have been attached. RollId={rollId}, DamageValuesCount={damageValuesCount}", rollUniqueId, storedDiceRoll.DamageValues.Count);
+                _logger.LogInformation("Damage values have been attached. RollId={rollId}, RollType={rollType}, DamageValuesCount={damageValuesCount}", rollUniqueId, rollType, storedDiceRoll.DamageValues.Count);
             }
             catch (System.Exception ex)
             {
@@ -282,6 +284,8 @@ namespace WOTRMultiplayer.MP
                     _logger.LogWarning("Roll saving has been skipped. Type={rollType}, InitiatorName={initiatorName}, InitiatorId={initiatorId}", rollType, ruleRollDice.Initiator?.CharacterName, ruleRollDice.Initiator?.UniqueId);
                     return;
                 }
+
+                _logger.LogInformation("Saving roll. Type={type}, IdString={id}", roll.GetType().Name, roll.GetIdString());
 
                 if (!_diceRollStorage.Save(roll))
                 {
@@ -317,6 +321,8 @@ namespace WOTRMultiplayer.MP
                     _logger.LogWarning("Roll retrieving has been skipped. Type={rollType}, InitiatorName={initiatorName}, InitiatorId={initiatorId}", rollType, ruleRollDice.Initiator?.CharacterName, ruleRollDice.Initiator?.UniqueId);
                     return true;
                 }
+
+                _logger.LogInformation("Retrieving roll. Type={type}, IdString={id}", networkDiceRoll.GetType().Name, networkDiceRoll.GetIdString());
 
                 var networkDiceRollId = _diceRollStorage.GetUniqueId(networkDiceRoll);
 
@@ -485,11 +491,6 @@ namespace WOTRMultiplayer.MP
                 _ => null
             };
 
-            if (roll != null)
-            {
-                _logger.LogInformation("Created roll. Type={type}, IdString={id}", roll.GetType().Name, roll.GetIdString());
-            }
-
             return roll;
         }
 
@@ -527,7 +528,9 @@ namespace WOTRMultiplayer.MP
                 ExtraAttack = ruleAttackWithWeapon.ExtraAttack,
                 IsFirstAttack = ruleAttackWithWeapon.IsFirstAttack,
                 AttacksCount = ruleAttackWithWeapon.AttacksCount,
-                IsCriticalRoll = ruleAttackWithWeapon.AttackRoll.IsCriticalRoll
+                IsCriticalRoll = ruleAttackWithWeapon.AttackRoll.IsCriticalRoll,
+
+                IsHit = ruleAttackWithWeapon.AttackRoll.IsHit
             };
 
             return roll;

@@ -3,7 +3,7 @@
 namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
-    [BeetleX.Packets.MessageType(10011)]
+    [BeetleX.Packets.MessageType(1011)]
     public class NotifyDialogCueAnswerSelected
     {
         [ProtoMember(1)]

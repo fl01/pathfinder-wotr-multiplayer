@@ -46,11 +46,11 @@ namespace WOTRMultiplayer.MP
             }
         }
 
-        public NetworkDiceRoll Get(int rollId, long playerId)
+        public NetworkDiceRoll Get(int rollId, long playerId, bool ensureCompleted = true)
         {
             try
             {
-                if (!_rolls.TryGetValue(rollId, out var entry) || !entry.Roll.IsCompleted())
+                if (!_rolls.TryGetValue(rollId, out var entry) || ensureCompleted && !entry.Roll.IsCompleted())
                 {
                     return null;
                 }

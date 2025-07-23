@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using Kingmaker;
@@ -328,7 +327,7 @@ namespace WOTRMultiplayer.GameInteraction
             }
 
             var units = unitsToSync
-                .Select(c => new NetworkUnit { Id = c.UniqueId, Position = new Vector3(c.Position.x, c.Position.y, c.Position.z) })
+                .Select(c => new NetworkUnit { Id = c.UniqueId, Position = new NetworkVector3(c.Position.x, c.Position.y, c.Position.z) })
                 .ToList();
 
             return units;
@@ -350,22 +349,21 @@ namespace WOTRMultiplayer.GameInteraction
                             continue;
                         }
 
-                        if (!unit.IsInCombat)
-                        {
-                            _logger.LogError("Updating position for unit outside of the combat. UnitId={unitId}", networkUnit.Id);
-                        }
-
                         if (unit.Position.x == networkUnit.Position.X
                             && unit.Position.y == networkUnit.Position.Y
                             && unit.Position.z == networkUnit.Position.Z)
                         {
-                            _logger.LogInformation("Unit position has no need to be updated. UnitId={unitId}");
                             continue;
+                        }
+
+                        if (!unit.IsInCombat)
+                        {
+                            _logger.LogWarning("Updating position for unit outside of the combat. UnitId={unitId}", networkUnit.Id);
                         }
 
                         var oldPosition = unit.Position;
                         unit.Position = new UnityEngine.Vector3(networkUnit.Position.X, networkUnit.Position.Y, networkUnit.Position.Z);
-                        _logger.LogInformation("Unit position has been updated. UnitId={unitId}, OldPosition={oldPosition}, NewPosition={newPosition}", unit.UniqueId, oldPosition, unit.Position);
+                        _logger.LogInformation("Unit position has been updated. UnitId={unitId}, OldPosition={oldPosition}, NewPosition={newPosition}", unit.UniqueId, oldPosition.ToString("F4"), unit.Position.ToString("F4"));
                     }
                     catch (Exception ex)
                     {
@@ -433,10 +431,14 @@ namespace WOTRMultiplayer.GameInteraction
                 Thread.Sleep(100);
             }
 
-            _logger.LogInformation("Ending turn.");
             _mainThreadAccessor.Enqueue(() =>
             {
-                Game.Instance.TurnBasedCombatController.CurrentTurn?.End();
+                var turnStatus = Game.Instance.TurnBasedCombatController.CurrentTurn?.Status ?? null;
+                _logger.LogInformation("Ending combat turn if it's not ending yet. TurnStatus={turnStatus}", turnStatus);
+                if (turnStatus != TurnBased.Controllers.TurnController.TurnStatus.Ending && turnStatus != TurnBased.Controllers.TurnController.TurnStatus.Ended)
+                {
+                    Game.Instance.TurnBasedCombatController.CurrentTurn?.End();
+                }
             });
         }
 
@@ -661,9 +663,10 @@ namespace WOTRMultiplayer.GameInteraction
 
         public bool CombatTurnHasBeenFinished()
         {
-            return Game.Instance.TurnBasedCombatController.CurrentTurn == null
-                || Game.Instance.TurnBasedCombatController.CurrentTurn.Status == TurnBased.Controllers.TurnController.TurnStatus.Ended
-                || Game.Instance.TurnBasedCombatController.CurrentTurn.Status == TurnBased.Controllers.TurnController.TurnStatus.Ending;
+            var turnStatus = Game.Instance.TurnBasedCombatController.CurrentTurn?.Status ?? TurnBased.Controllers.TurnController.TurnStatus.None;
+            return turnStatus == TurnBased.Controllers.TurnController.TurnStatus.None
+                || turnStatus == TurnBased.Controllers.TurnController.TurnStatus.Ended
+                || turnStatus == TurnBased.Controllers.TurnController.TurnStatus.Ending;
         }
     }
 }

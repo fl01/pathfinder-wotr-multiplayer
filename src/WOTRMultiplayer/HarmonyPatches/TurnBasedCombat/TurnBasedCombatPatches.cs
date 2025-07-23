@@ -110,15 +110,16 @@ namespace WOTRMultiplayer.HarmonyPatches.TurnBasedCombat
             var match = matcher.SearchForward(x => x.Calls(lookFor));
             if (match != null)
             {
-                match.RemoveInstructions(matcher.Length - match.Pos - 1); // keep last `ret`
+                var actualValidPosition = matcher.Advance(-1);
+                actualValidPosition.RemoveInstructions(matcher.Length - actualValidPosition.Pos - 1); // keep last `ret`
                 var newInstructions = new List<CodeInstruction>()
                 {
-                    // OpCodes.Ldloc_0 is already loaded
-                    new(OpCodes.Ldloc_1),
+                    // OpCodes.Ldloc_0 is already loaded (UnitEntityData xi)
+                    new(OpCodes.Ldloc_1), // (UnitEntityData yi)
                     new(OpCodes.Call, AccessTools.Method(typeof(TurnBasedCombatPatches), nameof(TurnBasedCombatPatches.CompareUnitsByUniqueId)))
                 };
 
-                match.Insert(newInstructions);
+                actualValidPosition.Insert(newInstructions);
                 Main.GetLogger<HarmonyTranspiler>().LogInformation("Transpiler has been applied. Target={target}", target);
             }
 

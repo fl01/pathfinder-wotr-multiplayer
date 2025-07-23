@@ -4,7 +4,7 @@ using ProtoBuf;
 namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
-    [BeetleX.Packets.MessageType(10010)]
+    [BeetleX.Packets.MessageType(1010)]
     public class NotifyDialogCueAnswerSuggested
     {
         [ProtoMember(1)]

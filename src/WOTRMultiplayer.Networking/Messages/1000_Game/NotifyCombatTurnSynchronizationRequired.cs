@@ -4,8 +4,8 @@ using ProtoBuf;
 namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
-    [BeetleX.Packets.MessageType(1023)]
-    public class NotifyCombatStarted
+    [BeetleX.Packets.MessageType(1021)]
+    public class NotifyCombatTurnSynchronizationRequired
     {
         [ProtoMember(1)]
         public List<NetworkUnit> Units { get; set; } = [];

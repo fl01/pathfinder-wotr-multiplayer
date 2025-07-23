@@ -272,7 +272,7 @@ namespace WOTRMultiplayer.Playground.Client
                 return true;
             }
 
-            public NetworkDiceRoll Get(int rollId, long playerId)
+            public NetworkDiceRoll Get(int rollId, long playerId, bool ensureCompleted = true)
             {
                 return new NetworkDiceRoll
                 {

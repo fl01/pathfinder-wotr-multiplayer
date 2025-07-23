@@ -2,7 +2,7 @@
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Rolls;
 
-namespace WOTRMultiplayer.Mapping
+namespace WOTRMultiplayer.Config.Mapping
 {
     public class NetworkMessagesProfile : Profile
     {
@@ -27,6 +27,9 @@ namespace WOTRMultiplayer.Mapping
                .ReverseMap();
 
             CreateMap<NetworkDamageValueRoll, Networking.Messages.NetworkDamageValueRoll>()
+                .ReverseMap();
+
+            CreateMap<NetworkUnit, Networking.Messages.NetworkUnit>()
                 .ReverseMap();
         }
     }

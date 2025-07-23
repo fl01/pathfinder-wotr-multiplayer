@@ -15,6 +15,7 @@ namespace WOTRMultiplayer.MP.Entities
             get { return _round == 0 ? 1 : _round; }
             set { _round = value; }
         }
+
         public NetworkCombatTurn Turn { get; set; }
 
         public ConcurrentDictionary<long, bool> PlayersCombatInitialization { get; set; } = new();
@@ -27,6 +28,6 @@ namespace WOTRMultiplayer.MP.Entities
         /// <summary>
         /// key: round+unitid
         /// </summary>
-        public ConcurrentDictionary<string, HashSet<long>> PlayersTurnEndInitialization { get; set; } = new();
+        public ConcurrentDictionary<string, HashSet<long>> PlayersTurnSynchronization { get; set; } = new();
     }
 }

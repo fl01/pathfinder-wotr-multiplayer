@@ -3,7 +3,7 @@
 namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
-    [BeetleX.Packets.MessageType(10018)]
+    [BeetleX.Packets.MessageType(1018)]
     public class NotifyUnitClicked
     {
         [ProtoMember(1)]

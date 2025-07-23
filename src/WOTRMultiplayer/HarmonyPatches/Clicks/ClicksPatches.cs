@@ -13,6 +13,7 @@ using WOTRMultiplayer.MP.Entities;
 namespace WOTRMultiplayer.HarmonyPatches.Clicks
 {
     [HarmonyPatch]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
     public class ClicksPatches
     {
         /// <summary>
