@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using FakeItEasy;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
@@ -109,19 +110,47 @@ namespace WOTRMultiplayer.UnitTests.MP
             A.CallTo(() => _uiFactory.DestroyLobbyWindow(An<ILobbyWindow>.Ignored)).MustHaveHappenedOnceExactly();
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void InitializeEscMenuLobbyWindow_CallsFactory(bool isHostActive)
+        [Test]
+        public void InitializeEscMenuLobbyWindow_HostIsActive_CallsFactory()
         {
             // Arrange
             var context = new InitializeEscMenuLobbyWindowContext(null);
-            A.CallTo(() => _multiplayerHost.IsActive).Returns(isHostActive);
+            A.CallTo(() => _multiplayerHost.IsActive).Returns(true);
 
             // Act
             _multiplayer.InitializeEscMenuLobbyWindow(context);
 
             // Assert
-            A.CallTo(() => _uiFactory.InitializeEscMenuLobbyWindow(context, _multiplayerHost.IsActive, An<Action>.Ignored)).MustHaveHappenedOnceExactly();
+            A.CallTo(() => _uiFactory.InitializeEscMenuLobbyWindow(context, true, An<Action>.Ignored)).MustHaveHappenedOnceExactly();
+        }
+
+        [Test]
+        public void InitializeEscMenuLobbyWindow_ClientIsActive_CallsFactory()
+        {
+            // Arrange
+            var context = new InitializeEscMenuLobbyWindowContext(null);
+            A.CallTo(() => _multiplayerClient.IsActive).Returns(true);
+
+            // Act
+            _multiplayer.InitializeEscMenuLobbyWindow(context);
+
+            // Assert
+            A.CallTo(() => _uiFactory.InitializeEscMenuLobbyWindow(context, false, An<Action>.Ignored)).MustHaveHappenedOnceExactly();
+        }
+
+        [Test]
+        public void InitializeEscMenuLobbyWindow_NoActiveMultiplayerActors_DidnotCallFactory()
+        {
+            // Arrange
+            var context = new InitializeEscMenuLobbyWindowContext(null);
+            A.CallTo(() => _multiplayerClient.IsActive).Returns(false);
+            A.CallTo(() => _multiplayerHost.IsActive).Returns(false);
+
+            // Act
+            _multiplayer.InitializeEscMenuLobbyWindow(context);
+
+            // Assert
+            A.CallTo(() => _uiFactory.InitializeEscMenuLobbyWindow(An<InitializeEscMenuLobbyWindowContext>.Ignored, An<bool>.Ignored, An<Action>.Ignored)).MustNotHaveHappened();
         }
 
 
@@ -131,6 +160,7 @@ namespace WOTRMultiplayer.UnitTests.MP
             // Arrange
             var context = new InitializeEscMenuLobbyWindowContext(null);
             var windowFake = A.Fake<ILobbyWindow>();
+            A.CallTo(() => _multiplayerClient.IsActive).Returns(true);
             A.CallTo(() => _uiFactory.InitializeEscMenuLobbyWindow(An<InitializeEscMenuLobbyWindowContext>.Ignored, An<bool>.Ignored, An<Action>.Ignored)).Returns(windowFake);
 
             // Act
@@ -138,47 +168,126 @@ namespace WOTRMultiplayer.UnitTests.MP
 
             // Assert
             A.CallTo(() => windowFake.AssignLobbyController(_lobbyWindowController)).MustHaveHappenedOnceExactly();
-            Assert.That(windowFake.NetworkGame, Is.Not.Null);
+            Assert.That(windowFake.GetGameConnectivity, Is.Not.Null);
+            Assert.That(windowFake.GetCharacters, Is.Not.Null);
+            Assert.That(windowFake.GetPlayers, Is.Not.Null);
         }
 
         [Test]
-        public void InitializeEscMenuLobbyWindow_HostIsActive_NetworkGameIsTakenFromHost()
+        public void InitializeEscMenuLobbyWindow_HostIsActive_GameConnectivityIsTakenFromHost()
         {
             // Arrange
             var context = new InitializeEscMenuLobbyWindowContext(null);
             var windowFake = A.Fake<ILobbyWindow>();
             A.CallTo(() => _multiplayerHost.IsActive).Returns(true);
-            var expectedGame = A.Fake<NetworkGame>();
-            A.CallTo(() => _multiplayerHost.CurrentGame).Returns(expectedGame);
+            var expectedConnectivity = A.Fake<NetworkGameConnectivity>();
+            A.CallTo(() => _multiplayerHost.GetGameConnectivity()).Returns(expectedConnectivity);
             A.CallTo(() => _uiFactory.InitializeEscMenuLobbyWindow(An<InitializeEscMenuLobbyWindowContext>.Ignored, An<bool>.Ignored, An<Action>.Ignored)).Returns(windowFake);
 
             // Act
             _multiplayer.InitializeEscMenuLobbyWindow(context);
-            var actual = windowFake.NetworkGame();
+            var actual = windowFake.GetGameConnectivity();
 
             // Assert
-            Assert.That(actual, Is.EqualTo(expectedGame));
+            Assert.That(actual, Is.EqualTo(expectedConnectivity));
+        }
+
+        [Test]
+        public void InitializeEscMenuLobbyWindow_HostIsActive_PlayerInfoIsTakenFromHost()
+        {
+            // Arrange
+            var context = new InitializeEscMenuLobbyWindowContext(null);
+            var windowFake = A.Fake<ILobbyWindow>();
+            A.CallTo(() => _multiplayerHost.IsActive).Returns(true);
+            var expectedPlayers = A.Fake<List<NetworkPlayer>>();
+            A.CallTo(() => _multiplayerHost.GetPlayers()).Returns(expectedPlayers);
+            A.CallTo(() => _uiFactory.InitializeEscMenuLobbyWindow(An<InitializeEscMenuLobbyWindowContext>.Ignored, An<bool>.Ignored, An<Action>.Ignored)).Returns(windowFake);
+
+            // Act
+            _multiplayer.InitializeEscMenuLobbyWindow(context);
+            var actual = windowFake.GetPlayers();
+
+            // Assert
+            Assert.That(actual, Is.EqualTo(expectedPlayers));
+        }
+
+        [Test]
+        public void InitializeEscMenuLobbyWindow_HostIsActive_CharactersInfoIsTakenFromHost()
+        {
+            // Arrange
+            var context = new InitializeEscMenuLobbyWindowContext(null);
+            var windowFake = A.Fake<ILobbyWindow>();
+            A.CallTo(() => _multiplayerHost.IsActive).Returns(true);
+            var expectedCharacters = A.Fake<List<NetworkCharacterOwnership>>();
+            A.CallTo(() => _multiplayerHost.GetCharacters()).Returns(expectedCharacters);
+            A.CallTo(() => _uiFactory.InitializeEscMenuLobbyWindow(An<InitializeEscMenuLobbyWindowContext>.Ignored, An<bool>.Ignored, An<Action>.Ignored)).Returns(windowFake);
+
+            // Act
+            _multiplayer.InitializeEscMenuLobbyWindow(context);
+            var actual = windowFake.GetCharacters();
+
+            // Assert
+            Assert.That(actual, Is.EqualTo(expectedCharacters));
         }
 
 
         [Test]
-        public void InitializeEscMenuLobbyWindow_ClientIsActive_NetworkGameIsTakenFromClient()
+        public void InitializeEscMenuLobbyWindow_ClientIsActive_GameConnectivityIsTakenFromHost()
         {
             // Arrange
             var context = new InitializeEscMenuLobbyWindowContext(null);
             var windowFake = A.Fake<ILobbyWindow>();
             A.CallTo(() => _multiplayerClient.IsActive).Returns(true);
-            var expectedGame = A.Fake<NetworkGame>();
-            A.CallTo(() => _multiplayerClient.CurrentGame).Returns(expectedGame);
+            var expectedConnectivity = A.Fake<NetworkGameConnectivity>();
+            A.CallTo(() => _multiplayerClient.GetGameConnectivity()).Returns(expectedConnectivity);
             A.CallTo(() => _uiFactory.InitializeEscMenuLobbyWindow(An<InitializeEscMenuLobbyWindowContext>.Ignored, An<bool>.Ignored, An<Action>.Ignored)).Returns(windowFake);
 
             // Act
             _multiplayer.InitializeEscMenuLobbyWindow(context);
-            var actual = windowFake.NetworkGame();
+            var actual = windowFake.GetGameConnectivity();
 
             // Assert
-            Assert.That(actual, Is.EqualTo(expectedGame));
+            Assert.That(actual, Is.EqualTo(expectedConnectivity));
         }
+
+        [Test]
+        public void InitializeEscMenuLobbyWindow_ClientIsActive_PlayerInfoIsTakenFromHost()
+        {
+            // Arrange
+            var context = new InitializeEscMenuLobbyWindowContext(null);
+            var windowFake = A.Fake<ILobbyWindow>();
+            A.CallTo(() => _multiplayerClient.IsActive).Returns(true);
+            var expectedPlayers = A.Fake<List<NetworkPlayer>>();
+            A.CallTo(() => _multiplayerClient.GetPlayers()).Returns(expectedPlayers);
+            A.CallTo(() => _uiFactory.InitializeEscMenuLobbyWindow(An<InitializeEscMenuLobbyWindowContext>.Ignored, An<bool>.Ignored, An<Action>.Ignored)).Returns(windowFake);
+
+            // Act
+            _multiplayer.InitializeEscMenuLobbyWindow(context);
+            var actual = windowFake.GetPlayers();
+
+            // Assert
+            Assert.That(actual, Is.EqualTo(expectedPlayers));
+        }
+
+        [Test]
+        public void InitializeEscMenuLobbyWindow_ClientIsActive_CharactersInfoIsTakenFromHost()
+        {
+            // Arrange
+            var context = new InitializeEscMenuLobbyWindowContext(null);
+            var windowFake = A.Fake<ILobbyWindow>();
+            A.CallTo(() => _multiplayerClient.IsActive).Returns(true);
+            var expectedCharacters = A.Fake<List<NetworkCharacterOwnership>>();
+            A.CallTo(() => _multiplayerClient.GetCharacters()).Returns(expectedCharacters);
+            A.CallTo(() => _uiFactory.InitializeEscMenuLobbyWindow(An<InitializeEscMenuLobbyWindowContext>.Ignored, An<bool>.Ignored, An<Action>.Ignored)).Returns(windowFake);
+
+            // Act
+            _multiplayer.InitializeEscMenuLobbyWindow(context);
+            var actual = windowFake.GetCharacters();
+
+            // Assert
+            Assert.That(actual, Is.EqualTo(expectedCharacters));
+        }
+
 
         [Test]
         public void InitializeMultiplayer_MultiplayerClientIsActive_LogsAndCallsDispose()

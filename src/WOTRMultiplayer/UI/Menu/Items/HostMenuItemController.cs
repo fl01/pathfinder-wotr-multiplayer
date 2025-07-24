@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using Kingmaker;
 using Kingmaker.UI.Common;
 using Kingmaker.UI.MVVM;
@@ -302,9 +301,9 @@ namespace WOTRMultiplayer.UI.Menu.Items
             _multiplayerHost.ChangeCharacterOwner(characterIndex, playerIndex);
         }
 
-        private void OnMultiplayerConnected(EndPoint endpoint)
+        private void OnMultiplayerConnected(NetworkGameConnectivity connectivity)
         {
-            Lobby.UpdateServerInfo(endpoint.ToString());
+            Lobby.UpdateServerInfo(connectivity);
         }
 
         private void OnMultiplayerPlayersChanged(List<NetworkPlayer> players)

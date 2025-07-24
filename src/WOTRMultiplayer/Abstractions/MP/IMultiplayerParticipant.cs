@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Rolls;
 
@@ -8,9 +7,19 @@ namespace WOTRMultiplayer.Abstractions.MP
 {
     public interface IMultiplayerActor
     {
+        long GetLocalPlayerId();
+
+        NetworkGameConnectivity GetGameConnectivity();
+
+        List<NetworkPlayer> GetPlayers();
+
+        List<NetworkCharacterOwnership> GetCharacters();
+
         bool ReadyChanged();
 
         void MoveNonCombatCharacter(string unitId, NetworkVector3 destination, float delay, float orientation);
+
+        bool IsInCombat { get; }
 
         bool IsActive { get; }
 
@@ -20,9 +29,7 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         Action<string> OnStartGame { get; set; }
 
-        Action<EndPoint> OnConnected { get; set; }
-
-        NetworkGame CurrentGame { get; }
+        Action<NetworkGameConnectivity> OnConnected { get; set; }
 
         Action<List<NetworkPlayer>> OnPlayersChanged { get; set; }
 

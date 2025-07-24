@@ -152,7 +152,7 @@ namespace WOTRMultiplayer.PubSub
         public void HandleUnitJoinCombat(UnitEntityData unit)
         {
             var multiplayerActor = GetMultiplayerActor();
-            if (multiplayerActor?.CurrentGame?.Combat == null)
+            if (multiplayerActor == null || !multiplayerActor.IsInCombat)
             {
                 return;
             }

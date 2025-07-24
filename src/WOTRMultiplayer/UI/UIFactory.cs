@@ -522,7 +522,9 @@ namespace WOTRMultiplayer.UI
                 return;
             }
 
-            lobbyWindow.NetworkGame = null;
+            lobbyWindow.GetGameConnectivity = null;
+            lobbyWindow.GetPlayers = null;
+            lobbyWindow.GetCharacters = null;
 
             if (lobbyWindow.MenuItem == null)
             {

@@ -83,14 +83,14 @@ namespace WOTRMultiplayer.Playground.Client
                         client.OnAfterCueShow(DialogName, "Cue_0003", false);
                         break;
                     case "dialog-suggest-cue_0004_2":
-                        client.CurrentGame.Dialog = new NetworkDialog(DialogName)
+                        client.Game.Dialog = new NetworkDialog(DialogName)
                         {
                             CurrentCueName = "Cue_0004"
                         };
                         client.OnBeforeSelectDialogAnswer(DialogName, "Cue_0004", "Answer_0007", false, null);
                         break;
                     case "dialog-suggest-cue_0004_3":
-                        client.CurrentGame.Dialog = new NetworkDialog(DialogName)
+                        client.Game.Dialog = new NetworkDialog(DialogName)
                         {
                             CurrentCueName = "Cue_0004"
                         };

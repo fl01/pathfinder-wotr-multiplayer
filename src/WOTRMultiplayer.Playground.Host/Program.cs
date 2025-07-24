@@ -113,7 +113,7 @@ namespace WOTRMultiplayer.Playground.Host
                         host.LeaveArea("1b018b52-c1be-40bf-8937-1f2a77b96049");
                         break;
                     case "dialog-answer_continue0001":
-                        host.CurrentGame.Dialog = new NetworkDialog(DialogName)
+                        host.Game.Dialog = new NetworkDialog(DialogName)
                         {
                             Answer = new NetworkDialogAnswer
                             {
@@ -125,7 +125,7 @@ namespace WOTRMultiplayer.Playground.Host
                         host.SendSelectedAnswer();
                         break;
                     case "dialog-answer_continue0002":
-                        host.CurrentGame.Dialog = new NetworkDialog(DialogName)
+                        host.Game.Dialog = new NetworkDialog(DialogName)
                         {
                             Answer = new NetworkDialogAnswer
                             {
@@ -137,7 +137,7 @@ namespace WOTRMultiplayer.Playground.Host
                         host.SendSelectedAnswer();
                         break;
                     case "dialog-answer_continue0003":
-                        host.CurrentGame.Dialog = new NetworkDialog(DialogName)
+                        host.Game.Dialog = new NetworkDialog(DialogName)
                         {
                             Answer = new NetworkDialogAnswer
                             {
@@ -149,7 +149,7 @@ namespace WOTRMultiplayer.Playground.Host
                         host.SendSelectedAnswer();
                         break;
                     case "dialog-answer_continue0004":
-                        host.CurrentGame.Dialog = new NetworkDialog(DialogName)
+                        host.Game.Dialog = new NetworkDialog(DialogName)
                         {
                             Answer = new NetworkDialogAnswer
                             {
@@ -161,7 +161,7 @@ namespace WOTRMultiplayer.Playground.Host
                         host.SendSelectedAnswer();
                         break;
                     case "dialog-answer_continue0005":
-                        host.CurrentGame.Dialog = new NetworkDialog(DialogName)
+                        host.Game.Dialog = new NetworkDialog(DialogName)
                         {
                             Answer = new NetworkDialogAnswer
                             {

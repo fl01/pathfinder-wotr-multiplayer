@@ -17,7 +17,10 @@ namespace WOTRMultiplayer.MP
 
         private readonly object _actionLock = new();
 
-        protected NetworkGame Game { get; set; }
+        public bool IsInCombat => Game?.Combat != null;
+
+        // public just because of playground, but never exposed directly via interfaces
+        public NetworkGame Game { get; set; }
 
         protected ILogger Logger { get; private set; }
 
@@ -51,10 +54,32 @@ namespace WOTRMultiplayer.MP
             SettingsProvider = multiplayerSettingsProvider;
         }
 
+        public long GetLocalPlayerId()
+        {
+            return Game?.LocalPlayerId ?? 0;
+        }
+
+        public NetworkGameConnectivity GetGameConnectivity()
+        {
+            return Game?.Connectivity;
+        }
+
+        public List<NetworkPlayer> GetPlayers()
+        {
+
+            return [.. Game?.Players ?? []];
+        }
+
+        public List<NetworkCharacterOwnership> GetCharacters()
+        {
+            return [.. Game?.Characters ?? []];
+        }
+
         public bool CanControlCharacter(string unitId)
         {
             if (Game == null)
             {
+                Logger.LogWarning("Game has not been initialized yet, but trying to get character control info");
                 return false;
             }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Kingmaker;
 using Kingmaker.UI.ServiceWindow;
 using Microsoft.Extensions.Logging;
@@ -15,7 +16,9 @@ namespace WOTRMultiplayer.UI.Menu.Windows
         private ILogger<LobbyWindow> _logger;
         private ILobbyWindowController _lobbyWindowController;
 
-        public Func<NetworkGame> NetworkGame { get; set; }
+        public Func<NetworkGameConnectivity> GetGameConnectivity { get; set; }
+        public Func<List<NetworkPlayer>> GetPlayers { get; set; }
+        public Func<List<NetworkCharacterOwnership>> GetCharacters { get; set; }
 
         public GameObject MenuItem { get; set; }
 
@@ -43,15 +46,17 @@ namespace WOTRMultiplayer.UI.Menu.Windows
                 _lobbyWindowController.SetActiveOwner(LobbyWindowOwner.EscMenu);
 
                 _logger.LogInformation("Updaing lobby info");
-                var game = NetworkGame();
-                _lobbyWindowController.UpdateServerInfo(game.Endpoint.ToString());
-                _lobbyWindowController.UpdatePlayers(game.Players);
-                _lobbyWindowController.UpdateCharacters(game.Characters);
+                var connectivity = GetGameConnectivity();
+                _lobbyWindowController.UpdateServerInfo(connectivity);
+                var players = GetPlayers();
+                _lobbyWindowController.UpdatePlayers(players);
+                var characters = GetCharacters();
+                _lobbyWindowController.UpdateCharacters(characters);
 
-                for (int i = 0; i < game.Characters.Count; i++)
+                for (int i = 0; i < characters.Count; i++)
                 {
-                    var character = game.Characters[i];
-                    var playerIndex = game.Players.IndexOf(character.Owner);
+                    var character = characters[i];
+                    var playerIndex = players.IndexOf(character.Owner);
                     _lobbyWindowController.UpdateCharacterOwnerDropdown(i, playerIndex);
                 }
             }

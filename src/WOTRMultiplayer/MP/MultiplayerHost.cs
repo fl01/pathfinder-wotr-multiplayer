@@ -25,14 +25,12 @@ namespace WOTRMultiplayer.MP
         private NetworkGameStage Status => Game?.Stage ?? NetworkGameStage.None;
 
         public Action<List<NetworkPlayer>> OnPlayersChanged { get; set; }
-        public Action<EndPoint> OnConnected { get; set; }
+        public Action<NetworkGameConnectivity> OnConnected { get; set; }
         public Action<string> OnStartGame { get; set; }
 
         public bool IsActive => _networkServer.IsActive;
 
         public bool IsInLobby => IsActive && Status == NetworkGameStage.Lobby;
-
-        public NetworkGame CurrentGame => Game;
 
         protected override bool IsHost => true;
 
@@ -1162,14 +1160,17 @@ namespace WOTRMultiplayer.MP
             };
 
             Game.Players.Add(hostPlayer);
-            Game.Endpoint = endpoint;
+            Game.Connectivity = new NetworkGameConnectivity
+            {
+                Endpoint = endpoint
+            };
 
             foreach (var character in Game.Characters)
             {
                 character.Owner = hostPlayer;
             }
 
-            OnConnected?.Invoke(endpoint);
+            OnConnected?.Invoke(Game.Connectivity);
             OnPlayersChanged?.Invoke(Game.Players);
         }
 

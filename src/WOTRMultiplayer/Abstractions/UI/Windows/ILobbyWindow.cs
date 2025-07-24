@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.MP.Entities;
@@ -9,7 +10,11 @@ namespace WOTRMultiplayer.Abstractions.UI.Windows
     {
         GameObject MenuItem { get; set; }
 
-        Func<NetworkGame> NetworkGame { get; set; }
+        Func<NetworkGameConnectivity> GetGameConnectivity { get; set; }
+
+        Func<List<NetworkPlayer>> GetPlayers { get; set; }
+
+        Func<List<NetworkCharacterOwnership>> GetCharacters { get; set; }
 
         void Show(bool state);
 

@@ -86,10 +86,19 @@ namespace WOTRMultiplayer.MP
 
         public void InitializeEscMenuLobbyWindow(InitializeEscMenuLobbyWindowContext context)
         {
+            var multiplayerActor = GetMultiplayerActor();
+            if (multiplayerActor == null)
+            {
+                return;
+            }
+
             _logger.LogInformation("Creating Esc menu multiplayer lobby window");
             _lobbyWindow = Factory.InitializeEscMenuLobbyWindow(context, _multiplayerHost.IsActive, ShowEscMenuMultiplayerLobby);
 
-            _lobbyWindow.NetworkGame = GetNetworkGame;
+            _lobbyWindow.GetGameConnectivity = multiplayerActor.GetGameConnectivity;
+            _lobbyWindow.GetPlayers = multiplayerActor.GetPlayers;
+            _lobbyWindow.GetCharacters = multiplayerActor.GetCharacters;
+
             _lobbyWindow.AssignLobbyController(_lobbyWindowController);
 
             _lobbyWindowController.OnCharacterOwnerChanged = OnLobbyCharacterOwnerChanged;
@@ -235,7 +244,8 @@ namespace WOTRMultiplayer.MP
                 }
 
                 var rollUniqueId = _diceRollStorage.GetUniqueId(roll);
-                var storedDiceRoll = _diceRollStorage.Get(rollUniqueId, multiplayerActor.CurrentGame.LocalPlayerId, ensureCompleted: false);
+                var playerId = multiplayerActor.GetLocalPlayerId();
+                var storedDiceRoll = _diceRollStorage.Get(rollUniqueId, playerId, ensureCompleted: false);
                 if (storedDiceRoll == null)
                 {
                     _logger.LogError("Unable to attach damage values to missing roll. RuleType={ruleType}, RollUniqueId={rollUniqueId}", rollType, rollUniqueId);
@@ -585,11 +595,6 @@ namespace WOTRMultiplayer.MP
         {
             _logger.LogInformation("Show Multiplayer window");
             _multiplayerWindow.Show(true);
-        }
-
-        private NetworkGame GetNetworkGame()
-        {
-            return _multiplayerHost.IsActive ? _multiplayerHost.CurrentGame : _multiplayerClient.CurrentGame;
         }
 
         private void OnLobbyCharacterOwnerChanged(int characterIndex, int playerIndex)

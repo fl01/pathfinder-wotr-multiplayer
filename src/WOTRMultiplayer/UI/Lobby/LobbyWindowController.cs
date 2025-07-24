@@ -114,7 +114,7 @@ namespace WOTRMultiplayer.UI.Lobby
             });
         }
 
-        public void UpdateServerInfo(string serverAddress)
+        public void UpdateServerInfo(NetworkGameConnectivity connectivity)
         {
             if (GetContentOwnedObject() == null)
             {
@@ -140,7 +140,7 @@ namespace WOTRMultiplayer.UI.Lobby
             serverAddressBox.alignment = TextAlignmentOptions.Center;
             serverAddressBox.material = defaultMesh.Material;
             serverAddressBox.color = defaultMesh.Color;
-            serverAddressBox.SetText(serverAddress);
+            serverAddressBox.SetText(connectivity.Endpoint.ToString());
         }
 
         public void UpdateCharacterOwnerDropdown(int characterIndex, int playerIndex)

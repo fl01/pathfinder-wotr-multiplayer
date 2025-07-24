@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Net;
 
 namespace WOTRMultiplayer.MP.Entities
 {
@@ -7,7 +6,7 @@ namespace WOTRMultiplayer.MP.Entities
     {
         public long LocalPlayerId { get; set; }
 
-        public EndPoint Endpoint { get; set; }
+        public NetworkGameConnectivity Connectivity { get; set; }
 
         public NetworkGameStage Stage { get; set; }
 
@@ -33,7 +32,7 @@ namespace WOTRMultiplayer.MP.Entities
             Players.Clear();
             Characters.Clear();
             SaveFilePath = null;
-            Endpoint = null;
+            Connectivity = null;
             Stage = NetworkGameStage.None;
             Dialog = null;
         }

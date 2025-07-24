@@ -27,7 +27,7 @@ namespace WOTRMultiplayer.MP
 
         public Action<string> OnNetworkError { get; set; }
 
-        public Action<EndPoint> OnConnected { get; set; }
+        public Action<NetworkGameConnectivity> OnConnected { get; set; }
 
         public Action<List<NetworkPlayer>> OnPlayersChanged { get; set; }
         public Action<List<NetworkCharacterOwnership>> OnGameCharactersChanged { get; set; }
@@ -43,8 +43,6 @@ namespace WOTRMultiplayer.MP
         private NetworkGameStage Status => Game?.Stage ?? NetworkGameStage.None;
 
         public bool IsInLobby => IsActive && Status == NetworkGameStage.Lobby;
-
-        public NetworkGame CurrentGame => Game;
 
         protected override bool IsHost => false;
 
@@ -834,9 +832,12 @@ namespace WOTRMultiplayer.MP
         {
             Game = new NetworkGame(null)
             {
-                Endpoint = endpoint
+                Connectivity = new NetworkGameConnectivity
+                {
+                    Endpoint = endpoint
+                }
             };
-            OnConnected?.Invoke(endpoint);
+            OnConnected?.Invoke(Game.Connectivity);
         }
 
         private void OnNetworkClientError(Exception exception)
