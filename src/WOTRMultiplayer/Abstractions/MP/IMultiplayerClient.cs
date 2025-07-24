@@ -4,7 +4,7 @@ using WOTRMultiplayer.MP.Entities;
 
 namespace WOTRMultiplayer.Abstractions.MP
 {
-    public interface IMultiplayerClient : IMultiplayerParticipant
+    public interface IMultiplayerClient : IMultiplayerActor
     {
         ConnectLobbyResult Connect(string address);
 

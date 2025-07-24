@@ -6,7 +6,7 @@ using WOTRMultiplayer.MP.Entities.Rolls;
 
 namespace WOTRMultiplayer.Abstractions.MP
 {
-    public interface IMultiplayerParticipant
+    public interface IMultiplayerActor
     {
         bool ReadyChanged();
 

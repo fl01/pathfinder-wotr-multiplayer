@@ -18,7 +18,7 @@ namespace WOTRMultiplayer.PubSub
             Client = client;
         }
 
-        protected IMultiplayerParticipant GetMultiplayerParticipant()
+        protected IMultiplayerActor GetMultiplayerActor()
         {
             return Host.IsActive ?
                 Host

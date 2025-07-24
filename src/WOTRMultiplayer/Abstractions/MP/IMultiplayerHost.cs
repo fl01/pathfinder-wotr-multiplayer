@@ -3,7 +3,7 @@ using WOTRMultiplayer.MP.Entities;
 
 namespace WOTRMultiplayer.Abstractions.MP
 {
-    public interface IMultiplayerHost : IMultiplayerParticipant
+    public interface IMultiplayerHost : IMultiplayerActor
     {
         void Create(string saveFilePath, List<NetworkCharacterOwnership> characters);
 

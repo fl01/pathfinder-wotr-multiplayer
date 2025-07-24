@@ -97,13 +97,13 @@ namespace WOTRMultiplayer.MP
 
         public void MoveNonCombatCharacter(string unitId, NetworkVector3 destination, float delay, float orientation)
         {
-            var multiplayerParticipant = GetMultiplayerParticipant();
-            if (multiplayerParticipant == null)
+            var multiplayerActor = GetMultiplayerActor();
+            if (multiplayerActor == null)
             {
                 return;
             }
 
-            multiplayerParticipant.MoveNonCombatCharacter(unitId, destination, delay, orientation);
+            multiplayerActor.MoveNonCombatCharacter(unitId, destination, delay, orientation);
         }
 
         public bool CanControlCharacter(bool original, string unitId)
@@ -116,13 +116,13 @@ namespace WOTRMultiplayer.MP
                 }
             }
 
-            var multiplayerParticipant = GetMultiplayerParticipant();
-            if (multiplayerParticipant == null)
+            var multiplayerActor = GetMultiplayerActor();
+            if (multiplayerActor == null)
             {
                 return false;
             }
 
-            return multiplayerParticipant.CanControlCharacter(unitId);
+            return multiplayerActor.CanControlCharacter(unitId);
         }
 
         public bool StartGameMode(GameModeType type)
@@ -132,8 +132,8 @@ namespace WOTRMultiplayer.MP
 
             if (type == GameModeType.Pause)
             {
-                var multiplayerParticipant = GetMultiplayerParticipant();
-                multiplayerParticipant.Pause();
+                var multiplayerActor = GetMultiplayerActor();
+                multiplayerActor.Pause();
             }
 
             return allowedToRun;
@@ -145,8 +145,8 @@ namespace WOTRMultiplayer.MP
 
             if (type == GameModeType.Pause)
             {
-                var multiplayerParticipant = GetMultiplayerParticipant();
-                multiplayerParticipant.Unpause();
+                var multiplayerActor = GetMultiplayerActor();
+                multiplayerActor.Unpause();
             }
 
             return true;
@@ -161,15 +161,15 @@ namespace WOTRMultiplayer.MP
         {
             try
             {
-                var multiplayerParticipant = GetMultiplayerParticipant();
-                if (multiplayerParticipant == null || multiplayerParticipant.ShouldStoreRoll(false))
+                var multiplayerActor = GetMultiplayerActor();
+                if (multiplayerActor == null || multiplayerActor.ShouldStoreRoll(false))
                 {
                     return true;
                 }
 
                 var rule = ruleCalculateDamage.Reason.Rule;
                 var ruleType = rule.GetType().Name;
-                var combatRound = multiplayerParticipant.GetCombatRound();
+                var combatRound = multiplayerActor.GetCombatRound();
                 var roll = CreateNetworkDiceRoll(rule, combatRound);
                 if (roll == null)
                 {
@@ -180,7 +180,7 @@ namespace WOTRMultiplayer.MP
                 _logger.LogInformation("Retrieving Damage roll. Type={type}, IdString={id}", roll.GetType().Name, roll.GetIdString());
 
                 var networkDiceRollId = _diceRollStorage.GetUniqueId(roll);
-                var networkRoll = multiplayerParticipant.RetrieveRoll(networkDiceRollId, ruleCalculateDamage.Initiator.UniqueId);
+                var networkRoll = multiplayerActor.RetrieveRoll(networkDiceRollId, ruleCalculateDamage.Initiator.UniqueId);
 
                 if (networkRoll == null)
                 {
@@ -219,13 +219,13 @@ namespace WOTRMultiplayer.MP
         {
             try
             {
-                var multiplayerParticipant = GetMultiplayerParticipant();
-                if (multiplayerParticipant == null || !multiplayerParticipant.ShouldStoreRoll(true))
+                var multiplayerActor = GetMultiplayerActor();
+                if (multiplayerActor == null || !multiplayerActor.ShouldStoreRoll(true))
                 {
                     return;
                 }
 
-                var combatRound = multiplayerParticipant.GetCombatRound();
+                var combatRound = multiplayerActor.GetCombatRound();
                 var roll = CreateNetworkDiceRoll(ruleCalculateDamage.Reason.Rule, combatRound);
                 var rollType = ruleCalculateDamage.Reason?.Rule?.GetType().Name;
                 if (roll == null)
@@ -235,7 +235,7 @@ namespace WOTRMultiplayer.MP
                 }
 
                 var rollUniqueId = _diceRollStorage.GetUniqueId(roll);
-                var storedDiceRoll = _diceRollStorage.Get(rollUniqueId, multiplayerParticipant.CurrentGame.LocalPlayerId, ensureCompleted: false);
+                var storedDiceRoll = _diceRollStorage.Get(rollUniqueId, multiplayerActor.CurrentGame.LocalPlayerId, ensureCompleted: false);
                 if (storedDiceRoll == null)
                 {
                     _logger.LogError("Unable to attach damage values to missing roll. RuleType={ruleType}, RollUniqueId={rollUniqueId}", rollType, rollUniqueId);
@@ -269,13 +269,13 @@ namespace WOTRMultiplayer.MP
         {
             try
             {
-                var multiplayerParticipant = GetMultiplayerParticipant();
-                if (multiplayerParticipant == null || !multiplayerParticipant.ShouldStoreRoll(true))
+                var multiplayerActor = GetMultiplayerActor();
+                if (multiplayerActor == null || !multiplayerActor.ShouldStoreRoll(true))
                 {
                     return;
                 }
 
-                var combatRound = multiplayerParticipant.GetCombatRound();
+                var combatRound = multiplayerActor.GetCombatRound();
                 var roll = CreateNetworkDiceRoll(ruleRollDice.Reason?.Rule, ruleRollDice.RollHistory, ruleRollDice.Result, combatRound);
 
                 var rollType = ruleRollDice.Reason?.Rule?.GetType().Name;
@@ -305,14 +305,14 @@ namespace WOTRMultiplayer.MP
         {
             try
             {
-                var multiplayerParticipant = GetMultiplayerParticipant();
-                if (multiplayerParticipant == null || multiplayerParticipant.ShouldStoreRoll(false))
+                var multiplayerActor = GetMultiplayerActor();
+                if (multiplayerActor == null || multiplayerActor.ShouldStoreRoll(false))
                 {
                     return true;
                 }
 
                 var initiatorId = ruleRollDice.Initiator.UniqueId;
-                var combatRound = multiplayerParticipant.GetCombatRound();
+                var combatRound = multiplayerActor.GetCombatRound();
                 var rollType = ruleRollDice.Reason?.Rule?.GetType().Name;
 
                 var networkDiceRoll = CreateNetworkDiceRoll(ruleRollDice.Reason?.Rule, ruleRollDice.RollHistory, ruleRollDice.Result, combatRound);
@@ -326,7 +326,7 @@ namespace WOTRMultiplayer.MP
 
                 var networkDiceRollId = _diceRollStorage.GetUniqueId(networkDiceRoll);
 
-                var roll = multiplayerParticipant.RetrieveRoll(networkDiceRollId, initiatorId);
+                var roll = multiplayerActor.RetrieveRoll(networkDiceRollId, initiatorId);
                 if (roll == null)
                 {
                     _logger.LogCritical("Failed to acquire roll from remote player which guarantees desync in the game. RollType={rollType}", rollType);
@@ -354,16 +354,16 @@ namespace WOTRMultiplayer.MP
 
         public void OnAfterCueShow(string dialogName, string cueName, bool hasSystemAnswer)
         {
-            var participant = GetMultiplayerParticipant();
-            participant.OnAfterCueShow(dialogName, cueName, hasSystemAnswer);
+            var multiplayerActor = GetMultiplayerActor();
+            multiplayerActor.OnAfterCueShow(dialogName, cueName, hasSystemAnswer);
         }
 
         public bool OnBeforeSelectDialogAnswer(string dialogName, string cueName, string answerName, bool isExitAnswer, string manualUnitSelectionId)
         {
             // host - check if everyone witnessed current cue
             // client - skip execution if triggered by user himself, send notification to host => mark answer on host side
-            var participant = GetMultiplayerParticipant();
-            var shouldContinueExecution = participant.OnBeforeSelectDialogAnswer(dialogName, cueName, answerName, isExitAnswer, manualUnitSelectionId);
+            var multiplayerActor = GetMultiplayerActor();
+            var shouldContinueExecution = multiplayerActor.OnBeforeSelectDialogAnswer(dialogName, cueName, answerName, isExitAnswer, manualUnitSelectionId);
             return shouldContinueExecution;
         }
 
@@ -379,101 +379,118 @@ namespace WOTRMultiplayer.MP
 
         public bool StartDialog(string dialogName, string targetUnitId, string initiatorUnitId, string mapObjectId, string speakerKey)
         {
+            var multiplayerActor = GetMultiplayerActor();
+            if (multiplayerActor == null)
+            {
+                return true;
+            }
+
             _logger.LogInformation("Start dialog. DialogueName={dialogName},  TargetUnitId={targetUnitId}, InitiatorUnitId={initiatorUnitId}, MapObjectId={mapObjectId}, SpeakerKey={speakerKey}",
                 dialogName, targetUnitId, initiatorUnitId, mapObjectId, speakerKey);
 
-            // host - start dialog & send notification to clients
-            // clients - request dialog from host
-            var participant = GetMultiplayerParticipant();
-            return participant.StartDialog(dialogName, targetUnitId, initiatorUnitId, mapObjectId, speakerKey);
+            return multiplayerActor.StartDialog(dialogName, targetUnitId, initiatorUnitId, mapObjectId, speakerKey);
         }
 
         public bool CanTickUnitCombatPrepareController()
         {
-            var participant = GetMultiplayerParticipant();
-            // host - always true
-            // client - block until confirmation from host
-            return participant.CanInitializeCombat();
+            var multiplayerActor = GetMultiplayerActor();
+            if (multiplayerActor == null)
+            {
+                return true;
+            }
+
+            return multiplayerActor.CanInitializeCombat();
         }
 
         public bool CanTickCombatController()
         {
-            var participant = GetMultiplayerParticipant();
-            // host - confirm initialization with clients
-            // client - block until confirmation from host
-            return participant.CanContinueCombat();
+            var multiplayerActor = GetMultiplayerActor();
+            if (multiplayerActor == null)
+            {
+                return true;
+            }
+
+            return multiplayerActor.CanContinueCombat();
         }
 
         public bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound)
         {
-            var participant = GetMultiplayerParticipant();
-            if (participant == null)
+            var multiplayerActor = GetMultiplayerActor();
+            if (multiplayerActor == null)
             {
                 return true;
             }
 
-            return participant.OnBeforeStartTurn(unitId, actingInSurpriseRound);
+            return multiplayerActor.OnBeforeStartTurn(unitId, actingInSurpriseRound);
         }
 
         public bool OnBeforeEndTurn(string unitId)
         {
-            var participant = GetMultiplayerParticipant();
-            return participant.OnBeforeEndTurn(unitId);
-        }
-
-        public void ForceLoadGame(SaveInfo saveInfo)
-        {
-            // extra validation is not required since everything is already validated by the game
-            var savePath = saveInfo.FolderName;
-            _logger.LogInformation("Force load game. Save={saveLocation}", savePath);
-            var participant = GetMultiplayerParticipant();
-            participant.ForceLoadGame(savePath);
-        }
-
-        public bool IsControlledByPlayers(string unitId)
-        {
-            var participant = GetMultiplayerParticipant();
-            if (participant == null || participant.CurrentGame?.Combat == null)
+            var multiplayerActor = GetMultiplayerActor();
+            if (multiplayerActor == null)
             {
                 return true;
             }
 
-            var realUnitId = _gameInteractionService.GetPetOwnerId(unitId) ?? unitId;
-            var partyMember = participant.CurrentGame.Characters.FirstOrDefault(c => string.Equals(c.UnitId, realUnitId, System.StringComparison.OrdinalIgnoreCase));
-            return partyMember != null;
+            return multiplayerActor.OnBeforeEndTurn(unitId);
+        }
+
+        public void ForceLoadGame(SaveInfo saveInfo)
+        {
+            var multiplayerActor = GetMultiplayerActor();
+            if (multiplayerActor == null)
+            {
+                return;
+            }
+
+            // extra validation is not required since everything is already validated by the game
+            var savePath = saveInfo.FolderName;
+            _logger.LogInformation("Force load game. Save={saveLocation}", savePath);
+            multiplayerActor.ForceLoadGame(savePath);
+        }
+
+        public bool IsControlledByPlayers(string unitId)
+        {
+            var multiplayerActor = GetMultiplayerActor();
+            if (multiplayerActor == null)
+            {
+                return true;
+            }
+
+            return multiplayerActor.CanControlCharacter(unitId);
         }
 
         public void OnClickUnit(NetworkClick click)
         {
-            var multiplayerParticipant = GetMultiplayerParticipant();
-            if (multiplayerParticipant == null)
+            var multiplayerActor = GetMultiplayerActor();
+            if (multiplayerActor == null)
             {
                 return;
             }
 
-            multiplayerParticipant.OnClickUnit(click);
+            multiplayerActor.OnClickUnit(click);
         }
 
         public void OnClickGround(NetworkClick click)
         {
-            var multiplayerParticipant = GetMultiplayerParticipant();
-            if (multiplayerParticipant == null)
+            var multiplayerActor = GetMultiplayerActor();
+            if (multiplayerActor == null)
             {
                 return;
             }
 
-            multiplayerParticipant.OnClickGround(click);
+            multiplayerActor.OnClickGround(click);
         }
 
         public void OnClickWithSelectedAbility(NetworkClick click)
         {
-            var multiplayerParticipant = GetMultiplayerParticipant();
-            if (multiplayerParticipant == null)
+            var multiplayerActor = GetMultiplayerActor();
+            if (multiplayerActor == null)
             {
                 return;
             }
 
-            multiplayerParticipant.OnClickWithSelectedAbility(click);
+            multiplayerActor.OnClickWithSelectedAbility(click);
         }
 
         private NetworkDiceRoll CreateNetworkDiceRoll(RulebookEvent rulebookEvent, int combatRound)
@@ -551,9 +568,11 @@ namespace WOTRMultiplayer.MP
             return roll;
         }
 
-        private IMultiplayerParticipant GetMultiplayerParticipant()
+        private IMultiplayerActor GetMultiplayerActor()
         {
-            return _multiplayerHost.IsActive ? _multiplayerHost : _multiplayerClient;
+            return _multiplayerHost.IsActive ? _multiplayerHost
+                : _multiplayerClient.IsActive ?
+                    _multiplayerClient : null;
         }
 
         private void ShowEscMenuMultiplayerLobby()
