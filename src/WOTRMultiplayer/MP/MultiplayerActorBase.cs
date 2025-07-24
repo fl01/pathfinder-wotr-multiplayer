@@ -213,24 +213,6 @@ namespace WOTRMultiplayer.MP
             return $"{round}-{unitId}";
         }
 
-        protected enum PlayerReadinessType
-        {
-            TurnStart,
-            TurnSynchronization
-        }
-
-        protected ConcurrentDictionary<string, HashSet<long>> GetReadinessTracker(PlayerReadinessType type)
-        {
-            var tracker = type switch
-            {
-                PlayerReadinessType.TurnStart => Game.Combat.PlayersTurnStartInitialization,
-                PlayerReadinessType.TurnSynchronization => Game.Combat.PlayersTurnSynchronization,
-                _ => null,
-            };
-
-            return tracker;
-        }
-
         protected NetworkPlayer GetPlayer(long playerId)
         {
             return Game.Players.FirstOrDefault(p => p.Id == playerId);

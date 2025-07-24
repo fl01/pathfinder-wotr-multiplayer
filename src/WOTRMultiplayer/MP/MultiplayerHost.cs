@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -542,8 +543,8 @@ namespace WOTRMultiplayer.MP
         {
             Game.Combat.Turn.RequiresTurnEntitiesSynchronization = true;
 
-            AddPlayerReadyStatus(PlayerReadinessType.TurnStart, Game.LocalPlayerId, Game.Combat.Round, Game.Combat.Turn.UnitId);
-            AddPlayerReadyStatus(PlayerReadinessType.TurnSynchronization, Game.LocalPlayerId, Game.Combat.Round, Game.Combat.Turn.UnitId);
+            AddPlayerReadyStatus(PlayerTurnReadinessType.Start, Game.LocalPlayerId, Game.Combat.Round, Game.Combat.Turn.UnitId);
+            AddPlayerReadyStatus(PlayerTurnReadinessType.UnitSynchronization, Game.LocalPlayerId, Game.Combat.Round, Game.Combat.Turn.UnitId);
 
             TryStartTurn();
         }
@@ -783,7 +784,7 @@ namespace WOTRMultiplayer.MP
         private void OnClientCombatTurnSynchronized(long playerId, ClientCombatTurnSynchronized synchronized)
         {
             Logger.LogInformation($"Received {nameof(ClientCombatTurnSynchronized)}. PlayerId={{playerId}}, Round={{round}}, UnitId={{unitId}}", playerId, synchronized.Round, synchronized.UnitId);
-            AddPlayerReadyStatus(PlayerReadinessType.TurnSynchronization, playerId, synchronized.Round, synchronized.UnitId);
+            AddPlayerReadyStatus(PlayerTurnReadinessType.UnitSynchronization, playerId, synchronized.Round, synchronized.UnitId);
             TryStartTurn();
         }
 
@@ -802,7 +803,7 @@ namespace WOTRMultiplayer.MP
         private void OnClientCombatTurnStarted(long playerId, ClientCombatTurnStarted started)
         {
             Logger.LogInformation($"Received {nameof(ClientCombatTurnStarted)}. PlayerId={{playerId}}, Round={{round}}, UnitId={{unitId}}", playerId, started.Round, started.UnitId);
-            AddPlayerReadyStatus(PlayerReadinessType.TurnStart, playerId, started.Round, started.UnitId);
+            AddPlayerReadyStatus(PlayerTurnReadinessType.Start, playerId, started.Round, started.UnitId);
 
             // player turn could be started earlier than host so recording readiness is enough
             if (started.Round == Game.Combat.Round && string.Equals(started.UnitId, Game.Combat.Turn?.UnitId, StringComparison.OrdinalIgnoreCase))
@@ -1183,13 +1184,13 @@ namespace WOTRMultiplayer.MP
             return message;
         }
 
-        private bool AddPlayerReadyStatus(PlayerReadinessType playerReadinessType, long playerId, int round, string unitId)
+        private bool AddPlayerReadyStatus(PlayerTurnReadinessType playerReadinessType, long playerId, int round, string unitId)
         {
             try
             {
                 lock (ActionLock)
                 {
-                    var tracker = GetReadinessTracker(playerReadinessType);
+                    var tracker = GetPlayerTurnReadinessTracker(playerReadinessType);
                     if (tracker == null)
                     {
                         Logger.LogError("Unable to find readiness tracker for provided type. Type={type}, PlayerId={playerId}, Round={round}, UnitId={unitId}", playerReadinessType, playerId, round, unitId);
@@ -1219,6 +1220,24 @@ namespace WOTRMultiplayer.MP
         private string GetTurnInitializationKey(int round, string unitId)
         {
             return $"{round}-{unitId}";
+        }
+
+        private ConcurrentDictionary<string, HashSet<long>> GetPlayerTurnReadinessTracker(PlayerTurnReadinessType type)
+        {
+            var tracker = type switch
+            {
+                PlayerTurnReadinessType.Start => Game.Combat.PlayersTurnStartInitialization,
+                PlayerTurnReadinessType.UnitSynchronization => Game.Combat.PlayersTurnSynchronization,
+                _ => null,
+            };
+
+            return tracker;
+        }
+
+        private enum PlayerTurnReadinessType
+        {
+            Start,
+            UnitSynchronization
         }
     }
 }
