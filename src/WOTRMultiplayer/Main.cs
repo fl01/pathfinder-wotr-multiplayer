@@ -6,7 +6,6 @@ using Kingmaker.PubSubSystem;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using UnityModManagerNet;
-using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.PubSub;
 using WOTRMultiplayer.Abstractions.UI;
