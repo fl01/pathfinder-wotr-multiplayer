@@ -2,6 +2,7 @@
 {
     public enum LobbyWindowOwner
     {
+        None,
         HostMenu,
         JoinMenu,
         EscMenu

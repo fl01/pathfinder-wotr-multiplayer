@@ -28,7 +28,6 @@ namespace WOTRMultiplayer.UI.Menu
         private IHostMenuItemController _hostMenuController;
         private IJoinMenuItemController _joinMenuController;
         private ILogger<MultiplayerWindow> _logger;
-        private readonly object _actionLock = new();
 
         public MultiplayerWindow()
         {
