@@ -20,8 +20,7 @@ using WOTRMultiplayer.MP;
 using WOTRMultiplayer.Networking.Extensions;
 using WOTRMultiplayer.PubSub;
 using WOTRMultiplayer.UI;
-using WOTRMultiplayer.UI.Lobby;
-using WOTRMultiplayer.UI.Menu.Items;
+using WOTRMultiplayer.UI.Controllers;
 using WOTRMultiplayer.Unity;
 
 namespace WOTRMultiplayer.DI

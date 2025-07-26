@@ -6,11 +6,11 @@ using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Abstractions.Unity;
-using WOTRMultiplayer.UI.Lobby;
+using WOTRMultiplayer.UI.Menu;
 
-namespace WOTRMultiplayer.UI.Menu.Items
+namespace WOTRMultiplayer.UI.Controllers
 {
-    public abstract class MenuItemController : IMultiplayerMenuItemController
+    public abstract class MenuItemControllerBase : IMultiplayerMenuItemController
     {
         public const string SelectedGameObjectName = "SelectedImage";
         public const string HoverGameObjectName = "HoverImage";
@@ -39,7 +39,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
 
         public Action OnGameStarted { get; set; }
 
-        protected MenuItemController(
+        protected MenuItemControllerBase(
             Microsoft.Extensions.Logging.ILogger logger,
             ILobbyWindowController lobbyWindowController,
             IMainThreadAccessor mainThreadAccessor,

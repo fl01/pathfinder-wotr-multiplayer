@@ -18,7 +18,6 @@ namespace WOTRMultiplayer.Networking
 
         private ServerBuilder<NetworkServerApp, NetworkClientToken, ProtobufPacket> _server;
         private ServerBuilder<NetworkServerApp, NetworkClientToken, ProtobufPacket> Server => _server ??= new ServerBuilder<NetworkServerApp, NetworkClientToken, ProtobufPacket>();
-        private Task _serverRunTask;
         private readonly ILogger<NetworkServer> _logger;
         private readonly ConcurrentDictionary<long, ConcurrentDictionary<Type, TaskCompletionSource<object>>> _awaiters = new();
 
@@ -49,7 +48,7 @@ namespace WOTRMultiplayer.Networking
                 .OnConnected(OnConnected)
                 .OnDisconnect(OnDisconnected);
 
-            _serverRunTask = Server.Run();
+            Server.Run();
         }
 
         public void Send(long clientId, object message)

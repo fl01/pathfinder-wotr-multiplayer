@@ -12,7 +12,7 @@ using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Abstractions.UI.Windows;
 using WOTRMultiplayer.Extensions;
 
-namespace WOTRMultiplayer.UI.Menu.Windows
+namespace WOTRMultiplayer.UI.Menu
 {
     public class MultiplayerWindow : FullScreenTabsWindow, IMultiplayerWindow
     {

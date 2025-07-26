@@ -13,7 +13,7 @@ using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Windows;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Rolls;
-using WOTRMultiplayer.UI.Lobby;
+using WOTRMultiplayer.UI.Menu;
 
 namespace WOTRMultiplayer.MP
 {

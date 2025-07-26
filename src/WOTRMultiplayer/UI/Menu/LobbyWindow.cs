@@ -7,9 +7,8 @@ using UnityEngine;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Windows;
 using WOTRMultiplayer.MP.Entities;
-using WOTRMultiplayer.UI.Lobby;
 
-namespace WOTRMultiplayer.UI.Menu.Windows
+namespace WOTRMultiplayer.UI.Menu
 {
     public class LobbyWindow : UIWindow, ILobbyWindow
     {
@@ -79,7 +78,7 @@ namespace WOTRMultiplayer.UI.Menu.Windows
         {
             _logger.LogInformation("Close lobby window");
             _lobbyWindowController?.ResetData();
-            this.Show(false);
+            Show(false);
         }
     }
 }

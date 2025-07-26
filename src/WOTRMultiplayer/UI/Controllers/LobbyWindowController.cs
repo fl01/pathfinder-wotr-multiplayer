@@ -12,9 +12,10 @@ using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.MP.Entities;
+using WOTRMultiplayer.UI.Menu;
 using WOTRMultiplayer.Unity.Behaviours;
 
-namespace WOTRMultiplayer.UI.Lobby
+namespace WOTRMultiplayer.UI.Controllers
 {
     public class LobbyWindowController : ILobbyWindowController
     {
@@ -127,7 +128,7 @@ namespace WOTRMultiplayer.UI.Lobby
 
             var defaultMesh = Main.Multiplayer.Factory.GetDefaultMesh();
             var serverInfoContainerObject = Main.Multiplayer.Factory.CreateDefaultGameObject(ServerInfoSectionContent.transform);
-            serverInfoContainerObject.name = LobbyWindowController.PlayerContainerObjectName;
+            serverInfoContainerObject.name = PlayerContainerObjectName;
             serverInfoContainerObject.AddComponent<HorizontalLayoutGroup>();
             var serverInfoContainerSizeFitter = serverInfoContainerObject.AddComponent<ContentSizeFitter>();
             serverInfoContainerSizeFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
@@ -214,7 +215,7 @@ namespace WOTRMultiplayer.UI.Lobby
         {
             var defaultMesh = Main.Multiplayer.Factory.GetDefaultMesh();
             var playerContainerObject = Main.Multiplayer.Factory.CreateDefaultGameObject(PlayersSectionContent.transform);
-            playerContainerObject.name = LobbyWindowController.PlayerContainerObjectName;
+            playerContainerObject.name = PlayerContainerObjectName;
             playerContainerObject.AddComponent<HorizontalLayoutGroup>();
             var playerContainerSizeFitter = playerContainerObject.AddComponent<ContentSizeFitter>();
             playerContainerSizeFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
@@ -223,7 +224,7 @@ namespace WOTRMultiplayer.UI.Lobby
             var playerObject = Main.Multiplayer.Factory.CreateDefaultGameObject(playerContainerObject.transform);
             var playerElement = playerObject.AddComponent<LayoutElement>();
             playerElement.preferredHeight = 40;
-            playerObject.name = LobbyWindowController.PlayerNameObjectName;
+            playerObject.name = PlayerNameObjectName;
             var playerNameBox = playerObject.AddComponent<TextMeshProUGUI>();
             playerNameBox.alignment = TextAlignmentOptions.Center;
             playerNameBox.material = defaultMesh.Material;

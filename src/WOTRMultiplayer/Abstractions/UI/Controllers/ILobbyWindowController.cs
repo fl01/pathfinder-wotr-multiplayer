@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using WOTRMultiplayer.MP.Entities;
-using WOTRMultiplayer.UI.Lobby;
+using WOTRMultiplayer.UI.Menu;
 
 namespace WOTRMultiplayer.Abstractions.UI.Controllers
 {

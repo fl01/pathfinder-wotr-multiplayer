@@ -20,9 +20,8 @@ using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Abstractions.UI.Windows;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.MP.Entities;
-using WOTRMultiplayer.UI.Lobby;
-using WOTRMultiplayer.UI.Menu.Items;
-using WOTRMultiplayer.UI.Menu.Windows;
+using WOTRMultiplayer.UI.Controllers;
+using WOTRMultiplayer.UI.Menu;
 using WOTRMultiplayer.Unity.Behaviours;
 
 namespace WOTRMultiplayer.UI

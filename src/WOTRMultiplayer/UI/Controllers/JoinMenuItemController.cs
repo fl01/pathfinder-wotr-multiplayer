@@ -14,11 +14,11 @@ using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.MP.Entities;
-using WOTRMultiplayer.UI.Lobby;
+using WOTRMultiplayer.UI.Menu;
 
-namespace WOTRMultiplayer.UI.Menu.Items
+namespace WOTRMultiplayer.UI.Controllers
 {
-    public class JoinMenuItemController : MenuItemController, IJoinMenuItemController
+    public class JoinMenuItemController : MenuItemControllerBase, IJoinMenuItemController
     {
         public const string RootContentScreenObjectName = "RootContentScreen";
         public const string JoinMenuItemContentObjectName = "JoinMenuItemContent";
@@ -139,7 +139,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
             var label = MenuItem.GetComponentInChildren<TextMeshProUGUI>();
             label.SetText(UIStringConsts.MultiplayerWindow.JoinMenuLabel);
 
-            _menuContent = UnityEngine.Object.Instantiate(baseLayout, baseLayout.transform);
+            _menuContent = Object.Instantiate(baseLayout, baseLayout.transform);
             _menuContent.name = JoinMenuItemContentObjectName;
             _menuContent.AddComponent<VerticalLayoutGroup>().padding = new RectOffset(0, 0, 25, 0);
             _menuContent.CleanupAllChildren();
@@ -313,6 +313,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
             var rawAddress = ServerAddressObject.transform.Find(UIFactory.InputLabelObjectName).GetComponent<TextMeshProUGUI>().text;
             // thank you for zero-width space
             var address = rawAddress.Trim('\u200B').Trim();
+            address = "192.168.50.188:1024";
             var result = _multiplayerClient.Connect(address);
             if (!result.IsOk)
             {

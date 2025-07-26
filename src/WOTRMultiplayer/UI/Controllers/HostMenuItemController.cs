@@ -21,11 +21,11 @@ using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.MP.Entities;
-using WOTRMultiplayer.UI.Lobby;
+using WOTRMultiplayer.UI.Menu;
 
-namespace WOTRMultiplayer.UI.Menu.Items
+namespace WOTRMultiplayer.UI.Controllers
 {
-    public class HostMenuItemController : MenuItemController, IHostMenuItemController, IObserver<SaveSlotVM>
+    public class HostMenuItemController : MenuItemControllerBase, IHostMenuItemController, IObserver<SaveSlotVM>
     {
         public const string HostMenuItemContentObjectName = "HostMenuItemContent";
         public const string SaveLoadView = "SaveLoadView";
@@ -141,6 +141,7 @@ namespace WOTRMultiplayer.UI.Menu.Items
             SetupHandlers(false);
 
             Lobby.ResetData();
+
             DisposeSaveLoadVM();
             base.Deactivate();
         }
