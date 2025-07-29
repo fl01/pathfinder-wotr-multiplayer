@@ -23,7 +23,7 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
         {
         }
 
-        protected override IEnumerable<string> GetUniquinessIdentifiers()
+        public override IEnumerable<string> GetUniquinessIdentifiers()
         {
             return [AttackNumber.ToString(), IsAttackOfOpportunity.ToString(), TargetId, ExtraAttack.ToString(), IsFirstAttack.ToString(), AttacksCount.ToString(), IsCriticalRoll.ToString()];
         }

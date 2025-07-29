@@ -392,8 +392,8 @@ namespace WOTRMultiplayer.MP
                     return true;
                 }
 
-                var weaponAttack = CreateAttackWithWeaponRoll(NetworkDiceRollType.Hit, ruleAttackRoll.RuleAttackWithWeapon);
-                var d20 = RetrieveD20Roll(multiplayerActor, weaponAttack, ruleAttackRoll.Initiator);
+                var roll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll);
+                var d20 = RetrieveD20Roll(multiplayerActor, roll, ruleAttackRoll.Initiator);
                 if (d20 == null)
                 {
                     return true;
@@ -414,13 +414,13 @@ namespace WOTRMultiplayer.MP
             try
             {
                 var multiplayerActor = GetMultiplayerActor();
-                if (multiplayerActor == null || !multiplayerActor.ShouldStoreRoll(false))
+                if (multiplayerActor == null || !multiplayerActor.ShouldStoreRoll(false) || ruleAttackRoll.D20 == null)
                 {
                     return;
                 }
 
-                var weaponAttack = CreateAttackWithWeaponRoll(NetworkDiceRollType.Hit, ruleAttackRoll.RuleAttackWithWeapon);
-                SaveIntRollValue(multiplayerActor, weaponAttack, ruleAttackRoll.D20);
+                var roll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll);
+                SaveIntRollValue(multiplayerActor, roll, ruleAttackRoll.D20);
             }
             catch (Exception ex)
             {
@@ -680,7 +680,7 @@ namespace WOTRMultiplayer.MP
             var claimingList = multiplayerActor.GetOtherPlayers().Select(i => i.Id).ToList();
             var playerId = multiplayerActor.GetLocalPlayerId();
             _diceRollStorage.Add(rollId, claimingList, rollValue);
-            _logger.LogInformation("Roll value has been stored. RollId={rollId}, RollValueType={rollValueType}, ClaimingListCount={claimingListCount}", rollId, rollValue.GetType().Name, claimingList.Count);
+            _logger.LogInformation("Roll value has been stored. RollId={rollId}, RollValueType={rollValueType}, RollStringValue={rollValueString}, ClaimingListCount={claimingListCount}", rollId, rollValue.GetType().Name, rollValue, claimingList.Count);
         }
 
         private int? GetDamageRollId(RuleCalculateDamage ruleCalculateDamage)
@@ -786,6 +786,17 @@ namespace WOTRMultiplayer.MP
             {
                 DifficultyClass = partyStatCheck.DifficultyClass,
                 StatType = partyStatCheck.StatType
+            };
+
+            return roll;
+        }
+
+        private AttackRoll CreateAttackRoll(NetworkDiceRollType diceRollType, RuleAttackRoll ruleAttackRoll)
+        {
+            var roll = new AttackRoll(ruleAttackRoll.Initiator.UniqueId, ruleAttackRoll.GetType().Name, diceRollType, ruleAttackRoll.AttackBonus)
+            {
+                AttackType = ruleAttackRoll.AttackType,
+                AttackWithWeapon = ruleAttackRoll.RuleAttackWithWeapon == null ? null : CreateAttackWithWeaponRoll(diceRollType, ruleAttackRoll.RuleAttackWithWeapon)
             };
 
             return roll;

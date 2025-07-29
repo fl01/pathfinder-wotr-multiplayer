@@ -9,7 +9,7 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
         {
         }
 
-        protected override IEnumerable<string> GetUniquinessIdentifiers()
+        public override IEnumerable<string> GetUniquinessIdentifiers()
         {
             return [];
         }

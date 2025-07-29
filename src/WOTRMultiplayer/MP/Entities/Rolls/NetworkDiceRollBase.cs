@@ -31,11 +31,11 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
             return fullId;
         }
 
+        public abstract IEnumerable<string> GetUniquinessIdentifiers();
+
         private IEnumerable<string> GetBaseUniquinessIdentifiers()
         {
             return [GetType().Name, RollType.ToString(), InitiatorId, RuleName, TotalModifiersBonus.ToString()];
         }
-
-        protected abstract IEnumerable<string> GetUniquinessIdentifiers();
     }
 }

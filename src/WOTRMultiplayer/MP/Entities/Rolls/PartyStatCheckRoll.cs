@@ -14,10 +14,9 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
         {
         }
 
-        protected override IEnumerable<string> GetUniquinessIdentifiers()
+        public override IEnumerable<string> GetUniquinessIdentifiers()
         {
-            yield return DifficultyClass.ToString();
-            yield return StatType.ToString();
+            return [DifficultyClass.ToString(), StatType.ToString()];
         }
     }
 }
