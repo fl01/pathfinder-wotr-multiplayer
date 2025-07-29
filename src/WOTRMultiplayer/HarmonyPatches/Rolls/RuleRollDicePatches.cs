@@ -270,11 +270,10 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
 
     // RuleStatCheck
     // RuleSkillCheck
-    // RuleSpellResistance
+    //+ RuleSpellResistance
     //+ RuleAttackRoll
     //+ RuleSavingThrow
 
-
-    // RuleCalculateDamage
-    // RuleHealDamage
+    //+ RuleCalculateDamage
+    //+ RuleHealDamage
 }
