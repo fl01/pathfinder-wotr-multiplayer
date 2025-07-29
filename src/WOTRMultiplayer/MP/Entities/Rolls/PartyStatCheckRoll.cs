@@ -7,7 +7,7 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
     {
         public int DifficultyClass { get; set; }
 
-        public StatType StatType { get; set; }
+        public string StatType { get; set; }
 
         public PartyStatCheckRoll(string initiatorId, string ruleName, NetworkDiceRollType networkDiceRollType, int totalModifierBonus)
             : base(initiatorId, ruleName, networkDiceRollType, totalModifierBonus)
@@ -16,7 +16,7 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
 
         public override IEnumerable<string> GetUniquinessIdentifiers()
         {
-            return [DifficultyClass.ToString(), StatType.ToString()];
+            return [DifficultyClass.ToString(), StatType];
         }
     }
 }

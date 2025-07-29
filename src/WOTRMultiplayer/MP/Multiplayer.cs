@@ -469,6 +469,53 @@ namespace WOTRMultiplayer.MP
             }
         }
 
+        public bool OnBeforeRuleSpellResistanceCheckRoll(RuleSpellResistanceCheck ruleSpellResistanceCheck)
+        {
+            try
+            {
+                var multiplayerActor = GetMultiplayerActor();
+                if (multiplayerActor == null || multiplayerActor.ShouldStoreRoll(false))
+                {
+                    return true;
+                }
+
+                var roll = CreateSpellResistanceCheckRoll(NetworkDiceRollType.Hit, ruleSpellResistanceCheck);
+                var d20 = RetrieveD20Roll(multiplayerActor, roll, ruleSpellResistanceCheck.Initiator);
+                if (d20 == null)
+                {
+                    return true;
+                }
+
+                ruleSpellResistanceCheck.Roll = d20;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Unable to handle {MethodBase.GetCurrentMethod().Name}");
+                throw;
+            }
+        }
+
+        public void OnAfterRuleSpellResistanceCheckTrigger(RuleSpellResistanceCheck ruleSpellResistanceCheck)
+        {
+            try
+            {
+                var multiplayerActor = GetMultiplayerActor();
+                if (multiplayerActor == null || !multiplayerActor.ShouldStoreRoll(false))
+                {
+                    return;
+                }
+
+                var roll = CreateSpellResistanceCheckRoll(NetworkDiceRollType.Hit, ruleSpellResistanceCheck);
+                SaveIntRollValue(multiplayerActor, roll, ruleSpellResistanceCheck.Roll);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Unable to handle {MethodBase.GetCurrentMethod().Name}");
+                throw;
+            }
+        }
+
         public void OnAfterCueShow(string dialogName, string cueName, bool hasSystemAnswer)
         {
             var multiplayerActor = GetMultiplayerActor();
@@ -741,6 +788,22 @@ namespace WOTRMultiplayer.MP
             }
         }
 
+        private SpellResistanceCheckRoll CreateSpellResistanceCheckRoll(NetworkDiceRollType diceRollType, RuleSpellResistanceCheck ruleSpellResistanceCheck)
+        {
+            var roll = new SpellResistanceCheckRoll(ruleSpellResistanceCheck.Initiator.UniqueId, ruleSpellResistanceCheck.GetType().Name, diceRollType, ruleSpellResistanceCheck.TotalBonusValue)
+            {
+                SpellPenetration = ruleSpellResistanceCheck.SpellPenetration,
+                SpellResistance = ruleSpellResistanceCheck.SpellResistance,
+                SchoolType = ruleSpellResistanceCheck.Ability.School.ToString(),
+                AbilityType = ruleSpellResistanceCheck.Ability.Type.ToString(),
+                TargetId = ruleSpellResistanceCheck.Target.UniqueId,
+                AbilityName = ruleSpellResistanceCheck.Ability.name,
+                ActionType = ruleSpellResistanceCheck.Ability.ActionType.ToString()
+            };
+
+            return roll;
+        }
+
         private HealDamageRoll CreateHealDamageRoll(NetworkDiceRollType diceRollType, RuleHealDamage ruleHealDamage, int unitsCount)
         {
             var roll = new HealDamageRoll(ruleHealDamage.Initiator.UniqueId, ruleHealDamage.GetType().Name, diceRollType, ruleHealDamage.Bonus)
@@ -771,7 +834,7 @@ namespace WOTRMultiplayer.MP
         {
             var roll = new SavingThrowRoll(ruleSavingThrow.Initiator.UniqueId, ruleSavingThrow.GetType().Name, diceRollType, ruleSavingThrow.TotalBonusValue)
             {
-                StatType = ruleSavingThrow.StatType,
+                StatType = ruleSavingThrow.StatType.ToString(),
                 ReasonAbilityName = ruleSavingThrow.Reason?.Ability?.NameForAcronym,
                 ReasonCasterId = ruleSavingThrow.Reason?.Caster?.UniqueId,
                 DifficultyClass = ruleSavingThrow.DifficultyClass,
@@ -785,7 +848,7 @@ namespace WOTRMultiplayer.MP
             var roll = new PartyStatCheckRoll(partyStatCheck.Initiator.UniqueId, partyStatCheck.GetType().Name, diceRollType, partyStatCheck.TotalBonusValue)
             {
                 DifficultyClass = partyStatCheck.DifficultyClass,
-                StatType = partyStatCheck.StatType
+                StatType = partyStatCheck.StatType.ToString()
             };
 
             return roll;
@@ -795,7 +858,8 @@ namespace WOTRMultiplayer.MP
         {
             var roll = new AttackRoll(ruleAttackRoll.Initiator.UniqueId, ruleAttackRoll.GetType().Name, diceRollType, ruleAttackRoll.AttackBonus)
             {
-                AttackType = ruleAttackRoll.AttackType,
+                AttackType = ruleAttackRoll.AttackType.ToString(),
+                TargetId = ruleAttackRoll.Target.UniqueId,
                 AttackWithWeapon = ruleAttackRoll.RuleAttackWithWeapon == null ? null : CreateAttackWithWeaponRoll(diceRollType, ruleAttackRoll.RuleAttackWithWeapon)
             };
 

@@ -73,5 +73,8 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         void OnAfterRuleSavingThrowTrigger(RuleSavingThrow ruleSavingThrow);
         void OnBeforeRuleSavingThrowRoll(RuleSavingThrow ruleSavingThrow);
+
+        bool OnBeforeRuleSpellResistanceCheckRoll(RuleSpellResistanceCheck ruleSpellResistanceCheck);
+        void OnAfterRuleSpellResistanceCheckTrigger(RuleSpellResistanceCheck ruleSpellResistanceCheck);
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Kingmaker.RuleSystem;
 
 namespace WOTRMultiplayer.MP.Entities.Rolls
 {
@@ -7,7 +6,9 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
     {
         public AttackWithWeaponRoll AttackWithWeapon { get; set; }
 
-        public AttackType AttackType { get; set; }
+        public string AttackType { get; set; }
+
+        public string TargetId { get; set; }
 
         public AttackRoll(string initiatorId, string ruleName, NetworkDiceRollType networkDiceRollType, int totalModifierBonus)
             : base(initiatorId, ruleName, networkDiceRollType, totalModifierBonus)
@@ -18,7 +19,7 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
         {
             var attackWithWeaponId = AttackWithWeapon == null ? null : string.Join(IdSeparator, AttackWithWeapon?.GetUniquinessIdentifiers());
 
-            return [AttackType.ToString(), attackWithWeaponId];
+            return [AttackType, TargetId, attackWithWeaponId];
         }
     }
 }

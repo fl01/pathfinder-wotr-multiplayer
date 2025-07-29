@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
-using Kingmaker.EntitySystem.Stats;
 
 namespace WOTRMultiplayer.MP.Entities.Rolls
 {
     public class SavingThrowRoll : NetworkDiceRollBase
     {
-        public StatType StatType { get; set; }
+        public string StatType { get; set; }
 
         public string ReasonAbilityName { get; set; }
 
@@ -20,7 +19,7 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
 
         public override IEnumerable<string> GetUniquinessIdentifiers()
         {
-            return [StatType.ToString(), ReasonAbilityName, ReasonCasterId, DifficultyClass.ToString()];
+            return [StatType, ReasonAbilityName, ReasonCasterId, DifficultyClass.ToString()];
         }
     }
 }
