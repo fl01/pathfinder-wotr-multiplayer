@@ -60,9 +60,6 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         NetworkActionsState GetActionsState();
 
-        bool OnBeforeRuleRollDiceTrigger(RuleRollDice ruleRollDice);
-        void OnAfterRuleRollDiceTrigger(RuleRollDice ruleRollDice);
-
         bool OnBeforeRuleCalculateDamageTrigger(RuleCalculateDamage ruleCalculateDamage);
         void OnAfterRuleCalculateDamageTrigger(RuleCalculateDamage ruleCalculateDamage);
 
@@ -71,10 +68,16 @@ namespace WOTRMultiplayer.Abstractions.MP
         bool OnBeforeRuleAttackRoll(RuleAttackRoll ruleAttackRoll);
         void OnAfterRuleAttackRollTrigger(RuleAttackRoll ruleAttackRoll);
 
-        void OnAfterRuleSavingThrowTrigger(RuleSavingThrow ruleSavingThrow);
         void OnBeforeRuleSavingThrowRoll(RuleSavingThrow ruleSavingThrow);
+        void OnAfterRuleSavingThrowTrigger(RuleSavingThrow ruleSavingThrow);
 
         bool OnBeforeRuleSpellResistanceCheckRoll(RuleSpellResistanceCheck ruleSpellResistanceCheck);
         void OnAfterRuleSpellResistanceCheckTrigger(RuleSpellResistanceCheck ruleSpellResistanceCheck);
+
+        bool OnBeforeRuleSkillCheckRoll(RuleSkillCheck ruleSkillCheck);
+        void OnAfterRuleSkillCheckTrigger(RuleSkillCheck ruleSkillCheck);
+
+        bool OnBeforeRuleInitiativeRoll(RuleInitiativeRoll ruleInitiativeRoll);
+        void OnAfterRuleInitiativeRollTrigger(RuleInitiativeRoll ruleInitiativeRoll);
     }
 }

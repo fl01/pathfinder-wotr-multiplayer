@@ -264,88 +264,6 @@ namespace WOTRMultiplayer.MP
             }
         }
 
-        public void OnAfterRuleRollDiceTrigger(RuleRollDice ruleRollDice)
-        {
-            try
-            {
-                var multiplayerActor = GetMultiplayerActor();
-                if (multiplayerActor == null || !multiplayerActor.ShouldStoreRoll(true))
-                {
-                    return;
-                }
-
-                // TODO: this is generic handler, but attacks are handled in a different way. Consider replacing generic with specific handlers (RulePartyStatCheck, RuleInitiativeRoll)
-                if (ruleRollDice.Reason.Rule is RuleAttackWithWeapon)
-                {
-                    return;
-                }
-
-                var rollId = GetDiceRollId(ruleRollDice.Reason, NetworkDiceRollType.Hit);
-                if (rollId == null)
-                {
-                    _logger.LogWarning("Roll saving has been skipped due to unability to generate rollId. ReasonRuleType={reasonRuleType}, InitiatorName={initiatorName}, InitiatorId={initiatorId}", ruleRollDice.Reason.Rule?.GetType().Name, ruleRollDice.Initiator.CharacterName, ruleRollDice.Initiator.UniqueId);
-                    return;
-                }
-
-                var rollValue = new NetworkIntRollValue
-                {
-                    RollHistory = [.. ruleRollDice.RollHistory ?? []],
-                    Value = ruleRollDice.m_Result
-                };
-
-                SaveRollValue(multiplayerActor, rollId.Value, rollValue);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Unable to handle {MethodBase.GetCurrentMethod().Name}");
-                throw;
-            }
-        }
-
-        public bool OnBeforeRuleRollDiceTrigger(RuleRollDice ruleRollDice)
-        {
-            try
-            {
-                var multiplayerActor = GetMultiplayerActor();
-                if (multiplayerActor == null || multiplayerActor.ShouldStoreRoll(false))
-                {
-                    return true;
-                }
-
-                // TODO: this is generic handler, but attacks are handled in a different way. Consider replacing generic with specific handlers (RulePartyStatCheck, RuleInitiativeRoll)
-                if (ruleRollDice.Reason.Rule is RuleAttackWithWeapon)
-                {
-                    return true;
-                }
-
-                var rollId = GetDiceRollId(ruleRollDice.Reason, NetworkDiceRollType.Hit);
-                if (rollId == null)
-                {
-                    _logger.LogWarning("Roll retrieving has been skipped due to unability to generate rollId. ReasonRuleType={reasonRuleType} InitiatorName={initiatorName}, InitiatorId={initiatorId}", ruleRollDice.Reason.Rule?.GetType().Name, ruleRollDice.Initiator.CharacterName, ruleRollDice.Initiator.UniqueId);
-                    return true;
-                }
-
-                var roll = multiplayerActor.RetrieveRoll<NetworkIntRollValue>(rollId.Value, ruleRollDice.Initiator.UniqueId);
-                if (roll == null)
-                {
-                    _logger.LogCritical("Failed to acquire roll from remote player which guarantees desync in the game. RollType={rollType}", ruleRollDice.Reason.Rule?.GetType().Name);
-                    _gameInteractionService.ShowModalMessage($"Failed to acquire roll from remote player which guarantees desync in the game.");
-                    return true;
-                }
-
-                ruleRollDice.m_Result = roll.Value;
-                ruleRollDice.RollHistory = [.. roll.RollHistory];
-
-                _logger.LogInformation("Roll result has been acquired from another player. RollId={rollId}, Result={result}, RollType={rollType}", rollId.Value, ruleRollDice.Result, ruleRollDice.Reason.Rule?.GetType().Name);
-                return false;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Unable to handle {MethodBase.GetCurrentMethod().Name}");
-                throw;
-            }
-        }
-
         public int OnAfterRollRuleHealDamage(RuleHealDamage ruleHealDamage, int unitsCount, int result)
         {
             try
@@ -508,6 +426,101 @@ namespace WOTRMultiplayer.MP
 
                 var roll = CreateSpellResistanceCheckRoll(NetworkDiceRollType.Hit, ruleSpellResistanceCheck);
                 SaveIntRollValue(multiplayerActor, roll, ruleSpellResistanceCheck.Roll);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Unable to handle {MethodBase.GetCurrentMethod().Name}");
+                throw;
+            }
+        }
+
+        public bool OnBeforeRuleSkillCheckRoll(RuleSkillCheck ruleSkillCheck)
+        {
+            try
+            {
+                var multiplayerActor = GetMultiplayerActor();
+                if (multiplayerActor == null || multiplayerActor.ShouldStoreRoll(false))
+                {
+                    return true;
+                }
+
+                var roll = CreateSkillCheckRoll(NetworkDiceRollType.Hit, ruleSkillCheck);
+                var d20 = RetrieveD20Roll(multiplayerActor, roll, ruleSkillCheck.Initiator);
+                if (d20 == null)
+                {
+                    return true;
+                }
+
+                ruleSkillCheck.D20 = d20;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Unable to handle {MethodBase.GetCurrentMethod().Name}");
+                throw;
+            }
+        }
+
+        public void OnAfterRuleSkillCheckTrigger(RuleSkillCheck ruleSkillCheck)
+        {
+            try
+            {
+                var multiplayerActor = GetMultiplayerActor();
+                if (multiplayerActor == null || !multiplayerActor.ShouldStoreRoll(false))
+                {
+                    return;
+                }
+
+                var roll = CreateSkillCheckRoll(NetworkDiceRollType.Hit, ruleSkillCheck);
+                SaveIntRollValue(multiplayerActor, roll, ruleSkillCheck.D20);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Unable to handle {MethodBase.GetCurrentMethod().Name}");
+                throw;
+            }
+        }
+
+
+        public bool OnBeforeRuleInitiativeRoll(RuleInitiativeRoll ruleInitiativeRoll)
+        {
+            try
+            {
+                var multiplayerActor = GetMultiplayerActor();
+                if (multiplayerActor == null || multiplayerActor.ShouldStoreRoll(false))
+                {
+                    return true;
+                }
+
+                var roll = CreateInitiativeRoll(NetworkDiceRollType.Hit, ruleInitiativeRoll);
+                var d20 = RetrieveD20Roll(multiplayerActor, roll, ruleInitiativeRoll.Initiator);
+                if (d20 == null)
+                {
+                    return true;
+                }
+
+                ruleInitiativeRoll.D20 = d20;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Unable to handle {MethodBase.GetCurrentMethod().Name}");
+                throw;
+            }
+        }
+
+        public void OnAfterRuleInitiativeRollTrigger(RuleInitiativeRoll ruleInitiativeRoll)
+        {
+            try
+            {
+                var multiplayerActor = GetMultiplayerActor();
+                if (multiplayerActor == null || !multiplayerActor.ShouldStoreRoll(false))
+                {
+                    return;
+                }
+
+                var roll = CreateInitiativeRoll(NetworkDiceRollType.Hit, ruleInitiativeRoll);
+                SaveIntRollValue(multiplayerActor, roll, ruleInitiativeRoll.D20);
             }
             catch (Exception ex)
             {
@@ -788,6 +801,20 @@ namespace WOTRMultiplayer.MP
             }
         }
 
+        private SkillCheckRoll CreateSkillCheckRoll(NetworkDiceRollType diceRollType, RuleSkillCheck ruleSkillCheck)
+        {
+            var roll = new SkillCheckRoll(ruleSkillCheck.Initiator.UniqueId, ruleSkillCheck.GetType().Name, diceRollType, ruleSkillCheck.TotalBonus)
+            {
+                EnsureSuccess = ruleSkillCheck.EnsureSuccess,
+                DifficultyCheck = ruleSkillCheck.DC,
+                RequireSuccessBonus = ruleSkillCheck.RequiresSuccessBonus,
+                Take10ForSuccess = ruleSkillCheck.Take10ForSuccess,
+                StatType = ruleSkillCheck.StatType.ToString(),
+            };
+
+            return roll;
+        }
+
         private SpellResistanceCheckRoll CreateSpellResistanceCheckRoll(NetworkDiceRollType diceRollType, RuleSpellResistanceCheck ruleSpellResistanceCheck)
         {
             var roll = new SpellResistanceCheckRoll(ruleSpellResistanceCheck.Initiator.UniqueId, ruleSpellResistanceCheck.GetType().Name, diceRollType, ruleSpellResistanceCheck.TotalBonusValue)
@@ -843,6 +870,12 @@ namespace WOTRMultiplayer.MP
             return roll;
         }
 
+        /// <summary>
+        /// TODO: delete since it's been handled in RuleSkillCheck handler
+        /// </summary>
+        /// <param name="diceRollType"></param>
+        /// <param name="partyStatCheck"></param>
+        /// <returns></returns>
         private PartyStatCheckRoll CreatePartyStatCheckRoll(NetworkDiceRollType diceRollType, RulePartyStatCheck partyStatCheck)
         {
             var roll = new PartyStatCheckRoll(partyStatCheck.Initiator.UniqueId, partyStatCheck.GetType().Name, diceRollType, partyStatCheck.TotalBonusValue)
