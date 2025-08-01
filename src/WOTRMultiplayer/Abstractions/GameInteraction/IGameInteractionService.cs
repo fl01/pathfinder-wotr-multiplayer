@@ -53,6 +53,8 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void ClickGroundInCombat(NetworkClick click);
 
+        void ClickMapObject(NetworkClick click);
+
         bool CombatTurnHasBeenFinished();
 
         NetworkActionsState GetActionsState();

@@ -181,6 +181,56 @@ namespace WOTRMultiplayer.MP
             return ResponseToRollValue<TRollValue>(response);
         }
 
+
+        public void OnClickUnit(NetworkClick click)
+        {
+            if (!(Game.Combat?.Turn?.IsLocalPlayer ?? false) || GameInteraction.CombatTurnHasBeenFinished())
+            {
+                return;
+            }
+
+            Logger.LogInformation("Sending unit click. TargetUnitId={targetUnitId}, VectorPathCount={pathCount}", click.TargetUnitId, click.VectorPath.Count);
+
+            var message = new NotifyUnitClicked
+            {
+                Click = Mapper.Map<Networking.Messages.NetworkClick>(click)
+            };
+
+            Send(message);
+        }
+
+        public void OnClickGround(NetworkClick click)
+        {
+            if (!(Game.Combat?.Turn?.IsLocalPlayer ?? false) || GameInteraction.CombatTurnHasBeenFinished())
+            {
+                return;
+            }
+
+            Logger.LogInformation("Sending ground click. WorldPosition={worldPosition}, VectorPathCount={pathCount}, SelectedUnits={selectedUnits}", click.WorldPosition, click.VectorPath.Count, string.Join(";", click.SelectedUnits));
+            var message = new NotifyGroundClicked
+            {
+                Click = Mapper.Map<Networking.Messages.NetworkClick>(click)
+            };
+
+            Send(message);
+        }
+
+        public void OnClickMapObject(NetworkClick click)
+        {
+            if (!IsControlledByLocalPlayer(click.SelectedUnits))
+            {
+                return;
+            }
+
+            Logger.LogInformation("Sending map object click. WorldPosition={worldPosition}, VectorPathCount={pathCount}, SelectedUnits={selectedUnits}", click.WorldPosition, click.VectorPath.Count, string.Join(";", click.SelectedUnits));
+            var message = new NotifyMapObjectClicked
+            {
+                Click = Mapper.Map<Networking.Messages.NetworkClick>(click)
+            };
+
+            Send(message);
+        }
+
         protected abstract Task<DiceRollValueResponse> RetrieveRoll(DiceRollValueRequest rollRequest, string unitId);
 
         protected bool ShouldNotifyAboutAbilityUse(string sourceUnitId)
@@ -363,6 +413,11 @@ namespace WOTRMultiplayer.MP
         {
             Game.Combat.Turn.IsInProgress = false;
             GameInteraction.EndTurnBasedCombatTurn();
+        }
+
+        private bool IsControlledByLocalPlayer(List<string> units)
+        {
+            return IsControlledByLocalPlayer(units?.FirstOrDefault());
         }
     }
 }

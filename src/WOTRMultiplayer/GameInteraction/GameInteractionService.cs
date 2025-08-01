@@ -22,6 +22,7 @@ using Kingmaker.UI;
 using Kingmaker.UI.MVVM._PCView.Dialog.Dialog;
 using Kingmaker.UI.MVVM._PCView.InGame;
 using Kingmaker.UI.MVVM._VM.Dialog.Dialog;
+using Kingmaker.UI.MVVM._VM.Lockpick;
 using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.UnitLogic.ActivatableAbilities;
 using Kingmaker.UnitLogic.Commands;
@@ -478,6 +479,40 @@ namespace WOTRMultiplayer.GameInteraction
             {
                 var clickGroundHandler = Game.Instance.DefaultPointerController.m_ClickHandlers.FirstOrDefault(c => c is ClickGroundHandler);
                 ExecuteClickHandler(clickGroundHandler, click);
+            }
+            catch (Exception ex)
+            {
+
+                _logger.LogError(ex, "Unable to initiate click handler. HandlerTy={handlerType}", typeof(ClickGroundHandler));
+                throw;
+            }
+        }
+
+        public void ClickMapObject(NetworkClick click)
+        {
+            try
+            {
+                var mapObject = Game.Instance.State.MapObjects.FirstOrDefault(m => string.Equals(m.UniqueId, click.MapObjectId, StringComparison.OrdinalIgnoreCase));
+                if (mapObject == null)
+                {
+                    _logger.LogError("Unable to find map object. UniqueId={uniqueId}", click.MapObjectId);
+                    return;
+                }
+
+                _mainThreadAccessor.Enqueue(() =>
+                {
+                    // TODO: check
+                    if (LockpickVM.NeedLockpick(mapObject.View))
+                    {
+                        EventBus.RaiseEvent(delegate (ILockpickUIHandler h)
+                        {
+                            h.HandleLockpickRequest(mapObject.View, click.IsTurnBasedModeClick);
+                        });
+                    }
+
+                    var selectedUnits = click.SelectedUnits.Select(GetUnitEntity).ToList();
+                    ClickMapObjectHandler.Interact(mapObject.View.gameObject, selectedUnits, forceOvertipInteractions: false, click.MuteEvents);
+                });
             }
             catch (Exception ex)
             {

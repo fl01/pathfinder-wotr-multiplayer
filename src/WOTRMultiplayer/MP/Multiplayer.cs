@@ -659,6 +659,17 @@ namespace WOTRMultiplayer.MP
             multiplayerActor.OnClickGround(click);
         }
 
+        public void OnClickMapObject(NetworkClick click)
+        {
+            var multiplayerActor = GetMultiplayerActor();
+            if (multiplayerActor == null)
+            {
+                return;
+            }
+
+            multiplayerActor.OnClickMapObject(click);
+        }
+
         public void OnAbilityUse(NetworkAbility ability)
         {
             var multiplayerActor = GetMultiplayerActor();

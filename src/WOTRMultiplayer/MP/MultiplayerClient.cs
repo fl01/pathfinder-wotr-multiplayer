@@ -352,39 +352,6 @@ namespace WOTRMultiplayer.MP
             return !IsRolledByHost(silent) && IsRolledByLocalPlayer(silent);
         }
 
-        public void OnClickUnit(NetworkClick click)
-        {
-            if (!(Game.Combat?.Turn?.IsLocalPlayer ?? false) || GameInteraction.CombatTurnHasBeenFinished())
-            {
-                return;
-            }
-
-            Logger.LogInformation("Sending unit click. TargetUnitId={targetUnitId}, VectorPathCount={pathCount}", click.TargetUnitId, click.VectorPath.Count);
-
-            var message = new NotifyUnitClicked
-            {
-                Click = Mapper.Map<Networking.Messages.NetworkClick>(click)
-            };
-
-            _networkServerClient.Send(message);
-        }
-
-        public void OnClickGround(NetworkClick click)
-        {
-            if (!(Game.Combat?.Turn?.IsLocalPlayer ?? false) || GameInteraction.CombatTurnHasBeenFinished())
-            {
-                return;
-            }
-
-            Logger.LogInformation("Sending ground click. WorldPosition={worldPosition}, VectorPathCount={pathCount}, SelectedUnits={selectedUnits}", click.WorldPosition, click.VectorPath.Count, string.Join(";", click.SelectedUnits));
-            var message = new NotifyGroundClicked
-            {
-                Click = Mapper.Map<Networking.Messages.NetworkClick>(click)
-            };
-
-            _networkServerClient.Send(message);
-        }
-
         protected override Task<DiceRollValueResponse> RetrieveRoll(DiceRollValueRequest request, string unitId)
         {
             return _networkServerClient.SendAndWaitForAsync<DiceRollValueResponse>(request);
@@ -441,6 +408,7 @@ namespace WOTRMultiplayer.MP
                 .Register<NotifyDialogStarted>(OnNotifyDialogStarted)
                 .Register<NotifyUnitClicked>(OnNotifyUnitClicked)
                 .Register<NotifyGroundClicked>(OnNotifyGroundClicked)
+                .Register<NotifyMapObjectClicked>(OnNotifyMapObjectClicked)
                 .Register<NotifyAbilityUse>(OnNotifyAbilityUsed)
                 .Register<NotifyToggleActivatableAbility>(OnNotifyToggleActivatableAbility)
                 // combat
@@ -521,6 +489,14 @@ namespace WOTRMultiplayer.MP
 
             var click = Mapper.Map<NetworkClick>(clicked.Click);
             GameInteraction.ClickUnitInCombat(click);
+        }
+
+        private void OnNotifyMapObjectClicked(NotifyMapObjectClicked clicked)
+        {
+            Logger.LogInformation($"Received {nameof(NotifyMapObjectClicked)}.TargetUnitId={{targetUnitId}}, SelectedUnits={{selectedUnits}}", clicked.Click.TargetUnitId, clicked.Click.SelectedUnits.Count);
+
+            var click = Mapper.Map<NetworkClick>(clicked.Click);
+            GameInteraction.ClickMapObject(click);
         }
 
         private async void OnRollRequest(DiceRollValueRequest request)

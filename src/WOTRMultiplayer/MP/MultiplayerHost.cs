@@ -455,39 +455,6 @@ namespace WOTRMultiplayer.MP
             return IsRolledByHost(isBeforeRolling) || IsRolledByLocalPlayer(isBeforeRolling);
         }
 
-        public void OnClickUnit(NetworkClick click)
-        {
-            if (!(Game.Combat?.Turn?.IsLocalPlayer ?? false) || GameInteraction.CombatTurnHasBeenFinished())
-            {
-                return;
-            }
-
-            Logger.LogInformation("Sending unit click. TargetUnitId={targetUnitId}, VectorPathCount={pathCount}", click.TargetUnitId, click.VectorPath.Count);
-
-            var message = new NotifyUnitClicked
-            {
-                Click = Mapper.Map<Networking.Messages.NetworkClick>(click)
-            };
-
-            _networkServer.SendAll(message);
-        }
-
-        public void OnClickGround(NetworkClick click)
-        {
-            if (!(Game.Combat?.Turn?.IsLocalPlayer ?? false) || GameInteraction.CombatTurnHasBeenFinished())
-            {
-                return;
-            }
-
-            Logger.LogInformation("Sending ground click. WorldPosition={worldPosition}, VectorPathCount={pathCount}, SelectedUnits={selectedUnits}", click.WorldPosition, click.VectorPath.Count, string.Join(";", click.SelectedUnits));
-            var message = new NotifyGroundClicked
-            {
-                Click = Mapper.Map<Networking.Messages.NetworkClick>(click)
-            };
-
-            _networkServer.SendAll(message);
-        }
-
         protected override Task<DiceRollValueResponse> RetrieveRoll(DiceRollValueRequest request, string unitId)
         {
             var character = GetCharacterOwnership(unitId);
@@ -723,6 +690,7 @@ namespace WOTRMultiplayer.MP
                 .Register<NotifySaveGameAssigned>(OnNotifySaveGameAssigned)
                 .Register<NotifyUnitClicked>(OnNotifyUnitClicked)
                 .Register<NotifyGroundClicked>(OnNotifyGroundClicked)
+                .Register<NotifyMapObjectClicked>(OnNotifyMapObjectClicked)
 
                 // this is kinda special as well as the client is blocking the game loop thread until `RollResponse` is received
                 .Register<DiceRollValueRequest>(OnRollRequest)
@@ -824,6 +792,17 @@ namespace WOTRMultiplayer.MP
 
             Logger.LogInformation($"Resending {nameof(NotifyUnitClicked)} to other players");
             _networkServer.SendAllExcept(playerId, click);
+        }
+
+        private void OnNotifyMapObjectClicked(long playerId, NotifyMapObjectClicked clicked)
+        {
+            Logger.LogInformation($"Received {nameof(NotifyMapObjectClicked)}. PlayerId={{playerId}}, TargetUnitId={{targetUnitId}}, SelectedUnits={{selectedUnits}}", playerId, clicked.Click.TargetUnitId, clicked.Click.SelectedUnits.Count);
+
+            var click = Mapper.Map<NetworkClick>(clicked.Click);
+            GameInteraction.ClickMapObject(click);
+
+            Logger.LogInformation($"Resending {nameof(NotifyMapObjectClicked)} to other players");
+            _networkServer.SendAllExcept(playerId, clicked);
         }
 
         private void OnNotifySaveGameAssigned(long playerId, NotifySaveGameAssigned assigned)

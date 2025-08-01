@@ -5,6 +5,7 @@ using Kingmaker.Controllers.Clicks.Handlers;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.TurnBasedMode;
 using Kingmaker.View;
+using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
 using UnityEngine;
 using WOTRMultiplayer.MP.Entities;
@@ -46,7 +47,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
 
             try
             {
-                var click = CreateClick(gameObject, button, worldPosition, muteEvents);
+                var click = CreateClick(gameObject, button, worldPosition, muteEvents, IsTMBClick);
                 Main.Multiplayer.OnClickGround(click);
             }
             catch (System.Exception ex)
@@ -67,7 +68,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
 
             try
             {
-                var click = CreateClick(gameObject, button, worldPosition, muteEvents);
+                var click = CreateClick(gameObject, button, worldPosition, muteEvents, IsTMBClick);
                 Main.Multiplayer.OnClickUnit(click);
             }
             catch (System.Exception ex)
@@ -77,10 +78,32 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
             }
         }
 
-        private static NetworkClick CreateClick(GameObject gameObject, int button, Vector3 worldPosition, bool muteEvents)
+        [HarmonyPatch(typeof(ClickMapObjectHandler), nameof(ClickMapObjectHandler.OnClick), [typeof(GameObject), typeof(Vector3), typeof(int), typeof(bool), typeof(bool), typeof(bool)])]
+        [HarmonyPostfix]
+        public static void ClickMapObjectHandler_OnClick_Postfix(ClickMapObjectHandler __instance, bool __result, GameObject gameObject, Vector3 worldPosition, int button, bool simulate, bool muteEvents, bool IsTMBClick)
+        {
+            if (!Main.Multiplayer.IsActive || simulate || !__result)
+            {
+                return;
+            }
+
+            try
+            {
+                var click = CreateClick(gameObject, button, worldPosition, muteEvents, IsTMBClick);
+                Main.Multiplayer.OnClickMapObject(click);
+            }
+            catch (System.Exception ex)
+            {
+                Main.GetLogger<ClicksPatches>().LogError(ex, "Unable to process ClickGround click");
+                throw;
+            }
+        }
+
+        private static NetworkClick CreateClick(GameObject gameObject, int button, Vector3 worldPosition, bool muteEvents, bool isTurnBasedModeClick)
         {
             var selectedUnits = Game.Instance.SelectionCharacter.SelectedUnits.Select(x => x.UniqueId)?.ToList();
             var targetUnitId = gameObject?.GetComponent<UnitEntityView>()?.UniqueId;
+            var mapObjectId = gameObject?.GetComponent<MapObjectView>()?.UniqueId;
             var selectedUnit = Game.Instance.SelectionCharacter?.FirstSelectedUnit?.View;
             var path = selectedUnit == null ? null : PathVisualizer.Instance.CurrentPathForUnit(selectedUnit);
             var actionState = Main.Multiplayer.GetActionsState();
@@ -89,6 +112,8 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
             {
                 SelectedUnits = selectedUnits,
                 TargetUnitId = targetUnitId,
+                MapObjectId = mapObjectId,
+                IsTurnBasedModeClick = isTurnBasedModeClick,
                 Button = button,
                 WorldPosition = new NetworkVector3(worldPosition.x, worldPosition.y, worldPosition.z),
                 MuteEvents = muteEvents,

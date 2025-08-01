@@ -134,5 +134,9 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
         public void ToggleActivatableAbility(NetworkActivatableAbility toggle)
         {
         }
+
+        public void ClickMapObject(NetworkClick click)
+        {
+        }
     }
 }

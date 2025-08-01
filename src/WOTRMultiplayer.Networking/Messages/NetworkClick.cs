@@ -10,21 +10,27 @@ namespace WOTRMultiplayer.Networking.Messages
         public string TargetUnitId { get; set; }
 
         [ProtoMember(2)]
-        public int Button { get; set; }
+        public string MapObjectId { get; set; }
 
         [ProtoMember(3)]
-        public bool MuteEvents { get; set; }
+        public int Button { get; set; }
 
         [ProtoMember(4)]
-        public List<string> SelectedUnits { get; set; } = [];
+        public bool MuteEvents { get; set; }
 
         [ProtoMember(5)]
-        public NetworkVector3 WorldPosition { get; set; }
+        public List<string> SelectedUnits { get; set; } = [];
 
         [ProtoMember(6)]
-        public List<NetworkVector3> VectorPath { get; set; } = [];
+        public NetworkVector3 WorldPosition { get; set; }
 
         [ProtoMember(7)]
+        public List<NetworkVector3> VectorPath { get; set; } = [];
+
+        [ProtoMember(8)]
         public NetworkActionsState ActionsState { get; set; }
+
+        [ProtoMember(9)]
+        public bool IsTurnBasedModeClick { get; set; }
     }
 }
