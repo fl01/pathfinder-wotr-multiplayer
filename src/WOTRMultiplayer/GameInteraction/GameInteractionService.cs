@@ -380,7 +380,6 @@ namespace WOTRMultiplayer.GameInteraction
                             unit.Position = new UnityEngine.Vector3(networkUnit.Position.X, networkUnit.Position.Y, networkUnit.Position.Z);
                             _logger.LogInformation("Unit position has been updated. UnitId={unitId}, PreviousPosition={oldPosition}, NewPosition={newPosition}", unit.UniqueId, oldPosition.ToString("F4"), unit.Position.ToString("F4"));
                         }
-
                     }
                     catch (Exception ex)
                     {
