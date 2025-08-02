@@ -6,17 +6,15 @@ using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
 
-namespace WOTRMultiplayer.HarmonyPatches.Commands
+namespace WOTRMultiplayer.HarmonyPatches.Units
 {
     [HarmonyPatch]
-    public class UnitCommandPatches
+    public class UnitUseAbilityPatches
     {
-
         [HarmonyPatch(typeof(UnitUseAbility), nameof(UnitUseAbility.OnAction))]
         [HarmonyPrefix]
         public static void UnitUseAbility_OnAction_HarmonyPrefix(UnitUseAbility __instance)
         {
-            // no need to possibly override value if this character is not controllable at all
             if (!Main.Multiplayer.IsActive)
             {
                 return;
@@ -24,7 +22,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Commands
 
             if (__instance.Ability.StickyTouch != null)
             {
-                Main.GetLogger<UnitCommandPatches>().LogWarning("Skipping ability use as it's a part of another usage. UnitId={unitId}, AbilityName={abilityName}, AbilityId={abilityId}", __instance.Executor.UniqueId, __instance.Ability.Name, __instance.Ability.UniqueId);
+                Main.GetLogger<UnitUseAbilityPatches>().LogWarning("Skipping ability use as it's a part of another usage. UnitId={unitId}, AbilityName={abilityName}, AbilityId={abilityId}", __instance.Executor.UniqueId, __instance.Ability.Name, __instance.Ability.UniqueId);
                 return;
             }
 

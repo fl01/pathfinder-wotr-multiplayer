@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
-using WOTRMultiplayer.MP;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
 using WOTRMultiplayer.MP.Entities.Combat;
+using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
 
 namespace WOTRMultiplayer.Config.Mapping
@@ -44,6 +44,12 @@ namespace WOTRMultiplayer.Config.Mapping
                 .ForMember(m => m.Result, o => o.MapFrom(v => v.Value))
                 .ReverseMap()
                 .ForMember(m => m.Value, o => o.MapFrom(v => v.Result));
+
+            CreateMap<NetworkLootContainer, Networking.Messages.NetworkLootContainer>()
+                .ReverseMap();
+
+            CreateMap<NetworkLootItem, Networking.Messages.NetworkLootItem>()
+                .ReverseMap();
         }
     }
 }

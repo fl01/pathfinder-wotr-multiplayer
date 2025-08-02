@@ -15,6 +15,7 @@ using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Windows;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
+using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.Rolls;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
 using WOTRMultiplayer.UI.Menu;
@@ -699,7 +700,31 @@ namespace WOTRMultiplayer.MP
                 return null;
             }
 
-            return _gameInteractionService.GetActionsState();
+            var actionsState = _gameInteractionService.GetActionsState();
+            return actionsState;
+        }
+
+        public bool CanLootUnit(string initiatorUnitId)
+        {
+            var multiplayerActor = GetMultiplayerActor();
+            if (multiplayerActor == null)
+            {
+                return true;
+            }
+
+            var isControlledByLocalPlayer = multiplayerActor.IsControlledByLocalPlayer(initiatorUnitId);
+            return isControlledByLocalPlayer;
+        }
+
+        public void OnLootContainer(NetworkLootContainer container)
+        {
+            var multiplayerActor = GetMultiplayerActor();
+            if (multiplayerActor == null)
+            {
+                return;
+            }
+
+            multiplayerActor.OnLootContainer(container);
         }
 
         private int? GetDiceRollId(NetworkDiceRollBase roll)

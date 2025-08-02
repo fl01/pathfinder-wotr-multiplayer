@@ -13,6 +13,7 @@ using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
 using WOTRMultiplayer.MP.Entities.Combat;
+using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
 using WOTRMultiplayer.Networking.Messages.Game;
 
@@ -229,6 +230,17 @@ namespace WOTRMultiplayer.MP
             var message = new NotifyMapObjectClicked
             {
                 Click = Mapper.Map<Networking.Messages.NetworkClick>(click)
+            };
+
+            Send(message);
+        }
+
+        public void OnLootContainer(NetworkLootContainer container)
+        {
+            Logger.LogInformation("Sending looted container info. ContainerId={containerId}, ContainerPosition={containerPosition}, ItemsCount={itemsCount}, Items={itemsIds}", container.Id, container.Position, container.Items.Count, container.Items.Select(i => i.UniqueId));
+            var message = new NotifyContainerLooted
+            {
+                Container = Mapper.Map<Networking.Messages.NetworkLootContainer>(container)
             };
 
             Send(message);

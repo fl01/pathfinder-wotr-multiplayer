@@ -13,6 +13,7 @@ using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
 using WOTRMultiplayer.MP.Entities.Combat;
 using WOTRMultiplayer.MP.Entities.Dialogs;
+using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
@@ -414,10 +415,21 @@ namespace WOTRMultiplayer.MP
                 .Register<NotifyCombatStarted>(OnNotifyCombatStarted)
                 .Register<NotifyCombatTurnStarted>(OnNotifyCombatTurnStarted)
                 .Register<NotifyCombatTurnSynchronizationRequired>(OnNotifyCombatTurnSynchronizationRequired)
+
+                .Register<NotifyContainerLooted>(OnNotifyContainerLooted)
                 ;
 
             _networkServerClient.OnError = OnNetworkClientError;
             _networkServerClient.OnConnected = OnNetworkClientConnected;
+        }
+
+        private void OnNotifyContainerLooted(NotifyContainerLooted looted)
+        {
+            Logger.LogInformation("Received {messageType}. ContainerId={containerId}, ContainerPosition={containerPosition}, ItemsCount={itemsCount}, Items={itemsIds}",
+               nameof(NotifyContainerLooted), looted.Container.Id, looted.Container.Position, looted.Container.Items.Count, looted.Container.Items.Select(i => i.UniqueId));
+
+            var container = Mapper.Map<NetworkLootContainer>(looted.Container);
+            GameInteraction.CollectContainerLoot(container);
         }
 
         private void OnNotifyToggleActivatableAbility(NotifyToggleActivatableAbility toggle)

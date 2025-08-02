@@ -8,6 +8,7 @@ using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
 using WOTRMultiplayer.MP.Entities.Dialogs;
+using WOTRMultiplayer.MP.Entities.Loot;
 
 namespace WOTR.Multiplayer.Playground.Core.Dummies
 {
@@ -136,6 +137,10 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
         }
 
         public void ClickMapObject(NetworkClick click)
+        {
+        }
+
+        public void CollectContainerLoot(NetworkLootContainer container)
         {
         }
     }

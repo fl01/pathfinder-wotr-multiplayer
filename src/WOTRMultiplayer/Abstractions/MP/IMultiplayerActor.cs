@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
+using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
 
 namespace WOTRMultiplayer.Abstractions.MP
@@ -86,5 +87,7 @@ namespace WOTRMultiplayer.Abstractions.MP
         void OnAbilityUse(NetworkAbility ability);
 
         void OnToggleActivatableAbility(NetworkActivatableAbility activatableAbilityUse);
+
+        void OnLootContainer(NetworkLootContainer container);
     }
 }

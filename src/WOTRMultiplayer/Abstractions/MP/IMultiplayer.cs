@@ -5,6 +5,7 @@ using Kingmaker.RuleSystem.Rules.Damage;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
+using WOTRMultiplayer.MP.Entities.Loot;
 
 namespace WOTRMultiplayer.Abstractions.MP
 {
@@ -25,6 +26,8 @@ namespace WOTRMultiplayer.Abstractions.MP
         bool StopGameMode(GameModeType type);
 
         bool CanLeaveArea();
+
+        bool CanLootUnit(string initiatorUnitId);
 
         void OnAfterCueShow(string dialogName, string cueName, bool hasSystemAnswer);
 
@@ -81,5 +84,7 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         bool OnBeforeRuleInitiativeRoll(RuleInitiativeRoll ruleInitiativeRoll);
         void OnAfterRuleInitiativeRollTrigger(RuleInitiativeRoll ruleInitiativeRoll);
+
+        void OnLootContainer(NetworkLootContainer container);
     }
 }

@@ -13,6 +13,7 @@ using Kingmaker.EntitySystem.Entities;
 using Kingmaker.EntitySystem.Persistence;
 using Kingmaker.GameModes;
 using Kingmaker.Globalmap.Blueprints;
+using Kingmaker.Items;
 using Kingmaker.Localization;
 using Kingmaker.Pathfinding;
 using Kingmaker.PubSubSystem;
@@ -29,6 +30,7 @@ using Kingmaker.Utility;
 using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
+using UnityEngine;
 using UnityEngine.UI;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.UI;
@@ -38,6 +40,7 @@ using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
 using WOTRMultiplayer.MP.Entities.Combat;
 using WOTRMultiplayer.MP.Entities.Dialogs;
+using WOTRMultiplayer.MP.Entities.Loot;
 
 namespace WOTRMultiplayer.GameInteraction
 {
@@ -274,7 +277,7 @@ namespace WOTRMultiplayer.GameInteraction
                 var dialogBlueprint = Utilities.GetBlueprint<BlueprintDialog>(dialogName);
                 var target = GetUnitEntity(targetUnitId);
                 var initiator = GetUnitEntity(initiatorUnitId);
-                var mapObject = GetMapObjectView(mapObjectId);
+                var mapObject = GetMapObject(mapObjectId);
                 var speaker = speakerKey == null ? null : new LocalizedString { Key = speakerKey };
                 if (dialogBlueprint == null)
                 {
@@ -282,7 +285,7 @@ namespace WOTRMultiplayer.GameInteraction
                     return;
                 }
 
-                StartDialog(hasStartedDialogTask, dialogBlueprint, initiator, target, mapObject, speaker);
+                StartDialog(hasStartedDialogTask, dialogBlueprint, initiator, target, mapObject?.View, speaker);
             });
 
             return hasStartedDialogTask.Task;
@@ -490,7 +493,7 @@ namespace WOTRMultiplayer.GameInteraction
         {
             try
             {
-                var mapObject = Game.Instance.State.MapObjects.FirstOrDefault(m => string.Equals(m.UniqueId, click.MapObjectId, StringComparison.OrdinalIgnoreCase));
+                var mapObject = GetMapObject(click.MapObjectId);
                 if (mapObject == null)
                 {
                     _logger.LogError("Unable to find map object. UniqueId={uniqueId}", click.MapObjectId);
@@ -607,6 +610,88 @@ namespace WOTRMultiplayer.GameInteraction
                 Swift = CreateNetworkCombatAction(actionStates.Swift),
                 Move = CreateNetworkCombatAction(actionStates.Move),
             };
+        }
+
+        public void CollectContainerLoot(NetworkLootContainer networkLootContainer)
+        {
+            _mainThreadAccessor.Enqueue(() =>
+            {
+                var mapObject = GetMapObject(networkLootContainer.Id);
+                List<ItemEntity> transferList = [];
+                if (mapObject == null)
+                {
+                    var neareastLootableContainers = GetNeareastLootableMapObjects(networkLootContainer.Position);
+                    foreach (var container in neareastLootableContainers)
+                    {
+                        var interaction = (InteractionLootPart)container.Interactions.FirstOrDefault(i => i is InteractionLootPart);
+
+                        transferList = [.. interaction.Loot.Items.Where(item => networkLootContainer.Items.Any(ni => IsSameItem(item, ni)))];
+                        if (transferList.Count == networkLootContainer.Items.Count)
+                        {
+                            mapObject = container;
+                            break;
+                        }
+                    }
+                }
+
+                if (mapObject == null)
+                {
+                    _logger.LogCritical("Unable to find valid nearest lootable map object. Position={position}", networkLootContainer.Position);
+                    return;
+                }
+
+                var objectInteraction = (InteractionLootPart)mapObject.Interactions.FirstOrDefault(i => i is InteractionLootPart); ;
+                TransferItems(objectInteraction.Loot, Game.Instance.Player.Inventory, transferList);
+                RefreshLootUI();
+            });
+        }
+
+        private bool IsSameItem(ItemEntity itemEntity, NetworkLootItem networkLootItem)
+        {
+            return string.Equals(itemEntity.NameForAcronym, networkLootItem.Name, StringComparison.OrdinalIgnoreCase)
+                && (string.Equals(itemEntity.UniqueId, networkLootItem.UniqueId, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(itemEntity.Blueprint.AssetGuid.ToString(), networkLootItem.BlueprintId, StringComparison.OrdinalIgnoreCase))
+                && itemEntity.Cost == networkLootItem.Cost
+                && itemEntity.IsLootable
+                && itemEntity.EnchantmentValue == networkLootItem.EnchantmentValue
+                && itemEntity.Enchantments.FirstOrDefault()?.NameForAcronym == networkLootItem.FirstEnchantmentName
+                && itemEntity.Enchantments.Count == networkLootItem.EnchantmentsCount;
+        }
+
+        private void RefreshLootUI()
+        {
+            var lootVm = Game.Instance.RootUiContext?.InGameVM?.StaticPartVM?.LootContextVM?.LootVM?.Value;
+            if (lootVm != null)
+            {
+                foreach (var itemCollections in lootVm.ContextLoot)
+                {
+                    itemCollections.UpdateCommand.Execute();
+                }
+            }
+        }
+
+        private void TransferItems(ItemsCollection source, ItemsCollection target, List<ItemEntity> transferList)
+        {
+            foreach (ItemEntity item in transferList)
+            {
+                source.Transfer(item, item.Count, target);
+            }
+        }
+
+        private List<MapObjectEntityData> GetNeareastLootableMapObjects(NetworkVector3 position)
+        {
+            var targetPoint = new Vector3(position.X, position.Y, position.Z);
+            var orderedContainers = Game.Instance.State.MapObjects.All
+                .Where(o => o.Interactions.Any(i => i is InteractionLootPart))
+                .OrderBy(o => (o.Position - targetPoint).magnitude)
+                .ToList();
+
+            return orderedContainers;
+        }
+
+        private MapObjectEntityData GetMapObject(string uniqueId)
+        {
+            return Game.Instance.State.MapObjects.All.FirstOrDefault(o => string.Equals(o.UniqueId, uniqueId, StringComparison.OrdinalIgnoreCase));
         }
 
         private NetworkCombatAction CreateNetworkCombatAction(CombatAction action)
@@ -781,17 +866,6 @@ namespace WOTRMultiplayer.GameInteraction
             }
 
             return null;
-        }
-
-        private MapObjectView GetMapObjectView(string mapObjectId)
-        {
-            if (string.IsNullOrEmpty(mapObjectId))
-            {
-                return null;
-            }
-
-            var mapObject = Game.Instance.State.MapObjects.FirstOrDefault(m => string.Equals(m.UniqueId, mapObjectId, StringComparison.OrdinalIgnoreCase));
-            return mapObject?.View;
         }
 
         private void StartDialog(TaskCompletionSource<bool> hasStartedDialogTask, BlueprintDialog dialog, UnitEntityData initiator, UnitEntityData target, MapObjectView mapObjectView, LocalizedString customSpeakerName)
