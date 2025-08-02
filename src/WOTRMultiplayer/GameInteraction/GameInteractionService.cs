@@ -608,7 +608,7 @@ namespace WOTRMultiplayer.GameInteraction
                 Free = CreateNetworkCombatAction(actionStates.Free),
                 Standard = CreateNetworkCombatAction(actionStates.Standard),
                 Swift = CreateNetworkCombatAction(actionStates.Swift),
-                Move = CreateNetworkCombatAction(actionStates.Move),
+                Move = CreateNetworkCombatAction(actionStates.Move)
             };
         }
 
@@ -616,27 +616,35 @@ namespace WOTRMultiplayer.GameInteraction
         {
             _mainThreadAccessor.Enqueue(() =>
             {
-                var mapObject = GetMapObject(networkLootContainer.Id);
-                var lookupTargets = mapObject != null ? [mapObject]
-                    : GetNeareastLootableMapObjects(networkLootContainer.Position);
-
-                foreach (var container in lookupTargets)
+                try
                 {
-                    var interaction = (InteractionLootPart)container.Interactions.FirstOrDefault(i => i is InteractionLootPart);
+                    var mapObject = GetMapObject(networkLootContainer.Id);
+                    var lookupTargets = mapObject != null ? [mapObject]
+                        : GetNeareastLootableMapObjects(networkLootContainer.Position);
 
-                    List<LootTransferPair> transferList = [.. interaction.Loot.Items
+                    foreach (var container in lookupTargets)
+                    {
+                        var interaction = (InteractionLootPart)container.Interactions.FirstOrDefault(i => i is InteractionLootPart);
+
+                        List<LootTransferPair> transferList = [.. interaction.Loot.Items
                             .Select(item => new LootTransferPair { ItemEntity = item, NetworkItem = networkLootContainer.Items.FirstOrDefault(ni => IsSameItem(item, ni)) })
                             .Where(x => x.NetworkItem != null)];
 
-                    if (transferList.Count == networkLootContainer.Items.Count)
-                    {
-                        TransferItems(interaction.Loot, Game.Instance.Player.Inventory, transferList);
-                        RefreshLootUI();
-                        return;
+                        if (transferList.Count == networkLootContainer.Items.Count)
+                        {
+                            TransferItems(interaction.Loot, Game.Instance.Player.Inventory, transferList);
+                            RefreshLootUI();
+                            return;
+                        }
                     }
-                }
 
-                _logger.LogCritical("Unable to find valid nearest lootable map object. ContainerId={containerId}, Position={position}", networkLootContainer.Id, networkLootContainer.Position);
+                    _logger.LogError("Unable to find valid nearest lootable map object. ContainerId={containerId}, Position={position}", networkLootContainer.Id, networkLootContainer.Position);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Unable to collect container loot");
+                    throw;
+                }
             });
         }
 
@@ -657,9 +665,9 @@ namespace WOTRMultiplayer.GameInteraction
             var lootVm = Game.Instance.RootUiContext?.InGameVM?.StaticPartVM?.LootContextVM?.LootVM?.Value;
             if (lootVm != null)
             {
-                foreach (var itemCollections in lootVm.ContextLoot)
+                foreach (var lootObjectVM in lootVm.ContextLoot)
                 {
-                    itemCollections.UpdateCommand.Execute();
+                    lootObjectVM.UpdateCommand.Execute();
                 }
             }
         }
