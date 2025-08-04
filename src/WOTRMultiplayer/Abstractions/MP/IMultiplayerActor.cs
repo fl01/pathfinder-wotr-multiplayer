@@ -75,7 +75,7 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         void ForceLoadGame(string savePath);
 
-        bool IsRollOwner(bool silent);
+        bool IsDiceRollOwner(bool silent);
 
         TRollValue RetrieveRoll<TRollValue>(int networkDiceRollId, string unitId)
             where TRollValue : RollValueBase;
