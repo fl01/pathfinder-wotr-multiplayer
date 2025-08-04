@@ -63,7 +63,7 @@
 
         public class GameNotifications
         {
-            public const string TryLeaveAsAClient = "Can't leave area as a multiplayer client";
+            public const string TryingToLeaveAsAClient = "Can't leave area as a multiplayer client";
         }
     }
 }

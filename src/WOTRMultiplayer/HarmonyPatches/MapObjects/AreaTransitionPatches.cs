@@ -20,7 +20,7 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
 
             if (!Main.Multiplayer.CanLeaveArea())
             {
-                Game.Instance.UI.Bark(user, UIStringConsts.GameNotifications.TryLeaveAsAClient, 10f);
+                Game.Instance.UI.Bark(user, UIStringConsts.GameNotifications.TryingToLeaveAsAClient, 10f);
                 __result = false;
             }
         }
