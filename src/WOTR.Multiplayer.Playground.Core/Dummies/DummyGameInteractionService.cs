@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Kingmaker.EntitySystem.Persistence;
+using Kingmaker.GameModes;
 using Kingmaker.Items.Slots;
 using Kingmaker.UI;
 using WOTRMultiplayer.Abstractions.GameInteraction;
@@ -22,7 +23,7 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
 
         public NetworkExecutionContext ExecutionContext { get; }
 
-        public bool IsMeaningfulRolls => true;
+        public GameModeType CurrentGameMode => GameModeType.None;
 
         public string GetSaveGamePath()
         {

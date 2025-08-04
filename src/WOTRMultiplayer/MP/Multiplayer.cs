@@ -184,7 +184,7 @@ namespace WOTRMultiplayer.MP
             try
             {
                 var multiplayerActor = GetMultiplayerActor();
-                if (!_gameInteractionService.IsMeaningfulRolls || multiplayerActor == null || multiplayerActor.IsDiceRollOwner(false))
+                if (!ShouldRetrieveRoll(multiplayerActor, ruleCalculateDamage))
                 {
                     return true;
                 }
@@ -236,7 +236,7 @@ namespace WOTRMultiplayer.MP
             try
             {
                 var multiplayerActor = GetMultiplayerActor();
-                if (!_gameInteractionService.IsMeaningfulRolls || multiplayerActor == null || !multiplayerActor.IsDiceRollOwner(true))
+                if (!ShouldStoreRoll(multiplayerActor, ruleCalculateDamage))
                 {
                     return;
                 }
@@ -310,7 +310,7 @@ namespace WOTRMultiplayer.MP
             try
             {
                 var multiplayerActor = GetMultiplayerActor();
-                if (!_gameInteractionService.IsMeaningfulRolls || multiplayerActor == null || multiplayerActor.IsDiceRollOwner(false))
+                if (!ShouldRetrieveRoll(multiplayerActor, ruleAttackRoll))
                 {
                     return true;
                 }
@@ -337,7 +337,7 @@ namespace WOTRMultiplayer.MP
             try
             {
                 var multiplayerActor = GetMultiplayerActor();
-                if (!_gameInteractionService.IsMeaningfulRolls || multiplayerActor == null || !multiplayerActor.IsDiceRollOwner(false) || ruleAttackRoll.D20 == null)
+                if (!ShouldStoreRoll(multiplayerActor, ruleAttackRoll))
                 {
                     return;
                 }
@@ -357,7 +357,7 @@ namespace WOTRMultiplayer.MP
             try
             {
                 var multiplayerActor = GetMultiplayerActor();
-                if (multiplayerActor == null || !multiplayerActor.IsDiceRollOwner(false))
+                if (!ShouldStoreRoll(multiplayerActor, ruleSavingThrow))
                 {
                     return;
                 }
@@ -377,7 +377,7 @@ namespace WOTRMultiplayer.MP
             try
             {
                 var multiplayerActor = GetMultiplayerActor();
-                if (multiplayerActor == null || multiplayerActor.IsDiceRollOwner(false))
+                if (!ShouldRetrieveRoll(multiplayerActor, ruleSavingThrow))
                 {
                     return;
                 }
@@ -397,7 +397,7 @@ namespace WOTRMultiplayer.MP
             try
             {
                 var multiplayerActor = GetMultiplayerActor();
-                if (!_gameInteractionService.IsMeaningfulRolls || multiplayerActor == null || multiplayerActor.IsDiceRollOwner(false))
+                if (!ShouldRetrieveRoll(multiplayerActor, ruleSpellResistanceCheck))
                 {
                     return true;
                 }
@@ -424,7 +424,7 @@ namespace WOTRMultiplayer.MP
             try
             {
                 var multiplayerActor = GetMultiplayerActor();
-                if (!_gameInteractionService.IsMeaningfulRolls || multiplayerActor == null || !multiplayerActor.IsDiceRollOwner(false))
+                if (!ShouldStoreRoll(multiplayerActor, ruleSpellResistanceCheck))
                 {
                     return;
                 }
@@ -444,8 +444,7 @@ namespace WOTRMultiplayer.MP
             try
             {
                 var multiplayerActor = GetMultiplayerActor();
-                // _gameInteractionService.IsMeaningfulRolls
-                if (multiplayerActor == null || multiplayerActor.IsDiceRollOwner(false))
+                if (!ShouldRetrieveRoll(multiplayerActor, ruleSkillCheck))
                 {
                     return true;
                 }
@@ -472,7 +471,7 @@ namespace WOTRMultiplayer.MP
             try
             {
                 var multiplayerActor = GetMultiplayerActor();
-                if (multiplayerActor == null || !multiplayerActor.IsDiceRollOwner(false))
+                if (!ShouldStoreRoll(multiplayerActor, ruleSkillCheck))
                 {
                     return;
                 }
@@ -493,7 +492,7 @@ namespace WOTRMultiplayer.MP
             try
             {
                 var multiplayerActor = GetMultiplayerActor();
-                if (!_gameInteractionService.IsMeaningfulRolls || multiplayerActor == null || multiplayerActor.IsDiceRollOwner(false))
+                if (!ShouldRetrieveRoll(multiplayerActor, ruleInitiativeRoll))
                 {
                     return true;
                 }
@@ -520,7 +519,7 @@ namespace WOTRMultiplayer.MP
             try
             {
                 var multiplayerActor = GetMultiplayerActor();
-                if (!_gameInteractionService.IsMeaningfulRolls || multiplayerActor == null || !multiplayerActor.IsDiceRollOwner(false))
+                if (!ShouldStoreRoll(multiplayerActor, ruleInitiativeRoll))
                 {
                     return;
                 }
@@ -764,6 +763,32 @@ namespace WOTRMultiplayer.MP
             }
 
             multiplayerActor.OnInteractWithMapObjectOvertip(networkOvertip);
+        }
+
+        private bool ShouldRetrieveRoll(IMultiplayerActor multiplayerActor, object rule)
+        {
+            var gameMode = _gameInteractionService.CurrentGameMode;
+            return multiplayerActor != null && IsMeaningfulRoll(gameMode, rule) && !multiplayerActor.IsDiceRollOwner(false);
+        }
+
+        private bool ShouldStoreRoll(IMultiplayerActor multiplayerActor, object rule)
+        {
+            var gameMode = _gameInteractionService.CurrentGameMode;
+            return multiplayerActor != null && IsMeaningfulRoll(gameMode, rule) && multiplayerActor.IsDiceRollOwner(true);
+        }
+
+        private bool IsMeaningfulRoll(GameModeType gameModeType, object rule)
+        {
+            if (gameModeType == GameModeType.Dialog)
+            {
+                return rule is RuleSkillCheck or RuleSavingThrow;
+            }
+            else if (gameModeType == GameModeType.Cutscene || gameModeType == GameModeType.CutsceneGlobalMap)
+            {
+                return rule is RuleSkillCheck;
+            }
+
+            return true;
         }
 
         private int? GetDiceRollId(NetworkDiceRollBase roll)

@@ -74,7 +74,7 @@ namespace WOTRMultiplayer.GameInteraction
 
         public bool IsPaused => Game.Instance.IsPaused;
 
-        public bool IsMeaningfulRolls => Game.Instance.CurrentMode == GameModeType.Default;
+        public GameModeType CurrentGameMode => Game.Instance.CurrentMode;
 
         public void InteractWithOvertip(NetworkOvertip networkOvertip)
         {

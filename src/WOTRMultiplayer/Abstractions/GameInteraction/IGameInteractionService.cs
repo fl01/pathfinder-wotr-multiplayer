@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Kingmaker.GameModes;
 using Kingmaker.Items.Slots;
 using Kingmaker.UI;
 using WOTRMultiplayer.GameInteraction;
@@ -18,7 +19,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         bool IsPaused { get; }
 
-        bool IsMeaningfulRolls { get; }
+        GameModeType CurrentGameMode { get; }
 
         void LeaveArea(string areaExitId);
 
