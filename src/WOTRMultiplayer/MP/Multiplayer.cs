@@ -785,7 +785,7 @@ namespace WOTRMultiplayer.MP
             }
             else if (gameModeType == GameModeType.Cutscene || gameModeType == GameModeType.CutsceneGlobalMap)
             {
-                return rule is RuleSkillCheck;
+                return false;
             }
 
             return true;
