@@ -905,7 +905,8 @@ namespace WOTRMultiplayer.MP
 
         private SavingThrowRoll CreateSavingThrowRoll(NetworkDiceRollType diceRollType, RuleSavingThrow ruleSavingThrow)
         {
-            var roll = new SavingThrowRoll(ruleSavingThrow.Initiator.UniqueId, ruleSavingThrow.GetType().Name, diceRollType, ruleSavingThrow.TotalBonusValue)
+            // totalbonus is not calculated before roll so it can't be used to generate unique id
+            var roll = new SavingThrowRoll(ruleSavingThrow.Initiator.UniqueId, ruleSavingThrow.GetType().Name, diceRollType, totalModifierBonus: 0)
             {
                 StatType = ruleSavingThrow.StatType.ToString(),
                 ReasonAbilityName = ruleSavingThrow.Reason?.Ability?.NameForAcronym,

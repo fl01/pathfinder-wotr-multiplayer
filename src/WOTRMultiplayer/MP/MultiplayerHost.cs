@@ -827,14 +827,9 @@ namespace WOTRMultiplayer.MP
         private void OnNotifyUnitClicked(long playerId, NotifyUnitClicked clicked)
         {
             Logger.LogInformation("Received {messageType}. PlayerId={playerId}, TargetUnitId={targetUnitId}, SelectedUnits={selectedUnits}", nameof(NotifyUnitClicked), playerId, clicked.Click.TargetUnitId, clicked.Click.SelectedUnits.Count);
-            if (Game.Combat == null)
-            {
-                Logger.LogWarning("{messageType} is ignored out of combat", nameof(NotifyUnitClicked));
-                return;
-            }
 
             var click = Mapper.Map<NetworkClick>(clicked.Click);
-            GameInteraction.ClickUnitInCombat(click);
+            GameInteraction.ClickUnit(click);
 
             Logger.LogInformation("Resending {messageType} to other players", nameof(NotifyUnitClicked));
             _networkServer.SendAllExcept(playerId, click);

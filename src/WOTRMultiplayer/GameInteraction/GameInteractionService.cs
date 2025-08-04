@@ -468,7 +468,7 @@ namespace WOTRMultiplayer.GameInteraction
             });
         }
 
-        public void ClickUnitInCombat(NetworkClick click)
+        public void ClickUnit(NetworkClick click)
         {
             try
             {
@@ -957,13 +957,23 @@ namespace WOTRMultiplayer.GameInteraction
                     return null;
                 }
 
-                foreach (var spellSlot in spellbook.m_MemorizedSpells)
+                var cantrips = spellbook.m_KnownSpells.FirstOrDefault();
+                var cantrip = cantrips.FirstOrDefault(s => string.Equals(s.UniqueId, abilityUse.Id, StringComparison.OrdinalIgnoreCase));
+
+                if (cantrip != null)
                 {
-                    var spell = spellSlot.FirstOrDefault(s => string.Equals(s.Spell.UniqueId, abilityUse.Id, StringComparison.OrdinalIgnoreCase));
-                    if (spell != null)
+                    _logger.LogInformation("Cantrip spell has been found. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}", unit.UniqueId, abilityUse.Id, spellbook.Blueprint.Name);
+                    return cantrip;
+                }
+
+                for (int level = 0; level < spellbook.m_MemorizedSpells.Length; level++)
+                {
+                    var spellLevel = spellbook.m_MemorizedSpells[level];
+                    var spellSlot = spellLevel.FirstOrDefault(s => string.Equals(s.Spell.UniqueId, abilityUse.Id, StringComparison.OrdinalIgnoreCase));
+                    if (spellSlot != null)
                     {
-                        _logger.LogInformation("Spell has been found. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}", unit.UniqueId, abilityUse.Id, spellbook.Blueprint.Name);
-                        return spell.Spell;
+                        _logger.LogInformation("Spell has been found. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}, SpellLevel={spellLevel}", unit.UniqueId, abilityUse.Id, spellbook.Blueprint.Name, level);
+                        return spellSlot.Spell;
                     }
                 }
             }
@@ -1005,7 +1015,7 @@ namespace WOTRMultiplayer.GameInteraction
             var targetUnit = GetUnitEntity(click.TargetUnitId);
             var selectedUnits = click.SelectedUnits.Select(GetUnitEntity)?.ToList();
             var selectedUnit = selectedUnits.FirstOrDefault();
-            var worldPosition = new UnityEngine.Vector3(click.WorldPosition.X, click.WorldPosition.Y, click.WorldPosition.Z);
+            var worldPosition = new Vector3(click.WorldPosition.X, click.WorldPosition.Y, click.WorldPosition.Z);
 
             _mainThreadAccessor.Enqueue(() =>
             {
@@ -1018,9 +1028,12 @@ namespace WOTRMultiplayer.GameInteraction
                     Game.Instance.SelectionCharacter.SelectedUnits.Clear();
                     Game.Instance.SelectionCharacter.SelectedUnits.AddRange(selectedUnits);
 
-                    UpdateActionsState(click.ActionsState);
+                    if (click.ActionsState != null)
+                    {
+                        UpdateActionsState(click.ActionsState);
+                    }
 
-                    if (click.VectorPath.Count > 0)
+                    if (click.VectorPath != null && click.VectorPath.Count > 0)
                     {
                         var movementPath = click.VectorPath.Select(v => new UnityEngine.Vector3(v.X, v.Y, v.Z)).ToList();
                         // Commands are using m_CurrentPath in case of extra movement is needed, e.g. UnitAttack command with far away target

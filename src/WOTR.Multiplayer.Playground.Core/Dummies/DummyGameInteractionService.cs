@@ -108,7 +108,7 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
             return Task.CompletedTask;
         }
 
-        public void ClickUnitInCombat(NetworkClick click)
+        public void ClickUnit(NetworkClick click)
         {
         }
 

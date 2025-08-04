@@ -52,7 +52,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         Task UpdateUnitsAsync(List<NetworkUnit> networkUnits);
 
-        void ClickUnitInCombat(NetworkClick click);
+        void ClickUnit(NetworkClick click);
 
         void ClickGroundInCombat(NetworkClick click);
 

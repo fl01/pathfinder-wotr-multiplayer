@@ -11,9 +11,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Units
     [HarmonyPatch]
     public class UnitUseAbilityPatches
     {
-        [HarmonyPatch(typeof(UnitUseAbility), nameof(UnitUseAbility.OnAction))]
+        [HarmonyPatch(typeof(UnitUseAbility), nameof(UnitUseAbility.TriggerAnimation))]
         [HarmonyPrefix]
-        public static void UnitUseAbility_OnAction_Prefix(UnitUseAbility __instance)
+        public static void UnitUseAbility_TriggerAnimation_Prefix(UnitUseAbility __instance)
         {
             if (!Main.Multiplayer.IsActive)
             {
