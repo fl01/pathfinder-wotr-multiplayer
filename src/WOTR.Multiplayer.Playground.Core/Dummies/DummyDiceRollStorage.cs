@@ -30,5 +30,9 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
         {
             return Task.FromResult(Get<TValue>(rollId, playerId));
         }
+
+        public void Reset()
+        {
+        }
     }
 }

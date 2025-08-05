@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
 using WOTRMultiplayer.MP.Entities.Combat;
@@ -18,6 +19,7 @@ using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
 using WOTRMultiplayer.Networking.Messages.Game;
+using WOTRMultiplayer.Networking.Messages.Lobby;
 
 namespace WOTRMultiplayer.MP
 {
@@ -31,6 +33,8 @@ namespace WOTRMultiplayer.MP
 
         internal NetworkGame Game { get; set; }
 
+        public Action<string> OnStartGame { get; set; }
+
         protected ILogger Logger { get; private set; }
 
         protected IMapper Mapper { get; private set; }
@@ -43,6 +47,8 @@ namespace WOTRMultiplayer.MP
 
         protected IMultiplayerSettingsProvider SettingsProvider { get; private set; }
 
+        private readonly IUniqueIdGenerator _uniqueIdGenerator;
+
         protected abstract bool IsHost { get; }
 
         protected object ActionLock => _actionLock;
@@ -53,7 +59,8 @@ namespace WOTRMultiplayer.MP
             IMultiplayerSettingsProvider multiplayerSettingsProvider,
             IGameInteractionService gameInteractionService,
             IDiceRollStorage diceRollStorage,
-            IFileSystemService fileSystemService)
+            IFileSystemService fileSystemService,
+            IUniqueIdGenerator uniqueIdGenerator)
         {
             Logger = logger;
             Mapper = mapper;
@@ -61,6 +68,7 @@ namespace WOTRMultiplayer.MP
             DiceRollStorage = diceRollStorage;
             FileSystem = fileSystemService;
             SettingsProvider = multiplayerSettingsProvider;
+            _uniqueIdGenerator = uniqueIdGenerator;
         }
 
         public long GetLocalPlayerId()
@@ -310,6 +318,8 @@ namespace WOTRMultiplayer.MP
 
         public void OnAreaScenesLoaded()
         {
+            SoftReset();
+
             PartyChanged();
         }
 
@@ -346,6 +356,59 @@ namespace WOTRMultiplayer.MP
             }
         }
 
+        public void ForceLoadGame(string savePath, string gameId)
+        {
+            if (!string.IsNullOrEmpty(Game.SaveFilePath))
+            {
+                return;
+            }
+
+            Game.SaveFilePath = savePath;
+            Game.Id = gameId;
+
+            if (IsHost)
+            {
+                foreach (var player in Game.Players)
+                {
+                    player.IsLoading = true;
+                }
+            }
+
+            ResetGameIdGenerator();
+
+            Logger.LogInformation("Notifying other players to force load save game. GameId={gameId}, Path={savePath}", Game.Id, savePath);
+            var message = new NotifySaveGameAssigned
+            {
+                GameId = Game.Id,
+                Content = FileSystem.GetFile(savePath),
+                IsForceLoad = true
+            };
+
+            Send(message);
+        }
+
+        public void CombatStarted()
+        {
+            Logger.LogInformation("Combat started");
+            if (Game.Combat != null)
+            {
+                Logger.LogWarning("Previous combat has not been disposed correctly");
+            }
+
+            Game.Combat = new NetworkCombat();
+        }
+
+        public void CombatEnded()
+        {
+            Logger.LogInformation("Combat ended");
+            if (Game.Combat == null)
+            {
+                Logger.LogWarning("Combat has not been started correctly");
+            }
+
+            Game.Combat = null;
+        }
+
         protected abstract Task<DiceRollValueResponse> RetrieveRoll(DiceRollValueRequest rollRequest, string unitId);
 
         protected abstract void OnLocalPlayerTurnStart();
@@ -353,6 +416,34 @@ namespace WOTRMultiplayer.MP
         protected abstract void OnLocalPlayerTurnEnded();
 
         protected abstract void Send(object message);
+
+        protected void InvokeOnStartGame()
+        {
+            ResetGameIdGenerator();
+            OnStartGame?.Invoke(Game.SaveFilePath);
+        }
+
+        protected void ForceLoadGame()
+        {
+            Logger.LogInformation("Force loading save game. SavePath={savePath}", Game.SaveFilePath);
+            Game.Id = GameInteraction.QuickLoadGame(Game.SaveFilePath);
+            ResetGameIdGenerator();
+        }
+
+        protected void ResetGameIdGenerator()
+        {
+            Logger.LogInformation("Resetting id counters. GameId={gameId}", Game.Id);
+            _uniqueIdGenerator.Reset(Game.Id);
+        }
+
+        protected void SoftReset()
+        {
+            Logger.LogInformation("Doing soft reset");
+            Game.Dialog = null;
+            Game.SaveFilePath = null;
+            Game.Combat = null;
+            DiceRollStorage.Reset();
+        }
 
         protected string StoreSaveFile(byte[] content)
         {

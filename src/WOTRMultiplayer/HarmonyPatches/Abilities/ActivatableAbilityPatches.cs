@@ -32,7 +32,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Abilities
                 }
             }
 
-            if (__instance.Owner.Unit.UniqueId.StartsWith("description-helper-unit", System.StringComparison.OrdinalIgnoreCase))
+            if (PatchesUtils.IsHelperUnit(__instance.Owner.Unit.UniqueId))
             {
                 // happens when you hover over enemy creature in top list (Turn based combat)
                 Main.GetLogger<ActivatableAbilityPatches>().LogWarning("Skipping description activation");

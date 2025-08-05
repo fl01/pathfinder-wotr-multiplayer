@@ -73,7 +73,7 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         bool CanContinueCombat();
 
-        void ForceLoadGame(string savePath);
+        void ForceLoadGame(string savePath, string gameId);
 
         bool IsDiceRollOwner(bool silent);
 

@@ -233,12 +233,12 @@ namespace WOTRMultiplayer.UI.Controllers
                 StartButtonObject.SetActive(true);
                 ReadyButtonObject.SetActive(true);
                 ReadyButton.Interactable = true;
-                _multiplayerHost.Create(savePath, characters);
+                _multiplayerHost.Create(savePath, selectedSave.GameId.Value, characters);
                 SetButtonLabel(HostButtonObject, UIStringConsts.MultiplayerWindow.HostMenu.HostButtonActiveLabel);
                 return;
             }
 
-            _multiplayerHost.UpdateSaveGame(savePath, characters);
+            _multiplayerHost.UpdateSaveGame(savePath, selectedSave.GameId.Value, characters);
         }
 
         private void OnReadyButtonClicked()

@@ -8,6 +8,7 @@ using WOTR.Multiplayer.Playground.Core;
 using WOTR.Multiplayer.Playground.Core.Dummies;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.MP;
 using WOTRMultiplayer.MP.Entities.Dialogs;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
@@ -18,7 +19,6 @@ namespace WOTRMultiplayer.Playground.Client
     public class Program
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Playground")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0059:Unnecessary assignment of a value", Justification = "Playground")]
         public static void Main(string[] args)
         {
             var serviceProvider = DI.DIFactory.Create(new Config.UnityMod.UnityModManagerSettings { UseDebugConsole = false });
@@ -32,6 +32,7 @@ namespace WOTRMultiplayer.Playground.Client
                 serviceProvider.GetService<IFileSystemService>(),
                 serviceProvider.GetService<INetworkServerClient>(),
                 new DummyDiceRollStorage([new NetworkIntRollValue { Value = 59 }]),
+                serviceProvider.GetService<IUniqueIdGenerator>(),
                 serviceProvider.GetService<IMapper>());
 
             var verbs = CommandLineHelper.LoadVerbs();
@@ -83,7 +84,7 @@ namespace WOTRMultiplayer.Playground.Client
                 case CommandVerbs.DialogStartCommandVerb dialog:
                     client.StartDialog(dialog.DialogName, dialog.TargetUnitId, dialog.InitiatorUnitId, dialog.MapObjectId, dialog.SpeakerKey);
                     break;
-                case CommandVerbs.CombatStartedCommandVerb started:
+                case CommandVerbs.CombatStartedCommandVerb:
                     client.CombatStarted();
                     break;
                 case CommandVerbs.CombatRoundCommandVerb round:

@@ -5,14 +5,13 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
-using Kingmaker.Utility;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
-using WOTRMultiplayer.MP.Entities.Combat;
 using WOTRMultiplayer.MP.Entities.Dialogs;
 using WOTRMultiplayer.MP.Entities.Equipment;
 using WOTRMultiplayer.MP.Entities.Loot;
@@ -31,7 +30,6 @@ namespace WOTRMultiplayer.MP
 
         public Action<List<NetworkPlayer>> OnPlayersChanged { get; set; }
         public Action<NetworkGameConnectivity> OnConnected { get; set; }
-        public Action<string> OnStartGame { get; set; }
 
         public bool IsActive => _networkServer.IsActive;
 
@@ -46,12 +44,20 @@ namespace WOTRMultiplayer.MP
             IFileSystemService fileSystemService,
             INetworkServer networkServer,
             IDiceRollStorage diceRollStorage,
-            IMapper mapper) : base(logger, mapper, multiplayerSettingsProvider, gameInteractionService, diceRollStorage, fileSystemService)
+            IUniqueIdGenerator uniqueIdGenerator,
+            IMapper mapper)
+            : base(logger,
+                  mapper,
+                  multiplayerSettingsProvider,
+                  gameInteractionService,
+                  diceRollStorage,
+                  fileSystemService,
+                  uniqueIdGenerator)
         {
             _networkServer = networkServer;
         }
 
-        public void Create(string saveFilePath, List<NetworkCharacterOwnership> characters)
+        public void Create(string saveFilePath, string gameId, List<NetworkCharacterOwnership> characters)
         {
             if (_networkServer.IsActive)
             {
@@ -64,7 +70,8 @@ namespace WOTRMultiplayer.MP
 
             Game = new NetworkGame(saveFilePath)
             {
-                LocalPlayerId = LocalHostPlayerId
+                LocalPlayerId = LocalHostPlayerId,
+                Id = gameId,
             };
 
             Game.Characters.AddRange(characters);
@@ -74,8 +81,9 @@ namespace WOTRMultiplayer.MP
             Logger.LogInformation("Host has been created. SavePath={savePath}, Portraits={portraits}", saveFilePath, string.Join(";", Game.Characters.Select(c => c.Portrait)));
         }
 
-        public void UpdateSaveGame(string saveFilePath, List<NetworkCharacterOwnership> characters)
+        public void UpdateSaveGame(string saveFilePath, string gameId, List<NetworkCharacterOwnership> characters)
         {
+            Game.Id = gameId;
             Game.SaveFilePath = saveFilePath;
             Game.Characters.Clear();
             Game.Characters.AddRange(characters);
@@ -172,7 +180,7 @@ namespace WOTRMultiplayer.MP
 
             lock (ActionLock)
             {
-                var saveGameMessageAssigned = new NotifySaveGameAssigned { Content = content, IsForceLoad = false };
+                var saveGameMessageAssigned = new NotifySaveGameAssigned { GameId = Game.Id, Content = content, IsForceLoad = false };
                 Logger.LogInformation("Sending save game file content to all players. Size={saveFileSize}", saveGameMessageAssigned.Content.Length);
                 _networkServer.SendAll(saveGameMessageAssigned);
                 Game.Stage = NetworkGameStage.WaitingForPlayersInitialization;
@@ -186,9 +194,6 @@ namespace WOTRMultiplayer.MP
         public void GameLoaded()
         {
             Logger.LogInformation("Game loaded");
-
-            // assumption: should be done after each area load aswell
-            SoftReset();
 
             GameInteraction.Pause(true);
 
@@ -316,31 +321,19 @@ namespace WOTRMultiplayer.MP
             return true;
         }
 
-        public void CombatStarted()
-        {
-            Logger.LogInformation("Combat started");
-            if (Game.Combat != null)
-            {
-                Logger.LogWarning("Previous combat has not been disposed correctly");
-            }
-
-            Game.Combat = new NetworkCombat();
-        }
-
-        public void CombatEnded()
-        {
-            Logger.LogInformation("Combat ended");
-            if (Game.Combat == null)
-            {
-                Logger.LogWarning("Combat has not been started correctly");
-            }
-
-            Game.Combat = null;
-        }
-
         public bool CanInitializeCombat()
         {
-            // host is never blocked as combat initialization (initiative rolls) are required for a clients to proceed
+            // confirmation from host is required
+            if (Game.Combat == null)
+            {
+                return true;
+            }
+
+            if (!Game.Combat.IsCombatPrepared)
+            {
+                Game.Combat.IsCombatPrepared = true;
+            }
+
             return true;
         }
 
@@ -349,6 +342,11 @@ namespace WOTRMultiplayer.MP
             if (Game.Combat == null)
             {
                 return true;
+            }
+
+            if (!Game.Combat.IsCombatPrepared)
+            {
+                return false;
             }
 
             if (Game.Combat.Round == 1 && !Game.Combat.IsInitialized)
@@ -364,7 +362,8 @@ namespace WOTRMultiplayer.MP
                 Logger.LogInformation("Sending {messageType}. UnitsInCombat={unitsCount}", nameof(NotifyCombatStarted), message.Units.Count);
             }
 
-            return Game.Combat.PlayersCombatInitialization.Count >= Game.Players.Count;
+            var canContinue = Game.Combat.PlayersCombatInitialization.Count >= Game.Players.Count;
+            return canContinue;
         }
 
         public bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound)
@@ -391,29 +390,6 @@ namespace WOTRMultiplayer.MP
                 Logger.LogError(ex, "Unable to process {methodName}. UnitId={unitId}", nameof(OnBeforeEndTurn), unitId);
                 throw;
             }
-        }
-
-        public void ForceLoadGame(string savePath)
-        {
-            if (!string.IsNullOrEmpty(Game.SaveFilePath))
-            {
-                return;
-            }
-
-            Logger.LogInformation("Notifying clients to force load save game. Path={savePath}", savePath);
-            Game.SaveFilePath = savePath;
-            var message = new NotifySaveGameAssigned
-            {
-                Content = FileSystem.GetFile(savePath),
-                IsForceLoad = true
-            };
-
-            foreach (var player in Game.Players)
-            {
-                player.IsLoading = true;
-            }
-
-            _networkServer.SendAll(message);
         }
 
         public bool IsDiceRollOwner(bool silent)
@@ -501,14 +477,6 @@ namespace WOTRMultiplayer.MP
         {
             var message = new PlayerCombatTurnEnded { Round = Game.Combat.Round, UnitId = Game.Combat.Turn.UnitId };
             _networkServer.SendAll(message);
-        }
-
-        private void SoftReset()
-        {
-            Logger.LogInformation("Doing soft reset");
-            Game.Dialog = null;
-            Game.SaveFilePath = null;
-            Game.Combat = null;
         }
 
         private void AddCueWitness(string cueName, long playerId)
@@ -625,7 +593,7 @@ namespace WOTRMultiplayer.MP
                 }
 
                 _networkServer.SendAll(new NotifyGameStarted());
-                OnStartGame?.Invoke(Game.SaveFilePath);
+                InvokeOnStartGame();
             }
         }
 
@@ -844,8 +812,7 @@ namespace WOTRMultiplayer.MP
                     player.IsLoading = true;
                 }
 
-                Logger.LogInformation("Force loading save game. SavePath={savePath}", Game.SaveFilePath);
-                GameInteraction.QuickLoadGame(Game.SaveFilePath);
+                ForceLoadGame();
             }
         }
 

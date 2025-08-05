@@ -2,6 +2,7 @@
 using Kingmaker.GameModes;
 using Kingmaker.RuleSystem.Rules;
 using Kingmaker.RuleSystem.Rules.Damage;
+using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.GameInteraction;
 using WOTRMultiplayer.MP.Entities;
@@ -17,6 +18,8 @@ namespace WOTRMultiplayer.Abstractions.MP
         NetworkExecutionContext ExecutionContext { get; }
 
         IUIFactory Factory { get; }
+
+        IUniqueIdGenerator IdGenerator { get; }
 
         bool InitializeMultiplayer(InitializeMultiplayerContext context);
 

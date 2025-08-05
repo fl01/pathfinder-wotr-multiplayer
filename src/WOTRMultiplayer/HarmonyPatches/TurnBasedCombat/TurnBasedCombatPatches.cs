@@ -127,9 +127,44 @@ namespace WOTRMultiplayer.HarmonyPatches.TurnBasedCombat
             return matcher.Instructions();
         }
 
+        [HarmonyPatch(typeof(UnitCombatPrepareController), nameof(UnitCombatPrepareController.Tick))]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> UnitCombatPrepareController_Tick_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var attr = MethodBase.GetCurrentMethod().GetCustomAttribute<HarmonyPatch>();
+            var target = $"{attr.info.declaringType.Name}.{attr.info.methodName}";
+            var matcher = new CodeMatcher(instructions);
+            var lookFor = AccessTools.PropertySetter(typeof(UnitCombatState), nameof(UnitCombatState.InitiativeRandom));
+            CodeMatcher match;
+            int replacementCounter = 0;
+            while ((match = matcher.SearchForward(x => x.Calls(lookFor))).IsValid)
+            {
+                match = match.Advance(-8);
+                match.RemoveInstructions(9);
+                var newInstructions = new List<CodeInstruction>
+                {
+                    new (OpCodes.Ldc_I4_1)
+                };
+                match.Insert(newInstructions);
+                replacementCounter++;
+            }
+
+            const int ExpectedReplacementCounter = 2;
+            if (replacementCounter != ExpectedReplacementCounter)
+            {
+                Main.GetLogger<HarmonyTranspiler>().LogError("Instructions have not been replaced expected number of times. Target={target}, Expected={expected}, Current={current}", target, ExpectedReplacementCounter, replacementCounter);
+                return instructions;
+            }
+
+            Main.GetLogger<HarmonyTranspiler>().LogInformation("Transpiler has been applied. Target={target}", target);
+            return matcher.Instructions();
+        }
+
         public static int CompareUnitsByUniqueId(UnitEntityData xi, UnitEntityData yi)
         {
-            return xi.UniqueId.CompareTo(yi.UniqueId);
+            var result = string.Compare(xi.UniqueId, yi.UniqueId, System.StringComparison.OrdinalIgnoreCase);
+            Main.GetLogger<CombatController.UnitsOrderComaprer>().LogInformation("Units have same initiave order, comparing by uniqueId. Result={result}, Unit1={unit1}, Unit2={unit2}", result, xi.UniqueId, yi.UniqueId);
+            return result;
         }
 
         /// <summary>

@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using Kingmaker.RuleSystem;
 using Kingmaker.RuleSystem.Rules.Damage;
 
 namespace WOTRMultiplayer.HarmonyPatches.Rolls
@@ -11,7 +10,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
         [HarmonyPostfix]
         public static void RuleCalculateDamage_OnTrigger_Postfix(RuleCalculateDamage __instance)
         {
-            if (!Main.Multiplayer.IsActive)
+            if (!Main.Multiplayer.IsActive || PatchesUtils.IsHelperUnit(__instance.Target.UniqueId))
             {
                 return;
             }
@@ -23,7 +22,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
         [HarmonyPrefix]
         public static bool RuleCalculateDamage_OnTrigger_Prefix(RuleCalculateDamage __instance)
         {
-            if (!Main.Multiplayer.IsActive)
+            if (!Main.Multiplayer.IsActive || PatchesUtils.IsHelperUnit(__instance.Target.UniqueId))
             {
                 return true;
             }

@@ -6,6 +6,7 @@ using NUnit.Framework;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.Hashing;
 using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Windows;
@@ -27,6 +28,7 @@ namespace WOTRMultiplayer.UnitTests.MP
         private IDiceRollStorage _rollStorage;
         private IGameInteractionService _gameInteractionService;
         private IHashService _hashService;
+        private IUniqueIdGenerator _idGenerator;
 
         [SetUp]
         public void SetUp()
@@ -39,6 +41,7 @@ namespace WOTRMultiplayer.UnitTests.MP
             _rollStorage = A.Fake<IDiceRollStorage>();
             _gameInteractionService = A.Fake<IGameInteractionService>();
             _hashService = A.Fake<IHashService>();
+            _idGenerator = A.Fake<IUniqueIdGenerator>();
 
             _multiplayer = new Multiplayer(
                 _logger,
@@ -48,7 +51,8 @@ namespace WOTRMultiplayer.UnitTests.MP
                 _multiplayerClient,
                 _hashService,
                 _rollStorage,
-                _gameInteractionService);
+                _gameInteractionService,
+                _idGenerator);
         }
 
         [TestCase(true, true, true)]

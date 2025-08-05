@@ -6,6 +6,8 @@ namespace WOTRMultiplayer.MP.Entities
 {
     public class NetworkGame
     {
+        public string Id { get; set; }
+
         public long LocalPlayerId { get; set; }
 
         public NetworkGameConnectivity Connectivity { get; set; }
@@ -37,6 +39,7 @@ namespace WOTRMultiplayer.MP.Entities
             Connectivity = null;
             Stage = NetworkGameStage.None;
             Dialog = null;
+            Id = null;
         }
     }
 }

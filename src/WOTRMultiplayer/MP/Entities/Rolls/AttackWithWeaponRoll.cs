@@ -16,8 +16,6 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
 
         public int AttacksCount { get; set; }
 
-        public bool IsCriticalRoll { get; set; }
-
         public AttackWithWeaponRoll(string initiatorId, string ruleName, NetworkDiceRollType networkDiceRollType, int totalModifierBonus)
             : base(initiatorId, ruleName, networkDiceRollType, totalModifierBonus)
         {
@@ -25,7 +23,7 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
 
         public override IEnumerable<string> GetUniquinessIdentifiers()
         {
-            return [AttackNumber.ToString(), IsAttackOfOpportunity.ToString(), TargetId, ExtraAttack.ToString(), IsFirstAttack.ToString(), AttacksCount.ToString(), IsCriticalRoll.ToString()];
+            return [AttackNumber.ToString(), IsAttackOfOpportunity.ToString(), TargetId, ExtraAttack.ToString(), IsFirstAttack.ToString(), AttacksCount.ToString()];
         }
     }
 }

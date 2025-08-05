@@ -14,5 +14,7 @@ namespace WOTRMultiplayer.Abstractions.MP
             where TValue : RollValueBase;
 
         void Add(int rollId, List<long> claimingList, RollValueBase roll);
+
+        void Reset();
     }
 }

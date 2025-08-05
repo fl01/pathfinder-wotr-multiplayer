@@ -10,6 +10,7 @@ using Kingmaker.Cheats;
 using Kingmaker.Controllers.Clicks;
 using Kingmaker.Controllers.Clicks.Handlers;
 using Kingmaker.DialogSystem.Blueprints;
+using Kingmaker.EntitySystem;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.EntitySystem.Persistence;
 using Kingmaker.GameModes;
@@ -409,10 +410,12 @@ namespace WOTRMultiplayer.GameInteraction
         {
             var unitsToSync = Game.Instance.State.Units.InCombat().ToList();
 
+            UnitEntityData anevia;
             switch (Game.Instance.CurrentlyLoadedArea.name)
             {
-                case "Prologue_Caves_1":
-                    unitsToSync.Add(GetUnitEntity("34BD")); // Anevia, constantly joins midfight
+                case "Prologue_Caves_1" when (anevia = Game.Instance.State.Units.FirstOrDefault(u => u.CharacterName == "Anevia")) != null:
+                    // Anevia, constantly joins midfight
+                    unitsToSync.Add(anevia);
                     break;
                 default:
                     break;
@@ -480,13 +483,14 @@ namespace WOTRMultiplayer.GameInteraction
             return taskCompletion.Task;
         }
 
-        public void QuickLoadGame(string savePath)
+        public string QuickLoadGame(string savePath)
         {
             var save = LoadSave(savePath);
             _mainThreadAccessor.Enqueue(() =>
             {
                 Game.Instance.LoadGame(save);
             });
+            return save.GameId;
         }
 
         public void LoadGameFromMainMenu(string savePath)
@@ -877,6 +881,12 @@ namespace WOTRMultiplayer.GameInteraction
             return _triggeredByAnotherPlayer.TryRemove(GetSuppressKey(set), out _);
         }
 
+        public EntityDataBase GetEntity(string id)
+        {
+            var entity = EntityService.Instance.GetEntity(id);
+            return entity;
+        }
+
         private void SuppressEventsFor(NetworkEquipmentSlot slot)
         {
             _triggeredByAnotherPlayer.TryAdd(GetSuppressKey(slot), true);
@@ -1100,9 +1110,8 @@ namespace WOTRMultiplayer.GameInteraction
                     _logger.LogInformation("Executing click handler. Type={handlerType}, WorldPosition={worldPosition}, TargetUnitId={targetUnitId}, SelectedUnit={selectedUnitId}, VectorPathCount={pathCount}",
                                clickEventHandler.GetType().Name, click.WorldPosition, targetUnit?.UniqueId, selectedUnit?.UniqueId, click.VectorPath.Count);
 
+                    using var context = _networkExecutionContext.Value = new NetworkExecutionContext { SelectedUnits = selectedUnits };
                     Game.Instance.SelectionCharacter.SelectedUnit.Value = selectedUnit;
-                    Game.Instance.SelectionCharacter.SelectedUnits.Clear();
-                    Game.Instance.SelectionCharacter.SelectedUnits.AddRange(selectedUnits);
 
                     if (click.ActionsState != null)
                     {
@@ -1119,7 +1128,8 @@ namespace WOTRMultiplayer.GameInteraction
                         PathVisualizer.Instance.m_CurrentPath.Claim(this);
                         PathVisualizer.Instance.m_CurrentPath.Claim(PathVisualizer.Instance);
 
-                        _logger.LogInformation("Configured unit path. Vectors={vectorsCount}", PathVisualizer.Instance.CurrentPathForUnit(Game.Instance.TurnBasedCombatController.CurrentTurn.SelectedUnit.View)?.vectorPath.Count);
+                        var pathForCurrentUnit = PathVisualizer.Instance.CurrentPathForUnit(Game.Instance.TurnBasedCombatController.CurrentTurn.SelectedUnit.View)?.vectorPath.Count;
+                        _logger.LogInformation("Configured unit path. Vectors={vectorsCount}", pathForCurrentUnit);
                     }
 
 

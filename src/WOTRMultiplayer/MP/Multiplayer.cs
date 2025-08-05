@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.Hashing;
 using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Windows;
@@ -39,6 +40,7 @@ namespace WOTRMultiplayer.MP
         private readonly ILogger _logger;
 
         public IUIFactory Factory { get; private set; }
+        public IUniqueIdGenerator IdGenerator { get; private set; }
 
         public bool IsActive => _multiplayerClient.IsActive || _multiplayerHost.IsActive;
 
@@ -52,7 +54,8 @@ namespace WOTRMultiplayer.MP
             IMultiplayerClient multiplayerClient,
             IHashService hashService,
             IDiceRollStorage diceRollStorage,
-            IGameInteractionService gameInteractionService)
+            IGameInteractionService gameInteractionService,
+            IUniqueIdGenerator uniqueIdGenerator)
         {
             _logger = logger;
             Factory = uiFactory;
@@ -62,6 +65,7 @@ namespace WOTRMultiplayer.MP
             _hashService = hashService;
             _diceRollStorage = diceRollStorage;
             _gameInteractionService = gameInteractionService;
+            IdGenerator = uniqueIdGenerator;
         }
 
         public bool InitializeMultiplayer(InitializeMultiplayerContext context)
@@ -337,7 +341,7 @@ namespace WOTRMultiplayer.MP
             try
             {
                 var multiplayerActor = GetMultiplayerActor();
-                if (!ShouldStoreRoll(multiplayerActor, ruleAttackRoll))
+                if (!ShouldStoreRoll(multiplayerActor, ruleAttackRoll) || ruleAttackRoll.D20 == null)
                 {
                     return;
                 }
@@ -504,7 +508,9 @@ namespace WOTRMultiplayer.MP
                     return true;
                 }
 
+
                 ruleInitiativeRoll.D20 = d20;
+                _logger.LogInformation("BEFORE Initiative roll. Result={result}, m_OverrideResult={override}", ruleInitiativeRoll.Result, ruleInitiativeRoll.m_OverrideResult);
                 return false;
             }
             catch (Exception ex)
@@ -526,6 +532,7 @@ namespace WOTRMultiplayer.MP
 
                 var roll = CreateInitiativeRoll(NetworkDiceRollType.Hit, ruleInitiativeRoll);
                 SaveIntRollValue(multiplayerActor, roll, ruleInitiativeRoll.D20);
+                _logger.LogInformation("AFTER Initiative roll. Result={result}, m_OverrideResult={override}", ruleInitiativeRoll.Result, ruleInitiativeRoll.m_OverrideResult);
             }
             catch (Exception ex)
             {
@@ -637,8 +644,8 @@ namespace WOTRMultiplayer.MP
 
             // extra validation is not required since everything is already validated by the game
             var savePath = saveInfo.FolderName;
-            _logger.LogInformation("Force load game. Save={saveLocation}", savePath);
-            multiplayerActor.ForceLoadGame(savePath);
+            _logger.LogInformation("Force load game. Save={saveLocation}, GameId={gameId}", savePath, saveInfo.GameId);
+            multiplayerActor.ForceLoadGame(savePath, saveInfo.GameId);
         }
 
         public bool IsControlledByPlayers(string unitId)
@@ -932,7 +939,7 @@ namespace WOTRMultiplayer.MP
         {
             var roll = new HealDamageRoll(ruleHealDamage.Initiator.UniqueId, ruleHealDamage.GetType().Name, diceRollType, ruleHealDamage.Bonus)
             {
-                AbilityId = ruleHealDamage.Reason.Ability?.UniqueId,
+                AbilityId = ruleHealDamage.Reason.Ability.StickyTouch?.UniqueId ?? ruleHealDamage.Reason.Ability?.UniqueId,
                 AbilitySchoolId = ruleHealDamage.Reason.Ability?.Spellbook?.Blueprint.name,
                 TargetId = ruleHealDamage.Target?.UniqueId,
                 UnitsCount = unitsCount,
@@ -974,6 +981,7 @@ namespace WOTRMultiplayer.MP
             {
                 AttackType = ruleAttackRoll.AttackType.ToString(),
                 TargetId = ruleAttackRoll.Target.UniqueId,
+                IsCriticalRoll = ruleAttackRoll.IsCriticalRoll,
                 AttackWithWeapon = ruleAttackRoll.RuleAttackWithWeapon == null ? null : CreateAttackWithWeaponRoll(diceRollType, ruleAttackRoll.RuleAttackWithWeapon)
             };
 
@@ -989,7 +997,6 @@ namespace WOTRMultiplayer.MP
                 TargetId = attackWithWeapon.Target.UniqueId,
                 ExtraAttack = attackWithWeapon.ExtraAttack,
                 IsFirstAttack = attackWithWeapon.IsFirstAttack,
-                IsCriticalRoll = attackWithWeapon.AttackRoll.IsCriticalRoll,
                 AttacksCount = attackWithWeapon.AttacksCount,
             };
 

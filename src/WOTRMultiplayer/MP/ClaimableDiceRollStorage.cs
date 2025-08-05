@@ -89,6 +89,12 @@ namespace WOTRMultiplayer.MP
             }
         }
 
+        public void Reset()
+        {
+            _rolls.Clear();
+            _logger.LogInformation("All previous rolls have been removed");
+        }
+
         private void AddRollEntry(int rollId, List<long> claimingList, RollValueBase roll)
         {
             var rollValue = CreateClaimableRoll(claimingList, roll);

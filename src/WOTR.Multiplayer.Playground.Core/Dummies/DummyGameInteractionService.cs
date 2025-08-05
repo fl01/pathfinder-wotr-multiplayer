@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Kingmaker.EntitySystem;
 using Kingmaker.GameModes;
 using Kingmaker.Items.Slots;
 using Kingmaker.UI;
@@ -83,8 +84,9 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
             return Task.FromResult(true);
         }
 
-        public void QuickLoadGame(string savePath)
+        public string QuickLoadGame(string savePath)
         {
+            return "1";
         }
 
         public void LoadGameFromMainMenu(string savePath)
@@ -177,6 +179,11 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
 
         public void InteractWithOvertip(NetworkOvertip networkOvertip)
         {
+        }
+
+        public EntityDataBase GetEntity(string id)
+        {
+            return null;
         }
     }
 }

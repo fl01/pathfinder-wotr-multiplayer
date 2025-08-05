@@ -20,23 +20,28 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             var matcher = new CodeMatcher(instructions);
             var replaceWith = AccessTools.Method(typeof(RuleAttackRollPatches), nameof(RuleAttackRollPatches.AttackRollD20));
             var lookFor = AccessTools.Method(typeof(Dice), nameof(Dice.GenerateD20));
-            var match = matcher.SearchForward(x => x.Calls(lookFor));
-            if (match == null)
+            CodeMatcher match;
+            var replacementCounter = 0;
+            while ((match = matcher.SearchForward(x => x.Calls(lookFor))).IsValid)
             {
-                Main.GetLogger<RuleAttackRollPatches>().LogError("Transpiler has not been applied. Target={target}", target);
-                matcher.Instructions();
+                replacementCounter++;
+                match.RemoveInstruction();
+                var newInstructions = new List<CodeInstruction>()
+                {
+                    new(OpCodes.Ldarg_0),
+                    new(OpCodes.Call, replaceWith)
+                };
+                match.Insert(newInstructions);
             }
 
-            match.RemoveInstruction();
-            var newInstructions = new List<CodeInstruction>()
+            const int ExpectedReplacementCounter = 2;
+            if (replacementCounter != ExpectedReplacementCounter)
             {
-                new(OpCodes.Ldarg_0),
-                new(OpCodes.Call, replaceWith)
-            };
+                Main.GetLogger<HarmonyTranspiler>().LogError("Instructions have not been replaced expected number of times. Target={target}, Expected={expected}, Current={current}", target, ExpectedReplacementCounter, replacementCounter);
+                return instructions;
+            }
 
-            match.Insert(newInstructions);
-            Main.GetLogger<RuleAttackRollPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
-
+            Main.GetLogger<HarmonyTranspiler>().LogInformation("Transpiler has been applied. Target={target}", target);
             return matcher.Instructions();
         }
 
@@ -44,7 +49,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
         [HarmonyPostfix]
         public static void RuleAttackRoll_OnTrigger_Postfix(RuleAttackRoll __instance)
         {
-            if (!Main.Multiplayer.IsActive)
+            if (!Main.Multiplayer.IsActive || PatchesUtils.IsHelperUnit(__instance.Initiator.UniqueId) || PatchesUtils.IsHelperUnit(__instance.Target.UniqueId))
             {
                 return;
             }
@@ -54,7 +59,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
 
         public static RuleRollD20 AttackRollD20(bool isFake, RuleAttackRoll ruleAttackRoll)
         {
-            if (!Main.Multiplayer.IsActive)
+            if (!Main.Multiplayer.IsActive || PatchesUtils.IsHelperUnit(ruleAttackRoll.Initiator.UniqueId) || PatchesUtils.IsHelperUnit(ruleAttackRoll.Target.UniqueId))
             {
                 return Dice.GenerateD20(isFake);
             }

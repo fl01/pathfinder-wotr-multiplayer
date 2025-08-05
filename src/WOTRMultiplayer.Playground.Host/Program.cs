@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using WOTR.Multiplayer.Playground.Core.Dummies;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.MP;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Dialogs;
@@ -34,6 +35,7 @@ namespace WOTRMultiplayer.Playground.Host
                 serviceProvider.GetService<IFileSystemService>(),
                 serviceProvider.GetService<INetworkServer>(),
                 new DummyDiceRollStorage([new NetworkIntRollValue { Value = 66 }]),
+                serviceProvider.GetService<IUniqueIdGenerator>(),
                 serviceProvider.GetService<IMapper>());
             //var characters = new List<NetworkCharacter> {
             //    new() { Name = "xdd", Portrait = "KitsuneFemaleRogue_Portrait"},
@@ -52,7 +54,7 @@ namespace WOTRMultiplayer.Playground.Host
             // Manual_34_FIRST_COMBAT - first combat in first cave
             var saveGamePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                 "AppData\\LocalLow\\Owlcat Games\\Pathfinder Wrath Of The Righteous\\Saved Games\\Manual_34_FIRST_COMBAT.zks");
-            host.Create(saveGamePath, characters);
+            host.Create(saveGamePath, "1", characters);
             var input = string.Empty;
 
             Console.Write(@$"

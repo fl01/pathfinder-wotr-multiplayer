@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Kingmaker.EntitySystem;
 using Kingmaker.GameModes;
 using Kingmaker.Items.Slots;
 using Kingmaker.UI;
@@ -45,7 +46,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         List<NetworkUnit> GetUnitsInCombat();
 
-        void QuickLoadGame(string savePath);
+        string QuickLoadGame(string savePath);
 
         void LoadGameFromMainMenu(string savePath);
 
@@ -90,5 +91,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void SetActiveHandEquipmentSet(NetworkActiveHandEquipmentSet set);
 
         void InteractWithOvertip(NetworkOvertip networkOvertip);
+
+        EntityDataBase GetEntity(string id);
     }
 }
