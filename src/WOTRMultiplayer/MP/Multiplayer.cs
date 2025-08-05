@@ -309,7 +309,7 @@ namespace WOTRMultiplayer.MP
             }
         }
 
-        public bool OnBeforeRuleAttackRoll(RuleAttackRoll ruleAttackRoll)
+        public bool OnBeforeRuleAttackRoll(RuleAttackRoll ruleAttackRoll, bool isCriticalRoll)
         {
             try
             {
@@ -319,7 +319,7 @@ namespace WOTRMultiplayer.MP
                     return true;
                 }
 
-                var roll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll);
+                var roll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll, isCriticalRoll);
                 var d20 = RetrieveD20Roll(multiplayerActor, roll, ruleAttackRoll.Initiator);
                 if (d20 == null)
                 {
@@ -346,8 +346,13 @@ namespace WOTRMultiplayer.MP
                     return;
                 }
 
-                var roll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll);
+                var roll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll, false);
                 SaveIntRollValue(multiplayerActor, roll, ruleAttackRoll.D20);
+                if (ruleAttackRoll.IsCriticalRoll)
+                {
+                    var criticalRoll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll, true);
+                    SaveIntRollValue(multiplayerActor, roll, ruleAttackRoll.CriticalConfirmationD20);
+                }
             }
             catch (Exception ex)
             {
@@ -973,13 +978,13 @@ namespace WOTRMultiplayer.MP
             return roll;
         }
 
-        private AttackRoll CreateAttackRoll(NetworkDiceRollType diceRollType, RuleAttackRoll ruleAttackRoll)
+        private AttackRoll CreateAttackRoll(NetworkDiceRollType diceRollType, RuleAttackRoll ruleAttackRoll, bool isCriticalRoll)
         {
             var roll = new AttackRoll(ruleAttackRoll.Initiator.UniqueId, ruleAttackRoll.GetType().Name, diceRollType, ruleAttackRoll.AttackBonus)
             {
                 AttackType = ruleAttackRoll.AttackType.ToString(),
                 TargetId = ruleAttackRoll.Target.UniqueId,
-                IsCriticalRoll = ruleAttackRoll.IsCriticalRoll,
+                IsCriticalRoll = isCriticalRoll,
                 AttackWithWeapon = ruleAttackRoll.RuleAttackWithWeapon == null ? null : CreateAttackWithWeaponRoll(diceRollType, ruleAttackRoll.RuleAttackWithWeapon)
             };
 

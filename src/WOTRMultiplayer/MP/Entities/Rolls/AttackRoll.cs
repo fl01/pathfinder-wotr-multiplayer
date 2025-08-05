@@ -21,7 +21,7 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
         {
             var attackWithWeaponId = AttackWithWeapon == null ? null : string.Join(IdSeparator, AttackWithWeapon?.GetUniquinessIdentifiers());
 
-            return [AttackType, TargetId, IsCriticalRoll.ToString(), attackWithWeaponId];
+            return ["@", AttackType, TargetId, IsCriticalRoll.ToString(), "@", attackWithWeaponId];
         }
     }
 }

@@ -465,9 +465,10 @@ namespace WOTRMultiplayer.GameInteraction
                             && unit.Position.y != networkUnit.Position.Y
                             && unit.Position.z != networkUnit.Position.Z)
                         {
+                            var newPosition = new UnityEngine.Vector3(networkUnit.Position.X, networkUnit.Position.Y, networkUnit.Position.Z);
                             var oldPosition = unit.Position;
-                            unit.Position = new UnityEngine.Vector3(networkUnit.Position.X, networkUnit.Position.Y, networkUnit.Position.Z);
-                            _logger.LogInformation("Unit position has been updated. UnitId={unitId}, PreviousPosition={oldPosition}, NewPosition={newPosition}", unit.UniqueId, oldPosition.ToString("F4"), unit.Position.ToString("F4"));
+                            unit.Translocate(newPosition, unit.Orientation);
+                            _logger.LogInformation("Unit position has been updated. UnitId={unitId}, PreviousPosition={oldPosition}, NewPosition={newPosition}", unit.UniqueId, oldPosition.ToString("F4"), newPosition.ToString("F4"));
                         }
                     }
                     catch (Exception ex)

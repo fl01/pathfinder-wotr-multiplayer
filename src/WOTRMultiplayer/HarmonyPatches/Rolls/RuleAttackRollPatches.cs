@@ -24,14 +24,15 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             var replacementCounter = 0;
             while ((match = matcher.SearchForward(x => x.Calls(lookFor))).IsValid)
             {
-                replacementCounter++;
                 match.RemoveInstruction();
                 var newInstructions = new List<CodeInstruction>()
                 {
                     new(OpCodes.Ldarg_0),
+                    new(OpCodes.Ldc_I4, replacementCounter),
                     new(OpCodes.Call, replaceWith)
                 };
                 match.Insert(newInstructions);
+                replacementCounter++;
             }
 
             const int ExpectedReplacementCounter = 2;
@@ -57,14 +58,14 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             Main.Multiplayer.OnAfterRuleAttackRollTrigger(__instance);
         }
 
-        public static RuleRollD20 AttackRollD20(bool isFake, RuleAttackRoll ruleAttackRoll)
+        public static RuleRollD20 AttackRollD20(bool isFake, RuleAttackRoll ruleAttackRoll, bool isCriticalRoll)
         {
             if (!Main.Multiplayer.IsActive || PatchesUtils.IsHelperUnit(ruleAttackRoll.Initiator.UniqueId) || PatchesUtils.IsHelperUnit(ruleAttackRoll.Target.UniqueId))
             {
                 return Dice.GenerateD20(isFake);
             }
 
-            var shouldRunOriginalLogic = Main.Multiplayer.OnBeforeRuleAttackRoll(ruleAttackRoll);
+            var shouldRunOriginalLogic = Main.Multiplayer.OnBeforeRuleAttackRoll(ruleAttackRoll, isCriticalRoll);
             if (!shouldRunOriginalLogic)
             {
                 return ruleAttackRoll.D20;
