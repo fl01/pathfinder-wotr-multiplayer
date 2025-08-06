@@ -25,8 +25,6 @@ namespace WOTRMultiplayer.MP
 {
     public abstract class MultiplayerActorBase
     {
-        public const int IgnoredRoundNumber = -1;
-
         public const int LocalHostPlayerId = -1;
 
         private readonly object _actionLock = new();
@@ -412,35 +410,43 @@ namespace WOTRMultiplayer.MP
 
         public bool CanUnitJoinCombat(string unitId)
         {
-            if (Game.Combat == null)
+            try
             {
-                return true;
-            }
+                if (Game.Combat == null)
+                {
+                    return true;
+                }
 
-            var isSummoned = GameInteraction.IsSummoned(unitId);
-            if (isSummoned)
+                var isSummoned = GameInteraction.IsSummoned(unitId);
+                if (isSummoned)
+                {
+                    return true;
+                }
+
+                if (Game.Combat.ConfirmedMidCombatUnits.Contains(unitId))
+                {
+                    Logger.LogInformation("Unit has been allowed to join mid combat. UnitId={unitId}", unitId);
+                    return true;
+                }
+
+                var localPlayerId = GetLocalPlayerId();
+                var isFirstJoinEvent = !IsPlayerReady(PlayerTurnReadinessType.UnitJoinedMidCombat, localPlayerId, unitId);
+                if (isFirstJoinEvent)
+                {
+                    Logger.LogInformation("Sending {messageType}. UnitId={unitId}", nameof(NotifyUnitJoinedMidCombat), unitId);
+                    var message = new NotifyUnitJoinedMidCombat { UnitId = unitId, PlayerId = localPlayerId };
+                    Send(message);
+                }
+
+                AddPlayerReadyStatus(PlayerTurnReadinessType.UnitJoinedMidCombat, localPlayerId, unitId);
+
+                return false;
+            }
+            catch (Exception ex)
             {
-                return true;
+                Logger.LogError(ex, "Unable to process unit join combat request. UnitId={unitId}", unitId);
+                throw;
             }
-
-            var localPlayerId = GetLocalPlayerId();
-            var isFirstJoinEvent = !IsPlayerReady(PlayerTurnReadinessType.UnitJoinedMidCombat, localPlayerId, unitId);
-            if (isFirstJoinEvent)
-            {
-                Logger.LogInformation("Sending {messageType}. UnitId={unitId}", nameof(NotifyUnitJoinedMidCombat), unitId);
-                var message = new NotifyUnitJoinedMidCombat { UnitId = unitId, PlayerId = localPlayerId };
-                Send(message);
-            }
-
-            var playersSync = AddPlayerReadyStatus(PlayerTurnReadinessType.UnitJoinedMidCombat, localPlayerId, unitId);
-
-            var canJoin = playersSync.Count >= Game.Players.Count;
-            if (canJoin)
-            {
-                Logger.LogInformation("Unit has been allowed to join mid combat. UnitId={unitId}, PlayersSyncState={syncedPlayersCount}/{TotalPlayersCount}", unitId, playersSync.Count, Game.Players.Count);
-            }
-
-            return canJoin;
         }
 
         public string GetMultiplayerOwnerName(string unitId)
@@ -461,10 +467,10 @@ namespace WOTRMultiplayer.MP
 
         protected HashSet<long> AddPlayerReadyStatus(PlayerTurnReadinessType playerReadinessType, long playerId, string unitId)
         {
-            return AddPlayerReadyStatus(playerReadinessType, playerId, IgnoredRoundNumber, unitId);
+            return AddPlayerReadyStatus(playerReadinessType, playerId, null, unitId);
         }
 
-        protected HashSet<long> AddPlayerReadyStatus(PlayerTurnReadinessType playerReadinessType, long playerId, int round, string unitId)
+        protected HashSet<long> AddPlayerReadyStatus(PlayerTurnReadinessType playerReadinessType, long playerId, int? round, string unitId)
         {
             try
             {
@@ -477,7 +483,7 @@ namespace WOTRMultiplayer.MP
                         return null;
                     }
 
-                    var key = GetTurnInitializationKey(round, unitId);
+                    var key = GetPlayerReadinessKey(round, unitId);
 
                     var isFirstAdd = !tracker.TryGetValue(key, out var readyPlayers) || !readyPlayers.Contains(playerId);
 
@@ -515,7 +521,7 @@ namespace WOTRMultiplayer.MP
         {
             // looks dumb af, but seems like combat could start before all initiatives are rolled
             // so let's make sure combat is 100% prepared before allowing to proceed
-            const int combatPreparationFramesDelay = 20;
+            const int combatPreparationFramesDelay = 0;
             if (Game.Combat.CombatPreparedFrames < combatPreparationFramesDelay)
             {
                 Game.Combat.CombatPreparedFrames++;
@@ -694,6 +700,8 @@ namespace WOTRMultiplayer.MP
         {
             if (Game.Combat.Turn != null && Game.Combat.Turn.IsInProgress)
             {
+                UpdateConfirmedMidCombatUnits();
+
                 return true;
             }
 
@@ -724,17 +732,17 @@ namespace WOTRMultiplayer.MP
             return notReadyPlayers;
         }
 
-        protected bool IsPlayerReady(PlayerTurnReadinessType playerTurnReadinessType, long playerId, int round, string unitId)
+        protected bool IsPlayerReady(PlayerTurnReadinessType playerTurnReadinessType, long playerId, int? round, string unitId)
         {
             var tracker = GetPlayerTurnReadinessTracker(playerTurnReadinessType);
-            var key = GetTurnInitializationKey(round, unitId);
+            var key = GetPlayerReadinessKey(round, unitId);
             var missingPlayers = GetMissingPlayers(key, tracker);
             return !missingPlayers.Any(p => p.Id == playerId);
         }
 
         protected bool IsPlayerReady(PlayerTurnReadinessType playerTurnReadinessType, long playerId, string unitId)
         {
-            return IsPlayerReady(playerTurnReadinessType, playerId, IgnoredRoundNumber, unitId);
+            return IsPlayerReady(playerTurnReadinessType, playerId, null, unitId);
         }
 
         protected virtual void OnTurnStartConfirmed()
@@ -769,9 +777,9 @@ namespace WOTRMultiplayer.MP
             return IsControlledByLocalPlayer(units?.FirstOrDefault());
         }
 
-        private string GetTurnInitializationKey(int round, string unitId)
+        private string GetPlayerReadinessKey(int? round, string unitId)
         {
-            return $"{round}-{unitId}";
+            return round.HasValue ? $"{round}-{unitId}" : unitId;
         }
 
         private ConcurrentDictionary<string, HashSet<long>> GetPlayerTurnReadinessTracker(PlayerTurnReadinessType type)
@@ -785,6 +793,21 @@ namespace WOTRMultiplayer.MP
             };
 
             return tracker;
+        }
+
+        private void UpdateConfirmedMidCombatUnits()
+        {
+            lock (ActionLock)
+            {
+                var midCombat = GetPlayerTurnReadinessTracker(PlayerTurnReadinessType.UnitJoinedMidCombat);
+                foreach (var kv in midCombat)
+                {
+                    if (kv.Value.Count >= Game.Players.Count)
+                    {
+                        Game.Combat.ConfirmedMidCombatUnits.Add(kv.Key);
+                    }
+                }
+            }
         }
     }
 }

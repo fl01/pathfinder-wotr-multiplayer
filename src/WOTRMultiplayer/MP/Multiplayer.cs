@@ -617,24 +617,40 @@ namespace WOTRMultiplayer.MP
 
         public bool CanTickUnitCombatPrepareController()
         {
-            var multiplayerActor = GetMultiplayerActor();
-            if (multiplayerActor == null)
+            try
             {
-                return true;
-            }
+                var multiplayerActor = GetMultiplayerActor();
+                if (multiplayerActor == null)
+                {
+                    return true;
+                }
 
-            return multiplayerActor.CanInitializeCombat();
+                return multiplayerActor.CanInitializeCombat();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to initiatize combat");
+                throw;
+            }
         }
 
         public bool CanTickCombatController()
         {
-            var multiplayerActor = GetMultiplayerActor();
-            if (multiplayerActor == null)
+            try
             {
-                return true;
-            }
+                var multiplayerActor = GetMultiplayerActor();
+                if (multiplayerActor == null)
+                {
+                    return true;
+                }
 
-            return multiplayerActor.CanContinueCombat();
+                return multiplayerActor.CanContinueCombat();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to continue combat");
+                throw;
+            }
         }
 
         public bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound)
