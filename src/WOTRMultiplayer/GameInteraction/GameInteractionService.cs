@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Kingmaker;
+using Kingmaker.AI;
 using Kingmaker.Blueprints.Root;
 using Kingmaker.Cheats;
 using Kingmaker.Controllers.Clicks;
@@ -31,6 +32,7 @@ using Kingmaker.UI.MVVM._VM.Dialog.Dialog;
 using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.UnitLogic.ActivatableAbilities;
 using Kingmaker.UnitLogic.Commands;
+using Kingmaker.UnitLogic.Commands.Base;
 using Kingmaker.Utility;
 using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
@@ -527,15 +529,33 @@ namespace WOTRMultiplayer.GameInteraction
             _mainThreadAccessor.Enqueue(() =>
             {
                 var currentUnit = Game.Instance.TurnBasedCombatController.CurrentTurn.Rider;
-
                 if (IsUnitAI(currentUnit.UniqueId))
                 {
-                    Game.Instance.TurnBasedCombatController.UpdateNavigationGrid();
-                    Kingmaker.AI.AiBrainController.TickBrain(currentUnit);
+                    ForceAIRecalculateAction(currentUnit);
                 }
 
                 Game.Instance.TurnBasedCombatController.CurrentTurn.Start(isActingInSurpriseRound);
             });
+        }
+
+        private void ForceAIRecalculateAction(UnitEntityData unit)
+        {
+            if (IsUnitAI(unit.UniqueId))
+            {
+                Game.Instance.TurnBasedCombatController.UpdateNavigationGrid();
+                AiBrainController.Context.ReleaseUnit();
+                unit.CombatState.AIData.NextCommandTime = Time.time;
+                foreach (UnitCommand unitCommand in unit.Commands.Raw)
+                {
+                    if (unitCommand != null)
+                    {
+                        unitCommand.AiCanInterruptMark = true;
+                    }
+                }
+                unit.Commands.InterruptAiCommands();
+
+                Kingmaker.AI.AiBrainController.TickBrain(unit);
+            }
         }
 
         public void EndTurnBasedCombatTurn()

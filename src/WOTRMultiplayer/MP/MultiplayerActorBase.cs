@@ -25,6 +25,8 @@ namespace WOTRMultiplayer.MP
 {
     public abstract class MultiplayerActorBase
     {
+        public const int IgnoredRoundNumber = -1;
+
         public const int LocalHostPlayerId = -1;
 
         private readonly object _actionLock = new();
@@ -423,7 +425,7 @@ namespace WOTRMultiplayer.MP
             }
 
             var localPlayerId = GetLocalPlayerId();
-            var isFirstJoinEvent = !Game.Combat.MidCombatUnitJoins.TryGetValue(unitId, out var players) || !players.Contains(localPlayerId);
+            var isFirstJoinEvent = IsPlayerReady(PlayerTurnReadinessType.UnitJoinedMidCombat, localPlayerId, unitId);
             if (isFirstJoinEvent)
             {
                 Logger.LogInformation("Sending {messageType}. UnitId={unitId}", nameof(NotifyUnitJoinedMidCombat), unitId);
@@ -452,7 +454,7 @@ namespace WOTRMultiplayer.MP
 
         protected HashSet<long> AddPlayerReadyStatus(PlayerTurnReadinessType playerReadinessType, long playerId, string unitId)
         {
-            return AddPlayerReadyStatus(playerReadinessType, playerId, -1, unitId);
+            return AddPlayerReadyStatus(playerReadinessType, playerId, IgnoredRoundNumber, unitId);
         }
 
         protected HashSet<long> AddPlayerReadyStatus(PlayerTurnReadinessType playerReadinessType, long playerId, int round, string unitId)
@@ -708,6 +710,19 @@ namespace WOTRMultiplayer.MP
             }
 
             return notReadyPlayers;
+        }
+
+        protected bool IsPlayerReady(PlayerTurnReadinessType playerTurnReadinessType, long playerId, int round, string unitId)
+        {
+            var tracker = GetPlayerTurnReadinessTracker(playerTurnReadinessType);
+            var key = GetTurnInitializationKey(round, unitId);
+            var missingPlayers = GetMissingPlayers(key, tracker);
+            return !missingPlayers.Any(p => p.Id == playerId);
+        }
+
+        protected bool IsPlayerReady(PlayerTurnReadinessType playerTurnReadinessType, long playerId, string unitId)
+        {
+            return IsPlayerReady(playerTurnReadinessType, playerId, IgnoredRoundNumber, unitId);
         }
 
         protected virtual void OnTurnStartConfirmed()

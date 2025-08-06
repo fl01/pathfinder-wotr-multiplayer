@@ -11,35 +11,41 @@ namespace WOTRMultiplayer.HarmonyPatches.Units
     [HarmonyPatch]
     public class UnitUseAbilityPatches
     {
-        [HarmonyPatch(typeof(UnitUseAbility), nameof(UnitUseAbility.TriggerAnimation))]
-        [HarmonyPrefix]
-        public static void UnitUseAbility_TriggerAnimation_Prefix(UnitUseAbility __instance)
+        [HarmonyPatch(typeof(UnitUseAbility), nameof(UnitUseAbility.OnStart))]
+        [HarmonyPostfix]
+        public static void UnitUseAbility_OnStart_Postfix(UnitUseAbility __instance)
         {
             if (!Main.Multiplayer.IsActive)
             {
                 return;
             }
 
-            if (__instance.Ability.StickyTouch != null)
+            OnAbilityUse(__instance);
+        }
+
+        private static void OnAbilityUse(UnitUseAbility command)
+        {
+
+            if (command.Ability.StickyTouch != null)
             {
-                Main.GetLogger<UnitUseAbilityPatches>().LogWarning("Skipping ability use as it's a part of another usage. UnitId={unitId}, AbilityName={abilityName}, AbilityId={abilityId}", __instance.Executor.UniqueId, __instance.Ability.Name, __instance.Ability.UniqueId);
+                Main.GetLogger<UnitUseAbilityPatches>().LogWarning("Skipping ability use as it's a part of another usage. UnitId={unitId}, AbilityName={abilityName}, AbilityId={abilityId}", command.Executor.UniqueId, command.Ability.Name, command.Ability.UniqueId);
                 return;
             }
 
-            var path = PathVisualizer.Instance.CurrentPathForUnit(__instance.Executor.View);
+            var path = PathVisualizer.Instance.CurrentPathForUnit(command.Executor.View);
             var networkPath = path?.vectorPath.Select(v => new NetworkVector3(v.x, v.y, v.z)).ToList();
             var networkAbility = new NetworkAbility
             {
-                Id = __instance.Ability.UniqueId,
-                Name = __instance.Ability.NameForAcronym,
-                SpellbookId = __instance.Ability.Spellbook?.Blueprint.Name.Key,
-                CasterId = __instance.Executor.UniqueId,
-                TargetId = __instance.Target?.Unit?.UniqueId,
-                TargetPoint = __instance.Target?.Point == null ? null : new NetworkVector3(__instance.Target.Point.x, __instance.Target.Point.y, __instance.Target.Point.z),
+                Id = command.Ability.UniqueId,
+                Name = command.Ability.NameForAcronym,
+                SpellbookId = command.Ability.Spellbook?.Blueprint.Name.Key,
+                CasterId = command.Executor.UniqueId,
+                TargetId = command.Target?.Unit?.UniqueId,
+                TargetPoint = command.Target?.Point == null ? null : new NetworkVector3(command.Target.Point.x, command.Target.Point.y, command.Target.Point.z),
                 VectorPath = networkPath,
                 ActionsState = Main.Multiplayer.GetActionsState(),
-                CommandType = __instance.Type.ToString(),
-                ConvertedFromId = __instance.Ability.ConvertedFrom?.UniqueId,
+                CommandType = command.Type.ToString(),
+                ConvertedFromId = command.Ability.ConvertedFrom?.UniqueId,
             };
 
             Main.Multiplayer.OnAbilityUse(networkAbility);
