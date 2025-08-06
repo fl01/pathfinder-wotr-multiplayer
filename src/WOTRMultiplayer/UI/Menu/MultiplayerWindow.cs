@@ -156,14 +156,14 @@ namespace WOTRMultiplayer.UI.Menu
             OnSelectMenuItem(_hostMenuController, ActivateJoinMenu);
         }
 
-        private void OnSelectMenuItem(IMultiplayerMenuItemController menuItemController, Action<MessageModalBase.ButtonType> onResult)
+        private void OnSelectMenuItem(IMultiplayerMenuItemController previousMenuItem, Action<MessageModalBase.ButtonType> onCofirmDeactivation)
         {
-            var confirmation = menuItemController.GetDeactivationConfirmation();
+            var confirmation = previousMenuItem.GetDeactivationConfirmation();
             if (confirmation != null)
             {
                 _logger.LogInformation("Deactivation confirmation required");
 
-                var onModalClosed = confirmation.ModalType == MessageModalBase.ModalType.Dialog ? onResult : null;
+                var onModalClosed = confirmation.ModalType == MessageModalBase.ModalType.Dialog ? onCofirmDeactivation : null;
                 EventBus.RaiseEvent<IMessageModalUIHandler>(window =>
                 {
                     window.HandleOpen(confirmation.Text, confirmation.ModalType, onModalClosed);
@@ -171,7 +171,7 @@ namespace WOTRMultiplayer.UI.Menu
                 return;
             }
 
-            onResult(MessageModalBase.ButtonType.Yes);
+            onCofirmDeactivation(MessageModalBase.ButtonType.Yes);
         }
 
         private void ActivateJoinMenu(MessageModalBase.ButtonType button)

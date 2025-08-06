@@ -133,6 +133,13 @@ namespace WOTRMultiplayer.UI.Controllers
 
         public override void Deactivate()
         {
+            Title.SetText(string.Empty);
+
+            if (!IsActive)
+            {
+                return;
+            }
+
             if (_multiplayerHost.IsInLobby)
             {
                 _multiplayerHost.Dispose();

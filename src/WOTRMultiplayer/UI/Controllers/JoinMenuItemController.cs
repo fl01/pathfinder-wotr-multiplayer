@@ -103,6 +103,11 @@ namespace WOTRMultiplayer.UI.Controllers
 
         public override void Deactivate()
         {
+            if (!IsActive)
+            {
+                return;
+            }
+
             if (_multiplayerClient.IsInLobby)
             {
                 _multiplayerClient.Dispose();
