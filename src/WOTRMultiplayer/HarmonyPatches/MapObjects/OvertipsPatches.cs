@@ -2,18 +2,16 @@
 using HarmonyLib;
 using Kingmaker;
 using Kingmaker.Assets.Code.UI._ConsoleUI.Overtips;
+using Kingmaker.UI._ConsoleUI.Overtips;
+using Kingmaker.UI.Common;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 
 namespace WOTRMultiplayer.HarmonyPatches.MapObjects
 {
+    /// don't be confused by Kingmaker.UI._ConsoleUI.Overtips namespace, it's still being used on PC
     [HarmonyPatch]
     public class OvertipsPatches
     {
-        /// <summary>
-        /// don't be confused by Kingmaker.UI._ConsoleUI.Overtips namespace, it's still being used on PC
-        /// </summary>
-        /// <param name="__instance"></param>
-        /// <param name="interactionPart"></param>
         [HarmonyPatch(typeof(ObjectInteractionOvertipView), nameof(ObjectInteractionOvertipView.OnClick))]
         [HarmonyPrefix]
         public static void ObjectInteractionOvertipView_OnClick_Prefix(ObjectInteractionOvertipView __instance)
@@ -30,6 +28,38 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
             };
 
             Main.Multiplayer.OnInteractWithMapObjectOvertip(networkOvertip);
+        }
+
+        [HarmonyPatch(typeof(OvertipViewPartName), nameof(OvertipViewPartName.SetName))]
+        [HarmonyPostfix]
+        public static void OvertipViewPartName_SetName_Prefix(OvertipViewPartName __instance)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            var viewModel = __instance.GetViewModel() as EntityOvertipVM;
+            if (viewModel == null || viewModel.Unit == null)
+            {
+                return;
+            }
+
+            var text = string.IsNullOrEmpty(viewModel.CustomName.Value) ? viewModel.Name.Value : viewModel.CustomName.Value;
+
+            var mpOwnerName = Main.Multiplayer.GetMultiplayerOwnerName(viewModel.Unit.UniqueId);
+            if (!string.IsNullOrEmpty(mpOwnerName))
+            {
+                text += $" ({mpOwnerName})";
+            }
+
+            if (Main.AddUnitIdToOvertip)
+            {
+                text += $" [{viewModel.Unit.UniqueId}]";
+            }
+
+            var formattedText = UIUtility.GetSaberBookFormat(text, __instance.m_SaberColor, 140, null, 0f);
+            __instance.m_CharacterName.text = formattedText;
         }
     }
 }

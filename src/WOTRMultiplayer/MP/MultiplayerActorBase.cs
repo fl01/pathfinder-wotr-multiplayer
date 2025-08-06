@@ -91,7 +91,6 @@ namespace WOTRMultiplayer.MP
 
         public List<NetworkPlayer> GetOtherPlayers()
         {
-
             return [.. Game?.Players.Where(p => p.Id != Game.LocalPlayerId) ?? []];
         }
 
@@ -191,7 +190,7 @@ namespace WOTRMultiplayer.MP
             var request = new DiceRollValueRequest { RollId = networkDiceRollId, Timeout = waitForRollTimeout };
             // it's important to block current thread since we cannot proceed without response
             // yeah most likely it will cause the game to freeze in case of bad network
-            var response = RetrieveRoll(request, unitId).Result;
+            var response = RetrieveRollAsync(request, unitId).Result;
 
             return ResponseToRollValue<TRollValue>(response);
         }
@@ -425,7 +424,7 @@ namespace WOTRMultiplayer.MP
             }
 
             var localPlayerId = GetLocalPlayerId();
-            var isFirstJoinEvent = IsPlayerReady(PlayerTurnReadinessType.UnitJoinedMidCombat, localPlayerId, unitId);
+            var isFirstJoinEvent = !IsPlayerReady(PlayerTurnReadinessType.UnitJoinedMidCombat, localPlayerId, unitId);
             if (isFirstJoinEvent)
             {
                 Logger.LogInformation("Sending {messageType}. UnitId={unitId}", nameof(NotifyUnitJoinedMidCombat), unitId);
@@ -444,13 +443,21 @@ namespace WOTRMultiplayer.MP
             return canJoin;
         }
 
-        protected abstract Task<DiceRollValueResponse> RetrieveRoll(DiceRollValueRequest rollRequest, string unitId);
+        public string GetMultiplayerOwnerName(string unitId)
+        {
+            var owner = GetCharacterOwnership(unitId);
+            return owner?.Owner?.Name;
+        }
+
+        protected abstract Task<DiceRollValueResponse> RetrieveRollAsync(DiceRollValueRequest rollRequest, string unitId);
 
         protected abstract void OnLocalPlayerTurnStart();
 
         protected abstract void OnLocalPlayerTurnEnded();
 
         protected abstract void Send(object message);
+
+        protected abstract void Send(long playerId, object message);
 
         protected HashSet<long> AddPlayerReadyStatus(PlayerTurnReadinessType playerReadinessType, long playerId, string unitId)
         {
@@ -508,7 +515,7 @@ namespace WOTRMultiplayer.MP
         {
             // looks dumb af, but seems like combat could start before all initiatives are rolled
             // so let's make sure combat is 100% prepared before allowing to proceed
-            const int combatPreparationFramesDelay = 10;
+            const int combatPreparationFramesDelay = 20;
             if (Game.Combat.CombatPreparedFrames < combatPreparationFramesDelay)
             {
                 Game.Combat.CombatPreparedFrames++;
@@ -580,12 +587,12 @@ namespace WOTRMultiplayer.MP
             return Game.Combat.Turn.IsLocalPlayer && !GameInteraction.CombatTurnHasBeenFinished();
         }
 
-        protected TRollValue ResponseToRollValue<TRollValue>(Networking.Messages.Game.DiceRollValueResponse rollResponse)
+        protected TRollValue ResponseToRollValue<TRollValue>(DiceRollValueResponse rollResponse)
                where TRollValue : RollValueBase
         {
             if (rollResponse?.RollValue == null)
             {
-                Logger.LogError("Retrieved roll is null. RollId={rollId}", rollResponse.RollId);
+                Logger.LogError("Retrieved roll is null. RollId={rollId}", rollResponse?.RollId);
                 return null;
             }
 
@@ -605,22 +612,27 @@ namespace WOTRMultiplayer.MP
             return null;
         }
 
-        protected async Task<DiceRollValueResponse> GetLocalRollAsync(long playerId, DiceRollValueRequest request)
+        protected async Task SendLocalRollAsync(long playerId, DiceRollValueRequest request)
         {
-            var roll = await DiceRollStorage.GetAsync<RollValueBase>(request.RollId, playerId, request.Timeout);
-            var response = new DiceRollValueResponse
+            try
             {
-                RollId = request.RollId,
-                RollValue = Mapper.Map<Networking.Messages.NetworkRollValue>(roll)
-            };
+                var roll = await DiceRollStorage.GetAsync<RollValueBase>(request.RollId, playerId, request.Timeout);
+                var response = new DiceRollValueResponse
+                {
+                    RollId = request.RollId,
+                    RollValue = Mapper.Map<Networking.Messages.NetworkRollValue>(roll)
+                };
 
-            if (response?.RollValue != null)
-            {
                 Logger.LogInformation("Sending roll value response. RollId={rollId}, RollType={rollType}, Result={result}, DamageValuesCount={damageValuesCount} RollHistoryCount={rollHistoryCount}",
-                    response.RollId, roll.GetType().Name, response.RollValue.Result, response.RollValue.DamageValues.Count, response.RollValue.RollHistory.Count);
-            }
+                    response.RollId, roll?.GetType().Name, response.RollValue?.Result, response.RollValue?.DamageValues.Count, response.RollValue?.RollHistory.Count);
 
-            return response;
+                Send(playerId, response);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Unable to send local roll");
+                throw;
+            }
         }
 
         protected bool IsRolledByHost(bool silent)

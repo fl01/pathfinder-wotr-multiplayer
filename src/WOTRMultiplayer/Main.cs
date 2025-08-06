@@ -33,6 +33,8 @@ namespace WOTRMultiplayer
             return _serviceProvider.GetService<ILogger<T>>();
         }
 
+        public static bool AddUnitIdToOvertip => _settings.AddUnitIdToOvertip;
+
         public static bool Load(UnityModManager.ModEntry entry)
         {
             try
@@ -114,7 +116,10 @@ namespace WOTRMultiplayer
         private static void OnGui(UnityModManager.ModEntry entry)
         {
             UnityEngine.GUILayout.BeginHorizontal();
-            _settings.UseDebugConsole = UnityEngine.GUILayout.Toggle(_settings.UseDebugConsole, $"Use Debug Console (requires restart)", UnityEngine.GUILayout.ExpandWidth(false));
+            _settings.UseDebugConsole = UnityEngine.GUILayout.Toggle(_settings.UseDebugConsole, $"Use Debug Console (requires game client restart)", UnityEngine.GUILayout.ExpandWidth(false));
+            UnityEngine.GUILayout.EndHorizontal();
+            UnityEngine.GUILayout.BeginHorizontal();
+            _settings.AddUnitIdToOvertip = UnityEngine.GUILayout.Toggle(_settings.AddUnitIdToOvertip, $"Add UnitId to overtip (requires area reload)", UnityEngine.GUILayout.ExpandWidth(false));
             UnityEngine.GUILayout.EndHorizontal();
         }
     }

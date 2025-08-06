@@ -116,6 +116,11 @@ namespace WOTRMultiplayer.MP
                 }
 
                 var character = Game.Characters[characterIndex];
+                if (character.Owner == player)
+                {
+                    return;
+                }
+
                 character.Owner = player;
                 Logger.LogInformation("New character owner. CharacterName={characterName}, PlayerId={playerId}, PlayerName={playerName}", character.Name, player.Id, player.Name);
 
@@ -310,7 +315,7 @@ namespace WOTRMultiplayer.MP
             Logger.LogInformation("Sending dialog started to all clients. DialogName={dialogName}, TargetUnitId={targetUnitId}, InitiatorUnitId={initiatorUnitId}, MapObjectId={mapObjectId}, SpeakerKey={speakerKey}",
                 message.DialogName, message.TargetUnitId, message.InitiatorUnitId, message.MapObjectId, message.SpeakerKey);
 
-            _networkServer.SendAll(message);
+            Send(message);
 
             if (!string.Equals(Game.Dialog?.Name, dialogName, StringComparison.OrdinalIgnoreCase))
             {
@@ -388,12 +393,18 @@ namespace WOTRMultiplayer.MP
             return IsRolledByHost(silent) || IsRolledByLocalPlayer(silent);
         }
 
-        protected override Task<DiceRollValueResponse> RetrieveRoll(DiceRollValueRequest request, string unitId)
+        protected override Task<DiceRollValueResponse> RetrieveRollAsync(DiceRollValueRequest request, string unitId)
         {
             var character = GetCharacterOwnership(unitId);
-            if (character == null)
+            if (character?.Owner == null)
             {
                 Logger.LogError("Unable to retrieve roll due to missing character ownership. UnitId={unitId}", unitId);
+                return Task.FromResult<DiceRollValueResponse>(null);
+            }
+
+            if (character.Owner.Id == LocalHostPlayerId)
+            {
+                Logger.LogError("Host is character owner, but tries to retrieve network roll. UnitId={unitId}", unitId);
                 return Task.FromResult<DiceRollValueResponse>(null);
             }
 
@@ -403,6 +414,11 @@ namespace WOTRMultiplayer.MP
         protected override void Send(object message)
         {
             _networkServer.SendAll(message);
+        }
+
+        protected override void Send(long playerId, object message)
+        {
+            _networkServer.Send(playerId, message);
         }
 
         protected override void OnLocalPlayerTurnStart()
@@ -617,8 +633,9 @@ namespace WOTRMultiplayer.MP
                 .Register<NotifyGroundClicked>(OnNotifyGroundClicked)
                 .Register<NotifyMapObjectClicked>(OnNotifyMapObjectClicked)
 
-                // this is kinda special as well as the client is blocking the game loop thread until `RollResponse` is received
+                // this is kinda special because requester is blocking the game loop thread until <see cref="DiceRollValueResponse"/> is received
                 .Register<DiceRollValueRequest>(OnRollRequest)
+                .Register<DiceRollValueResponse>(null) // usable as awaiter only
 
                 .Register<PlayerReadyStatusChanged>(OnPlayerReadyStatusChanged)
                 .Register<PlayerNameResponse>(OnPlayerNameResponse)
@@ -918,8 +935,7 @@ namespace WOTRMultiplayer.MP
         private async void OnRollRequest(long playerId, DiceRollValueRequest request)
         {
             Logger.LogInformation("Received {messageType}. PlayerId={playerId}, RollId={rollId}", nameof(DiceRollValueRequest), playerId, request.RollId);
-            var response = await GetLocalRollAsync(playerId, request);
-            _networkServer.Send(playerId, response);
+            await SendLocalRollAsync(playerId, request);
         }
 
         private void OnGamePauseChanged(long playerId, GamePauseChanged pauseChanged)

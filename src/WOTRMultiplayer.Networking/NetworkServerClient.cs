@@ -79,15 +79,16 @@ namespace WOTRMultiplayer.Networking
             var taskCompletion = new TaskCompletionSource<object>();
             var timeoutTask = Task.Delay(_defaultAwaiterTimeout);
 
-            _awaiters.TryAdd(typeof(T), taskCompletion);
+            var waitForType = typeof(T);
+            _awaiters.TryAdd(waitForType, taskCompletion);
             await _client.Send(message);
 
             Task.WaitAny(timeoutTask, taskCompletion.Task);
 
             if (!taskCompletion.Task.IsCompleted)
             {
-                _awaiters.TryRemove(typeof(T), out _);
-                _logger.LogWarning("Awaiter has been failed due to timeout. Type={type}, Timeout={timeout}", typeof(T), _defaultAwaiterTimeout);
+                _awaiters.TryRemove(waitForType, out _);
+                _logger.LogWarning("Awaiter has been failed due to timeout. Type={type}, Timeout={timeout}", waitForType, _defaultAwaiterTimeout);
                 return null;
             }
 
@@ -103,17 +104,17 @@ namespace WOTRMultiplayer.Networking
 
         private void OnPackedReceived(IClient client, object message)
         {
-            var type = message.GetType();
-            if (_awaiters.TryRemove(type, out var taskCompletion))
+            var messageType = message.GetType();
+            if (_awaiters.TryRemove(messageType, out var taskCompletion))
             {
-                _logger.LogInformation("Awaiter has been found, other handlers will be skipped. MessageType={type}", type);
+                _logger.LogInformation("Awaiter has been found, other handlers will be skipped. MessageType={type}", messageType);
                 taskCompletion.SetResult(message);
                 return;
             }
 
-            if (!_handlers.TryGetValue(type, out var handler))
+            if (!_handlers.TryGetValue(messageType, out var handler))
             {
-                _logger.LogWarning("Handler is not configured. Type={type}", type);
+                _logger.LogWarning("Handler is not configured. Type={type}", messageType);
                 return;
             }
 
@@ -123,7 +124,7 @@ namespace WOTRMultiplayer.Networking
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle message. MessageType={messageType}", type.Name);
+                _logger.LogError(ex, "Unable to handle message. MessageType={messageType}", messageType.Name);
                 throw;
             }
         }

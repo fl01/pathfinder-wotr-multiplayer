@@ -23,6 +23,7 @@ namespace WOTRMultiplayer.Networking.Abstractions
             where T : class;
 
         Action<Exception> OnError { get; set; }
+
         Action<EndPoint> OnConnected { get; set; }
     }
 }

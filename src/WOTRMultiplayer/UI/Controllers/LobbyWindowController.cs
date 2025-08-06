@@ -144,7 +144,7 @@ namespace WOTRMultiplayer.UI.Controllers
             serverAddressBox.SetText(connectivity.Endpoint.ToString());
         }
 
-        public void UpdateCharacterOwnerDropdown(int characterIndex, int playerIndex)
+        public void UpdateCharacterOwnerDropdown(int characterIndex, int playerIndex, bool silent = false)
         {
             _mainThreadAccessor.Enqueue(() =>
             {
@@ -158,8 +158,18 @@ namespace WOTRMultiplayer.UI.Controllers
                 var dropdown = characterContainer.Find(CharacterOwnerObjectName);
                 var dropdownObject = dropdown.transform.Find(UIFactory.DropdownGameObjectName);
                 var tmpDropdown = dropdownObject.GetComponent<TMP_Dropdown>();
+                if (silent)
+                {
+                    RemoveAllDropdownListeners(tmpDropdown);
+                }
+
                 tmpDropdown.value = playerIndex;
                 tmpDropdown.RefreshShownValue();
+                if (silent)
+                {
+                    ListenForDropdownChange(tmpDropdown);
+                }
+
             });
         }
         public void ResetData()
@@ -251,11 +261,22 @@ namespace WOTRMultiplayer.UI.Controllers
                 var dropdown = characterContainer.Find(CharacterOwnerObjectName);
                 var dropdownObject = dropdown.transform.Find(UIFactory.DropdownGameObjectName);
                 var tmpDropdown = dropdownObject.GetComponent<TMP_Dropdown>();
+                RemoveAllDropdownListeners(tmpDropdown);
                 tmpDropdown.onValueChanged.RemoveAllListeners();
                 tmpDropdown.ClearOptions();
                 tmpDropdown.AddOptions(players);
-                tmpDropdown.onValueChanged.AddListener(index => OnOwnerDropdownChanged(tmpDropdown));
+                ListenForDropdownChange(tmpDropdown);
             }
+        }
+
+        private void RemoveAllDropdownListeners(TMP_Dropdown dropdown)
+        {
+            dropdown.onValueChanged.RemoveAllListeners();
+        }
+
+        private void ListenForDropdownChange(TMP_Dropdown dropdown)
+        {
+            dropdown.onValueChanged.AddListener(index => OnOwnerDropdownChanged(dropdown));
         }
 
         private void UpdateCharacterPortrait(int characterIndex, Sprite portraitSprite)

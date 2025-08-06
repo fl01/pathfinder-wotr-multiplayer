@@ -132,6 +132,18 @@ namespace WOTRMultiplayer.MP
             multiplayerActor.MoveNonCombatCharacter(unitId, destination, delay, orientation);
         }
 
+
+        public string GetMultiplayerOwnerName(string unitId)
+        {
+            var multiplayerActor = GetMultiplayerActor();
+            if (multiplayerActor == null)
+            {
+                return null;
+            }
+
+            return multiplayerActor.GetMultiplayerOwnerName(unitId);
+
+        }
         public bool IsControlledByLocalPlayer(string unitId)
         {
             var multiplayerActor = GetMultiplayerActor();
@@ -855,7 +867,6 @@ namespace WOTRMultiplayer.MP
         private void SaveRollValue(IMultiplayerActor multiplayerActor, int rollId, RollValueBase rollValue)
         {
             var claimingList = multiplayerActor.GetOtherPlayers().Select(i => i.Id).ToList();
-            var playerId = multiplayerActor.GetLocalPlayerId();
             _diceRollStorage.Add(rollId, claimingList, rollValue);
             _logger.LogInformation("Roll value has been stored. RollId={rollId}, RollValueType={rollValueType}, RollStringValue={rollValueString}, ClaimingListCount={claimingListCount}", rollId, rollValue.GetType().Name, rollValue, claimingList.Count);
         }

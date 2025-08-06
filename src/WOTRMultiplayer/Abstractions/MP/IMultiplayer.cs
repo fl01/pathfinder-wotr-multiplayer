@@ -59,6 +59,8 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         bool IsControlledByLocalPlayer(string unitId);
 
+        string GetMultiplayerOwnerName(string unitId);
+
         void OnClickUnit(NetworkClick click);
 
         void OnClickGround(NetworkClick click);

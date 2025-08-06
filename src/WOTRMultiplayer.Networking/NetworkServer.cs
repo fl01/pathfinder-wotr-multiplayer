@@ -63,47 +63,46 @@ namespace WOTRMultiplayer.Networking
             Server.AppServer.Send(message, session);
         }
 
-        public async Task<T> SendAndWaitForAsync<T>(long clientId, object message)
+        public Task<T> SendAndWaitForAsync<T>(long clientId, object message)
             where T : class
         {
             var taskCompletion = new TaskCompletionSource<object>();
             var timeoutTask = Task.Delay(_defaultAwaiterTimeout);
+            var waitForType = typeof(T);
 
-            AddAwaiter<T>(clientId, taskCompletion);
+            AddAwaiter(clientId, waitForType, taskCompletion);
             Send(clientId, message);
 
-            await Task.WhenAny(timeoutTask, taskCompletion.Task);
+            Task.WaitAny(timeoutTask, taskCompletion.Task);
 
             if (!taskCompletion.Task.IsCompleted)
             {
-                RemoveAwaiter<T>(clientId);
-                _logger.LogWarning("Awaiter has been failed due to timeout. PlayerId={playerId}, Type={type}, Timeout={timeout}", clientId, typeof(T), _defaultAwaiterTimeout);
+                RemoveAwaiter(clientId, waitForType);
+                _logger.LogWarning("Awaiter has been failed due to timeout. PlayerId={playerId}, Type={type}, Timeout={timeout}", clientId, waitForType, _defaultAwaiterTimeout);
                 return null;
             }
 
-            return taskCompletion.Task.Result as T;
+            return Task.FromResult((T)taskCompletion.Task.Result);
         }
 
-        private void AddAwaiter<T>(long clientId, TaskCompletionSource<object> task)
-            where T : class
+        private void AddAwaiter(long clientId, Type type, TaskCompletionSource<object> task)
         {
             _awaiters.AddOrUpdate(clientId, key =>
             {
-                return new ConcurrentDictionary<Type, TaskCompletionSource<object>>([new KeyValuePair<Type, TaskCompletionSource<object>>(typeof(T), task)]);
+                return new ConcurrentDictionary<Type, TaskCompletionSource<object>>([new KeyValuePair<Type, TaskCompletionSource<object>>(type, task)]);
             },
             (key, existing) =>
             {
-                existing.TryAdd(typeof(T), task);
+                existing.TryAdd(type, task);
                 return existing;
             });
         }
 
-        private void RemoveAwaiter<T>(long clientId)
-            where T : class
+        private void RemoveAwaiter(long clientId, Type type)
         {
             if (_awaiters.TryGetValue(clientId, out var clientAwaiters))
             {
-                clientAwaiters.TryRemove(typeof(T), out _);
+                clientAwaiters.TryRemove(type, out _);
             }
         }
 
@@ -122,7 +121,8 @@ namespace WOTRMultiplayer.Networking
         private void OnHandleMessage<TMessage>(EventMessageReceiveArgs<NetworkServerApp, NetworkClientToken, TMessage> args, Action<long, TMessage> handler)
         {
             var clientId = args.NetSession.ID;
-            var messageType = typeof(TMessage);
+            var messageType = args.Message.GetType();
+
             if (_awaiters.TryGetValue(clientId, out var clientAwaiters)
                 && clientAwaiters.TryRemove(messageType, out var awaiter))
             {

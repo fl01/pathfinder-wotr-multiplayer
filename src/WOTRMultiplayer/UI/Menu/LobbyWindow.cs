@@ -56,7 +56,7 @@ namespace WOTRMultiplayer.UI.Menu
                 {
                     var character = characters[i];
                     var playerIndex = players.IndexOf(character.Owner);
-                    _lobbyWindowController.UpdateCharacterOwnerDropdown(i, playerIndex);
+                    _lobbyWindowController.UpdateCharacterOwnerDropdown(i, playerIndex, true);
                 }
             }
             catch (Exception ex)

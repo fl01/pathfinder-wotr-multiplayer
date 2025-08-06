@@ -275,7 +275,7 @@ namespace WOTRMultiplayer.MP
             return !IsRolledByHost(silent) && IsRolledByLocalPlayer(silent);
         }
 
-        protected override Task<DiceRollValueResponse> RetrieveRoll(DiceRollValueRequest request, string unitId)
+        protected override Task<DiceRollValueResponse> RetrieveRollAsync(DiceRollValueRequest request, string unitId)
         {
             return _networkServerClient.SendAndWaitForAsync<DiceRollValueResponse>(request);
         }
@@ -283,6 +283,11 @@ namespace WOTRMultiplayer.MP
         protected override void Send(object message)
         {
             _networkServerClient.Send(message);
+        }
+
+        protected override void Send(long playerId, object message)
+        {
+            Send(message);
         }
 
         protected override void OnLocalPlayerTurnEnded()
@@ -464,8 +469,7 @@ namespace WOTRMultiplayer.MP
         {
             Logger.LogInformation("Received {messageType}. RollId={rollId}", nameof(DiceRollValueRequest), request.RollId);
             // only host could ask for a roll since there is no direct connection between clients
-            var response = await GetLocalRollAsync(LocalHostPlayerId, request);
-            _networkServerClient.Send(response);
+            await SendLocalRollAsync(LocalHostPlayerId, request);
         }
 
         private void OnNotifyCombatTurnStarted(NotifyCombatTurnStarted started)

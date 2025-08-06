@@ -15,7 +15,7 @@ namespace WOTRMultiplayer.Abstractions.UI.Controllers
 
         void UpdateServerInfo(NetworkGameConnectivity connectivity);
         void UpdateCharacters(List<NetworkCharacterOwnership> characters);
-        void UpdateCharacterOwnerDropdown(int characterIndex, int playerIndex);
+        void UpdateCharacterOwnerDropdown(int characterIndex, int playerIndex, bool silent = false);
         void SetActiveOwner(LobbyWindowOwner owner);
 
         void ResetOwnerContent(LobbyWindowOwner owner);
