@@ -190,5 +190,9 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
         {
             return false;
         }
+
+        public void ResetSuggestedDialogAnswers()
+        {
+        }
     }
 }

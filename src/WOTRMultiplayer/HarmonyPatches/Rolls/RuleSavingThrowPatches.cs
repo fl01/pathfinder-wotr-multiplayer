@@ -22,6 +22,18 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             Main.Multiplayer.OnAfterRuleSavingThrowTrigger(__instance);
         }
 
+        [HarmonyPatch(typeof(RuleSavingThrow), nameof(RuleSavingThrow.Calculate))]
+        [HarmonyPostfix]
+        public static void RuleSavingThrow_Calculate_Postfix(RuleSavingThrow __instance)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            Main.Multiplayer.OnAfterRuleSavingThrowTrigger(__instance);
+        }
+
         [HarmonyPatch(typeof(RuleSavingThrow), nameof(RuleSavingThrow.RollD20))]
         [HarmonyTranspiler]
         public static IEnumerable<CodeInstruction> RuleSavingThrow_RollD20_Transpiler(IEnumerable<CodeInstruction> instructions)

@@ -26,6 +26,8 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void MarkSuggestedDialogAnswers(List<NetworkDialogAnswerSuggestion> suggestions);
 
+        void ResetSuggestedDialogAnswers();
+
         void MoveNonCombatCharacter(string unitId, NetworkVector3 destination, float delay, float orientation);
 
         void Pause(bool isPaused);

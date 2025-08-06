@@ -166,8 +166,6 @@ namespace WOTRMultiplayer.MP
             Game.Dialog.CurrentCueName = cueName;
             Game.Dialog.Answer = null;
 
-            GameInteraction.MarkSuggestedDialogAnswers([]);
-
             var message = new CueWitnessed { CueName = cueName, DialogName = dialogName };
             _networkServerClient.Send(message);
         }
@@ -568,6 +566,7 @@ namespace WOTRMultiplayer.MP
                 ManualUnitSelectionId = selected.ManualUnitSelectionId,
             };
 
+            Game.Dialog.AnswerSuggestions.Clear();
             GameInteraction.SelectDialogAnswer(selected.DialogName, selected.CueName, selected.AnswerName, selected.ManualUnitSelectionId);
         }
 

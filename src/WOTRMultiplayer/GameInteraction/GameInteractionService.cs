@@ -25,6 +25,7 @@ using Kingmaker.TurnBasedMode;
 using Kingmaker.TurnBasedMode.Controllers;
 using Kingmaker.UI;
 using Kingmaker.UI._ConsoleUI.Overtips;
+using Kingmaker.UI.MVVM._PCView.Dialog.BookEvent;
 using Kingmaker.UI.MVVM._PCView.Dialog.Dialog;
 using Kingmaker.UI.MVVM._PCView.Dialog.Interchapter;
 using Kingmaker.UI.MVVM._PCView.InGame;
@@ -146,38 +147,51 @@ namespace WOTRMultiplayer.GameInteraction
         {
             _mainThreadAccessor.Enqueue(() =>
             {
-                if (Game.Instance.DialogController?.Dialog == null)
-                {
-                    _logger.LogWarning("DialogController.Dialog is null");
-                    return;
-                }
-
-                var dialogContext = (Game.Instance.RootUiContext.m_UIView as InGamePCView)?.m_StaticPartPCView?.m_DialogContextPCView;
-                if (dialogContext == null)
-                {
-                    _logger.LogWarning("DialogContextView is null");
-                    return;
-                }
-
-                // (Game.Instance.RootUiContext.m_UIView as InGamePCView).m_StaticPartPCView.m_DialogContextPCView.m_BookEventPCView
-                switch (Game.Instance.DialogController.Dialog.Type)
-                {
-                    case DialogType.Interchapter:
-                        MarkInterchapterAnswer(dialogContext.m_InterchapterPCView, suggestions);
-                        break;
-                    case DialogType.Common:
-                        MarkDialogAnswer(dialogContext.m_DialogPCView, suggestions);
-                        break;
-                    default:
-                        _logger.LogWarning("Marking suggested answers has not been implemented for this dialog type. DialogType={dialogType}", Game.Instance.DialogController.Dialog.Type);
-                        break;
-                }
-
-                if (suggestions.Count > 0)
-                {
-                    PlaySound(UISoundType.GlobalMapRandomEncounter);
-                }
+                ImmediatlyMarkSuggestedDialogAnswers(suggestions);
             });
+        }
+
+        public void ResetSuggestedDialogAnswers()
+        {
+            ImmediatlyMarkSuggestedDialogAnswers([]);
+        }
+        private void ImmediatlyMarkSuggestedDialogAnswers(List<NetworkDialogAnswerSuggestion> suggestions)
+        {
+            _logger.LogInformation("Marking dialog answer suggestions. Count={count}", suggestions.Count);
+            if (Game.Instance.DialogController?.Dialog == null)
+            {
+                _logger.LogWarning("DialogController.Dialog is null");
+                return;
+            }
+
+            var dialogContext = (Game.Instance.RootUiContext.m_UIView as InGamePCView)?.m_StaticPartPCView?.m_DialogContextPCView;
+            if (dialogContext == null)
+            {
+                _logger.LogWarning("DialogContextView is null");
+                return;
+            }
+
+            // (Game.Instance.RootUiContext.m_UIView as InGamePCView).m_StaticPartPCView.m_DialogContextPCView.m_BookEventPCView
+            switch (Game.Instance.DialogController.Dialog.Type)
+            {
+                case DialogType.Interchapter:
+                    MarkInterchapterAnswer(dialogContext.m_InterchapterPCView, suggestions);
+                    break;
+                case DialogType.Common:
+                    MarkDialogAnswer(dialogContext.m_DialogPCView, suggestions);
+                    break;
+                case DialogType.Book:
+                    MarkBookAnswer(dialogContext.m_BookEventPCView, suggestions);
+                    break;
+                default:
+                    _logger.LogWarning("Marking suggested answers has not been implemented for this dialog type. DialogType={dialogType}", Game.Instance.DialogController.Dialog.Type);
+                    break;
+            }
+
+            if (suggestions.Count > 0)
+            {
+                PlaySound(UISoundType.GlobalMapRandomEncounter);
+            }
         }
 
         private void MarkInterchapterAnswer(InterchapterPCView interchapterView, List<NetworkDialogAnswerSuggestion> suggestions)
@@ -188,6 +202,17 @@ namespace WOTRMultiplayer.GameInteraction
             }
 
             var answers = interchapterView.gameObject.transform.Find("ContentWrapper/Window/Content/Answers");
+            MarkAnswers(answers, suggestions);
+        }
+
+        private void MarkBookAnswer(BookEventPCView bookView, List<NetworkDialogAnswerSuggestion> suggestions)
+        {
+            if (bookView == null)
+            {
+                return;
+            }
+
+            var answers = bookView.gameObject.transform.Find("ContentWrapper/Window/Content/Answers");
             MarkAnswers(answers, suggestions);
         }
 
@@ -282,6 +307,8 @@ namespace WOTRMultiplayer.GameInteraction
             {
                 try
                 {
+                    ResetSuggestedDialogAnswers();
+
                     var answer = Game.Instance.DialogController.Answers.FirstOrDefault(a => string.Equals(a.name, answerName, StringComparison.OrdinalIgnoreCase));
                     if (answer == null)
                     {

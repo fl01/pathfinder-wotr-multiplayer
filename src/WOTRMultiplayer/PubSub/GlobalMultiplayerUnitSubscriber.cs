@@ -38,7 +38,7 @@ namespace WOTRMultiplayer.PubSub
             }
 
             var position = _gameInteractionService.GetEquipmentSlotPosition(slot);
-            if (position == null)
+            if (position == null || position.Index == -1)
             {
                 return;
             }

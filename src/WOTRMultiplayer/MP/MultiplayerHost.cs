@@ -253,6 +253,9 @@ namespace WOTRMultiplayer.MP
                 return false;
             }
 
+            GameInteraction.ResetSuggestedDialogAnswers();
+            Game.Dialog.AnswerSuggestions.Clear();
+
             Game.Dialog.Answer = new NetworkDialogAnswer
             {
                 AnswerName = answerName,
@@ -267,9 +270,6 @@ namespace WOTRMultiplayer.MP
                 SendSelectedAnswer();
             }
 
-            // resets all suggested cue answers
-            GameInteraction.MarkSuggestedDialogAnswers([]);
-            Game.Dialog.AnswerSuggestions.Clear();
 
             return true;
         }
