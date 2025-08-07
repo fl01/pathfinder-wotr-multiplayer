@@ -85,6 +85,9 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         int OnAfterRollRuleHealDamage(RuleHealDamage instance, int unitsCount, int result);
 
+        bool OnBeforeRuleAttackOvercomeConcealmentRoll(RuleAttackRoll ruleAttackRoll);
+        void OnAfterRuleAttackOvercomeConcealmentRoll(RuleAttackRoll ruleAttackRoll);
+        bool OnBeforeRuleAttackFortificationRoll(RuleAttackRoll ruleAttackRoll);
         bool OnBeforeRuleAttackRoll(RuleAttackRoll ruleAttackRoll, bool isCriticalRoll);
         void OnAfterRuleAttackRollTrigger(RuleAttackRoll ruleAttackRoll);
 

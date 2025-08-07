@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
+using Kingmaker.RuleSystem;
 using Kingmaker.RuleSystem.Rules;
 using Microsoft.Extensions.Logging;
 using static Kingmaker.RuleSystem.RulebookEvent;
@@ -11,8 +12,21 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
     [HarmonyPatch]
     public class RuleAttackRollPatches
     {
+
+        [HarmonyPatch(typeof(RuleAttackRoll), nameof(RuleAttackRoll.OnTrigger))]
+        [HarmonyPostfix]
+        public static void RuleAttackRoll_OnTrigger_Postfix(RuleAttackRoll __instance)
+        {
+            if (!Main.Multiplayer.IsActive || PatchesUtils.IsHelperUnit(__instance.Initiator.UniqueId) || PatchesUtils.IsHelperUnit(__instance.Target.UniqueId))
+            {
+                return;
+            }
+
+            Main.Multiplayer.OnAfterRuleAttackRollTrigger(__instance);
+        }
+
         /// <summary>
-        /// D20 + CriticalD20
+        /// D20 + CriticalD20 + Fortificationd100
         /// </summary>
         /// <param name="instructions"></param>
         /// <returns></returns>
@@ -22,6 +36,76 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
         {
             var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
             var matcher = new CodeMatcher(instructions);
+            if (!ReplaceD20Rolls(target, matcher) || !ReplaceForitifactionRoll(target, matcher))
+            {
+                return instructions;
+            }
+
+            Main.GetLogger<RuleAttackRollPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            return matcher.Instructions();
+        }
+
+        [HarmonyPatch(typeof(RuleAttackRoll), nameof(RuleAttackRoll.TryOvercomeTargetConcealmentAndMissChance))]
+        [HarmonyPostfix]
+        public static void RuleAttackRoll_TryOvercomeTargetConcealmentAndMissChance_Postfix(RuleAttackRoll __instance)
+        {
+            if (!Main.Multiplayer.IsActive || PatchesUtils.IsHelperUnit(__instance.Initiator.UniqueId) || PatchesUtils.IsHelperUnit(__instance.Target.UniqueId))
+            {
+                return;
+            }
+
+            Main.Multiplayer.OnAfterRuleAttackOvercomeConcealmentRoll(__instance);
+        }
+
+        [HarmonyPatch(typeof(RuleAttackRoll), nameof(RuleAttackRoll.TryOvercomeTargetConcealmentAndMissChance))]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> RuleAttackRoll_TryOvercomeTargetConcealmentAndMissChance_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var matcher = new CodeMatcher(instructions);
+            var replaceWith = AccessTools.Method(typeof(RuleAttackRollPatches), nameof(RuleAttackRollPatches.OvercomeConcealmentRollD100));
+            var lookFor = AccessTools.PropertyGetter(typeof(RuleAttackRoll), nameof(RuleAttackRoll.MissChanceRoll));
+            CodeMatcher match = matcher.SearchForward(x => x.Calls(lookFor));
+            if (match.IsInvalid)
+            {
+                Main.GetLogger<RuleAttackRollPatches>().LogError("Transpiler has no been applied. Target={target}", target);
+                return instructions;
+            }
+
+            match.RemoveInstructions(2);
+            var newInstructions = new List<CodeInstruction>()
+            {
+                new(OpCodes.Call, replaceWith)
+            };
+            match.Insert(newInstructions);
+
+            return matcher.Instructions();
+        }
+
+        private static bool ReplaceForitifactionRoll(string target, CodeMatcher matcher)
+        {
+            var replaceWith = AccessTools.Method(typeof(RuleAttackRollPatches), nameof(RuleAttackRollPatches.ForitifactionRollD100));
+            var lookFor = AccessTools.PropertyGetter(typeof(Dice), nameof(Dice.D100));
+            CodeMatcher match = matcher.Start().SearchForward(x => x.Calls(lookFor));
+            if (match.IsInvalid)
+            {
+                Main.GetLogger<RuleAttackRollPatches>().LogError("Transpiler has no been applied. Target={target}, Pos={pos}", target, match.Pos);
+                return false;
+            }
+
+            match.RemoveInstruction();
+            var newInstructions = new List<CodeInstruction>()
+            {
+                new(OpCodes.Ldarg_0),
+                new(OpCodes.Call, replaceWith)
+            };
+            match.Insert(newInstructions);
+
+            return true;
+        }
+
+        private static bool ReplaceD20Rolls(string target, CodeMatcher matcher)
+        {
             var replaceWith = AccessTools.Method(typeof(RuleAttackRollPatches), nameof(RuleAttackRollPatches.AttackRollD20));
             var lookFor = AccessTools.Method(typeof(Dice), nameof(Dice.GenerateD20));
             CodeMatcher match;
@@ -43,23 +127,10 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             if (replacementCounter != ExpectedReplacementCounter)
             {
                 Main.GetLogger<RuleAttackRollPatches>().LogError("Instructions have not been replaced expected number of times. Target={target}, Expected={expected}, Current={current}", target, ExpectedReplacementCounter, replacementCounter);
-                return instructions;
+                return false;
             }
 
-            Main.GetLogger<RuleAttackRollPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
-            return matcher.Instructions();
-        }
-
-        [HarmonyPatch(typeof(RuleAttackRoll), nameof(RuleAttackRoll.OnTrigger))]
-        [HarmonyPostfix]
-        public static void RuleAttackRoll_OnTrigger_Postfix(RuleAttackRoll __instance)
-        {
-            if (!Main.Multiplayer.IsActive || PatchesUtils.IsHelperUnit(__instance.Initiator.UniqueId) || PatchesUtils.IsHelperUnit(__instance.Target.UniqueId))
-            {
-                return;
-            }
-
-            Main.Multiplayer.OnAfterRuleAttackRollTrigger(__instance);
+            return true;
         }
 
         public static RuleRollD20 AttackRollD20(bool isFake, RuleAttackRoll ruleAttackRoll, bool isCriticalRoll)
@@ -76,6 +147,40 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             }
 
             var roll = Dice.GenerateD20(isFake);
+            return roll;
+        }
+
+        public static RuleRollD100 ForitifactionRollD100(RuleAttackRoll ruleAttackRoll)
+        {
+            if (!Main.Multiplayer.IsActive || PatchesUtils.IsHelperUnit(ruleAttackRoll.Initiator.UniqueId) || PatchesUtils.IsHelperUnit(ruleAttackRoll.Target.UniqueId))
+            {
+                return RulebookEvent.Dice.D100;
+            }
+
+            var shouldRunOriginalLogic = Main.Multiplayer.OnBeforeRuleAttackFortificationRoll(ruleAttackRoll);
+            if (!shouldRunOriginalLogic)
+            {
+                return ruleAttackRoll.FortificationRoll;
+            }
+
+            var roll = RulebookEvent.Dice.D100;
+            return roll;
+        }
+
+        public static RuleRollD100 OvercomeConcealmentRollD100(RuleAttackRoll ruleAttackRoll)
+        {
+            if (!Main.Multiplayer.IsActive || PatchesUtils.IsHelperUnit(ruleAttackRoll.Initiator.UniqueId) || PatchesUtils.IsHelperUnit(ruleAttackRoll.Target.UniqueId))
+            {
+                return RulebookEvent.Dice.D100;
+            }
+
+            var shouldRunOriginalLogic = Main.Multiplayer.OnBeforeRuleAttackOvercomeConcealmentRoll(ruleAttackRoll);
+            if (!shouldRunOriginalLogic)
+            {
+                return ruleAttackRoll.MissChanceRoll;
+            }
+
+            var roll = RulebookEvent.Dice.D100;
             return roll;
         }
     }

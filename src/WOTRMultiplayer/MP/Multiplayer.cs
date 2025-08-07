@@ -325,6 +325,80 @@ namespace WOTRMultiplayer.MP
             }
         }
 
+        public bool OnBeforeRuleAttackOvercomeConcealmentRoll(RuleAttackRoll ruleAttackRoll)
+        {
+            try
+            {
+                var multiplayerActor = GetMultiplayerActor();
+                if (!ShouldRetrieveRoll(multiplayerActor, ruleAttackRoll))
+                {
+                    return true;
+                }
+
+                var roll = CreateAttackOvercomeConcealmentRoll(NetworkDiceRollType.Hit, ruleAttackRoll);
+                var d100 = RetrieveRoll<RuleRollD100>(multiplayerActor, roll, ruleAttackRoll.Initiator);
+                if (d100 == null)
+                {
+                    return true;
+                }
+
+                ruleAttackRoll.MissChanceRoll = d100;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
+        }
+
+        public void OnAfterRuleAttackOvercomeConcealmentRoll(RuleAttackRoll ruleAttackRoll)
+        {
+            try
+            {
+                var multiplayerActor = GetMultiplayerActor();
+                if (!ShouldStoreRoll(multiplayerActor, ruleAttackRoll) || ruleAttackRoll.MissChanceRoll == null)
+                {
+                    return;
+                }
+
+                var roll = CreateAttackOvercomeConcealmentRoll(NetworkDiceRollType.Hit, ruleAttackRoll);
+                SaveIntRollValue(multiplayerActor, roll, ruleAttackRoll.MissChanceRoll);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
+        }
+
+        public bool OnBeforeRuleAttackFortificationRoll(RuleAttackRoll ruleAttackRoll)
+        {
+            try
+            {
+                var multiplayerActor = GetMultiplayerActor();
+                if (!ShouldRetrieveRoll(multiplayerActor, ruleAttackRoll))
+                {
+                    return true;
+                }
+
+                var roll = CreateFortificationAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll);
+                var d100 = RetrieveRoll<RuleRollD100>(multiplayerActor, roll, ruleAttackRoll.Initiator);
+                if (d100 == null)
+                {
+                    return true;
+                }
+
+                ruleAttackRoll.FortificationRoll = d100;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
+        }
+
         public bool OnBeforeRuleAttackRoll(RuleAttackRoll ruleAttackRoll, bool isCriticalRoll)
         {
             try
@@ -376,6 +450,12 @@ namespace WOTRMultiplayer.MP
                 {
                     var criticalRoll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll, true);
                     SaveIntRollValue(multiplayerActor, criticalRoll, ruleAttackRoll.CriticalConfirmationD20);
+                }
+
+                if (ruleAttackRoll.FortificationRoll != null)
+                {
+                    var fortificationRoll = CreateFortificationAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll);
+                    SaveIntRollValue(multiplayerActor, fortificationRoll, ruleAttackRoll.FortificationRoll);
                 }
             }
             catch (Exception ex)
@@ -1192,6 +1272,28 @@ namespace WOTRMultiplayer.MP
                 ReasonAbilityName = ruleSavingThrow.Reason?.Ability?.NameForAcronym,
                 ReasonCasterId = ruleSavingThrow.Reason?.Caster?.UniqueId,
                 DifficultyClass = ruleSavingThrow.DifficultyClass,
+            };
+
+            return roll;
+        }
+
+        private AttackOvercomeConcealmentRoll CreateAttackOvercomeConcealmentRoll(NetworkDiceRollType diceRollType, RuleAttackRoll ruleAttackRoll)
+        {
+            var roll = new AttackOvercomeConcealmentRoll(ruleAttackRoll.Initiator.UniqueId, ruleAttackRoll.GetType().Name, diceRollType, ruleAttackRoll.AttackBonus)
+            {
+                MissChance = ruleAttackRoll.MissChanceValue,
+                AttackRoll = CreateAttackRoll(diceRollType, ruleAttackRoll, ruleAttackRoll.IsCriticalRoll)
+            };
+
+            return roll;
+        }
+
+        private FortificationAttackRoll CreateFortificationAttackRoll(NetworkDiceRollType diceRollType, RuleAttackRoll ruleAttackRoll)
+        {
+            var roll = new FortificationAttackRoll(ruleAttackRoll.Initiator.UniqueId, ruleAttackRoll.GetType().Name, diceRollType, ruleAttackRoll.AttackBonus)
+            {
+                FortificationChance = ruleAttackRoll.FortificationChance,
+                AttackRoll = CreateAttackRoll(diceRollType, ruleAttackRoll, ruleAttackRoll.IsCriticalRoll)
             };
 
             return roll;
