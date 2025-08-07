@@ -465,6 +465,38 @@ namespace WOTRMultiplayer.MP.Actors
 
         protected abstract void Send(long playerId, object message);
 
+        protected void ShowPlayerDisconnectedMessage(NetworkPlayer networkPlayer)
+        {
+            if (networkPlayer == null || Game.Stage != NetworkGameStage.Playing)
+            {
+                return;
+            }
+
+            GameInteraction.ShowModalMessage($"Player {networkPlayer.Name} has left the game");
+        }
+
+        protected NetworkPlayer CleanupPlayer(long playerId)
+        {
+            var existingPlayer = GetPlayer(playerId);
+            if (existingPlayer == null)
+            {
+                Logger.LogWarning("Nothing to cleanup since player doesn't exist. PlayerId={playerId}", playerId);
+                return null;
+            }
+
+            Game.Players.Remove(existingPlayer);
+
+            foreach (var characterOwnership in Game.Characters)
+            {
+                if (characterOwnership.Owner == existingPlayer)
+                {
+                    characterOwnership.Owner = GetPlayer(LocalHostPlayerId);
+                }
+            }
+
+            return existingPlayer;
+        }
+
         protected HashSet<long> AddPlayerReadyStatus(PlayerTurnReadinessType playerReadinessType, long playerId, string unitId)
         {
             return AddPlayerReadyStatus(playerReadinessType, playerId, null, unitId);

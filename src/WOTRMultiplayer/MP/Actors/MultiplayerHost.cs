@@ -1081,26 +1081,16 @@ namespace WOTRMultiplayer.MP.Actors
         {
             lock (ActionLock)
             {
-                var existingPlayer = GetPlayer(playerId);
-                if (existingPlayer == null)
+                var removedPlayer = CleanupPlayer(playerId);
+                if (removedPlayer == null)
                 {
-                    Logger.LogWarning("Nothing to cleanup since player doesn't exist. PlayerId={playerId}", playerId);
                     return;
                 }
 
-                Game.Players.Remove(existingPlayer);
-                if (!string.IsNullOrEmpty(existingPlayer.Name))
-                {
-                    OnPlayersChanged?.Invoke(Game.Players);
-                }
-
-                // TODO: send updates to other clients
-                Logger.LogError("Player disconnection is not synced with other players");
-
-                if (Game.Stage == NetworkGameStage.Playing)
-                {
-                    GameInteraction.ShowModalMessage($"Player {existingPlayer.Name} has left the game");
-                }
+                OnPlayersChanged?.Invoke(Game.Players);
+                var message = new NotifyPlayerDisconnected { PlayerId = playerId };
+                _networkServer.SendAllExcept(playerId, message);
+                ShowPlayerDisconnectedMessage(removedPlayer);
             }
         }
 

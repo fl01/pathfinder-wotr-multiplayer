@@ -592,7 +592,7 @@ namespace WOTRMultiplayer.GameInteraction
             // TODO: proper command queue
             while ((Game.Instance.TurnBasedCombatController?.CurrentTurn?.Rider?.Commands?.Queue?.Count ?? 0) > 0)
             {
-                Thread.Sleep(100);
+                Thread.Sleep(50);
             }
 
             _mainThreadAccessor.Enqueue(() =>
@@ -717,7 +717,6 @@ namespace WOTRMultiplayer.GameInteraction
                     PathVisualizer.Instance.m_CurrentPath.Claim(PathVisualizer.Instance);
                 }
 
-                // TODO: look at AbilityExecutionController
                 _mainThreadAccessor.Enqueue(() =>
                 {
                     caster.Commands.Run(command);

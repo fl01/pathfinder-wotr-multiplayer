@@ -321,6 +321,7 @@ namespace WOTRMultiplayer.MP.Actors
                 // this is kinda special as well as the host is blocking the game loop thread until `RollResponse` is received
                 .Register<DiceRollValueRequest>(OnRollRequest)
 
+                .Register<NotifyPlayerDisconnected>(OnNotifyPlayerDisconnected)
                 .Register<PlayerNameRequest>(OnPlayerNameRequest)
                 .Register<PlayerReadyStatusChanged>(OnPlayerReadyStatusChanged)
                 .Register<NotifyPlayersChanged>(OnNotifyPlayersChanged)
@@ -358,6 +359,13 @@ namespace WOTRMultiplayer.MP.Actors
 
             _networkServerClient.OnError = OnNetworkClientError;
             _networkServerClient.OnConnected = OnNetworkClientConnected;
+        }
+
+        private void OnNotifyPlayerDisconnected(NotifyPlayerDisconnected disconnected)
+        {
+            Logger.LogInformation("Received {messageType}. UnitId={unitID}, MapObjectId={round}", nameof(NotifyPlayerDisconnected), disconnected.PlayerId);
+            var player = CleanupPlayer(disconnected.PlayerId);
+            ShowPlayerDisconnectedMessage(player);
         }
 
         private void OnNotifyPerceptionCheckRolled(NotifyPerceptionCheckRolled rolled)
