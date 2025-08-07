@@ -198,5 +198,14 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
         public void ApplyPerceptionCheck(NetworkPerceptionCheck check)
         {
         }
+
+        public void UpdateCombatOrder(List<string> combatOrderUnits)
+        {
+        }
+
+        public List<string> GetUnitsCombatOrder()
+        {
+            return [];
+        }
     }
 }

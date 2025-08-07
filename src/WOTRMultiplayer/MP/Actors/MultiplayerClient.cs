@@ -239,8 +239,18 @@ namespace WOTRMultiplayer.MP.Actors
 
         public bool CanContinueCombat()
         {
-            // must be run after Preparation phase
-            return Game.Combat != null && Game.Combat.IsCombatPrepared;
+            if (Game.Combat == null)
+            {
+                return false;
+            }
+
+            if (Game.Combat.IsCombatPrepared && Game.Combat.InitialCombatOrder.Count > 0)
+            {
+                GameInteraction.UpdateCombatOrder(Game.Combat.InitialCombatOrder);
+                Game.Combat.InitialCombatOrder.Clear();
+            }
+
+            return Game.Combat.IsCombatPrepared;
         }
 
         public bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound)
@@ -332,7 +342,7 @@ namespace WOTRMultiplayer.MP.Actors
                 .Register<NotifyToggleActivatableAbility>(OnNotifyToggleActivatableAbility)
                 // combat
                 .Register<PlayerCombatTurnEnded>(OnPlayerCombatTurnEnded)
-                .Register<NotifyCombatStarted>(OnNotifyCombatStarted)
+                .Register<NotifyCombatInitialized>(OnNotifyCombatInitialized)
                 .Register<NotifyCombatTurnStarted>(OnNotifyCombatTurnStarted)
                 .Register<NotifyCombatTurnSynchronizationRequired>(OnNotifyCombatTurnSynchronizationRequired)
 
@@ -503,9 +513,9 @@ namespace WOTRMultiplayer.MP.Actors
             GameInteraction.StartTurnBasedCombatTurn(Game.Combat.Turn.IsActingInSurpriseRound);
         }
 
-        private async void OnNotifyCombatStarted(NotifyCombatStarted started)
+        private async void OnNotifyCombatInitialized(NotifyCombatInitialized combatInitialized)
         {
-            Logger.LogInformation("Received {messageType}. Units={unitsCount}", nameof(NotifyCombatStarted), started.Units.Count);
+            Logger.LogInformation("Received {messageType}. Units={unitsCount}", nameof(NotifyCombatInitialized), combatInitialized.Units.Count);
 
             if (Game.Combat == null)
             {
@@ -516,9 +526,11 @@ namespace WOTRMultiplayer.MP.Actors
                 }
             }
 
-            await SynchronizeUnitsAsync(started.Units);
+
+            await SynchronizeUnitsAsync(combatInitialized.Units);
 
             Game.Combat.IsInitialized = true;
+            Game.Combat.InitialCombatOrder = [.. combatInitialized.UnitsCombatOrder];
 
             Logger.LogInformation("Sending {messageType}", nameof(ClientCombatInitialized));
             var message = new ClientCombatInitialized();

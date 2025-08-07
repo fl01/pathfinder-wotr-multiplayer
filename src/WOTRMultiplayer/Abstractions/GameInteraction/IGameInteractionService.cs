@@ -99,5 +99,9 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         bool IsSummoned(string unitId);
 
         void ApplyPerceptionCheck(NetworkPerceptionCheck check);
+
+        void UpdateCombatOrder(List<string> combatOrderUnits);
+
+        List<string> GetUnitsCombatOrder();
     }
 }

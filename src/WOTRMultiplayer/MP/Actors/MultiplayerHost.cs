@@ -349,14 +349,16 @@ namespace WOTRMultiplayer.MP.Actors
             if (Game.Combat.Round == 1 && !Game.Combat.IsInitialized)
             {
                 var unitsInCombat = GameInteraction.GetUnitsInCombat();
-                var message = new NotifyCombatStarted
+                var unitsCombatOrder = GameInteraction.GetUnitsCombatOrder();
+                var message = new NotifyCombatInitialized
                 {
-                    Units = Mapper.Map<List<Networking.Messages.NetworkUnit>>(unitsInCombat)
+                    Units = Mapper.Map<List<Networking.Messages.NetworkUnit>>(unitsInCombat),
+                    UnitsCombatOrder = unitsCombatOrder
                 };
                 _networkServer.SendAll(message);
                 Game.Combat.IsInitialized = true;
                 Game.Combat.PlayersCombatInitialization.TryAdd(Game.LocalPlayerId, true);
-                Logger.LogInformation("Sending {messageType}. UnitsInCombat={unitsCount}", nameof(NotifyCombatStarted), message.Units.Count);
+                Logger.LogInformation("Sending {messageType}. UnitsInCombat={unitsCount}, CombatOrder={order}", nameof(NotifyCombatInitialized), message.Units.Count, message.UnitsCombatOrder);
             }
 
             var canContinue = Game.Combat.PlayersCombatInitialization.Count >= Game.Players.Count;

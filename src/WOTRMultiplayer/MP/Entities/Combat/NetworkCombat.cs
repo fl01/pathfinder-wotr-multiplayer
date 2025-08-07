@@ -43,5 +43,7 @@ namespace WOTRMultiplayer.MP.Entities.Combat
         public ConcurrentDictionary<string, HashSet<long>> MidCombatUnitJoins { get; set; } = new();
 
         public HashSet<string> ConfirmedMidCombatUnits { get; set; } = [];
+
+        public List<string> InitialCombatOrder { get; set; } = [];
     }
 }

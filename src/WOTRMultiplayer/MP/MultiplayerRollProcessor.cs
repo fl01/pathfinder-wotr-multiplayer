@@ -912,6 +912,5 @@ namespace WOTRMultiplayer.MP
             var roll = new InitiativeRoll(initiativeRoll.Initiator.UniqueId, initiativeRoll.GetType().Name, diceRollType, initiativeRoll.Modifier);
             return roll;
         }
-
     }
 }

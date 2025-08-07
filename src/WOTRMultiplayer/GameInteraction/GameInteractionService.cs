@@ -979,6 +979,40 @@ namespace WOTRMultiplayer.GameInteraction
         }
 
 
+        public List<string> GetUnitsCombatOrder()
+        {
+            var units = Game.Instance.TurnBasedCombatController.m_Units.Select(u => u.Unit.UniqueId).ToList();
+            return units;
+        }
+
+        public void UpdateCombatOrder(List<string> unitsCombatOrder)
+        {
+            _logger.LogInformation("Update units combat order. Order={order}", unitsCombatOrder);
+
+            var existingUnits = Game.Instance.TurnBasedCombatController.m_Units.ToList();
+            if (unitsCombatOrder.Count != existingUnits.Count)
+            {
+                _logger.LogError("Combat units mismatch. LocalCount={localCount}, RemoteCount={remoteCount}", existingUnits.Count, unitsCombatOrder.Count);
+                return;
+            }
+
+            Game.Instance.TurnBasedCombatController.m_Units.Clear();
+            foreach (var remoteUnitId in unitsCombatOrder)
+            {
+                var localUnit = existingUnits.FirstOrDefault(u => string.Equals(remoteUnitId, u.Unit.UniqueId, StringComparison.OrdinalIgnoreCase));
+                if (localUnit == null)
+                {
+                    _logger.LogError("Unable to find unit to set correct combat order. UnitId={unitId}", remoteUnitId);
+                    Game.Instance.TurnBasedCombatController.m_Units.Clear();
+                    Game.Instance.TurnBasedCombatController.m_Units = [.. existingUnits];
+                    return;
+                }
+
+                Game.Instance.TurnBasedCombatController.m_Units.Add(localUnit);
+            }
+        }
+
+
         private void SuppressEventsFor(NetworkEquipmentSlot slot)
         {
             _triggeredByAnotherPlayer.TryAdd(GetSuppressKey(slot), true);
