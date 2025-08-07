@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using WOTRMultiplayer.MP.Entities.Equipment;
 
 namespace WOTRMultiplayer.MP.Entities.Loot
 {

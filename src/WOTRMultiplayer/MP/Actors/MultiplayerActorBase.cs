@@ -290,7 +290,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return;
             }
 
-            Logger.LogWarning("Sending changed equipment slot. SlotType={slotType}, SlotIndex={slotIndex}, ItemId={itemId}, OwnerId={ownerId}", equipmentSlot.Position.Type, equipmentSlot.Position.Index, equipmentSlot.ItemId, equipmentSlot.OwnerId);
+            Logger.LogWarning("Sending changed equipment slot. SlotType={slotType}, SlotIndex={slotIndex}, ItemId={itemId}, OwnerId={ownerId}", equipmentSlot.Position.Type, equipmentSlot.Position.Index, equipmentSlot.Item?.UniqueId, equipmentSlot.OwnerId);
             var message = new NotifyEquipmentSlotChanged
             {
                 Slot = Mapper.Map<Networking.Messages.NetworkEquipmentSlot>(equipmentSlot)

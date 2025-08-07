@@ -43,7 +43,7 @@ namespace WOTRMultiplayer.PubSub
 
             var networkSlot = new NetworkEquipmentSlot
             {
-                ItemId = slot.HasItem ? slot.Item.UniqueId : null,
+                Item = slot.HasItem ? NetworkItem.FromItemEntity(slot.Item) : null,
                 OwnerId = slot.Owner.Unit.UniqueId,
                 Position = position
             };

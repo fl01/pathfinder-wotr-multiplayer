@@ -4,7 +4,7 @@
     {
         public NetworkEquipmentSlotPosition Position { get; set; }
 
-        public string ItemId { get; set; }
+        public NetworkItem Item { get; set; }
 
         public string OwnerId { get; set; }
     }

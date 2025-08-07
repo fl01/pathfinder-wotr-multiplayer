@@ -141,8 +141,9 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
 
         public static string GetNewEntityUniqueId(EntityViewBase prefab)
         {
-            Main.GetLogger<RandomIdGenerationPatches>().LogError("TODO: Generate new entity unique id. Name={name}", prefab.name);
-            return Game.Instance.Player.GetNewUniqueId();
+            var identifier = $"{GetCommonIdPart()}:{prefab.GetType().Name}:{prefab.name}";
+            var id = Main.Multiplayer.IdGenerator.GenerateId(UniqueIdType.EntityView, Game.Instance.Player.GameId, identifier);
+            return id;
         }
 
         public static string GetNewUnitUniqueId(BlueprintUnit unit, UnitEntityView prefab)

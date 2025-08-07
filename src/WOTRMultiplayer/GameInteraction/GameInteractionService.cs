@@ -698,7 +698,7 @@ namespace WOTRMultiplayer.GameInteraction
                 }
 
                 var target = GetUnitEntity(abilityUse.TargetId);
-                var point = new UnityEngine.Vector3(abilityUse.TargetPoint.X, abilityUse.TargetPoint.Y, abilityUse.TargetPoint.Z);
+                var point = new Vector3(abilityUse.TargetPoint.X, abilityUse.TargetPoint.Y, abilityUse.TargetPoint.Z);
                 var targetWrapper = new TargetWrapper(point, null, target);
 
                 if (abilityUse.ActionsState != null)
@@ -711,7 +711,7 @@ namespace WOTRMultiplayer.GameInteraction
                 command.CreatedByPlayer = true;
                 if (abilityUse.VectorPath != null)
                 {
-                    var movementPath = abilityUse.VectorPath.Select(v => new UnityEngine.Vector3(v.X, v.Y, v.Z)).ToList();
+                    var movementPath = abilityUse.VectorPath.Select(v => new Vector3(v.X, v.Y, v.Z)).ToList();
                     command.ForcedPath = new ForcedPath(movementPath);
                     PathVisualizer.Instance.m_CurrentPath = command.ForcedPath;
                     PathVisualizer.Instance.m_CurrentPath.Claim(PathVisualizer.Instance);
@@ -873,7 +873,7 @@ namespace WOTRMultiplayer.GameInteraction
                 using var context = _networkExecutionContext.Value = new NetworkExecutionContext { Equipment = new EquipmentContext { Position = slot.Position } };
 
                 var slotToUpdate = slotsOfSameType[slot.Position.Index];
-                if (string.IsNullOrEmpty(slot.ItemId))
+                if (slot.Item == null)
                 {
                     slotToUpdate.RemoveItem();
                     RefreshInventoryWindow();
@@ -881,16 +881,16 @@ namespace WOTRMultiplayer.GameInteraction
                     return;
                 }
 
-                var item = unit.Inventory.Items.FirstOrDefault(i => string.Equals(i.UniqueId, slot.ItemId, StringComparison.OrdinalIgnoreCase));
+                var item = unit.Inventory.Items.FirstOrDefault(i => string.Equals(i.UniqueId, slot.Item.UniqueId, StringComparison.OrdinalIgnoreCase));
                 if (item == null)
                 {
-                    _logger.LogError("Unable to update equipment slot with missing item. UnitId={unitId}, SlotType={slotType}, SlotIndex={slotIndex}, ItemId={itemId}", slot.OwnerId, slot.Position.Type, slot.Position.Index, slot.ItemId);
+                    _logger.LogError("Unable to update equipment slot with missing item. UnitId={unitId}, SlotType={slotType}, SlotIndex={slotIndex}, ItemId={itemId}", slot.OwnerId, slot.Position.Type, slot.Position.Index, slot.Item.UniqueId);
                     return;
                 }
 
                 slotToUpdate.InsertItem(item);
                 RefreshInventoryWindow();
-                _logger.LogInformation("Item has been equipped. UnitId={unitId}, SlotType={slotType}, SlotIndex={slotIndex}, ItemId={itemId}", slot.OwnerId, slot.Position.Type, slot.Position.Index, slot.ItemId);
+                _logger.LogInformation("Item has been equipped. UnitId={unitId}, SlotType={slotType}, SlotIndex={slotIndex}, ItemId={itemId}", slot.OwnerId, slot.Position.Type, slot.Position.Index, slot.Item.UniqueId);
             });
         }
 

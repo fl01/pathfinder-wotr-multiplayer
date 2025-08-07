@@ -14,6 +14,9 @@ namespace WOTRMultiplayer.Random
         ItemEntity,
 
         [Description("FA")]
-        Fact
+        Fact,
+
+        [Description("EV")]
+        EntityView
     }
 }

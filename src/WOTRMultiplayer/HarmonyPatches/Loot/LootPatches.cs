@@ -7,6 +7,7 @@ using Kingmaker.Items;
 using Kingmaker.UI.MVVM._VM.Loot;
 using Kingmaker.UI.MVVM._VM.Slots;
 using WOTRMultiplayer.MP.Entities;
+using WOTRMultiplayer.MP.Entities.Equipment;
 using WOTRMultiplayer.MP.Entities.Loot;
 
 namespace WOTRMultiplayer.HarmonyPatches.Loot
@@ -75,7 +76,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Loot
             var dropItem = new NetworkDropItem
             {
                 OwnerEntityId = player.MainCharacter.UniqueId,
-                Item = CreateNetworkItem(item)
+                Item = NetworkItem.FromItemEntity(item)
             };
 
             Main.Multiplayer.OnDropItem(dropItem);
@@ -88,27 +89,10 @@ namespace WOTRMultiplayer.HarmonyPatches.Loot
             {
                 Id = lootOwner.UniqueId,
                 Position = new NetworkVector3(lootOwner.Position.x, lootOwner.Position.y, lootOwner.Position.z),
-                Items = [.. itemEntities.Select(CreateNetworkItem)]
+                Items = [.. itemEntities.Select(NetworkItem.FromItemEntity)]
             };
 
             return container;
-        }
-
-        private static NetworkItem CreateNetworkItem(ItemEntity itemEntity)
-        {
-            var item = new NetworkItem
-            {
-                UniqueId = itemEntity.UniqueId,
-                BlueprintId = itemEntity.Blueprint.AssetGuid.ToString(),
-                Name = itemEntity.NameForAcronym,
-                Count = itemEntity.Count,
-                Cost = itemEntity.Cost,
-                EnchantmentValue = itemEntity.EnchantmentValue,
-                EnchantmentsCount = itemEntity.Enchantments.Count,
-                FirstEnchantmentName = itemEntity.Enchantments.FirstOrDefault()?.NameForAcronym
-            };
-
-            return item;
         }
     }
 }

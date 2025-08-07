@@ -708,7 +708,7 @@ namespace WOTRMultiplayer.MP.Actors
 
         private void OnNotifyEquipmentSlotChanged(long playerId, NotifyEquipmentSlotChanged slotChanged)
         {
-            Logger.LogInformation("Received {messageType}. PlayerId={playerId}, SlotType={slotType}, SlotIndex={slotIndex}, ItemId={itemId}, OwnerId={ownerId}", nameof(NotifyEquipmentSlotChanged), playerId, slotChanged.Slot.Position.Type, slotChanged.Slot.Position.Index, slotChanged.Slot.ItemId, slotChanged.Slot.OwnerId);
+            Logger.LogInformation("Received {messageType}. PlayerId={playerId}, SlotType={slotType}, SlotIndex={slotIndex}, ItemId={itemId}, OwnerId={ownerId}", nameof(NotifyEquipmentSlotChanged), playerId, slotChanged.Slot.Position.Type, slotChanged.Slot.Position.Index, slotChanged.Slot.Item?.UniqueId, slotChanged.Slot.OwnerId);
             var slot = Mapper.Map<NetworkEquipmentSlot>(slotChanged.Slot);
             GameInteraction.UpdateEquipmentSlot(slot);
 

@@ -1,5 +1,5 @@
 ﻿using Kingmaker.Items;
-using WOTRMultiplayer.MP.Entities.Loot;
+using WOTRMultiplayer.MP.Entities.Equipment;
 
 namespace WOTRMultiplayer.GameInteraction
 {

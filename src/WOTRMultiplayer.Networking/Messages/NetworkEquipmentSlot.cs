@@ -9,7 +9,7 @@ namespace WOTRMultiplayer.Networking.Messages
         public NetworkEquipmentSlotPosition Position { get; set; }
 
         [ProtoMember(2)]
-        public string ItemId { get; set; }
+        public NetworkItem Item { get; set; }
 
         [ProtoMember(3)]
         public string OwnerId { get; set; }

@@ -1,4 +1,6 @@
-﻿namespace WOTRMultiplayer.MP.Entities.Loot
+﻿using WOTRMultiplayer.MP.Entities.Equipment;
+
+namespace WOTRMultiplayer.MP.Entities.Loot
 {
     public class NetworkDropItem
     {
