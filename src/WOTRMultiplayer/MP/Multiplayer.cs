@@ -746,6 +746,53 @@ namespace WOTRMultiplayer.MP
             }
         }
 
+        public bool OnBeforeParryDataTrigger(RuleAttackRoll.ParryData parryData)
+        {
+            try
+            {
+                var multiplayerActor = GetMultiplayerActor();
+                if (!ShouldRetrieveRoll(multiplayerActor, parryData))
+                {
+                    return true;
+                }
+
+                var roll = CreateParryRoll(NetworkDiceRollType.Hit, parryData);
+                var d20 = RetrieveRoll<RuleRollD20>(multiplayerActor, roll, parryData.Initiator);
+                if (d20 == null)
+                {
+                    return true;
+                }
+
+                parryData.Roll = d20;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
+        }
+
+        public void OnAfterParryDataTrigger(RuleAttackRoll.ParryData parryData)
+        {
+            try
+            {
+                var multiplayerActor = GetMultiplayerActor();
+                if (!ShouldStoreRoll(multiplayerActor, parryData))
+                {
+                    return;
+                }
+
+                var roll = CreateParryRoll(NetworkDiceRollType.Hit, parryData);
+                SaveIntRollValue(multiplayerActor, roll, parryData.Roll);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
+        }
+
         public void OnAfterCueShow(string dialogName, string cueName, bool hasSystemAnswer)
         {
             var multiplayerActor = GetMultiplayerActor();
@@ -1176,6 +1223,17 @@ namespace WOTRMultiplayer.MP
                 _logger.LogError(ex, $"Unable to handle {MethodBase.GetCurrentMethod().Name}");
                 throw;
             }
+        }
+
+        private ParryRoll CreateParryRoll(NetworkDiceRollType diceRollType, RuleAttackRoll.ParryData parryData)
+        {
+            var roll = new ParryRoll(parryData.Initiator.UniqueId, parryData.GetType().Name, diceRollType, 0)
+            {
+                TargetId = parryData.AttackBonusRule.Target.UniqueId,
+                WeaponId = parryData.AttackBonusRule.Weapon.UniqueId,
+            };
+
+            return roll;
         }
 
         private ConcealmentRoll CreateConcealmentRoll(NetworkDiceRollType diceRollType, RuleConcealmentCheck ruleConcealmentCheck)

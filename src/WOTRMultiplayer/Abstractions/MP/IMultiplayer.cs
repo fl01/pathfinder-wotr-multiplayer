@@ -109,6 +109,9 @@ namespace WOTRMultiplayer.Abstractions.MP
         bool OnBeforeRuleConcealmentCheckTrigger(RuleConcealmentCheck ruleConcealmentCheck);
         void OnAfterRuleConcealmentCheckTrigger(RuleConcealmentCheck ruleConcealmentCheck);
 
+        bool OnBeforeParryDataTrigger(RuleAttackRoll.ParryData parryData);
+        void OnAfterParryDataTrigger(RuleAttackRoll.ParryData parryData);
+
         void OnLootContainer(NetworkLootContainer container);
 
         void OnDropItem(NetworkDropItem dropItem);
