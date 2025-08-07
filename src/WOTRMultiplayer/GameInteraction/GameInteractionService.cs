@@ -1355,7 +1355,6 @@ namespace WOTRMultiplayer.GameInteraction
                         _logger.LogInformation("Configured unit path. Vectors={vectorsCount}", pathForCurrentUnit);
                     }
 
-
                     clickEventHandler.OnClick(targetUnit?.View?.gameObject, worldPosition, click.Button, simulate: false, click.MuteEvents, IsTMBClick: false);
                 }
                 catch (Exception ex)
