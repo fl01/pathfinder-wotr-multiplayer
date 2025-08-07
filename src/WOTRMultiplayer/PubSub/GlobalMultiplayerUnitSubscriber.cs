@@ -5,6 +5,7 @@ using Kingmaker.UnitLogic;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.Abstractions.MP.Actors;
 using WOTRMultiplayer.Abstractions.PubSub;
 using WOTRMultiplayer.MP.Entities.Equipment;
 
@@ -22,17 +23,15 @@ namespace WOTRMultiplayer.PubSub
         public GlobalMultiplayerUnitSubscriber(
             ILogger<GlobalMultiplayerUnitSubscriber> logger,
             IGameInteractionService gameInteractionService,
-            IMultiplayerHost multiplayerHost,
-            IMultiplayerClient multiplayerClient)
-            : base(logger, multiplayerHost, multiplayerClient)
+            IMultiplayerActorAccessor multiplayerActorAccessor)
+            : base(logger, multiplayerActorAccessor)
         {
             _gameInteractionService = gameInteractionService;
         }
 
         public void HandleEquipmentSlotUpdated(ItemSlot slot, ItemEntity previousItem)
         {
-            var multiplayerActor = GetMultiplayerActor();
-            if (multiplayerActor == null)
+            if (ActorAccessor.Current == null)
             {
                 return;
             }
@@ -50,13 +49,12 @@ namespace WOTRMultiplayer.PubSub
                 Position = position
             };
 
-            multiplayerActor.OnEquipmentSlotChanged(networkSlot);
+            ActorAccessor.Current.OnEquipmentSlotChanged(networkSlot);
         }
 
         public void HandleUnitChangeActiveEquipmentSet(UnitDescriptor unit)
         {
-            var multiplayerActor = GetMultiplayerActor();
-            if (multiplayerActor == null)
+            if (ActorAccessor.Current == null)
             {
                 return;
             }

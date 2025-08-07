@@ -7,7 +7,7 @@ using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
 
-namespace WOTRMultiplayer.Abstractions.MP
+namespace WOTRMultiplayer.Abstractions.MP.Actors
 {
     public interface IMultiplayerActor
     {

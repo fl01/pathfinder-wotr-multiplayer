@@ -48,7 +48,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return;
             }
 
-            Main.Multiplayer.OnAfterRuleSpellResistanceCheckTrigger(__instance);
+            Main.Rolls.OnAfterRuleSpellResistanceCheckTrigger(__instance);
         }
 
         public static RuleRollD20 SpellResistanceRollD20(RuleSpellResistanceCheck ruleSpellResistanceCheck)
@@ -58,7 +58,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return Dice.D20;
             }
 
-            var shouldRunOriginalLogic = Main.Multiplayer.OnBeforeRuleSpellResistanceCheckRoll(ruleSpellResistanceCheck);
+            var shouldRunOriginalLogic = Main.Rolls.OnBeforeRuleSpellResistanceCheckRoll(ruleSpellResistanceCheck);
             if (!shouldRunOriginalLogic)
             {
                 return ruleSpellResistanceCheck.Roll;

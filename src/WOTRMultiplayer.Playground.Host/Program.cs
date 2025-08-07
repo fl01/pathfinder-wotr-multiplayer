@@ -8,7 +8,7 @@ using WOTR.Multiplayer.Playground.Core.Dummies;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.Random;
-using WOTRMultiplayer.MP;
+using WOTRMultiplayer.MP.Actors;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Dialogs;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;

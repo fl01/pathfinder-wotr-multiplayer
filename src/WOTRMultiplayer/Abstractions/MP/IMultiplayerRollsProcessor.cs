@@ -1,0 +1,42 @@
+﻿using Kingmaker.RuleSystem.Rules;
+using Kingmaker.RuleSystem.Rules.Abilities;
+using Kingmaker.RuleSystem.Rules.Damage;
+
+namespace WOTRMultiplayer.Abstractions.MP
+{
+    public interface IMultiplayerRollsProcessor
+    {
+
+        bool OnBeforeRuleCalculateDamageTrigger(RuleCalculateDamage ruleCalculateDamage);
+        void OnAfterRuleCalculateDamageTrigger(RuleCalculateDamage ruleCalculateDamage);
+
+        int OnAfterRollRuleHealDamage(RuleHealDamage instance, int unitsCount, int result);
+
+        bool OnBeforeRuleAttackOvercomeConcealmentRoll(RuleAttackRoll ruleAttackRoll);
+        void OnAfterRuleAttackOvercomeConcealmentRoll(RuleAttackRoll ruleAttackRoll);
+        bool OnBeforeRuleAttackFortificationRoll(RuleAttackRoll ruleAttackRoll);
+        bool OnBeforeRuleAttackRoll(RuleAttackRoll ruleAttackRoll, bool isCriticalRoll);
+        void OnAfterRuleAttackRollTrigger(RuleAttackRoll ruleAttackRoll);
+
+        void OnBeforeRuleSavingThrowRoll(RuleSavingThrow ruleSavingThrow);
+        void OnAfterRuleSavingThrowTrigger(RuleSavingThrow ruleSavingThrow);
+
+        bool OnBeforeRuleSpellResistanceCheckRoll(RuleSpellResistanceCheck ruleSpellResistanceCheck);
+        void OnAfterRuleSpellResistanceCheckTrigger(RuleSpellResistanceCheck ruleSpellResistanceCheck);
+
+        bool OnBeforeRuleSkillCheckRoll(RuleSkillCheck ruleSkillCheck);
+        void OnAfterRuleSkillCheckTrigger(RuleSkillCheck ruleSkillCheck);
+
+        bool OnBeforeRuleInitiativeRoll(RuleInitiativeRoll ruleInitiativeRoll);
+        void OnAfterRuleInitiativeRollTrigger(RuleInitiativeRoll ruleInitiativeRoll);
+
+        bool OnBeforeRuleCheckConcentrationRoll(RuleCheckConcentration ruleCheckConcentration);
+        void OnAfterRuleCheckConcentrationTrigger(RuleCheckConcentration ruleCheckConcentration);
+
+        bool OnBeforeRuleConcealmentCheckTrigger(RuleConcealmentCheck ruleConcealmentCheck);
+        void OnAfterRuleConcealmentCheckTrigger(RuleConcealmentCheck ruleConcealmentCheck);
+
+        bool OnBeforeParryDataTrigger(RuleAttackRoll.ParryData parryData);
+        void OnAfterParryDataTrigger(RuleAttackRoll.ParryData parryData);
+    }
+}

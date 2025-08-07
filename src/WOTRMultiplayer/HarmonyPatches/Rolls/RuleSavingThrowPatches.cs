@@ -19,7 +19,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return;
             }
 
-            Main.Multiplayer.OnAfterRuleSavingThrowTrigger(__instance);
+            Main.Rolls.OnAfterRuleSavingThrowTrigger(__instance);
         }
 
         [HarmonyPatch(typeof(RuleSavingThrow), nameof(RuleSavingThrow.Calculate))]
@@ -31,7 +31,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return;
             }
 
-            Main.Multiplayer.OnAfterRuleSavingThrowTrigger(__instance);
+            Main.Rolls.OnAfterRuleSavingThrowTrigger(__instance);
         }
 
         [HarmonyPatch(typeof(RuleSavingThrow), nameof(RuleSavingThrow.RollD20))]
@@ -69,7 +69,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return;
             }
 
-            Main.Multiplayer.OnBeforeRuleSavingThrowRoll(savingThrow);
+            Main.Rolls.OnBeforeRuleSavingThrowRoll(savingThrow);
         }
     }
 }

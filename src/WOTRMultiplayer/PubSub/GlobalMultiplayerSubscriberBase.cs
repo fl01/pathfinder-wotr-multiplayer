@@ -7,23 +7,12 @@ namespace WOTRMultiplayer.PubSub
     {
         protected ILogger Logger { get; private set; }
 
-        protected IMultiplayerHost Host { get; private set; }
+        protected IMultiplayerActorAccessor ActorAccessor { get; private set; }
 
-        protected IMultiplayerClient Client { get; private set; }
-
-        public GlobalMultiplayerSubscriberBase(ILogger logger, IMultiplayerHost multiplayerHost, IMultiplayerClient client)
+        public GlobalMultiplayerSubscriberBase(ILogger logger, IMultiplayerActorAccessor multiplayerActorAccessor)
         {
             Logger = logger;
-            Host = multiplayerHost;
-            Client = client;
-        }
-
-        protected IMultiplayerActor GetMultiplayerActor()
-        {
-            return Host.IsActive ?
-                Host
-                : Client.IsActive ?
-                    Client : null;
+            ActorAccessor = multiplayerActorAccessor;
         }
     }
 }

@@ -18,8 +18,8 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
                 return true;
             }
 
-            var canRollPerception = Main.Multiplayer.CanRollPerception(character.UniqueId, data.UniqueId);
-            return canRollPerception;
+            var shouldContinue = Main.Multiplayer.CanMakePerceptionCheck(character.UniqueId, data.UniqueId);
+            return shouldContinue;
         }
 
         [HarmonyPatch(typeof(PartyPerceptionController), nameof(PartyPerceptionController.RollPerception))]
@@ -41,7 +41,7 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
                 }
             };
 
-            Main.Multiplayer.OnPerceptionRoll(check);
+            Main.Multiplayer.OnPerceptionCheck(check);
         }
     }
 }

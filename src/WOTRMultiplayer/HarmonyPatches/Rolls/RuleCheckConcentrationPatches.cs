@@ -25,7 +25,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return;
             }
 
-            Main.Multiplayer.OnAfterRuleCheckConcentrationTrigger(__instance);
+            Main.Rolls.OnAfterRuleCheckConcentrationTrigger(__instance);
         }
 
         [HarmonyPatch(typeof(RuleCheckConcentration), nameof(RuleCheckConcentration.OnTrigger))]
@@ -63,7 +63,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return Dice.D20;
             }
 
-            var shouldRunOriginalLogic = Main.Multiplayer.OnBeforeRuleCheckConcentrationRoll(ruleCheckConcentration);
+            var shouldRunOriginalLogic = Main.Rolls.OnBeforeRuleCheckConcentrationRoll(ruleCheckConcentration);
             if (!shouldRunOriginalLogic)
             {
                 return ruleCheckConcentration.ResultRollRaw;

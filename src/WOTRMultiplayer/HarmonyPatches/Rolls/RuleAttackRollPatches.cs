@@ -22,7 +22,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return;
             }
 
-            Main.Multiplayer.OnAfterRuleAttackRollTrigger(__instance);
+            Main.Rolls.OnAfterRuleAttackRollTrigger(__instance);
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return;
             }
 
-            Main.Multiplayer.OnAfterRuleAttackOvercomeConcealmentRoll(__instance);
+            Main.Rolls.OnAfterRuleAttackOvercomeConcealmentRoll(__instance);
         }
 
         [HarmonyPatch(typeof(RuleAttackRoll), nameof(RuleAttackRoll.TryOvercomeTargetConcealmentAndMissChance))]
@@ -140,7 +140,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return Dice.GenerateD20(isFake);
             }
 
-            var shouldRunOriginalLogic = Main.Multiplayer.OnBeforeRuleAttackRoll(ruleAttackRoll, isCriticalRoll);
+            var shouldRunOriginalLogic = Main.Rolls.OnBeforeRuleAttackRoll(ruleAttackRoll, isCriticalRoll);
             if (!shouldRunOriginalLogic)
             {
                 return ruleAttackRoll.D20;
@@ -157,7 +157,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return RulebookEvent.Dice.D100;
             }
 
-            var shouldRunOriginalLogic = Main.Multiplayer.OnBeforeRuleAttackFortificationRoll(ruleAttackRoll);
+            var shouldRunOriginalLogic = Main.Rolls.OnBeforeRuleAttackFortificationRoll(ruleAttackRoll);
             if (!shouldRunOriginalLogic)
             {
                 return ruleAttackRoll.FortificationRoll;
@@ -174,7 +174,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return RulebookEvent.Dice.D100;
             }
 
-            var shouldRunOriginalLogic = Main.Multiplayer.OnBeforeRuleAttackOvercomeConcealmentRoll(ruleAttackRoll);
+            var shouldRunOriginalLogic = Main.Rolls.OnBeforeRuleAttackOvercomeConcealmentRoll(ruleAttackRoll);
             if (!shouldRunOriginalLogic)
             {
                 return ruleAttackRoll.MissChanceRoll;

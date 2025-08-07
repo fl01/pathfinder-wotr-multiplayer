@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using WOTRMultiplayer.MP.Entities;
 
-namespace WOTRMultiplayer.Abstractions.MP
+namespace WOTRMultiplayer.Abstractions.MP.Actors
 {
     public interface IMultiplayerClient : IMultiplayerActor
     {

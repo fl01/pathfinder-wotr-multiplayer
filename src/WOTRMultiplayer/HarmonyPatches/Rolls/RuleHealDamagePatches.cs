@@ -15,7 +15,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return;
             }
 
-            __result = Main.Multiplayer.OnAfterRollRuleHealDamage(__instance, unitsCount, __result);
+            __result = Main.Rolls.OnAfterRollRuleHealDamage(__instance, unitsCount, __result);
         }
     }
 }

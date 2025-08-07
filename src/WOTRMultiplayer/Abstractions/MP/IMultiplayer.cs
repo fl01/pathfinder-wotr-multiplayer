@@ -80,38 +80,6 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         NetworkActionsState GetActionsState();
 
-        bool OnBeforeRuleCalculateDamageTrigger(RuleCalculateDamage ruleCalculateDamage);
-        void OnAfterRuleCalculateDamageTrigger(RuleCalculateDamage ruleCalculateDamage);
-
-        int OnAfterRollRuleHealDamage(RuleHealDamage instance, int unitsCount, int result);
-
-        bool OnBeforeRuleAttackOvercomeConcealmentRoll(RuleAttackRoll ruleAttackRoll);
-        void OnAfterRuleAttackOvercomeConcealmentRoll(RuleAttackRoll ruleAttackRoll);
-        bool OnBeforeRuleAttackFortificationRoll(RuleAttackRoll ruleAttackRoll);
-        bool OnBeforeRuleAttackRoll(RuleAttackRoll ruleAttackRoll, bool isCriticalRoll);
-        void OnAfterRuleAttackRollTrigger(RuleAttackRoll ruleAttackRoll);
-
-        void OnBeforeRuleSavingThrowRoll(RuleSavingThrow ruleSavingThrow);
-        void OnAfterRuleSavingThrowTrigger(RuleSavingThrow ruleSavingThrow);
-
-        bool OnBeforeRuleSpellResistanceCheckRoll(RuleSpellResistanceCheck ruleSpellResistanceCheck);
-        void OnAfterRuleSpellResistanceCheckTrigger(RuleSpellResistanceCheck ruleSpellResistanceCheck);
-
-        bool OnBeforeRuleSkillCheckRoll(RuleSkillCheck ruleSkillCheck);
-        void OnAfterRuleSkillCheckTrigger(RuleSkillCheck ruleSkillCheck);
-
-        bool OnBeforeRuleInitiativeRoll(RuleInitiativeRoll ruleInitiativeRoll);
-        void OnAfterRuleInitiativeRollTrigger(RuleInitiativeRoll ruleInitiativeRoll);
-
-        bool OnBeforeRuleCheckConcentrationRoll(RuleCheckConcentration ruleCheckConcentration);
-        void OnAfterRuleCheckConcentrationTrigger(RuleCheckConcentration ruleCheckConcentration);
-
-        bool OnBeforeRuleConcealmentCheckTrigger(RuleConcealmentCheck ruleConcealmentCheck);
-        void OnAfterRuleConcealmentCheckTrigger(RuleConcealmentCheck ruleConcealmentCheck);
-
-        bool OnBeforeParryDataTrigger(RuleAttackRoll.ParryData parryData);
-        void OnAfterParryDataTrigger(RuleAttackRoll.ParryData parryData);
-
         void OnLootContainer(NetworkLootContainer container);
 
         void OnDropItem(NetworkDropItem dropItem);
@@ -120,8 +88,8 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         bool CanUnitJoinCombat(string unitId);
 
-        bool CanRollPerception(string unitId, string mapObjectId);
+        bool CanMakePerceptionCheck(string unitId, string mapObjectId);
 
-        void OnPerceptionRoll(NetworkPerceptionCheck check);
+        void OnPerceptionCheck(NetworkPerceptionCheck check);
     }
 }

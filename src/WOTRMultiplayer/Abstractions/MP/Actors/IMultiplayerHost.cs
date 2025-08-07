@@ -2,7 +2,7 @@
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 
-namespace WOTRMultiplayer.Abstractions.MP
+namespace WOTRMultiplayer.Abstractions.MP.Actors
 {
     public interface IMultiplayerHost : IMultiplayerActor
     {
@@ -18,6 +18,6 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         void SendSelectedAnswer();
 
-        void OnPerceptionRoll(NetworkPerceptionCheck check);
+        void OnPerceptionCheck(NetworkPerceptionCheck check);
     }
 }

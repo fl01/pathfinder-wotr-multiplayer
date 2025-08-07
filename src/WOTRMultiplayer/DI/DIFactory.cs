@@ -7,6 +7,7 @@ using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.Hashing;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.Abstractions.MP.Actors;
 using WOTRMultiplayer.Abstractions.PubSub;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.UI;
@@ -18,6 +19,7 @@ using WOTRMultiplayer.GameInteraction;
 using WOTRMultiplayer.Hashing;
 using WOTRMultiplayer.IO;
 using WOTRMultiplayer.MP;
+using WOTRMultiplayer.MP.Actors;
 using WOTRMultiplayer.Networking.Extensions;
 using WOTRMultiplayer.PubSub;
 using WOTRMultiplayer.Random;
@@ -68,6 +70,8 @@ namespace WOTRMultiplayer.DI
             serviceCollection.AddSingleton<IGlobalMultiplayerSubscriber, GlobalMultiplayerSubscriber>();
             serviceCollection.AddSingleton<IGlobalMultiplayerUnitCommandSubscriber, GlobalMultiplayerUnitSubscriber>();
 
+            serviceCollection.AddSingleton<IMultiplayerActorAccessor, MultiplayerActorAccessor>();
+            serviceCollection.AddSingleton<IMultiplayerRollsProcessor, MultiplayerRollProcessor>();
             serviceCollection.AddSingleton<IMultiplayer, Multiplayer>();
             serviceCollection.AddSingleton<IMultiplayerHost, MultiplayerHost>();
             serviceCollection.AddSingleton<IMultiplayerClient, MultiplayerClient>();

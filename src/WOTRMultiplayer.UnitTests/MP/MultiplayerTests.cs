@@ -4,8 +4,8 @@ using FakeItEasy;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using WOTRMultiplayer.Abstractions.GameInteraction;
-using WOTRMultiplayer.Abstractions.Hashing;
 using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.Abstractions.MP.Actors;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
@@ -25,10 +25,9 @@ namespace WOTRMultiplayer.UnitTests.MP
         private ILobbyWindowController _lobbyWindowController;
         private IMultiplayerHost _multiplayerHost;
         private IMultiplayerClient _multiplayerClient;
-        private IDiceRollStorage _rollStorage;
         private IGameInteractionService _gameInteractionService;
-        private IHashService _hashService;
         private IUniqueIdGenerator _idGenerator;
+        private IMultiplayerActorAccessor _multiplerActorAccessor;
 
         [SetUp]
         public void SetUp()
@@ -38,38 +37,33 @@ namespace WOTRMultiplayer.UnitTests.MP
             _lobbyWindowController = A.Fake<ILobbyWindowController>();
             _multiplayerHost = A.Fake<IMultiplayerHost>();
             _multiplayerClient = A.Fake<IMultiplayerClient>();
-            _rollStorage = A.Fake<IDiceRollStorage>();
             _gameInteractionService = A.Fake<IGameInteractionService>();
-            _hashService = A.Fake<IHashService>();
             _idGenerator = A.Fake<IUniqueIdGenerator>();
+            _multiplerActorAccessor = A.Fake<IMultiplayerActorAccessor>();
 
             _multiplayer = new Multiplayer(
                 _logger,
                 _uiFactory,
                 _lobbyWindowController,
-                _multiplayerHost,
-                _multiplayerClient,
-                _hashService,
-                _rollStorage,
+                _multiplerActorAccessor,
                 _gameInteractionService,
                 _idGenerator);
         }
 
-        [TestCase(true, true, true)]
-        [TestCase(true, false, true)]
-        [TestCase(false, true, true)]
-        [TestCase(false, false, false)]
-        public void IsActive_TestCase_DependsOnHostAndClientIsActive(bool hostStatus, bool clientStatus, bool expectedStatus)
+        [TestCase(true)]
+        [TestCase(false)]
+        public void IsActive_TestCase_DependsOnAccessor(bool actorStatus)
         {
             // Arrange
-            A.CallTo(() => _multiplayerHost.IsActive).Returns(hostStatus);
-            A.CallTo(() => _multiplayerClient.IsActive).Returns(clientStatus);
+            var current = A.Fake<IMultiplayerActor>();
+            A.CallTo(() => current.IsActive).Returns(actorStatus);
+            A.CallTo(() => _multiplerActorAccessor.Current).Returns(current);
 
             // Act
             var actualStatus = _multiplayer.IsActive;
 
             // Assert
-            Assert.That(actualStatus, Is.EqualTo(expectedStatus));
+            Assert.That(actualStatus, Is.EqualTo(actorStatus));
         }
 
         [Test]
@@ -93,6 +87,8 @@ namespace WOTRMultiplayer.UnitTests.MP
         public void InitializeMultiplayer_MultiplayerHostIsActive_LogsAndCallsDispose()
         {
             // Arrange
+            A.CallTo(() => _multiplerActorAccessor.Host).Returns(_multiplayerHost);
+            A.CallTo(() => _multiplerActorAccessor.Client).Returns(_multiplayerClient);
             var context = new InitializeMultiplayerContext(null, null);
             A.CallTo(() => _multiplayerHost.IsActive).Returns(true);
 
@@ -107,6 +103,8 @@ namespace WOTRMultiplayer.UnitTests.MP
         public void TerminateMultiplayer_DisposesEverything()
         {
             // Arrange
+            A.CallTo(() => _multiplerActorAccessor.Host).Returns(_multiplayerHost);
+            A.CallTo(() => _multiplerActorAccessor.Client).Returns(_multiplayerClient);
 
             // Act
             _multiplayer.TerminateMultiplayer();
@@ -119,10 +117,12 @@ namespace WOTRMultiplayer.UnitTests.MP
         }
 
         [Test]
-        public void InitializeEscMenuLobbyWindow_HostIsActive_CallsFactory()
+        public void InitializeEscMenuLobbyWindow_CurrentActorExists_CallsFactory()
         {
             // Arrange
             var context = new InitializeEscMenuLobbyWindowContext(null);
+            A.CallTo(() => _multiplerActorAccessor.Current).Returns(_multiplayerHost);
+            A.CallTo(() => _multiplerActorAccessor.Host).Returns(_multiplayerHost);
             A.CallTo(() => _multiplayerHost.IsActive).Returns(true);
 
             // Act
@@ -151,8 +151,7 @@ namespace WOTRMultiplayer.UnitTests.MP
         {
             // Arrange
             var context = new InitializeEscMenuLobbyWindowContext(null);
-            A.CallTo(() => _multiplayerClient.IsActive).Returns(false);
-            A.CallTo(() => _multiplayerHost.IsActive).Returns(false);
+            A.CallTo(() => _multiplerActorAccessor.Current).Returns(null);
 
             // Act
             _multiplayer.InitializeEscMenuLobbyWindow(context);
@@ -182,11 +181,12 @@ namespace WOTRMultiplayer.UnitTests.MP
         }
 
         [Test]
-        public void InitializeEscMenuLobbyWindow_HostIsActive_GameConnectivityIsTakenFromHost()
+        public void InitializeEscMenuLobbyWindow_CurrentActorExists_GameConnectivityIsTakenFromCurrentActor()
         {
             // Arrange
             var context = new InitializeEscMenuLobbyWindowContext(null);
             var windowFake = A.Fake<ILobbyWindow>();
+            A.CallTo(() => _multiplerActorAccessor.Current).Returns(_multiplayerHost);
             A.CallTo(() => _multiplayerHost.IsActive).Returns(true);
             var expectedConnectivity = A.Fake<NetworkGameConnectivity>();
             A.CallTo(() => _multiplayerHost.GetGameConnectivity()).Returns(expectedConnectivity);
@@ -201,11 +201,12 @@ namespace WOTRMultiplayer.UnitTests.MP
         }
 
         [Test]
-        public void InitializeEscMenuLobbyWindow_HostIsActive_PlayerInfoIsTakenFromHost()
+        public void InitializeEscMenuLobbyWindow_CurrentActorExists_PlayerInfoIsTakenFromCurrentActor()
         {
             // Arrange
             var context = new InitializeEscMenuLobbyWindowContext(null);
             var windowFake = A.Fake<ILobbyWindow>();
+            A.CallTo(() => _multiplerActorAccessor.Current).Returns(_multiplayerHost);
             A.CallTo(() => _multiplayerHost.IsActive).Returns(true);
             var expectedPlayers = A.Fake<List<NetworkPlayer>>();
             A.CallTo(() => _multiplayerHost.GetPlayers()).Returns(expectedPlayers);
@@ -220,11 +221,12 @@ namespace WOTRMultiplayer.UnitTests.MP
         }
 
         [Test]
-        public void InitializeEscMenuLobbyWindow_HostIsActive_CharactersInfoIsTakenFromHost()
+        public void InitializeEscMenuLobbyWindow_CurrentActorExists_CharactersInfoIsTakenFromCurrentActor()
         {
             // Arrange
             var context = new InitializeEscMenuLobbyWindowContext(null);
             var windowFake = A.Fake<ILobbyWindow>();
+            A.CallTo(() => _multiplerActorAccessor.Current).Returns(_multiplayerHost);
             A.CallTo(() => _multiplayerHost.IsActive).Returns(true);
             var expectedCharacters = A.Fake<List<NetworkCharacterOwnership>>();
             A.CallTo(() => _multiplayerHost.GetCharacters()).Returns(expectedCharacters);
@@ -238,69 +240,12 @@ namespace WOTRMultiplayer.UnitTests.MP
             Assert.That(actual, Is.EqualTo(expectedCharacters));
         }
 
-
-        [Test]
-        public void InitializeEscMenuLobbyWindow_ClientIsActive_GameConnectivityIsTakenFromHost()
-        {
-            // Arrange
-            var context = new InitializeEscMenuLobbyWindowContext(null);
-            var windowFake = A.Fake<ILobbyWindow>();
-            A.CallTo(() => _multiplayerClient.IsActive).Returns(true);
-            var expectedConnectivity = A.Fake<NetworkGameConnectivity>();
-            A.CallTo(() => _multiplayerClient.GetGameConnectivity()).Returns(expectedConnectivity);
-            A.CallTo(() => _uiFactory.InitializeEscMenuLobbyWindow(An<InitializeEscMenuLobbyWindowContext>.Ignored, An<bool>.Ignored, An<Action>.Ignored)).Returns(windowFake);
-
-            // Act
-            _multiplayer.InitializeEscMenuLobbyWindow(context);
-            var actual = windowFake.GetGameConnectivity();
-
-            // Assert
-            Assert.That(actual, Is.EqualTo(expectedConnectivity));
-        }
-
-        [Test]
-        public void InitializeEscMenuLobbyWindow_ClientIsActive_PlayerInfoIsTakenFromHost()
-        {
-            // Arrange
-            var context = new InitializeEscMenuLobbyWindowContext(null);
-            var windowFake = A.Fake<ILobbyWindow>();
-            A.CallTo(() => _multiplayerClient.IsActive).Returns(true);
-            var expectedPlayers = A.Fake<List<NetworkPlayer>>();
-            A.CallTo(() => _multiplayerClient.GetPlayers()).Returns(expectedPlayers);
-            A.CallTo(() => _uiFactory.InitializeEscMenuLobbyWindow(An<InitializeEscMenuLobbyWindowContext>.Ignored, An<bool>.Ignored, An<Action>.Ignored)).Returns(windowFake);
-
-            // Act
-            _multiplayer.InitializeEscMenuLobbyWindow(context);
-            var actual = windowFake.GetPlayers();
-
-            // Assert
-            Assert.That(actual, Is.EqualTo(expectedPlayers));
-        }
-
-        [Test]
-        public void InitializeEscMenuLobbyWindow_ClientIsActive_CharactersInfoIsTakenFromHost()
-        {
-            // Arrange
-            var context = new InitializeEscMenuLobbyWindowContext(null);
-            var windowFake = A.Fake<ILobbyWindow>();
-            A.CallTo(() => _multiplayerClient.IsActive).Returns(true);
-            var expectedCharacters = A.Fake<List<NetworkCharacterOwnership>>();
-            A.CallTo(() => _multiplayerClient.GetCharacters()).Returns(expectedCharacters);
-            A.CallTo(() => _uiFactory.InitializeEscMenuLobbyWindow(An<InitializeEscMenuLobbyWindowContext>.Ignored, An<bool>.Ignored, An<Action>.Ignored)).Returns(windowFake);
-
-            // Act
-            _multiplayer.InitializeEscMenuLobbyWindow(context);
-            var actual = windowFake.GetCharacters();
-
-            // Assert
-            Assert.That(actual, Is.EqualTo(expectedCharacters));
-        }
-
-
         [Test]
         public void InitializeMultiplayer_MultiplayerClientIsActive_LogsAndCallsDispose()
         {
             // Arrange
+            A.CallTo(() => _multiplerActorAccessor.Host).Returns(_multiplayerHost);
+            A.CallTo(() => _multiplerActorAccessor.Client).Returns(_multiplayerClient);
             var context = new InitializeMultiplayerContext(null, null);
             A.CallTo(() => _multiplayerClient.IsActive).Returns(true);
 

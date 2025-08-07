@@ -24,76 +24,69 @@ namespace WOTRMultiplayer.PubSub
     {
         public GlobalMultiplayerSubscriber(
             ILogger<GlobalMultiplayerSubscriber> logger,
-            IMultiplayerHost multiplayerHost,
-            IMultiplayerClient multiplayerClient)
-            : base(logger, multiplayerHost, multiplayerClient)
+            IMultiplayerActorAccessor multiplayerActorAccessor)
+            : base(logger, multiplayerActorAccessor)
         {
         }
 
         public void HandleAddCompanion(UnitEntityData unit)
         {
-            var multiplayerActor = GetMultiplayerActor();
-            if (multiplayerActor == null)
+            if (ActorAccessor.Current == null)
             {
                 return;
             }
 
             Logger.LogInformation("HandleAddCompanion");
-            multiplayerActor.PartyChanged();
+            ActorAccessor.Current.PartyChanged();
         }
 
         public void HandleCapitalModeChanged()
         {
-            var multiplayerActor = GetMultiplayerActor();
-            if (multiplayerActor == null)
+            if (ActorAccessor.Current == null)
             {
                 return;
             }
 
             Logger.LogInformation("HandleCapitalModeChanged");
-            multiplayerActor.PartyChanged();
+            ActorAccessor.Current.PartyChanged();
         }
 
         public void HandleCompanionActivated(UnitEntityData unit)
         {
-            var multiplayerActor = GetMultiplayerActor();
-            if (multiplayerActor == null)
+            if (ActorAccessor.Current == null)
             {
                 return;
             }
 
             Logger.LogInformation("HandleCompanionActivated");
-            multiplayerActor.PartyChanged();
+            ActorAccessor.Current.PartyChanged();
         }
 
         public void HandleCompanionRemoved(UnitEntityData unit, bool stayInGame)
         {
-            var multiplayerActor = GetMultiplayerActor();
-            if (multiplayerActor == null)
+            if (ActorAccessor.Current == null)
             {
                 return;
             }
 
             Logger.LogInformation("HandleCompanionRemoved");
-            multiplayerActor.PartyChanged();
+            ActorAccessor.Current.PartyChanged();
         }
 
         public void HandlePartyChanged()
         {
-            var multiplayerActor = GetMultiplayerActor();
-            if (multiplayerActor == null)
+            if (ActorAccessor.Current == null)
             {
                 return;
             }
 
             Logger.LogInformation("HandlePartyChanged");
-            multiplayerActor.PartyChanged();
+            ActorAccessor.Current.PartyChanged();
         }
 
         public void HandlePartyCombatStateChanged(bool inCombat)
         {
-            var multiplayerActor = GetMultiplayerActor();
-            if (multiplayerActor == null)
+            if (ActorAccessor.Current == null)
             {
                 return;
             }
@@ -101,16 +94,16 @@ namespace WOTRMultiplayer.PubSub
             Logger.LogInformation("Combat state changed. InCombat={inCombat}", inCombat);
             if (inCombat)
             {
-                multiplayerActor.CombatStarted();
+                ActorAccessor.Current.CombatStarted();
                 return;
             }
 
-            multiplayerActor.CombatEnded();
+            ActorAccessor.Current.CombatEnded();
         }
 
         public void HandlePartyLeaveArea(BlueprintArea currentArea, BlueprintAreaEnterPoint targetArea, AreaTransitionPart areaTransition)
         {
-            if (!Host.IsActive)
+            if (!ActorAccessor.Host.IsActive)
             {
                 return;
             }
@@ -122,18 +115,17 @@ namespace WOTRMultiplayer.PubSub
                 return;
             }
 
-            Host.LeaveArea(areaExitId);
+            ActorAccessor.Host.LeaveArea(areaExitId);
         }
 
         public void HandleRoundStarted(int round)
         {
-            var multiplayerActor = GetMultiplayerActor();
-            if (multiplayerActor == null)
+            if (ActorAccessor.Current == null)
             {
                 return;
             }
 
-            multiplayerActor.CombatRoundStarted(round);
+            ActorAccessor.Current.CombatRoundStarted(round);
         }
 
         public void HandleSurpriseRoundStarted()
@@ -154,8 +146,7 @@ namespace WOTRMultiplayer.PubSub
 
         public void HandleWarning(WarningNotificationType warningType, bool addToLog = true)
         {
-            var multiplayerActor = GetMultiplayerActor();
-            if (multiplayerActor == null)
+            if (ActorAccessor.Current == null)
             {
                 return;
             }
@@ -166,7 +157,7 @@ namespace WOTRMultiplayer.PubSub
                 return;
             }
 
-            multiplayerActor.GameLoaded();
+            ActorAccessor.Current.GameLoaded();
         }
 
         public void HandleWarning(string text, bool addToLog = true)
@@ -179,14 +170,13 @@ namespace WOTRMultiplayer.PubSub
 
         public void OnAreaScenesLoaded()
         {
-            var multiplayerActor = GetMultiplayerActor();
-            if (multiplayerActor == null)
+            if (ActorAccessor.Current == null)
             {
                 return;
             }
 
             Logger.LogInformation("OnAreaScenesLoaded");
-            multiplayerActor.OnAreaScenesLoaded();
+            ActorAccessor.Current.OnAreaScenesLoaded();
         }
     }
 }

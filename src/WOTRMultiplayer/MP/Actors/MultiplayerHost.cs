@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.Abstractions.MP.Actors;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
@@ -19,7 +20,7 @@ using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
 
-namespace WOTRMultiplayer.MP
+namespace WOTRMultiplayer.MP.Actors
 {
     public class MultiplayerHost : MultiplayerActorBase, IMultiplayerHost
     {
@@ -393,7 +394,7 @@ namespace WOTRMultiplayer.MP
             return IsRolledByHost(silent) || IsRolledByLocalPlayer(silent);
         }
 
-        public void OnPerceptionRoll(NetworkPerceptionCheck check)
+        public void OnPerceptionCheck(NetworkPerceptionCheck check)
         {
             Logger.LogInformation("Sending perception check to clients. UnitId={unitID}, MapObjectId={round}, Result={result}", check.UnitId, check.MapObject.Id);
             var message = new NotifyPerceptionCheckRolled

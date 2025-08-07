@@ -48,7 +48,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return;
             }
 
-            Main.Multiplayer.OnAfterParryDataTrigger(__instance);
+            Main.Rolls.OnAfterParryDataTrigger(__instance);
         }
 
         public static RuleRollD20 ParryDataRollD20(RuleAttackRoll.ParryData parryData)
@@ -58,7 +58,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return Dice.D20;
             }
 
-            var shouldRunOriginalLogic = Main.Multiplayer.OnBeforeParryDataTrigger(parryData);
+            var shouldRunOriginalLogic = Main.Rolls.OnBeforeParryDataTrigger(parryData);
             if (!shouldRunOriginalLogic)
             {
                 return parryData.Roll;

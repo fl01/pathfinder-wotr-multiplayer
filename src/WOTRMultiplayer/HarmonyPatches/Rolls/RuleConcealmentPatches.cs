@@ -20,7 +20,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return;
             }
 
-            Main.Multiplayer.OnAfterRuleConcealmentCheckTrigger(__instance);
+            Main.Rolls.OnAfterRuleConcealmentCheckTrigger(__instance);
         }
 
         [HarmonyPatch(typeof(RuleConcealmentCheck), nameof(RuleConcealmentCheck.OnTrigger))]
@@ -58,7 +58,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return Rulebook.Trigger<RuleRollD100>(ruleConcealmentCheck.Roll);
             }
 
-            var shouldRunOriginalLogic = Main.Multiplayer.OnBeforeRuleConcealmentCheckTrigger(ruleConcealmentCheck);
+            var shouldRunOriginalLogic = Main.Rolls.OnBeforeRuleConcealmentCheckTrigger(ruleConcealmentCheck);
             if (!shouldRunOriginalLogic)
             {
                 return ruleConcealmentCheck.Roll;

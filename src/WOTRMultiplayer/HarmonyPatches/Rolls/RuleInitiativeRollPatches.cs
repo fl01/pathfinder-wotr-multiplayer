@@ -20,7 +20,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return;
             }
 
-            Main.Multiplayer.OnAfterRuleInitiativeRollTrigger(__instance);
+            Main.Rolls.OnAfterRuleInitiativeRollTrigger(__instance);
         }
 
         [HarmonyPatch(typeof(RuleInitiativeRoll), nameof(RuleInitiativeRoll.OnTrigger))]
@@ -59,7 +59,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return Dice.D20;
             }
 
-            var shouldRunOriginalLogic = Main.Multiplayer.OnBeforeRuleInitiativeRoll(ruleInitiativeRoll);
+            var shouldRunOriginalLogic = Main.Rolls.OnBeforeRuleInitiativeRoll(ruleInitiativeRoll);
             if (!shouldRunOriginalLogic)
             {
                 return ruleInitiativeRoll.D20;

@@ -21,7 +21,7 @@ using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
 using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
 
-namespace WOTRMultiplayer.MP
+namespace WOTRMultiplayer.MP.Actors
 {
     public abstract class MultiplayerActorBase
     {

@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.Abstractions.MP.Actors;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
@@ -21,7 +22,7 @@ using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
 using WOTRMultiplayer.UI;
 
-namespace WOTRMultiplayer.MP
+namespace WOTRMultiplayer.MP.Actors
 {
     public class MultiplayerClient : MultiplayerActorBase, IMultiplayerClient
     {

@@ -26,6 +26,8 @@ namespace WOTRMultiplayer
 
         public static IMultiplayer Multiplayer { get; private set; }
 
+        public static IMultiplayerRollsProcessor Rolls { get; private set; }
+
         public const int MaxCharacters = 6;
 
         public static ILogger<T> GetLogger<T>()
@@ -56,6 +58,7 @@ namespace WOTRMultiplayer
             try
             {
                 Multiplayer = _serviceProvider.GetService<IMultiplayer>();
+                Rolls = _serviceProvider.GetService<IMultiplayerRollsProcessor>();
 
                 entry.OnGUI += OnGui;
                 entry.OnSaveGUI += OnSaveGui;

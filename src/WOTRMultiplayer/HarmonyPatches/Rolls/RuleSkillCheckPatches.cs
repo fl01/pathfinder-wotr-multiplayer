@@ -23,7 +23,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return;
             }
 
-            Main.Multiplayer.OnAfterRuleSkillCheckTrigger(__instance);
+            Main.Rolls.OnAfterRuleSkillCheckTrigger(__instance);
         }
 
         [HarmonyPatch(typeof(RuleSkillCheck), nameof(RuleSkillCheck.Calculate))]
@@ -35,7 +35,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return;
             }
 
-            Main.Multiplayer.OnAfterRuleSkillCheckTrigger(__instance);
+            Main.Rolls.OnAfterRuleSkillCheckTrigger(__instance);
         }
 
         [HarmonyPatch(typeof(RuleSkillCheck), nameof(RuleSkillCheck.OnTrigger))]
@@ -82,7 +82,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return originalFunc();
             }
 
-            var shouldRunOriginalLogic = Main.Multiplayer.OnBeforeRuleSkillCheckRoll(ruleSkillCheck);
+            var shouldRunOriginalLogic = Main.Rolls.OnBeforeRuleSkillCheckRoll(ruleSkillCheck);
             if (!shouldRunOriginalLogic)
             {
                 return ruleSkillCheck.D20;

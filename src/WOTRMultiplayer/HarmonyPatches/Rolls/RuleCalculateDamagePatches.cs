@@ -15,7 +15,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return;
             }
 
-            Main.Multiplayer.OnAfterRuleCalculateDamageTrigger(__instance);
+            Main.Rolls.OnAfterRuleCalculateDamageTrigger(__instance);
         }
 
         [HarmonyPatch(typeof(RuleCalculateDamage), nameof(RuleCalculateDamage.OnTrigger))]
@@ -27,7 +27,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return true;
             }
 
-            var shouldRunOriginal = Main.Multiplayer.OnBeforeRuleCalculateDamageTrigger(__instance);
+            var shouldRunOriginal = Main.Rolls.OnBeforeRuleCalculateDamageTrigger(__instance);
             return shouldRunOriginal;
         }
     }
