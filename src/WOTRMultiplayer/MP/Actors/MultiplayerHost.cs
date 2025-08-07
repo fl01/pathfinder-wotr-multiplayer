@@ -16,6 +16,7 @@ using WOTRMultiplayer.MP.Entities.Dialogs;
 using WOTRMultiplayer.MP.Entities.Equipment;
 using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
+using WOTRMultiplayer.MP.Entities.Settings;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
@@ -1119,36 +1120,35 @@ namespace WOTRMultiplayer.MP.Actors
                 character.Owner = hostPlayer;
             }
 
-            var settings = GetMustHaveGameSettings();
+            var settings = GetEnforcedGameSettings();
             GameInteraction.ApplyGameSettings(settings);
 
             OnConnected?.Invoke(Game.Connectivity);
             OnPlayersChanged?.Invoke(Game.Players);
         }
 
-        private Entities.Settings.NetworkGameSettings GetMustHaveGameSettings()
+        private NetworkGameSettings GetEnforcedGameSettings()
         {
-            var settings = new Entities.Settings.NetworkGameSettings
+            var settings = new NetworkGameSettings
             {
-                TurnBased = new Entities.Settings.NetworkTurnBasedSettngs
+                TurnBased = new NetworkTurnBasedSettngs
                 {
                     IsTurnBasedModeEnabled = true,
                     AutoStopAfterFirstMoveAction = false,
                     AutoEndTurn = false,
                 },
-                Main = new Entities.Settings.NetworkGameMainSettings
+                Main = new NetworkGameMainSettings
                 {
                     LootInCombat = false,
                     QuickMovement = true
                 },
-                Autopause = new Entities.Settings.NetworkAutopauseSettings
+                Autopause = new NetworkAutopauseSettings
                 {
                     PauseOnTrapDetected = true,
                     PauseOnSpellcastInterrupted = Kingmaker.Settings.EntitiesType.None,
                     PauseOnSpellcastStarted = Kingmaker.Settings.EntitiesType.None,
                     // everything else is false for autopause
                 },
-
             };
 
             return settings;
