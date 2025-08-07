@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
+using Microsoft.Extensions.Logging;
 
 namespace WOTRMultiplayer.HarmonyPatches
 {
-    public static class PatchesUtils
+    public class PatchesUtils
     {
         public static bool IsHelperUnit(string unitId)
         {
@@ -16,6 +18,11 @@ namespace WOTRMultiplayer.HarmonyPatches
             var attr = method.GetCustomAttribute<HarmonyPatch>();
             var target = $"{attr.info.declaringType.Name}.{attr.info.methodName ?? attr.info.methodType?.ToString()} ({method.Name})";
             return target;
+        }
+
+        public static void Dump(List<CodeInstruction> codeInstructions)
+        {
+            Main.GetLogger<PatchesUtils>().LogWarning(Environment.NewLine + string.Join(Environment.NewLine, codeInstructions));
         }
     }
 }

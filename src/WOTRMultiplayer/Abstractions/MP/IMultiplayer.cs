@@ -103,6 +103,9 @@ namespace WOTRMultiplayer.Abstractions.MP
         bool OnBeforeRuleCheckConcentrationRoll(RuleCheckConcentration ruleCheckConcentration);
         void OnAfterRuleCheckConcentrationTrigger(RuleCheckConcentration ruleCheckConcentration);
 
+        bool OnBeforeRuleConcealmentCheckTrigger(RuleConcealmentCheck ruleConcealmentCheck);
+        void OnAfterRuleConcealmentCheckTrigger(RuleConcealmentCheck ruleConcealmentCheck);
+
         void OnLootContainer(NetworkLootContainer container);
 
         void OnDropItem(NetworkDropItem dropItem);

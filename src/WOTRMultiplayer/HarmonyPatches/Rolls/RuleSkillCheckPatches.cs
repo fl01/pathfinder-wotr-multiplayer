@@ -95,7 +95,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
         {
             var lookFor = AccessTools.Method(typeof(RuleSkillCheck), nameof(RuleSkillCheck.RollD20));
             var match = matcher.SearchForward(x => x.Calls(lookFor));
-            if (match == null)
+            if (match.IsInvalid)
             {
                 Main.GetLogger<RuleSkillCheckPatches>().LogError("{transpilerPart} - unable to find target method. MethodName={methodName}", target, lookFor.Name);
                 return false;
@@ -116,14 +116,14 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
         {
             var lookFor = AccessTools.Method(typeof(RuleRollD20), nameof(RuleRollD20.FromInt));
             var instructionsEnd = matcher.SearchForward(x => x.Calls(lookFor));
-            if (instructionsEnd == null)
+            if (instructionsEnd.IsInvalid)
             {
                 Main.GetLogger<RuleSkillCheckPatches>().LogError("{transpilerPart} - unable to find target method. MethodName={methodName}", target, lookFor.Name);
                 return false;
             }
 
             var instructionsStart = instructionsEnd.SearchBackwards(x => x.opcode == OpCodes.Ldfld);
-            if (instructionsStart == null)
+            if (instructionsStart.IsInvalid)
             {
                 Main.GetLogger<RuleSkillCheckPatches>().LogError("{transpilerPart} - unable to find first instruction to remove", target);
                 return false;

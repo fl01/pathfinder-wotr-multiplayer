@@ -20,7 +20,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             var replaceWith = AccessTools.Method(typeof(RuleSpellResistancePatches), nameof(RuleSpellResistancePatches.SpellResistanceRollD20));
             var lookFor = AccessTools.PropertyGetter(typeof(Dice), nameof(Dice.D20));
             var match = matcher.SearchForward(x => x.Calls(lookFor));
-            if (match == null)
+            if (match.IsInvalid)
             {
                 Main.GetLogger<RuleSpellResistancePatches>().LogError("Transpiler has not been applied. Target={target}", target);
                 matcher.Instructions();

@@ -15,6 +15,7 @@ using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Windows;
+using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.GameInteraction.Contexts;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
@@ -314,7 +315,7 @@ namespace WOTRMultiplayer.MP
                     return result;
                 }
 
-                var d20 = RetrieveD20Roll(multiplayerActor, roll, ruleHealDamage.Initiator);
+                var d20 = RetrieveRoll<RuleRollD20>(multiplayerActor, roll, ruleHealDamage.Initiator);
                 return d20.Result;
             }
             catch (Exception ex)
@@ -335,7 +336,7 @@ namespace WOTRMultiplayer.MP
                 }
 
                 var roll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll, isCriticalRoll);
-                var d20 = RetrieveD20Roll(multiplayerActor, roll, ruleAttackRoll.Initiator);
+                var d20 = RetrieveRoll<RuleRollD20>(multiplayerActor, roll, ruleAttackRoll.Initiator);
                 if (d20 == null)
                 {
                     return true;
@@ -415,7 +416,7 @@ namespace WOTRMultiplayer.MP
                 }
 
                 var savingThrow = CreateSavingThrowRoll(NetworkDiceRollType.Hit, ruleSavingThrow);
-                ruleSavingThrow.D20 = RetrieveD20Roll(multiplayerActor, savingThrow, ruleSavingThrow.Initiator);
+                ruleSavingThrow.D20 = RetrieveRoll<RuleRollD20>(multiplayerActor, savingThrow, ruleSavingThrow.Initiator);
             }
             catch (Exception ex)
             {
@@ -435,7 +436,7 @@ namespace WOTRMultiplayer.MP
                 }
 
                 var roll = CreateSpellResistanceCheckRoll(NetworkDiceRollType.Hit, ruleSpellResistanceCheck);
-                var d20 = RetrieveD20Roll(multiplayerActor, roll, ruleSpellResistanceCheck.Initiator);
+                var d20 = RetrieveRoll<RuleRollD20>(multiplayerActor, roll, ruleSpellResistanceCheck.Initiator);
                 if (d20 == null)
                 {
                     return true;
@@ -482,7 +483,7 @@ namespace WOTRMultiplayer.MP
                 }
 
                 var roll = CreateConcentrationRoll(NetworkDiceRollType.Hit, ruleCheckConcentration);
-                var d20 = RetrieveD20Roll(multiplayerActor, roll, ruleCheckConcentration.Initiator);
+                var d20 = RetrieveRoll<RuleRollD20>(multiplayerActor, roll, ruleCheckConcentration.Initiator);
                 if (d20 == null)
                 {
                     return true;
@@ -529,7 +530,7 @@ namespace WOTRMultiplayer.MP
                 }
 
                 var roll = CreateSkillCheckRoll(NetworkDiceRollType.Hit, ruleSkillCheck);
-                var d20 = RetrieveD20Roll(multiplayerActor, roll, ruleSkillCheck.Initiator);
+                var d20 = RetrieveRoll<RuleRollD20>(multiplayerActor, roll, ruleSkillCheck.Initiator);
                 if (d20 == null)
                 {
                     return true;
@@ -577,7 +578,7 @@ namespace WOTRMultiplayer.MP
                 }
 
                 var roll = CreateInitiativeRoll(NetworkDiceRollType.Hit, ruleInitiativeRoll);
-                var d20 = RetrieveD20Roll(multiplayerActor, roll, ruleInitiativeRoll.Initiator);
+                var d20 = RetrieveRoll<RuleRollD20>(multiplayerActor, roll, ruleInitiativeRoll.Initiator);
                 if (d20 == null)
                 {
                     return true;
@@ -606,6 +607,57 @@ namespace WOTRMultiplayer.MP
 
                 var roll = CreateInitiativeRoll(NetworkDiceRollType.Hit, ruleInitiativeRoll);
                 SaveIntRollValue(multiplayerActor, roll, ruleInitiativeRoll.D20);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
+        }
+
+        public bool OnBeforeRuleConcealmentCheckTrigger(RuleConcealmentCheck ruleConcealmentCheck)
+        {
+            try
+            {
+                var multiplayerActor = GetMultiplayerActor();
+                if (!ShouldRetrieveRoll(multiplayerActor, ruleConcealmentCheck))
+                {
+                    return true;
+                }
+
+                var roll = CreateConcealmentRoll(NetworkDiceRollType.Hit, ruleConcealmentCheck);
+                var d100 = RetrieveRoll<RuleRollD100>(multiplayerActor, roll, ruleConcealmentCheck.Initiator);
+                if (d100 == null)
+                {
+                    return true;
+                }
+
+                // TODO: cache reflection
+                ruleConcealmentCheck.GetType()
+                    .GetProperty(nameof(RuleConcealmentCheck.Roll))
+                    .SetPropertyValue(ruleConcealmentCheck, d100);
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
+        }
+
+        public void OnAfterRuleConcealmentCheckTrigger(RuleConcealmentCheck ruleConcealmentCheck)
+        {
+            try
+            {
+                var multiplayerActor = GetMultiplayerActor();
+                if (!ShouldStoreRoll(multiplayerActor, ruleConcealmentCheck))
+                {
+                    return;
+                }
+
+                var roll = CreateConcealmentRoll(NetworkDiceRollType.Hit, ruleConcealmentCheck);
+                SaveIntRollValue(multiplayerActor, roll, ruleConcealmentCheck.Roll);
             }
             catch (Exception ex)
             {
@@ -947,20 +999,20 @@ namespace WOTRMultiplayer.MP
             return id;
         }
 
-        private void SaveIntRollValue(IMultiplayerActor multiplayerActor, NetworkDiceRollBase networkDiceRoll, RuleRollD20 ruleRollD20)
+        private void SaveIntRollValue(IMultiplayerActor multiplayerActor, NetworkDiceRollBase networkDiceRoll, RuleRollDice ruleRollDice)
         {
             var rollType = networkDiceRoll.GetType().Name;
             var rollId = GetDiceRollId(networkDiceRoll);
             if (rollId == null)
             {
-                _logger.LogWarning("Roll saving has been skipped due to unability to generate rollId. RollType={rollType}, InitiatorId={initiatorId}", rollType, networkDiceRoll.InitiatorId);
+                _logger.LogWarning("Roll saving has been skipped due to unability to generate rollId. DiceType={diceType}, RollType={rollType}, InitiatorId={initiatorId}", ruleRollDice.GetType().Name, rollType, networkDiceRoll.InitiatorId);
                 return;
             }
 
             var rollValue = new NetworkIntRollValue
             {
-                RollHistory = [.. ruleRollD20.RollHistory ?? []],
-                Value = ruleRollD20.m_Result
+                RollHistory = [.. ruleRollDice.RollHistory ?? []],
+                Value = ruleRollDice.m_Result
             };
 
             SaveRollValue(multiplayerActor, rollId.Value, rollValue);
@@ -998,7 +1050,8 @@ namespace WOTRMultiplayer.MP
             return rollId.Value;
         }
 
-        private RuleRollD20 RetrieveD20Roll(IMultiplayerActor multiplayerActor, NetworkDiceRollBase networkDiceRoll, UnitEntityData initiator)
+        private T RetrieveRoll<T>(IMultiplayerActor multiplayerActor, NetworkDiceRollBase networkDiceRoll, UnitEntityData initiator)
+            where T : RuleRollDice
         {
             try
             {
@@ -1018,17 +1071,45 @@ namespace WOTRMultiplayer.MP
                     return null;
                 }
 
-                var d20 = RuleRollD20.FromInt(initiator, roll.Value);
-                d20.RollHistory = [.. roll.RollHistory];
+                var diceType = typeof(T);
+                T dice = diceType switch
+                {
+                    _ when diceType == typeof(RuleRollD20) => RuleRollD20.FromInt(initiator, roll.Value) as T,
+                    _ when diceType == typeof(RuleRollD100) => RuleRollD100.FromInt(initiator, roll.Value) as T,
+                    _ => null,
+                };
 
-                _logger.LogInformation("D20 Roll has been acquired from another player. RollId={rollId}, Result={result}, RollType={rollType}, InitiatorId={initiatorId}", rollId.Value, d20.Result, rollType, initiator.UniqueId);
-                return d20;
+                if (dice == null)
+                {
+                    _logger.LogError("Roll has been retrieved, but dicetype is not supported. DiceType={diceType}, RollId={rollId}", diceType, rollId.Value);
+                    return null;
+                }
+
+                dice.RollHistory = [.. roll.RollHistory];
+
+                _logger.LogInformation("{diceType} Roll has been acquired from another player. RollId={rollId}, Result={result}, RollType={rollType}, InitiatorId={initiatorId}",
+                    diceType, rollId.Value, dice.Result, rollType, initiator.UniqueId);
+                return dice;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Unable to handle {MethodBase.GetCurrentMethod().Name}");
                 throw;
             }
+        }
+
+        private ConcealmentRoll CreateConcealmentRoll(NetworkDiceRollType diceRollType, RuleConcealmentCheck ruleConcealmentCheck)
+        {
+            var roll = new ConcealmentRoll(ruleConcealmentCheck.Initiator.UniqueId, ruleConcealmentCheck.GetType().Name, diceRollType, ruleConcealmentCheck.TotalBonusValue)
+            {
+                Concealment = ruleConcealmentCheck.Concealment.ToString(),
+                ConcealmentValue = ruleConcealmentCheck.ConcealmentValue,
+                MissChance = ruleConcealmentCheck.missChance.missChanceBase,
+                TargetId = ruleConcealmentCheck.Target.UniqueId,
+                IsAttack = ruleConcealmentCheck.m_Attack
+            };
+
+            return roll;
         }
 
         private ConcentrationRoll CreateConcentrationRoll(NetworkDiceRollType diceRollType, RuleCheckConcentration ruleCheckConcentration)

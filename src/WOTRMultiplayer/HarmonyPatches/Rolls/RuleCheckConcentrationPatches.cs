@@ -37,10 +37,10 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             var replaceWith = AccessTools.Method(typeof(RuleCheckConcentrationPatches), nameof(RuleCheckConcentrationPatches.CheckConcentrationRollD20));
             var lookFor = AccessTools.PropertyGetter(typeof(Dice), nameof(Dice.D20));
             var match = matcher.SearchForward(x => x.Calls(lookFor));
-            if (match == null)
+            if (match.IsInvalid)
             {
                 Main.GetLogger<RuleCheckConcentrationPatches>().LogError("Transpiler has not been applied. Target={target}", target);
-                matcher.Instructions();
+                return matcher.Instructions();
             }
 
             match.RemoveInstruction();

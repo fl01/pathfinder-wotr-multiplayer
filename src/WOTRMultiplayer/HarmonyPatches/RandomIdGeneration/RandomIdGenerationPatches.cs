@@ -101,7 +101,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             var replaceWith = AccessTools.Method(typeof(RandomIdGenerationPatches), nameof(RandomIdGenerationPatches.GetNewItemEntityId));
             var matcher = new CodeMatcher(instructions);
             var match = matcher.SearchForward(x => x.Calls(lookFor)).Advance(-1);
-            if (match == null)
+            if (match.IsInvalid)
             {
                 Main.GetLogger<RandomIdGenerationPatches>().LogError("Unable to find Guid.NewGuid() call. Target={target}", target);
                 return matcher.Instructions();

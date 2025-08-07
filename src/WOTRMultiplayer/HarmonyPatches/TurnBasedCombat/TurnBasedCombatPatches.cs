@@ -108,20 +108,22 @@ namespace WOTRMultiplayer.HarmonyPatches.TurnBasedCombat
             var matcher = new CodeMatcher(instructions);
             var lookFor = AccessTools.PropertyGetter(typeof(UnitCombatState), nameof(UnitCombatState.InitiativeRandom));
             var match = matcher.SearchForward(x => x.Calls(lookFor));
-            if (match != null)
+            if (match.IsInvalid)
             {
-                var actualValidPosition = matcher.Advance(-1);
-                actualValidPosition.RemoveInstructions(matcher.Length - actualValidPosition.Pos - 1); // keep last `ret`
-                var newInstructions = new List<CodeInstruction>()
-                {
-                    // OpCodes.Ldloc_0 is already loaded (UnitEntityData xi)
-                    new(OpCodes.Ldloc_1), // (UnitEntityData yi)
-                    new(OpCodes.Call, AccessTools.Method(typeof(TurnBasedCombatPatches), nameof(TurnBasedCombatPatches.CompareUnitsByUniqueId)))
-                };
-
-                actualValidPosition.Insert(newInstructions);
-                Main.GetLogger<TurnBasedCombatPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+                Main.GetLogger<TurnBasedCombatPatches>().LogError("Transpiler has not been applied. Target={target}", target);
+                return matcher.Instructions();
             }
+
+            var actualValidPosition = matcher.Advance(-1);
+            actualValidPosition.RemoveInstructions(matcher.Length - actualValidPosition.Pos - 1); // keep last `ret`
+            var newInstructions = new List<CodeInstruction>()
+            {
+                // OpCodes.Ldloc_0 is already loaded (UnitEntityData xi)
+                new(OpCodes.Ldloc_1), // (UnitEntityData yi)
+                new(OpCodes.Call, AccessTools.Method(typeof(TurnBasedCombatPatches), nameof(TurnBasedCombatPatches.CompareUnitsByUniqueId)))
+            };
+            actualValidPosition.Insert(newInstructions);
+            Main.GetLogger<TurnBasedCombatPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
 
             return matcher.Instructions();
         }
@@ -297,17 +299,16 @@ namespace WOTRMultiplayer.HarmonyPatches.TurnBasedCombat
             var replaceWith = AccessTools.Method(typeof(TurnBasedCombatPatches), nameof(TurnBasedCombatPatches.IsControlledByPlayers));
             var lookFor = AccessTools.PropertyGetter(typeof(UnitEntityData), nameof(UnitEntityData.IsDirectlyControllable));
             var match = matcher.SearchForward(x => x.Calls(lookFor));
-            if (match != null)
+            if (match.IsInvalid)
             {
-                var call = new CodeInstruction(OpCodes.Call, replaceWith);
-                match.RemoveInstruction();
-                match.Insert(call);
-                Main.GetLogger<TurnBasedCombatPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
-
+                Main.GetLogger<TurnBasedCombatPatches>().LogError("Transpiler has not been applied. Target={target}", target);
                 return;
             }
 
-            Main.GetLogger<TurnBasedCombatPatches>().LogError("Transpiler has not been applied. Target={target}", target);
+            var call = new CodeInstruction(OpCodes.Call, replaceWith);
+            match.RemoveInstruction();
+            match.Insert(call);
+            Main.GetLogger<TurnBasedCombatPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
         }
 
         public static bool IsControlledByPlayers(UnitEntityData unit)
