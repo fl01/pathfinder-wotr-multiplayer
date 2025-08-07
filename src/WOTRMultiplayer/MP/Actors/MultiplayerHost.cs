@@ -406,7 +406,19 @@ namespace WOTRMultiplayer.MP.Actors
                 Check = Mapper.Map<Networking.Messages.NetworkPerceptionCheck>(check)
             };
 
-            _networkServer.SendAll(message);
+            Send(message);
+        }
+
+        public bool OnSpawnCampPlace(NetworkVector3 position)
+        {
+            Logger.LogInformation("Sending spawn camp event. Position={position}", position);
+            var message = new NotifySpawnCampPlace
+            {
+                Position = Mapper.Map<Networking.Messages.NetworkVector3>(position)
+            };
+            Send(message);
+
+            return true;
         }
 
         protected override Task<DiceRollValueResponse> RetrieveRollAsync(DiceRollValueRequest request, string unitId)

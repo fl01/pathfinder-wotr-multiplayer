@@ -1,8 +1,5 @@
 ﻿using Kingmaker.EntitySystem.Persistence;
 using Kingmaker.GameModes;
-using Kingmaker.RuleSystem.Rules;
-using Kingmaker.RuleSystem.Rules.Abilities;
-using Kingmaker.RuleSystem.Rules.Damage;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.GameInteraction.Contexts;
@@ -91,5 +88,7 @@ namespace WOTRMultiplayer.Abstractions.MP
         bool CanMakePerceptionCheck(string unitId, string mapObjectId);
 
         void OnPerceptionCheck(NetworkPerceptionCheck check);
+
+        bool OnSpawnCampPlace(NetworkVector3 position);
     }
 }

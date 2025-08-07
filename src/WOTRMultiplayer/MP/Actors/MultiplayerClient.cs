@@ -356,10 +356,18 @@ namespace WOTRMultiplayer.MP.Actors
                 .Register<NotifyOvertipInteracted>(OnNotifyOvertipInteracted)
                 .Register<NotifyUnitJoinedMidCombat>(OnNotifyUnitJoinedMidCombat)
                 .Register<NotifyPerceptionCheckRolled>(OnNotifyPerceptionCheckRolled)
+                .Register<NotifySpawnCampPlace>(OnNotifySpawnCampPlace)
                 ;
 
             _networkServerClient.OnError = OnNetworkClientError;
             _networkServerClient.OnConnected = OnNetworkClientConnected;
+        }
+
+        private void OnNotifySpawnCampPlace(NotifySpawnCampPlace place)
+        {
+            Logger.LogInformation("Received {messageType}. Position={position}", nameof(NotifySpawnCampPlace), place.Position);
+            var position = Mapper.Map<NetworkVector3>(place.Position);
+            GameInteraction.SpawnCampPlace(position);
         }
 
         private void OnNotifyPlayerDisconnected(NotifyPlayerDisconnected disconnected)

@@ -778,6 +778,11 @@ namespace WOTRMultiplayer.MP.Actors
 
         protected NetworkCharacterOwnership GetCharacterOwnership(string unitId)
         {
+            if (string.IsNullOrEmpty(unitId))
+            {
+                return null;
+            }
+
             var realCharacterId = GameInteraction.GetPetOwnerId(unitId) ?? unitId;
 
             return Game.Characters.FirstOrDefault(c => string.Equals(c.UnitId, realCharacterId, StringComparison.OrdinalIgnoreCase));

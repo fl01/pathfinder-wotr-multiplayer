@@ -102,5 +102,9 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         NetworkGameSettings GetGameSettings();
 
         void ApplyGameSettings(NetworkGameSettings gameSettings);
+
+        void ShowWarningNotification(string text);
+
+        void SpawnCampPlace(NetworkVector3 position);
     }
 }

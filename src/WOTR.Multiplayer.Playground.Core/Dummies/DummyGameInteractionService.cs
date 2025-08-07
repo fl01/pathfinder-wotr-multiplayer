@@ -163,21 +163,6 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
         {
         }
 
-        public bool HasBeenTriggeredByAnotherPlayer(NetworkDropItem dropItem)
-        {
-            return false;
-        }
-
-        public bool HasBeenTriggeredByAnotherPlayer(NetworkEquipmentSlot networkSlot)
-        {
-            return false;
-        }
-
-        public bool HasBeenTriggeredByAnotherPlayer(NetworkActiveHandEquipmentSet set)
-        {
-            return false;
-        }
-
         public void InteractWithOvertip(NetworkOvertip networkOvertip)
         {
         }
@@ -215,6 +200,14 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
         }
 
         public void ApplyGameSettings(NetworkGameSettings gameSettings)
+        {
+        }
+
+        public void ShowWarningNotification(string text)
+        {
+        }
+
+        public void SpawnCampPlace(NetworkVector3 position)
         {
         }
     }

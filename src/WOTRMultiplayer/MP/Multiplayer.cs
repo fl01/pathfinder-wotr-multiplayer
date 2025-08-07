@@ -463,6 +463,23 @@ namespace WOTRMultiplayer.MP
             return true;
         }
 
+        public bool OnSpawnCampPlace(NetworkVector3 position)
+        {
+            if (_multiplayerActorAccessor.Client.IsActive)
+            {
+                _gameInteractionService.ShowWarningNotification("Camp can be placed by the host only");
+                return false;
+            }
+
+            if (!_multiplayerActorAccessor.Host.IsActive)
+            {
+                return true;
+            }
+
+            var canContinue = _multiplayerActorAccessor.Host.OnSpawnCampPlace(position);
+            return canContinue;
+        }
+
         private void ShowEscMenuMultiplayerLobby()
         {
             _logger.LogInformation("Show lobby window");

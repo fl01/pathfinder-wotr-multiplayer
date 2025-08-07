@@ -19,5 +19,7 @@ namespace WOTRMultiplayer.Abstractions.MP.Actors
         void SendSelectedAnswer();
 
         void OnPerceptionCheck(NetworkPerceptionCheck check);
+
+        bool OnSpawnCampPlace(NetworkVector3 position);
     }
 }

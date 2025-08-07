@@ -10,6 +10,7 @@ using Kingmaker.Cheats;
 using Kingmaker.Controllers.Clicks;
 using Kingmaker.Controllers.Clicks.Handlers;
 using Kingmaker.Controllers.MapObjects;
+using Kingmaker.Controllers.Rest;
 using Kingmaker.DialogSystem.Blueprints;
 using Kingmaker.EntitySystem;
 using Kingmaker.EntitySystem.Entities;
@@ -40,7 +41,6 @@ using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
 using UnityEngine;
-using UnityEngine.UI;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.Unity;
@@ -254,14 +254,14 @@ namespace WOTRMultiplayer.GameInteraction
                     suggestionIconObject.name = SuggestionIconName + i.ToString();
                     suggestionIconObject.SetActive(true);
 
-                    var rect = suggestionIconObject.GetComponent<UnityEngine.RectTransform>();
+                    var rect = suggestionIconObject.GetComponent<RectTransform>();
                     var preferedSize = Math.Min(rect.sizeDelta.x, rect.sizeDelta.y);
                     rect.sizeDelta = new UnityEngine.Vector2(preferedSize, preferedSize);
 
                     var newPosition = new UnityEngine.Vector3(suggestionIconObject.transform.position.x + 4 - (5 * i), suggestionIconObject.transform.position.y, suggestionIconObject.transform.position.z);
                     suggestionIconObject.transform.SetPositionAndRotation(newPosition, suggestionIconObject.transform.rotation);
 
-                    var image = suggestionIconObject.GetComponent<Image>();
+                    var image = suggestionIconObject.GetComponent<UnityEngine.UI.Image>();
                     image.color = UnityEngine.Color.white;
                     image.sprite = portrait;
                 }
@@ -1102,48 +1102,71 @@ namespace WOTRMultiplayer.GameInteraction
 
         public void ApplyGameSettings(NetworkGameSettings gameSettings)
         {
-            _logger.LogInformation("Applying settings. Settings={settings}", gameSettings);
-            SettingsRoot.Game.TurnBased.EnableTurnBasedMode.SetValueAndConfirm(gameSettings.TurnBased.IsTurnBasedModeEnabled);
-            SettingsRoot.Game.TurnBased.AutoEndTurn.SetValueAndConfirm(gameSettings.TurnBased.AutoEndTurn);
-            SettingsRoot.Game.TurnBased.AutoStopAfterFirstMoveAction.SetValueAndConfirm(gameSettings.TurnBased.AutoStopAfterFirstMoveAction);
-            if (gameSettings.TurnBased.TimeScaleInPlayerTurn.HasValue)
+            _mainThreadAccessor.Enqueue(() =>
             {
-                SettingsRoot.Game.TurnBased.TimeScaleInPlayerTurn.SetValueAndConfirm(gameSettings.TurnBased.TimeScaleInPlayerTurn.Value);
-            }
-            if (gameSettings.TurnBased.TimeScaleInNonPlayerTurn.HasValue)
+                _logger.LogInformation("Applying settings. Settings={settings}", gameSettings);
+                SettingsRoot.Game.TurnBased.EnableTurnBasedMode.SetValueAndConfirm(gameSettings.TurnBased.IsTurnBasedModeEnabled);
+                SettingsRoot.Game.TurnBased.AutoEndTurn.SetValueAndConfirm(gameSettings.TurnBased.AutoEndTurn);
+                SettingsRoot.Game.TurnBased.AutoStopAfterFirstMoveAction.SetValueAndConfirm(gameSettings.TurnBased.AutoStopAfterFirstMoveAction);
+                if (gameSettings.TurnBased.TimeScaleInPlayerTurn.HasValue)
+                {
+                    SettingsRoot.Game.TurnBased.TimeScaleInPlayerTurn.SetValueAndConfirm(gameSettings.TurnBased.TimeScaleInPlayerTurn.Value);
+                }
+                if (gameSettings.TurnBased.TimeScaleInNonPlayerTurn.HasValue)
+                {
+                    SettingsRoot.Game.TurnBased.TimeScaleInNonPlayerTurn.SetValueAndConfirm(gameSettings.TurnBased.TimeScaleInNonPlayerTurn.Value);
+                }
+
+                SettingsRoot.Game.Main.LootInCombat.SetValueAndConfirm(gameSettings.Main.LootInCombat);
+                SettingsRoot.Game.Main.AcceleratedMove.SetValueAndConfirm(gameSettings.Main.QuickMovement);
+
+                SettingsRoot.Game.Autopause.ContinueMovementOnEngagement.SetValueAndConfirm(gameSettings.Autopause.ContinueMovementOnEngagement);
+                SettingsRoot.Game.Autopause.PauseOnAllyDown.SetValueAndConfirm(gameSettings.Autopause.PauseOnAllyDown);
+                SettingsRoot.Game.Autopause.PauseOnAreaLoaded.SetValueAndConfirm(gameSettings.Autopause.PauseOnAreaLoaded);
+                SettingsRoot.Game.Autopause.PauseOnAttackOfOpportunity.SetValueAndConfirm(gameSettings.Autopause.PauseOnAttackOfOpportunity);
+                SettingsRoot.Game.Autopause.PauseOnEndedBuffSummon.SetValueAndConfirm(gameSettings.Autopause.PauseOnEndedBuffSummon);
+                SettingsRoot.Game.Autopause.PauseOnEndOfPartyMembersRound.SetValueAndConfirm(gameSettings.Autopause.PauseOnEndOfPartyMembersRound);
+                SettingsRoot.Game.Autopause.PauseOnEndOfRound.SetValueAndConfirm(gameSettings.Autopause.PauseOnEndOfRound);
+                SettingsRoot.Game.Autopause.PauseOnEnemyDown.SetValueAndConfirm(gameSettings.Autopause.PauseOnEnemyDown);
+                SettingsRoot.Game.Autopause.PauseOnEnemySpotted.SetValueAndConfirm(gameSettings.Autopause.PauseOnEnemySpotted);
+                SettingsRoot.Game.Autopause.PauseOnEngagement.SetValueAndConfirm(gameSettings.Autopause.PauseOnEngagement);
+                SettingsRoot.Game.Autopause.PauseOnHiddenObjectDetected.SetValueAndConfirm(gameSettings.Autopause.PauseOnHiddenObjectDetected);
+                SettingsRoot.Game.Autopause.PauseOnLostFocus.SetValueAndConfirm(gameSettings.Autopause.PauseOnLostFocus);
+                SettingsRoot.Game.Autopause.PauseOnLowHealth.SetValueAndConfirm(gameSettings.Autopause.PauseOnLowHealth);
+                SettingsRoot.Game.Autopause.PauseOnMeleeEngagement.SetValueAndConfirm(gameSettings.Autopause.PauseOnMeleeEngagement);
+                SettingsRoot.Game.Autopause.PauseOnNewEnemyAppeared.SetValueAndConfirm(gameSettings.Autopause.PauseOnNewEnemyAppeared);
+                SettingsRoot.Game.Autopause.PauseOnPartyIsAttacked.SetValueAndConfirm(gameSettings.Autopause.PauseOnPartyIsAttacked);
+                SettingsRoot.Game.Autopause.PauseOnPartyMemberFinishedAbility.SetValueAndConfirm(gameSettings.Autopause.PauseOnPartyMemberFinishedAbility);
+                SettingsRoot.Game.Autopause.PauseOnPartyMemberRanOutOfConsumable.SetValueAndConfirm(gameSettings.Autopause.PauseOnPartyMemberRanOutOfConsumable);
+                SettingsRoot.Game.Autopause.PauseOnSpellcastFinished.SetValueAndConfirm(gameSettings.Autopause.PauseOnSpellcastFinished);
+                SettingsRoot.Game.Autopause.PauseOnSpellcastInterrupted.SetValueAndConfirm(gameSettings.Autopause.PauseOnSpellcastInterrupted);
+                SettingsRoot.Game.Autopause.PauseOnSpellcastStarted.SetValueAndConfirm(gameSettings.Autopause.PauseOnSpellcastStarted);
+                SettingsRoot.Game.Autopause.PauseOnTrapDetected.SetValueAndConfirm(gameSettings.Autopause.PauseOnTrapDetected);
+                SettingsRoot.Game.Autopause.PauseOnWeaponIsIneffective.SetValueAndConfirm(gameSettings.Autopause.PauseOnWeaponIsIneffective);
+                SettingsRoot.Game.Autopause.PauseWhenAllyUnconscious.SetValueAndConfirm(gameSettings.Autopause.PauseWhenAllyUnconscious);
+                SettingsRoot.Game.Autopause.PauseWhenEnemyUnconscious.SetValueAndConfirm(gameSettings.Autopause.PauseWhenEnemyUnconscious);
+                SettingsRoot.Game.Autopause.PauseWhenLastSleepingEnemyStays.SetValueAndConfirm(gameSettings.Autopause.PauseWhenLastSleepingEnemyStays);
+            });
+        }
+
+        public void ShowWarningNotification(string text)
+        {
+            _mainThreadAccessor.Enqueue(() =>
             {
-                SettingsRoot.Game.TurnBased.TimeScaleInNonPlayerTurn.SetValueAndConfirm(gameSettings.TurnBased.TimeScaleInNonPlayerTurn.Value);
-            }
+                EventBus.RaiseEvent<IWarningNotificationUIHandler>(delegate (IWarningNotificationUIHandler h)
+                {
+                    h.HandleWarning(text, true);
+                }, true);
+            });
+        }
 
-            SettingsRoot.Game.Main.LootInCombat.SetValueAndConfirm(gameSettings.Main.LootInCombat);
-            SettingsRoot.Game.Main.AcceleratedMove.SetValueAndConfirm(gameSettings.Main.QuickMovement);
-
-            SettingsRoot.Game.Autopause.ContinueMovementOnEngagement.SetValueAndConfirm(gameSettings.Autopause.ContinueMovementOnEngagement);
-            SettingsRoot.Game.Autopause.PauseOnAllyDown.SetValueAndConfirm(gameSettings.Autopause.PauseOnAllyDown);
-            SettingsRoot.Game.Autopause.PauseOnAreaLoaded.SetValueAndConfirm(gameSettings.Autopause.PauseOnAreaLoaded);
-            SettingsRoot.Game.Autopause.PauseOnAttackOfOpportunity.SetValueAndConfirm(gameSettings.Autopause.PauseOnAttackOfOpportunity);
-            SettingsRoot.Game.Autopause.PauseOnEndedBuffSummon.SetValueAndConfirm(gameSettings.Autopause.PauseOnEndedBuffSummon);
-            SettingsRoot.Game.Autopause.PauseOnEndOfPartyMembersRound.SetValueAndConfirm(gameSettings.Autopause.PauseOnEndOfPartyMembersRound);
-            SettingsRoot.Game.Autopause.PauseOnEndOfRound.SetValueAndConfirm(gameSettings.Autopause.PauseOnEndOfRound);
-            SettingsRoot.Game.Autopause.PauseOnEnemyDown.SetValueAndConfirm(gameSettings.Autopause.PauseOnEnemyDown);
-            SettingsRoot.Game.Autopause.PauseOnEnemySpotted.SetValueAndConfirm(gameSettings.Autopause.PauseOnEnemySpotted);
-            SettingsRoot.Game.Autopause.PauseOnEngagement.SetValueAndConfirm(gameSettings.Autopause.PauseOnEngagement);
-            SettingsRoot.Game.Autopause.PauseOnHiddenObjectDetected.SetValueAndConfirm(gameSettings.Autopause.PauseOnHiddenObjectDetected);
-            SettingsRoot.Game.Autopause.PauseOnLostFocus.SetValueAndConfirm(gameSettings.Autopause.PauseOnLostFocus);
-            SettingsRoot.Game.Autopause.PauseOnLowHealth.SetValueAndConfirm(gameSettings.Autopause.PauseOnLowHealth);
-            SettingsRoot.Game.Autopause.PauseOnMeleeEngagement.SetValueAndConfirm(gameSettings.Autopause.PauseOnMeleeEngagement);
-            SettingsRoot.Game.Autopause.PauseOnNewEnemyAppeared.SetValueAndConfirm(gameSettings.Autopause.PauseOnNewEnemyAppeared);
-            SettingsRoot.Game.Autopause.PauseOnPartyIsAttacked.SetValueAndConfirm(gameSettings.Autopause.PauseOnPartyIsAttacked);
-            SettingsRoot.Game.Autopause.PauseOnPartyMemberFinishedAbility.SetValueAndConfirm(gameSettings.Autopause.PauseOnPartyMemberFinishedAbility);
-            SettingsRoot.Game.Autopause.PauseOnPartyMemberRanOutOfConsumable.SetValueAndConfirm(gameSettings.Autopause.PauseOnPartyMemberRanOutOfConsumable);
-            SettingsRoot.Game.Autopause.PauseOnSpellcastFinished.SetValueAndConfirm(gameSettings.Autopause.PauseOnSpellcastFinished);
-            SettingsRoot.Game.Autopause.PauseOnSpellcastInterrupted.SetValueAndConfirm(gameSettings.Autopause.PauseOnSpellcastInterrupted);
-            SettingsRoot.Game.Autopause.PauseOnSpellcastStarted.SetValueAndConfirm(gameSettings.Autopause.PauseOnSpellcastStarted);
-            SettingsRoot.Game.Autopause.PauseOnTrapDetected.SetValueAndConfirm(gameSettings.Autopause.PauseOnTrapDetected);
-            SettingsRoot.Game.Autopause.PauseOnWeaponIsIneffective.SetValueAndConfirm(gameSettings.Autopause.PauseOnWeaponIsIneffective);
-            SettingsRoot.Game.Autopause.PauseWhenAllyUnconscious.SetValueAndConfirm(gameSettings.Autopause.PauseWhenAllyUnconscious);
-            SettingsRoot.Game.Autopause.PauseWhenEnemyUnconscious.SetValueAndConfirm(gameSettings.Autopause.PauseWhenEnemyUnconscious);
-            SettingsRoot.Game.Autopause.PauseWhenLastSleepingEnemyStays.SetValueAndConfirm(gameSettings.Autopause.PauseWhenLastSleepingEnemyStays);
+        public void SpawnCampPlace(NetworkVector3 position)
+        {
+            _mainThreadAccessor.Enqueue(() =>
+            {
+                var campPosition = new Vector3(position.X, position.Y, position.Z);
+                RestHelper.SpawnCampPlace(campPosition);
+            });
         }
 
         private void RefreshInventoryWindow()
