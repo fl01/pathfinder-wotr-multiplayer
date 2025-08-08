@@ -5,12 +5,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Kingmaker;
 using Kingmaker.AI;
+using Kingmaker.Blueprints.Items.Equipment;
 using Kingmaker.Blueprints.Root;
 using Kingmaker.Cheats;
 using Kingmaker.Controllers.Clicks;
 using Kingmaker.Controllers.Clicks.Handlers;
 using Kingmaker.Controllers.MapObjects;
 using Kingmaker.Controllers.Rest;
+using Kingmaker.Controllers.Rest.State;
+using Kingmaker.Craft;
 using Kingmaker.DialogSystem.Blueprints;
 using Kingmaker.EntitySystem;
 using Kingmaker.EntitySystem.Entities;
@@ -1212,25 +1215,29 @@ namespace WOTRMultiplayer.GameInteraction
         {
             _mainThreadAccessor.Enqueue(() =>
             {
-                var restView = RestView;
-                if (restView == null)
+                try
                 {
-                    return;
-                }
+                    var restView = RestView;
+                    if (restView != null)
+                    {
+                        restView.m_AutotuneToggle.isOn = state.AutotuneIterationsStatus;
+                        (restView.GetViewModel() as RestVM)?.HandleIterationsCountCalculated(state.IterationsCount);
+                    }
 
-                var campingState = Game.Instance.Player.Camping;
-                if (campingState == null)
+                    var campingState = Game.Instance.Player.Camping;
+
+                    UpdateCookingRecipe(campingState, state.CookingBlueprintRecipeId);
+                    UpdateAlchemistRecipe(campingState, state.PotionBlueprintRecipeId);
+                    UpdateScrollScribingRecipe(campingState, state.ScrollBlueprintRecipeId);
+
+                    campingState.RestIterationsCount = state.IterationsCount;
+                    campingState.m_AutoTuneRestIterations = state.AutotuneIterationsStatus;
+                }
+                catch (Exception ex)
                 {
-                    return;
+                    _logger.LogError(ex, "Error during updating camping state");
+                    throw;
                 }
-
-                var cookingRecipe = string.IsNullOrEmpty(state.CookingBlueprintRecipeId) ? null :
-                     campingState.KnownRecipes.FirstOrDefault(r => string.Equals(r.AssetGuid.ToString(), state.CookingBlueprintRecipeId, StringComparison.OrdinalIgnoreCase));
-                campingState.CookingRecipe = cookingRecipe;
-
-                restView.m_AutotuneToggle.isOn = state.AutotuneIterationsStatus;
-                campingState.RestIterationsCount = state.IterationsCount;
-                (restView.GetViewModel() as RestVM)?.HandleIterationsCountCalculated(state.IterationsCount);
             });
         }
 
@@ -1250,6 +1257,99 @@ namespace WOTRMultiplayer.GameInteraction
                     campingState.CurrentCampingRoles[role.RoleType].SecondaryUnit = GetUnitEntity(role.SecondaryUnitId);
                 }
             });
+        }
+
+        private CraftItemInfo GetCampingCraftItemInfo(UnitEntityData crafter, UsableItemType itemType, string itemBlueprintId)
+        {
+            if (crafter == null)
+            {
+                return null;
+            }
+
+            var craftingRecipes = Game.Instance.BlueprintRoot.CraftRoot.CollectCraftList(crafter, itemType);
+            var recipe = craftingRecipes.FirstOrDefault(c => string.Equals(c.Info.Item.AssetGuid.ToString(), itemBlueprintId, StringComparison.OrdinalIgnoreCase));
+
+            return recipe?.Info;
+        }
+
+        private void UpdateScrollScribingRecipe(CampingState campingState, string scrollItemBlueprintId)
+        {
+            if (string.IsNullOrEmpty(scrollItemBlueprintId))
+            {
+                campingState.SelectedScroll = null;
+                return;
+            }
+
+            if (campingState.SelectedScroll != null && string.Equals(campingState.SelectedScroll.Item.AssetGuid.ToString(), scrollItemBlueprintId))
+            {
+                _logger.LogInformation("Same camping scroll scribing recipe is already selected, skipping updates. BlueprintId={id}", scrollItemBlueprintId);
+                return;
+            }
+
+            var roleType = CampingRoleType.ScrollScribe;
+            var crafter = campingState.GetCharacterByRoleType(roleType);
+            if (crafter == null)
+            {
+                return;
+            }
+
+            var recipe = GetCampingCraftItemInfo(crafter, UsableItemType.Scroll, scrollItemBlueprintId);
+            if (recipe == null)
+            {
+                _logger.LogError("Unable update camping scroll scribing recipe due to missing blueprint id. BlueprintId={id}", scrollItemBlueprintId);
+                return;
+            }
+
+            campingState.SelectedScroll = recipe;
+
+            UpdateCraftingUI(roleType);
+        }
+
+        private void UpdateAlchemistRecipe(CampingState campingState, string potionBlueprintRecipeId)
+        {
+            if (string.IsNullOrEmpty(potionBlueprintRecipeId))
+            {
+                campingState.SelectedPotion = null;
+                return;
+            }
+
+            if (campingState.SelectedPotion != null && string.Equals(campingState.SelectedPotion.Item.AssetGuid.ToString(), potionBlueprintRecipeId))
+            {
+                _logger.LogInformation("Same camping alchemist potion recipe is already selected, skipping updates. BlueprintId={id}", potionBlueprintRecipeId);
+                return;
+            }
+
+            var roleType = CampingRoleType.Alchemist;
+            var crafter = campingState.GetCharacterByRoleType(roleType);
+            if (crafter == null)
+            {
+                return;
+            }
+
+            var recipe = GetCampingCraftItemInfo(crafter, UsableItemType.Potion, potionBlueprintRecipeId);
+            if (recipe == null)
+            {
+                _logger.LogError("Unable update camping alchemist potion recipe due to missing blueprint id. BlueprintId={id}", potionBlueprintRecipeId);
+                return;
+            }
+
+            campingState.SelectedPotion = recipe;
+
+            UpdateCraftingUI(roleType);
+        }
+
+        private void UpdateCraftingUI(CampingRoleType campingRoleType)
+        {
+            EventBus.RaiseEvent<IRestRoleUIStageEvents>(delegate (IRestRoleUIStageEvents h)
+            {
+                h.RestStageClosed(campingRoleType, CraftStage.CraftFirstType, true);
+            }, true);
+        }
+
+        private void UpdateCookingRecipe(CampingState campingState, string cookingBlueprintRecipeId)
+        {
+            var cookingRecipe = string.IsNullOrEmpty(cookingBlueprintRecipeId) ? null : campingState.KnownRecipes.FirstOrDefault(r => string.Equals(r.AssetGuid.ToString(), cookingBlueprintRecipeId, StringComparison.OrdinalIgnoreCase));
+            campingState.CookingRecipe = cookingRecipe;
         }
 
         private void RefreshInventoryWindow()

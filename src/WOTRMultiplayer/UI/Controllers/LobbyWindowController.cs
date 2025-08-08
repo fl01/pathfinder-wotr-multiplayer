@@ -263,8 +263,11 @@ namespace WOTRMultiplayer.UI.Controllers
                 var tmpDropdown = dropdownObject.GetComponent<TMP_Dropdown>();
                 RemoveAllDropdownListeners(tmpDropdown);
                 tmpDropdown.onValueChanged.RemoveAllListeners();
+                var selectedValue = tmpDropdown.value;
                 tmpDropdown.ClearOptions();
                 tmpDropdown.AddOptions(players);
+                tmpDropdown.value = selectedValue;
+                tmpDropdown.RefreshShownValue();
                 ListenForDropdownChange(tmpDropdown);
             }
         }

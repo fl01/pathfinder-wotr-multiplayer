@@ -879,7 +879,7 @@ namespace WOTRMultiplayer.MP
 
         private HealDamageRoll CreateHealDamageRoll(NetworkDiceRollType diceRollType, RuleHealDamage ruleHealDamage, int unitsCount)
         {
-            var roll = new HealDamageRoll(ruleHealDamage.Initiator.UniqueId, ruleHealDamage.GetType().Name, diceRollType, ruleHealDamage.Bonus)
+            var roll = new HealDamageRoll(ruleHealDamage.Initiator?.UniqueId, ruleHealDamage.GetType().Name, diceRollType, ruleHealDamage.Bonus)
             {
                 AbilityId = ruleHealDamage.Reason.Ability.StickyTouch?.UniqueId ?? ruleHealDamage.Reason.Ability?.UniqueId,
                 AbilitySchoolId = ruleHealDamage.Reason.Ability?.Spellbook?.Blueprint.name,
