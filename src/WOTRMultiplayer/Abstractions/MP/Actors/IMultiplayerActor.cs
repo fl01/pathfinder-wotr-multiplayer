@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Kingmaker.GameModes;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
 using WOTRMultiplayer.MP.Entities.Equipment;
@@ -44,10 +45,6 @@ namespace WOTRMultiplayer.Abstractions.MP.Actors
         bool IsControlledByPlayers(string unitId);
 
         void GameLoaded();
-
-        void Pause();
-
-        void Unpause();
 
         void OnAfterCueShow(string dialogName, string cueName, bool hasSystemAnswer);
 
@@ -105,5 +102,9 @@ namespace WOTRMultiplayer.Abstractions.MP.Actors
         bool CanUnitJoinCombat(string unitId);
 
         string GetMultiplayerOwnerName(string unitId);
+
+        bool OnStartGameMode(GameModeType type);
+
+        bool OnStopGameMode(GameModeType type);
     }
 }

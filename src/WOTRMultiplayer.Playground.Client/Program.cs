@@ -58,12 +58,6 @@ namespace WOTRMultiplayer.Playground.Client
                 case CommandVerbs.ClientLoadedCommandVerb:
                     client.GameLoaded();
                     break;
-                case CommandVerbs.ClientPausedCommandVerb:
-                    client.Pause();
-                    break;
-                case CommandVerbs.ClientUnpausedCommandVerb:
-                    client.Unpause();
-                    break;
                 case CommandVerbs.ConnectCommandVerb connect:
                     var result = client.Connect(connect.ServerAddress);
                     Console.WriteLine(result.Message);

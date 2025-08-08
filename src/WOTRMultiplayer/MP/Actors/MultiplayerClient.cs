@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using AutoMapper;
+using Kingmaker.GameModes;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.IO;
@@ -143,21 +144,6 @@ namespace WOTRMultiplayer.MP.Actors
             _networkServerClient.Send(new ClientGameLoaded());
         }
 
-        public void Pause()
-        {
-            //Logger.LogInformation("Sending pausing notification");
-
-            //var message = new GamePauseChanged { IsPaused = true };
-            //_networkServerClient.SendAsync(message).Wait();
-        }
-
-        public void Unpause()
-        {
-            //Logger.LogInformation("Sending unpausing notification");
-            //var message = new GamePauseChanged { IsPaused = false };
-            //_networkServerClient.SendAsync(message).Wait();
-        }
-
         public void OnAfterCueShow(string dialogName, string cueName, bool hasSystemAnswer)
         {
             Logger.LogInformation("Showing dialog Cue. DialogName={dialogName}, CueName={cueName}, HasSystemAnswer={hasSystemAnswer}", dialogName, cueName, hasSystemAnswer);
@@ -284,6 +270,21 @@ namespace WOTRMultiplayer.MP.Actors
         public bool IsDiceRollOwner(bool silent)
         {
             return !IsRolledByHost(silent) && IsRolledByLocalPlayer(silent);
+        }
+
+
+        protected override void OnGameModeStarted(GameModeType type)
+        {
+            var message = new ClientGameModeTypeStarted { TypeId = type.Index };
+            Logger.LogInformation("Sending {messageType}. TypeId={typeId}", nameof(ClientGameModeTypeStarted), message.TypeId);
+            Send(message);
+        }
+
+        protected override void OnGameModeEnded(GameModeType type, bool isLocalPlayer)
+        {
+            var message = new ClientGameModeTypeEnded { TypeId = type.Index };
+            Logger.LogInformation("Sending {messageType}. TypeId={typeId}", nameof(ClientGameModeTypeEnded), message.TypeId);
+            Send(message);
         }
 
         protected override Task<DiceRollValueResponse> RetrieveRollAsync(DiceRollValueRequest request, string unitId)

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
+using Kingmaker.GameModes;
 using WOTRMultiplayer.MP.Entities.Combat;
 using WOTRMultiplayer.MP.Entities.Dialogs;
 
@@ -17,6 +19,8 @@ namespace WOTRMultiplayer.MP.Entities
         public List<NetworkPlayer> Players { get; set; } = [];
 
         public List<NetworkCharacterOwnership> Characters { get; set; } = [];
+
+        public ConcurrentDictionary<GameModeType, HashSet<long>> PlayersInGameMode { get; set; } = [];
 
         public NetworkCombat Combat { get; set; }
 

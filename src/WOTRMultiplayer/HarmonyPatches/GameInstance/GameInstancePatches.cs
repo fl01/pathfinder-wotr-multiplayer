@@ -36,7 +36,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GameInstance
                 return true;
             }
 
-            var allowedToRun = Main.Multiplayer.StartGameMode(type);
+            var allowedToRun = Main.Multiplayer.OnStartGameMode(type);
             return allowedToRun;
         }
 
@@ -49,7 +49,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GameInstance
                 return true;
             }
 
-            var allowedToRun = Main.Multiplayer.StopGameMode(type);
+            var allowedToRun = Main.Multiplayer.OnStopGameMode(type);
             return allowedToRun;
         }
     }

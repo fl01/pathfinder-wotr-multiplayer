@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using Kingmaker.UI.MVVM._PCView.Rest;
-using Microsoft.Extensions.Logging;
 
 namespace WOTRMultiplayer.HarmonyPatches.Rest
 {
@@ -37,8 +36,6 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
             {
                 return;
             }
-
-            Main.GetLogger<RestPCViewPatches>().LogInformation("ASd", __instance);
 
             var canUseRestUI = Main.Multiplayer.CanUseCampingUI();
             if (canUseRestUI)

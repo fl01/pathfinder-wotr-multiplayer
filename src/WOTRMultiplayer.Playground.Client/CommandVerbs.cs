@@ -25,16 +25,6 @@ namespace WOTRMultiplayer.Playground.Client
         {
         }
 
-        [Verb("pause", HelpText = "Trigger client is paused")]
-        public class ClientPausedCommandVerb
-        {
-        }
-
-        [Verb("unpause", HelpText = "Trigger client is unpaused")]
-        public class ClientUnpausedCommandVerb
-        {
-        }
-
         [Verb("dialog-witness-cue", HelpText = "witness cue")]
         public class DialogWitnessCueCommandVerb
         {

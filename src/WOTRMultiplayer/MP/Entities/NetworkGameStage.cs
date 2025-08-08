@@ -6,7 +6,7 @@
         Lobby,
         Initializing,
         WaitingForPlayersInitialization,
-        Initialized,
+        Loading,
         Playing
     }
 }

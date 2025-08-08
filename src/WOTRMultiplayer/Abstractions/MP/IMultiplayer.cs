@@ -29,9 +29,9 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         void MoveNonCombatCharacter(string unitId, NetworkVector3 destination, float delay, float orientation);
 
-        bool StartGameMode(GameModeType type);
+        bool OnStartGameMode(GameModeType type);
 
-        bool StopGameMode(GameModeType type);
+        bool OnStopGameMode(GameModeType type);
 
         bool CanLeaveArea();
 

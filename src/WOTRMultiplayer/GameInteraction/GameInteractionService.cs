@@ -1636,5 +1636,29 @@ namespace WOTRMultiplayer.GameInteraction
 
             return Game.Instance.State.Units.FirstOrDefault(u => string.Equals(u.UniqueId, uniqueId, StringComparison.OrdinalIgnoreCase));
         }
+
+        public void SetStartRestButtonState(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
+        {
+            _mainThreadAccessor.Enqueue(() =>
+            {
+                if (RestView == null)
+                {
+                    return;
+                }
+
+                _logger.LogInformation("Changing rest button state. IsInteractable={isInteractable}, ReadyPlayers={readyPlayer}, TotalPlayers={totalPlayers}", isInteractable, readyPlayersCount, totalPlayersCount);
+
+                RestView.m_StartRestButton.Interactable = isInteractable;
+
+                var baseText = RestView.m_StartRestButtonText.text;
+                if (baseText.EndsWith(")"))
+                {
+                    var parts = baseText.Split(' ');
+                    baseText = string.Join(" ", parts.Take(parts.Length - 1));
+                }
+                baseText += $" ({readyPlayersCount}/{totalPlayersCount})";
+                RestView.m_StartRestButtonText.SetText(baseText);
+            });
+        }
     }
 }

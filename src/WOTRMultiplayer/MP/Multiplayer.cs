@@ -137,39 +137,27 @@ namespace WOTRMultiplayer.MP
             return _multiplayerActorAccessor.Current.IsControlledByLocalPlayer(unitId);
         }
 
-        public bool StartGameMode(GameModeType type)
+        public bool OnStartGameMode(GameModeType type)
         {
             if (_multiplayerActorAccessor.Current == null)
             {
                 return true;
             }
 
-            var allowedToRun = type != GameModeType.EscMode && type != GameModeType.FullScreenUi;
-            _logger.LogInformation("Trying to start GameModeType. Mode={mode}, AllowedToRun={allowedToRun}", type.Name, allowedToRun);
 
-            if (type == GameModeType.Pause)
-            {
-                _multiplayerActorAccessor.Current.Pause();
-            }
-
-            return allowedToRun;
+            var canContinue = _multiplayerActorAccessor.Current.OnStartGameMode(type);
+            return canContinue;
         }
 
-        public bool StopGameMode(GameModeType type)
+        public bool OnStopGameMode(GameModeType type)
         {
             if (_multiplayerActorAccessor.Current == null)
             {
                 return true;
             }
 
-            _logger.LogInformation("Trying to stop GameModeType. Mode={mode}", type.Name);
-
-            if (type == GameModeType.Pause)
-            {
-                _multiplayerActorAccessor.Current.Unpause();
-            }
-
-            return true;
+            var canContinue = _multiplayerActorAccessor.Current.OnStopGameMode(type);
+            return canContinue;
         }
 
         public bool CanLeaveArea()

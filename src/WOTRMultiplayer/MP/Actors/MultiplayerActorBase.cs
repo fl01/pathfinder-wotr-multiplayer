@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AutoMapper;
+using Kingmaker.GameModes;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.IO;
@@ -362,10 +363,7 @@ namespace WOTRMultiplayer.MP.Actors
 
             if (IsHost)
             {
-                foreach (var player in Game.Players)
-                {
-                    player.IsLoading = true;
-                }
+                SetLoadingGame();
             }
 
             ResetGameIdGenerator();
@@ -448,6 +446,88 @@ namespace WOTRMultiplayer.MP.Actors
         {
             var owner = GetCharacterOwnership(unitId);
             return owner?.Owner?.Name;
+        }
+
+        public bool OnStartGameMode(GameModeType type)
+        {
+            var allowedToRun = IsGameModeAllowedToRun(type);
+
+            var playerId = GetLocalPlayerId();
+            OnStartGameMode(type, playerId, allowedToRun);
+
+            return allowedToRun;
+        }
+
+        public bool OnStopGameMode(GameModeType type)
+        {
+            Logger.LogInformation("Trying to stop GameModeType. Mode={mode}", type.Name);
+            var localPlayer = GetLocalPlayerId();
+            OnStopGameMode(type, localPlayer);
+
+            return true;
+        }
+
+        protected void SetLoadingGame()
+        {
+            Game.Stage = NetworkGameStage.Loading;
+            foreach (var player in Game.Players)
+            {
+                player.IsLoading = true;
+            }
+        }
+
+        protected void OnStartGameMode(GameModeType type, long playerId, bool isAllowedToRun)
+        {
+            Logger.LogInformation("OnStartGameMode. Mode={mode}, PlayerId={playerId}, AllowedToRun={allowedToRun}", type.Name, playerId, isAllowedToRun);
+            lock (ActionLock)
+            {
+                if (isAllowedToRun && RegisterGameMode(type, playerId))
+                {
+                    OnGameModeStarted(type);
+                }
+            }
+        }
+
+        protected void OnStopGameMode(GameModeType type, long playerId)
+        {
+            Logger.LogInformation("OnStopGameMode. Mode={mode}, PlayerId={playerId}", type.Name, playerId);
+            lock (ActionLock)
+            {
+                if (UnregisterGameMode(type, playerId))
+                {
+                    var isLocal = GetLocalPlayerId() == playerId;
+                    OnGameModeEnded(type, isLocal);
+                }
+            }
+        }
+
+        protected abstract void OnGameModeStarted(GameModeType type);
+
+        protected abstract void OnGameModeEnded(GameModeType type, bool isLocalPlayer);
+
+        protected bool RegisterGameMode(GameModeType type, long playerId)
+        {
+            var isNew = true;
+            var registeredPlayers = Game.PlayersInGameMode.AddOrUpdate(type,
+                 k => new HashSet<long>([playerId]),
+                 (k, existing) =>
+                 {
+                     // side effects are fine
+                     isNew = existing.Add(playerId);
+                     return existing;
+                 });
+
+            return isNew;
+        }
+
+        protected bool UnregisterGameMode(GameModeType type, long playerId)
+        {
+            if (Game.PlayersInGameMode.TryGetValue(type, out var players))
+            {
+                return players.Remove(playerId);
+            }
+
+            return false;
         }
 
         protected abstract Task<DiceRollValueResponse> RetrieveRollAsync(DiceRollValueRequest rollRequest, string unitId);
@@ -564,6 +644,7 @@ namespace WOTRMultiplayer.MP.Actors
         {
             ResetGameIdGenerator();
             OnStartGame?.Invoke(Game.SaveFilePath);
+            Game.Stage = NetworkGameStage.Loading;
         }
 
         protected void ForceLoadGame()
@@ -802,6 +883,11 @@ namespace WOTRMultiplayer.MP.Actors
         {
             Game.Combat.Turn.IsInProgress = false;
             GameInteraction.EndTurnBasedCombatTurn();
+        }
+
+        protected bool IsGameModeAllowedToRun(GameModeType type)
+        {
+            return type != GameModeType.EscMode && type != GameModeType.FullScreenUi;
         }
 
         private bool IsControlledByLocalPlayer(List<string> units)

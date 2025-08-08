@@ -233,5 +233,9 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
         public void SetCampingRoles(List<NetworkCampingRole> roles)
         {
         }
+
+        public void SetStartRestButtonState(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
+        {
+        }
     }
 }

@@ -101,13 +101,6 @@ namespace WOTRMultiplayer.Playground.Host
                         break;
                     case "loaded":
                         host.GameLoaded();
-                        host.Unpause();
-                        break;
-                    case "pause":
-                        host.Pause();
-                        break;
-                    case "unpause":
-                        host.Unpause();
                         break;
                     case "leave-area":
                         host.LeaveArea("1b018b52-c1be-40bf-8937-1f2a77b96049");

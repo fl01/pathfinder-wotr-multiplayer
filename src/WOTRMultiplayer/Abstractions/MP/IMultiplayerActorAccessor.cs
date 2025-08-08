@@ -1,4 +1,5 @@
-﻿using WOTRMultiplayer.Abstractions.MP.Actors;
+﻿using Kingmaker.GameModes;
+using WOTRMultiplayer.Abstractions.MP.Actors;
 
 namespace WOTRMultiplayer.Abstractions.MP
 {
