@@ -1,12 +1,12 @@
 ﻿namespace WOTRMultiplayer.GameInteraction.Contexts
 {
-    public class PerceptionCheckContext
+    public class PerceptionCheckRemoteContext
     {
         public string MapObjectId { get; set; }
 
         public string UnitId { get; set; }
 
-        public PerceptionCheckContext(string unitId, string mapObjectId)
+        public PerceptionCheckRemoteContext(string unitId, string mapObjectId)
         {
             UnitId = unitId;
             MapObjectId = mapObjectId;

@@ -39,7 +39,7 @@ namespace WOTRMultiplayer.MP
 
         public bool IsInCombat => _multiplayerActorAccessor.Current != null && _multiplayerActorAccessor.Current.IsInCombat;
 
-        public NetworkExecutionContext ExecutionContext => _gameInteractionService.ExecutionContext;
+        public RemoteExecutionContext ExecutionContext => _gameInteractionService.RemoteContext;
 
         public Multiplayer(
             ILogger<Multiplayer> logger,
@@ -379,7 +379,7 @@ namespace WOTRMultiplayer.MP
                 return;
             }
 
-            var context = _gameInteractionService.ExecutionContext?.DropItem;
+            var context = _gameInteractionService.RemoteContext?.DropItem;
             if (context != null && string.Equals(context.UnitId, dropItem.OwnerEntityId, StringComparison.OrdinalIgnoreCase)
                 && string.Equals(context.ItemId, dropItem.Item.UniqueId, StringComparison.OrdinalIgnoreCase))
             {
@@ -396,7 +396,7 @@ namespace WOTRMultiplayer.MP
                 return;
             }
 
-            var context = _gameInteractionService.ExecutionContext?.HandEquipment;
+            var context = _gameInteractionService.RemoteContext?.HandEquipment;
             if (context != null
                 && context.Index == set.Index
                 && string.Equals(context.UnitId, set.UnitId, StringComparison.OrdinalIgnoreCase))
@@ -441,7 +441,7 @@ namespace WOTRMultiplayer.MP
         {
             if (_multiplayerActorAccessor.Client.IsActive)
             {
-                var perceptionCheck = _gameInteractionService.ExecutionContext?.PerceptionCheck;
+                var perceptionCheck = _gameInteractionService.RemoteContext?.PerceptionCheck;
                 if (perceptionCheck == null)
                 {
                     return false;

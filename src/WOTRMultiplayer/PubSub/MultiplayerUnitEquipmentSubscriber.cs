@@ -46,7 +46,7 @@ namespace WOTRMultiplayer.PubSub
                 Position = position
             };
 
-            var equipmentContext = _gameInteractionService.ExecutionContext?.Equipment;
+            var equipmentContext = _gameInteractionService.RemoteContext?.Equipment;
             if (equipmentContext != null && equipmentContext.Position.Type == position.Type && equipmentContext.Position.Index == position.Index)
             {
                 return;

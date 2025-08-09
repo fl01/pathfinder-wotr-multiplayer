@@ -1,6 +1,6 @@
 ﻿namespace WOTRMultiplayer.GameInteraction.Contexts
 {
-    public class DropItemContext
+    public class DropItemRemoteContext
     {
         public string UnitId { get; set; }
 

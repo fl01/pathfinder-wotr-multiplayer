@@ -69,9 +69,9 @@ namespace WOTRMultiplayer.GameInteraction
         private readonly IMainThreadAccessor _mainThreadAccessor;
         private readonly IResourceProvider _resourceProvider;
         private readonly IEquipmentDefinitions _equipmentDefinitions;
-        private readonly AsyncLocal<NetworkExecutionContext> _networkExecutionContext = new();
+        private readonly AsyncLocal<RemoteExecutionContext> _networkExecutionContext = new();
 
-        public NetworkExecutionContext ExecutionContext => _networkExecutionContext?.Value;
+        public RemoteExecutionContext RemoteContext => _networkExecutionContext.Value;
 
         public bool IsPaused => Game.Instance.IsPaused;
 
@@ -108,7 +108,7 @@ namespace WOTRMultiplayer.GameInteraction
             _mainThreadAccessor.Enqueue(() =>
             {
                 var units = networkOvertip.Units.Select(GetUnitEntity).ToList();
-                using var context = _networkExecutionContext.Value = new NetworkExecutionContext { SelectedUnits = units };
+                using var context = _networkExecutionContext.Value = RemoteExecutionContext.Create(units);
                 var mapObject = GetMapObject(networkOvertip.MapObject.Id);
                 if (mapObject == null)
                 {
@@ -874,7 +874,7 @@ namespace WOTRMultiplayer.GameInteraction
         private void DropItem(ItemsCollection inventory, ItemEntity itemEntity, string ownerId)
         {
             var itemId = itemEntity.UniqueId;
-            using var context = _networkExecutionContext.Value = new NetworkExecutionContext { DropItem = new DropItemContext { ItemId = itemId, UnitId = ownerId } };
+            using var context = _networkExecutionContext.Value = RemoteExecutionContext.CreateDropItem(itemId, ownerId);
             inventory.DropItem(itemEntity);
             _logger.LogInformation("Item has been dropped. EntityId={entityId}, ItemId={itemId}, Count={count}", ownerId, itemId, itemEntity.Count);
         }
@@ -936,7 +936,7 @@ namespace WOTRMultiplayer.GameInteraction
                     return;
                 }
 
-                using var context = _networkExecutionContext.Value = new NetworkExecutionContext { Equipment = new EquipmentContext { Position = slot.Position } };
+                using var context = _networkExecutionContext.Value = RemoteExecutionContext.Create(slot.Position);
 
                 var slotToUpdate = slotsOfSameType[slot.Position.Index];
                 if (slot.Item == null)
@@ -988,7 +988,7 @@ namespace WOTRMultiplayer.GameInteraction
                     return;
                 }
 
-                using var context = _networkExecutionContext.Value = new NetworkExecutionContext { HandEquipment = new HandEquipmentContext { UnitId = set.UnitId, Index = set.Index } };
+                using var context = _networkExecutionContext.Value = RemoteExecutionContext.Create(set);
                 var previousIndex = unit.Body.CurrentHandEquipmentSetIndex;
                 unit.Body.CurrentHandEquipmentSetIndex = set.Index;
                 RefreshInventoryWindow();
@@ -1027,10 +1027,7 @@ namespace WOTRMultiplayer.GameInteraction
             _mainThreadAccessor.Enqueue(() =>
             {
                 _logger.LogInformation("Trigerring perception check. MapObjectId={mapObjectId}", check.MapObject.Id);
-                using var context = _networkExecutionContext.Value = new NetworkExecutionContext
-                {
-                    PerceptionCheck = new PerceptionCheckContext(unit.UniqueId, mapObject.UniqueId)
-                };
+                using var context = _networkExecutionContext.Value = RemoteExecutionContext.Create(check);
                 PartyPerceptionController.RollPerception(unit, mapObject);
             });
         }
@@ -1568,7 +1565,7 @@ namespace WOTRMultiplayer.GameInteraction
                     _logger.LogInformation("Executing click handler. Type={handlerType}, WorldPosition={worldPosition}, TargetUnitId={targetUnitId}, SelectedUnit={selectedUnitId}, VectorPathCount={pathCount}",
                                clickEventHandler.GetType().Name, click.WorldPosition, targetUnit?.UniqueId, selectedUnit?.UniqueId, click.VectorPath.Count);
 
-                    using var context = _networkExecutionContext.Value = new NetworkExecutionContext { SelectedUnits = selectedUnits };
+                    using var context = _networkExecutionContext.Value = RemoteExecutionContext.Create(selectedUnits);
                     Game.Instance.SelectionCharacter.SelectedUnit.Value = selectedUnit;
 
                     if (click.ActionsState != null)

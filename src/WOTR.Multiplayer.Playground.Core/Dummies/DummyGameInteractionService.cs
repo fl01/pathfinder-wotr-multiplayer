@@ -23,7 +23,7 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
     {
         public bool IsPaused { get; set; }
 
-        public NetworkExecutionContext ExecutionContext { get; }
+        public RemoteExecutionContext RemoteContext { get; }
 
         public GameModeType CurrentGameMode => GameModeType.None;
 

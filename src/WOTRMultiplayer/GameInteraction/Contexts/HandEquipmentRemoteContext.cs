@@ -1,6 +1,6 @@
 ﻿namespace WOTRMultiplayer.GameInteraction.Contexts
 {
-    public class HandEquipmentContext
+    public class HandEquipmentRemoteContext
     {
         public string UnitId { get; set; }
 

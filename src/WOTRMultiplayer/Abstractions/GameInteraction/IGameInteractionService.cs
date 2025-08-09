@@ -18,7 +18,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 {
     public interface IGameInteractionService
     {
-        NetworkExecutionContext ExecutionContext { get; }
+        RemoteExecutionContext RemoteContext { get; }
 
         bool IsPaused { get; }
 

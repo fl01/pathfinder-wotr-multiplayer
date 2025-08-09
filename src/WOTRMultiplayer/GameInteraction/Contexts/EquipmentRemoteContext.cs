@@ -2,7 +2,7 @@
 
 namespace WOTRMultiplayer.GameInteraction.Contexts
 {
-    public class EquipmentContext
+    public class EquipmentRemoteContext
     {
         public NetworkEquipmentSlotPosition Position { get; set; }
     }

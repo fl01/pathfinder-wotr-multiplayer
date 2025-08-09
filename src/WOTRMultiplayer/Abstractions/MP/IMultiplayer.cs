@@ -16,7 +16,7 @@ namespace WOTRMultiplayer.Abstractions.MP
 {
     public interface IMultiplayer
     {
-        NetworkExecutionContext ExecutionContext { get; }
+        RemoteExecutionContext ExecutionContext { get; }
 
         IUIFactory Factory { get; }
 
