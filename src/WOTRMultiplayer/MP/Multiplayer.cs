@@ -503,6 +503,20 @@ namespace WOTRMultiplayer.MP
             _multiplayerActorAccessor.Host.OnCampingUnitsRoleChanged(roles);
         }
 
+        public void OnStartRest()
+        {
+            if (_multiplayerActorAccessor.Current == null)
+            {
+                return;
+            }
+
+            if (_multiplayerActorAccessor.Client.IsActive)
+            {
+                return;
+            }
+
+            _multiplayerActorAccessor.Host.OnStartRest();
+        }
 
         public bool CanUseCampingUI()
         {

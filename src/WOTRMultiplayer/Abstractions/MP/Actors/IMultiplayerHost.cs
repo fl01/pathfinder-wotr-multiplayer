@@ -28,5 +28,7 @@ namespace WOTRMultiplayer.Abstractions.MP.Actors
         void OnCampingStateChanged(NetworkCampingState state);
 
         void OnCampingUnitsRoleChanged(List<NetworkCampingRole> roles);
+
+        void OnStartRest();
     }
 }

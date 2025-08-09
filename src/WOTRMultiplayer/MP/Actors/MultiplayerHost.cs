@@ -442,6 +442,13 @@ namespace WOTRMultiplayer.MP.Actors
             Send(message);
         }
 
+        public void OnStartRest()
+        {
+            Logger.LogInformation("Sending {messageType}", nameof(NotifyRestStarted));
+            var message = new NotifyRestStarted();
+            Send(message);
+        }
+
         private void UpdateBeginRestButton()
         {
             var totalPlayersCount = Game.Players.Count;

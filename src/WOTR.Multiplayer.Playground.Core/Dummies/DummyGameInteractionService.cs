@@ -237,5 +237,9 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
         public void SetStartRestButtonState(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
         {
         }
+
+        public void StartRest()
+        {
+        }
     }
 }

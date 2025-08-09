@@ -363,10 +363,17 @@ namespace WOTRMultiplayer.MP.Actors
                 .Register<NotifyCampingUseHealingSpellsChanged>(OnNotifyCampingUseHealingSpellsChanged)
                 .Register<NotifyCampingStateChanged>(OnNotifyCampingStateChanged)
                 .Register<NotifyCampingUnitsRoleChanged>(OnNotifyCampingUnitsRoleChanged)
+                .Register<NotifyRestStarted>(OnNotifyRestStarted)
                 ;
 
             _networkServerClient.OnError = OnNetworkClientError;
             _networkServerClient.OnConnected = OnNetworkClientConnected;
+        }
+
+        private void OnNotifyRestStarted(NotifyRestStarted started)
+        {
+            Logger.LogInformation("Received {messageType}", nameof(NotifyRestStarted));
+            GameInteraction.StartRest();
         }
 
         private void OnNotifyCampingUnitsRoleChanged(NotifyCampingUnitsRoleChanged changed)

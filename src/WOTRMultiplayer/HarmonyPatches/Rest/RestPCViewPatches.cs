@@ -19,15 +19,22 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 return true;
             }
 
-
             var shouldContinue = Main.Multiplayer.OnCampingUseHealingSpellsChanged(__instance.m_HealingToggle.isOn);
             return shouldContinue;
         }
 
-        /// <summary>
-        /// 'Use Spells' toggle is a field sadly, so this patch is required
-        /// </summary>
-        /// <param name="__instance"></param>
+        [HarmonyPatch(typeof(RestPCView), nameof(RestPCView.StartRest))]
+        [HarmonyPrefix]
+        public static void RestPCView_StartRest_Prefix(RestPCView __instance)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            Main.Multiplayer.OnStartRest();
+        }
+
         [HarmonyPatch(typeof(RestPCView), nameof(RestPCView.BindViewImplementation))]
         [HarmonyPostfix]
         public static void RestPCView_BindViewImplementation_Postfix(RestPCView __instance)

@@ -278,7 +278,7 @@ namespace WOTRMultiplayer.UI
 
         public ILobbyWindow InitializeEscMenuLobbyWindow(InitializeEscMenuLobbyWindowContext context, bool canUseCharacterDropdown, Action onShow)
         {
-            _logger.LogInformation("Creating MultiplayerMenu");
+            _logger.LogInformation("Creating esc menu MultiplayerLobby");
             var optionsButton = context.View.transform.Find("Window/ButtonBlock/OptionsButton");
             var multiplayerMenu = UnityEngine.Object.Instantiate(optionsButton.gameObject, optionsButton.transform.parent);
             multiplayerMenu.transform.SetSiblingIndex(optionsButton.GetSiblingIndex());
@@ -287,11 +287,13 @@ namespace WOTRMultiplayer.UI
             UnityEngine.Object.DestroyImmediate(textObject.GetComponent<LocalizedUIText>());
             textObject.GetComponent<TextMeshProUGUI>().SetText(UIStringConsts.EscMenu.LobbyMenuItemTitle);
 
-            _logger.LogInformation("Parent of context view. GameObjectName={name}", context.View.transform.parent.gameObject.name);
             var windowContainer = CreateDefaultGameObject(context.View.transform.parent);
             windowContainer.name = "EscMultiplayerLobbyWindowContainer";
             var windowContainerRect = windowContainer.GetComponent<RectTransform>();
-            windowContainerRect.sizeDelta = new Vector2(Screen.width * 0.45f, Screen.height * 0.65f);
+            var windowHeight = Math.Min(Screen.height * 0.65f, 1000);
+            var windowWidth = Math.Min(Screen.width * 0.45f, 1444);
+            _logger.LogInformation("Settings lobby window size. ScreenWidth={screenWidth}, ScreenHeight={screenHeight}, WindowWidth={windowWidth}, WindowHeight={windowHeight}", Screen.width, Screen.height, windowWidth, windowHeight);
+            windowContainerRect.sizeDelta = new Vector2(windowWidth, windowHeight);
             windowContainerRect.anchorMin = new Vector2(0.5f, 0.5f);
             windowContainerRect.anchorMax = new Vector2(0.5f, 0.5f);
             var background = CreateBackgroundArt(windowContainer.transform);
@@ -300,9 +302,6 @@ namespace WOTRMultiplayer.UI
             backgroundRect.anchorMax = windowContainerRect.anchorMax;
             backgroundRect.sizeDelta = new Vector2(windowContainerRect.sizeDelta.x * 1.1f, windowContainerRect.sizeDelta.y * 1.1f);
             backgroundRect.pivot = windowContainerRect.pivot;
-            // this one to prevent clicks through window,
-            // I believe this could be achieved by setting something in `background` obj (layer?), but I don't care right now
-            windowContainer.AddComponent<Image>();
 
             UnityEngine.Object.DestroyImmediate(background.transform.Find("Art").gameObject);
             var lobbyWindow = windowContainer.AddComponent<LobbyWindow>();

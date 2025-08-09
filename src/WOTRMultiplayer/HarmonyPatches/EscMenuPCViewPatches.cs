@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Kingmaker.UI.MVVM._PCView.EscMenu;
 using Microsoft.Extensions.Logging;
+using Owlcat.Runtime.UI.Controls.Button;
 using UnityEngine;
 using WOTRMultiplayer.UI;
 
@@ -21,17 +22,28 @@ namespace WOTRMultiplayer.HarmonyPatches
                 if (mainMenu == null && Main.Multiplayer.IsActive)
                 {
                     Main.Multiplayer.InitializeEscMenuLobbyWindow(new MP.Entities.InitializeEscMenuLobbyWindowContext(__instance));
+                    SetPhotoModeButtonState(__instance, false);
                 }
                 else if (mainMenu != null && !Main.Multiplayer.IsActive)
                 {
                     logger.LogInformation("Deleting lobby menu item since current game is not a multiplayer one");
                     Object.DestroyImmediate(mainMenu);
+                    SetPhotoModeButtonState(__instance, true);
                 }
             }
             catch (System.Exception ex)
             {
                 logger.LogError(ex, "Unable to apply patch");
                 throw;
+            }
+        }
+
+        private static void SetPhotoModeButtonState(EscMenuPCView view, bool isInteractable)
+        {
+            var photoMode = view.transform.Find("Window/ButtonBlock/PhotoModeButton")?.gameObject;
+            if (photoMode != null)
+            {
+                photoMode.GetComponent<OwlcatButton>().Interactable = isInteractable;
             }
         }
     }

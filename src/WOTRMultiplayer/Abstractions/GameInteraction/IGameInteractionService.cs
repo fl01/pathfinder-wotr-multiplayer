@@ -121,5 +121,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void SetCampingRoles(List<NetworkCampingRole> roles);
 
         void SetStartRestButtonState(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
+
+        void StartRest();
     }
 }
