@@ -732,7 +732,7 @@ namespace WOTRMultiplayer.MP.Actors
                 .Register<ClientGameLoaded>(OnClientGameLoaded)
                 .Register<CueWitnessed>(OnCueWitnessed)
                 .Register<DialogCueAnswerSuggested>(OnDialogCueAnswerSuggested)
-                .Register<StartDialogRequested>(OnStartDialogRequested)
+                .Register<ClientDialogStartRequested>(OnClientDialogStartRequested)
                 .Register<NotifyAbilityUse>(OnNotifyAbilityUsed)
                 .Register<NotifyToggleActivatableAbility>(OnNotifyToggleActivatableAbility)
                 .Register<PlayerCombatTurnEnded>(OnPlayerCombatTurnEnded)
@@ -827,22 +827,26 @@ namespace WOTRMultiplayer.MP.Actors
             _networkServer.SendAllExcept(playerId, looted);
         }
 
-        private void OnNotifyToggleActivatableAbility(long playerId, NotifyToggleActivatableAbility toggle)
+        private void OnNotifyToggleActivatableAbility(long playerId, NotifyToggleActivatableAbility activatableAbility)
         {
-            Logger.LogInformation("Received {messageType}. PlayerId={playerId}, AbilityId={abilityId}, IsActive={isActive}", nameof(NotifyToggleActivatableAbility), playerId, toggle.Ability.Id, toggle.Ability.IsActive);
-            _networkServer.SendAllExcept(playerId, toggle);
+            Logger.LogInformation("Received {messageType}. PlayerId={playerId}, AbilityId={abilityId}, IsActive={isActive}", nameof(NotifyToggleActivatableAbility), playerId, activatableAbility.Ability.Id, activatableAbility.Ability.IsActive);
 
-            var ability = Mapper.Map<NetworkActivatableAbility>(toggle.Ability);
+            var ability = Mapper.Map<NetworkActivatableAbility>(activatableAbility.Ability);
             GameInteraction.ToggleActivatableAbility(ability);
+
+            Logger.LogInformation("Resending {messageType}", nameof(NotifyToggleActivatableAbility));
+            _networkServer.SendAllExcept(playerId, activatableAbility);
         }
 
-        private void OnNotifyAbilityUsed(long playerId, NotifyAbilityUse used)
+        private void OnNotifyAbilityUsed(long playerId, NotifyAbilityUse abilityUse)
         {
-            Logger.LogInformation("Received {messageType}. PlayerId={playerId}, AbilityId={abilityId}", nameof(NotifyAbilityUse), playerId, used.Ability.Id);
-            _networkServer.SendAllExcept(playerId, used);
+            Logger.LogInformation("Received {messageType}. PlayerId={playerId}, AbilityId={abilityId}", nameof(NotifyAbilityUse), playerId, abilityUse.Ability.Id);
 
-            var ability = Mapper.Map<NetworkAbility>(used.Ability);
+            var ability = Mapper.Map<NetworkAbility>(abilityUse.Ability);
             GameInteraction.UseAbility(ability);
+
+            Logger.LogInformation("Resending {messageType}", nameof(NotifyAbilityUse));
+            _networkServer.SendAllExcept(playerId, abilityUse);
         }
 
         private void OnClientCombatTurnSynchronized(long playerId, ClientCombatTurnSynchronized synchronized)
@@ -858,10 +862,13 @@ namespace WOTRMultiplayer.MP.Actors
 
             _networkServer.SendAllExcept(playerId, ended);
 
-            if (Game.Combat.Round == ended.Round && string.Equals(Game.Combat.Turn?.UnitId, ended.UnitId))
+            if (Game.Combat.Round != ended.Round && !string.Equals(Game.Combat.Turn?.UnitId, ended.UnitId, StringComparison.OrdinalIgnoreCase))
             {
-                EndLocalTurn();
+                Logger.LogWarning("Player ended invalid turn. PlayerId={playerId}, PlayerRound={round}, PlayerUnitId={unitId}, LocalRound={localRound}, LocalUnitId={localUnitId}", playerId, ended.Round, ended.UnitId, Game.Combat.Round, Game.Combat.Turn?.UnitId);
+                return;
             }
+
+            EndLocalTurn();
         }
 
         private void OnClientCombatTurnStarted(long playerId, ClientCombatTurnStarted started)
@@ -921,7 +928,9 @@ namespace WOTRMultiplayer.MP.Actors
         {
             Logger.LogInformation("Received {messageType}. PlayerId={playerId}, IsForceLoad={isForceLoad}, SaveGameSize={saveGameSize}", nameof(NotifySaveGameAssigned), playerId, assigned.IsForceLoad, assigned.Content.Length);
 
+            Logger.LogInformation("Resending {messageType} to other players", nameof(NotifySaveGameAssigned));
             _networkServer.SendAllExcept(playerId, assigned);
+
             Game.SaveFilePath = StoreSaveFile(assigned.Content);
             if (string.IsNullOrEmpty(Game.SaveFilePath))
             {
@@ -952,26 +961,28 @@ namespace WOTRMultiplayer.MP.Actors
             }
         }
 
-        private async void OnStartDialogRequested(long playerId, StartDialogRequested requested)
+        private async void OnClientDialogStartRequested(long playerId, ClientDialogStartRequested requested)
         {
             Logger.LogInformation("Received {messageType}. PlayerId={playerId}, DialogName={dialogName}, TargetUnitId={targetUnitId}, InitiatorUnitId={initiatorUnitId}, MapObjectId={mapObjectId}, SpeakerKey={speakerKey}",
-                nameof(StartDialogRequested), playerId, requested.DialogName, requested.TargetUnitId, requested.InitiatorUnitId, requested.MapObjectId, requested.SpeakerKey);
+                nameof(ClientDialogStartRequested), playerId, requested.DialogName, requested.TargetUnitId, requested.InitiatorUnitId, requested.MapObjectId, requested.SpeakerKey);
 
-            var hasStartedDialog = await GameInteraction.StartDialogAsync(requested.DialogName, requested.TargetUnitId, requested.InitiatorUnitId, requested.MapObjectId, requested.SpeakerKey);
-            if (!hasStartedDialog)
+            var hasBeenStarted = await GameInteraction.StartDialogAsync(requested.DialogName, requested.TargetUnitId, requested.InitiatorUnitId, requested.MapObjectId, requested.SpeakerKey);
+            if (hasBeenStarted)
             {
-                Logger.LogInformation("Host dialog is already in progress. Sending dialog confirmation");
-                var message = new NotifyDialogStarted
-                {
-                    DialogName = requested.DialogName,
-                    InitiatorUnitId = requested.InitiatorUnitId,
-                    TargetUnitId = requested.TargetUnitId,
-                    MapObjectId = requested.MapObjectId,
-                    SpeakerKey = requested.SpeakerKey
-                };
-
-                _networkServer.SendAll(message);
+                return;
             }
+
+            Logger.LogInformation("Host dialog is already in progress. Sending dialog confirmation");
+            var message = new NotifyDialogStarted
+            {
+                DialogName = requested.DialogName,
+                InitiatorUnitId = requested.InitiatorUnitId,
+                TargetUnitId = requested.TargetUnitId,
+                MapObjectId = requested.MapObjectId,
+                SpeakerKey = requested.SpeakerKey
+            };
+
+            _networkServer.SendAll(message);
         }
 
         private void OnDialogCueAnswerSuggested(long playerId, DialogCueAnswerSuggested suggested)
@@ -1034,7 +1045,23 @@ namespace WOTRMultiplayer.MP.Actors
 
         private async void OnRollRequest(long playerId, DiceRollValueRequest request)
         {
-            Logger.LogInformation("Received {messageType}. PlayerId={playerId}, RollId={rollId}", nameof(DiceRollValueRequest), playerId, request.RollId);
+            Logger.LogInformation("Received {messageType}. PlayerId={playerId}, RollId={rollId}, UnitId={unitId}", nameof(DiceRollValueRequest), playerId, request.RollId, request.UnitId);
+
+            var character = GetCharacterOwnership(request.UnitId);
+            var isAI = GameInteraction.IsUnitAI(request.UnitId);
+            // so basically in combat we need to ask another player for rolls in case he is the owner of the turn
+            if (Game.Combat != null
+                && !isAI
+                && character?.Owner != null
+                && character.Owner.Id != LocalHostPlayerId
+                && character.Owner.Id != playerId)
+            {
+                Logger.LogInformation("Asking another client for a roll. PlayerId={playerId}, RollId={rollId}, UnitId={unitId}", character.Owner.Id, request.RollId, request.UnitId);
+                var rollFromAnotherClient = await RetrieveRollAsync(request, request.UnitId);
+                Send(playerId, rollFromAnotherClient);
+                return;
+            }
+
             await SendLocalRollAsync(playerId, request);
         }
 

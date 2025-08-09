@@ -4,7 +4,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType(1012)]
-    public class StartDialogRequested
+    public class ClientDialogStartRequested
     {
         [ProtoMember(1)]
         public string DialogName { get; set; }

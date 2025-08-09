@@ -8,6 +8,7 @@ using BeetleX;
 using BeetleX.EventArgs;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Networking.Abstractions;
+using WOTRMultiplayer.Networking.Awaiters;
 using WOTRMultiplayer.Networking.Messages;
 
 namespace WOTRMultiplayer.Networking
@@ -19,7 +20,7 @@ namespace WOTRMultiplayer.Networking
         private ServerBuilder<NetworkServerApp, NetworkClientToken, ProtobufPacket> _server;
         private ServerBuilder<NetworkServerApp, NetworkClientToken, ProtobufPacket> Server => _server ??= new ServerBuilder<NetworkServerApp, NetworkClientToken, ProtobufPacket>();
         private readonly ILogger<NetworkServer> _logger;
-        private readonly ConcurrentDictionary<long, ConcurrentDictionary<Type, TaskCompletionSource<object>>> _awaiters = new();
+        private readonly ConcurrentDictionary<long, ConcurrentDictionary<string, TaskCompletionSource<object>>> _awaiters = new();
 
         public Action<long> OnClientConnected { get; set; }
         public Action<long> OnClientDisconnected { get; set; }
@@ -66,43 +67,49 @@ namespace WOTRMultiplayer.Networking
         public Task<T> SendAndWaitForAsync<T>(long clientId, object message)
             where T : class
         {
+            if (message is not IAwaitableMessage awaitableMessage || !typeof(IAwaitableMessage).IsAssignableFrom(typeof(T)))
+            {
+                throw new InvalidOperationException("Both message/response should implement IAwaitableMessage");
+            }
+
             var taskCompletion = new TaskCompletionSource<object>();
             var timeoutTask = Task.Delay(_defaultAwaiterTimeout);
-            var waitForType = typeof(T);
+            var awaiterKey = awaitableMessage.GetKey();
 
-            AddAwaiter(clientId, waitForType, taskCompletion);
+            AddAwaiter(clientId, awaiterKey, taskCompletion);
             Send(clientId, message);
 
             Task.WaitAny(timeoutTask, taskCompletion.Task);
 
             if (!taskCompletion.Task.IsCompleted)
             {
-                RemoveAwaiter(clientId, waitForType);
-                _logger.LogWarning("Awaiter has been failed due to timeout. PlayerId={playerId}, Type={type}, Timeout={timeout}", clientId, waitForType, _defaultAwaiterTimeout);
+                RemoveAwaiter(clientId, awaiterKey);
+                _logger.LogWarning("Awaiter has been failed due to timeout. PlayerId={playerId}, AwaiterKey={awaiterKey}, Timeout={timeout}", clientId, awaiterKey, _defaultAwaiterTimeout);
                 return null;
             }
 
             return Task.FromResult((T)taskCompletion.Task.Result);
         }
 
-        private void AddAwaiter(long clientId, Type type, TaskCompletionSource<object> task)
+        private void AddAwaiter(long clientId, string awaiterKey, TaskCompletionSource<object> task)
         {
             _awaiters.AddOrUpdate(clientId, key =>
             {
-                return new ConcurrentDictionary<Type, TaskCompletionSource<object>>([new KeyValuePair<Type, TaskCompletionSource<object>>(type, task)]);
+                var kv = new KeyValuePair<string, TaskCompletionSource<object>>(awaiterKey, task);
+                return new ConcurrentDictionary<string, TaskCompletionSource<object>>([kv], StringComparer.OrdinalIgnoreCase);
             },
             (key, existing) =>
             {
-                existing.TryAdd(type, task);
+                existing.TryAdd(awaiterKey, task);
                 return existing;
             });
         }
 
-        private void RemoveAwaiter(long clientId, Type type)
+        private void RemoveAwaiter(long clientId, string awaiterKey)
         {
             if (_awaiters.TryGetValue(clientId, out var clientAwaiters))
             {
-                clientAwaiters.TryRemove(type, out _);
+                clientAwaiters.TryRemove(awaiterKey, out _);
             }
         }
 
@@ -121,12 +128,11 @@ namespace WOTRMultiplayer.Networking
         private void OnHandleMessage<TMessage>(EventMessageReceiveArgs<NetworkServerApp, NetworkClientToken, TMessage> args, Action<long, TMessage> handler)
         {
             var clientId = args.NetSession.ID;
-            var messageType = args.Message.GetType();
-
-            if (_awaiters.TryGetValue(clientId, out var clientAwaiters)
-                && clientAwaiters.TryRemove(messageType, out var awaiter))
+            if (args.Message is IAwaitableMessage awaitable
+                && _awaiters.TryGetValue(clientId, out var clientAwaiters)
+                && clientAwaiters.TryRemove(awaitable.GetKey(), out var awaiter))
             {
-                _logger.LogInformation("Awaiter has been found, other handlers will be skipped. ClientId={clientId}, MessageType={type}", clientId, messageType);
+                _logger.LogInformation("Awaiter has been found, other handlers will be skipped. ClientId={clientId}, AwaiterKey={awaiterKey}", clientId, awaitable.GetKey());
                 awaiter.SetResult(args.Message);
                 return;
             }

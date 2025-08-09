@@ -200,7 +200,7 @@ namespace WOTRMultiplayer.MP.Actors
             }
 
             Logger.LogInformation("Sending dialog request to host. DialogueName={dialogName}", dialogName);
-            var message = new StartDialogRequested
+            var message = new ClientDialogStartRequested
             {
                 DialogName = dialogName,
                 TargetUnitId = targetUnitId,

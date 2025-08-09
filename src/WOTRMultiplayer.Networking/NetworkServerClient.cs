@@ -6,6 +6,7 @@ using BeetleX;
 using BeetleX.Clients;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Networking.Abstractions;
+using WOTRMultiplayer.Networking.Awaiters;
 
 namespace WOTRMultiplayer.Networking
 {
@@ -13,7 +14,7 @@ namespace WOTRMultiplayer.Networking
     {
         private AsyncTcpClient _client;
         private readonly ConcurrentDictionary<Type, Action<object>> _handlers = new();
-        private readonly ConcurrentDictionary<Type, TaskCompletionSource<object>> _awaiters = new();
+        private readonly ConcurrentDictionary<string, TaskCompletionSource<object>> _awaiters = new(StringComparer.OrdinalIgnoreCase);
         private readonly ILogger<NetworkServerClient> _logger;
         private readonly TimeSpan _defaultAwaiterTimeout = TimeSpan.FromSeconds(30);
 
@@ -76,19 +77,24 @@ namespace WOTRMultiplayer.Networking
         public async Task<T> SendAndWaitForAsync<T>(object message)
             where T : class
         {
+            if (message is not IAwaitableMessage awaitableMessage || !typeof(IAwaitableMessage).IsAssignableFrom(typeof(T)))
+            {
+                throw new InvalidOperationException("Both message/response should implement IAwaitableMessage");
+            }
+
             var taskCompletion = new TaskCompletionSource<object>();
             var timeoutTask = Task.Delay(_defaultAwaiterTimeout);
 
-            var waitForType = typeof(T);
-            _awaiters.TryAdd(waitForType, taskCompletion);
+            var awaiterKey = awaitableMessage.GetKey();
+            _awaiters.TryAdd(awaiterKey, taskCompletion);
             await _client.Send(message);
 
             Task.WaitAny(timeoutTask, taskCompletion.Task);
 
             if (!taskCompletion.Task.IsCompleted)
             {
-                _awaiters.TryRemove(waitForType, out _);
-                _logger.LogWarning("Awaiter has been failed due to timeout. Type={type}, Timeout={timeout}", waitForType, _defaultAwaiterTimeout);
+                _awaiters.TryRemove(awaiterKey, out _);
+                _logger.LogWarning("Awaiter has been failed due to timeout. AwaiterKey={awaiterKey}, Timeout={timeout}", awaiterKey, _defaultAwaiterTimeout);
                 return null;
             }
 
@@ -105,9 +111,9 @@ namespace WOTRMultiplayer.Networking
         private void OnPackedReceived(IClient client, object message)
         {
             var messageType = message.GetType();
-            if (_awaiters.TryRemove(messageType, out var taskCompletion))
+            if (message is IAwaitableMessage awaitableMessage && _awaiters.TryRemove(awaitableMessage.GetKey(), out var taskCompletion))
             {
-                _logger.LogInformation("Awaiter has been found, other handlers will be skipped. MessageType={type}", messageType);
+                _logger.LogInformation("Awaiter has been found, other handlers will be skipped. AwaiterKey={awaiterKey}", awaitableMessage.GetKey());
                 taskCompletion.SetResult(message);
                 return;
             }
