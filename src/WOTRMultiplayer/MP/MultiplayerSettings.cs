@@ -1,4 +1,6 @@
-﻿namespace WOTRMultiplayer.MP
+﻿using System;
+
+namespace WOTRMultiplayer.MP
 {
     public class MultiplayerSettings
     {
@@ -7,5 +9,9 @@
         public int HostPortRangeStart { get; set; }
 
         public int HostPortRangeEnd { get; set; }
+
+        public TimeSpan? ForcedPauseDefaultTerminationDelay { get; set; }
+
+        public TimeSpan? ForcedPauseRandomEncounterTerminationDelay { get; set; }
     }
 }

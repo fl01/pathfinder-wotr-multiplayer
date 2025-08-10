@@ -23,7 +23,9 @@ namespace WOTRMultiplayer.MP
             {
                 PlayerName = Guid.NewGuid().ToString().Split('-').First(),
                 HostPortRangeStart = 1024,
-                HostPortRangeEnd = ushort.MaxValue
+                HostPortRangeEnd = ushort.MaxValue,
+                ForcedPauseDefaultTerminationDelay = TimeSpan.FromSeconds(3),
+                ForcedPauseRandomEncounterTerminationDelay = TimeSpan.FromSeconds(4),
             };
         }
     }

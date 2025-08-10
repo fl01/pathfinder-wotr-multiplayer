@@ -484,7 +484,7 @@ namespace WOTRMultiplayer.MP.Actors
 
         protected void EnsureForcePaused(string reason)
         {
-            EnsureForcePaused(reason, TimeSpan.FromSeconds(5));
+            EnsureForcePaused(reason, SettingsProvider.Settings.ForcedPauseDefaultTerminationDelay);
         }
 
         protected bool RegisterGameMode(GameModeType type, long playerId)

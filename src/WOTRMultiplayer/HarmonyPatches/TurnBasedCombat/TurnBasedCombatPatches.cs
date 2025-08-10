@@ -5,7 +5,6 @@ using HarmonyLib;
 using Kingmaker;
 using Kingmaker.AI;
 using Kingmaker.Controllers.Combat;
-using Kingmaker.Controllers.Units;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.TurnBasedMode;
 using Microsoft.Extensions.Logging;
@@ -300,57 +299,18 @@ namespace WOTRMultiplayer.HarmonyPatches.TurnBasedCombat
             return matcher.Instructions();
         }
 
-        //[HarmonyPatch(typeof(TurnController), nameof(TurnController.GetEnabledFullAttack))]
-        //[HarmonyTranspiler]
-        //public static IEnumerable<CodeInstruction> TurnController_GetEnabledFullAttack_Transpiler(IEnumerable<CodeInstruction> instructions)
-        //{
-        //    var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
-        //    var matcher = new CodeMatcher(instructions);
+        [HarmonyPatch(typeof(TurnController), nameof(TurnController.OnInterruptCommand))]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> TurnController_OnInterruptCommand_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var matcher = new CodeMatcher(instructions);
 
-        //    ReplaceIsDirectlyControllable(matcher, target);
+            ReplaceIsDirectlyControllable(matcher, target, true);
+            ReplaceIsDirectlyControllable(matcher, target, true);
 
-        //    return matcher.Instructions();
-        //}
-
-        //[HarmonyPatch(typeof(TurnController), nameof(TurnController.HandleUnitCommandDidEnd))]
-        //[HarmonyTranspiler]
-        //public static IEnumerable<CodeInstruction> TurnController_HandleUnitCommandDidEnd_Transpiler(IEnumerable<CodeInstruction> instructions)
-        //{
-        //    var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
-        //    var matcher = new CodeMatcher(instructions);
-
-        //    ReplaceIsDirectlyControllable(matcher, target);
-
-        //    return matcher.Instructions();
-        //}
-
-        //[HarmonyPatch(typeof(TurnController), nameof(TurnController.OnInterruptCommand))]
-        //[HarmonyTranspiler]
-        //public static IEnumerable<CodeInstruction> TurnController_OnInterruptCommand_Transpiler(IEnumerable<CodeInstruction> instructions)
-        //{
-        //    var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
-        //    var matcher = new CodeMatcher(instructions);
-
-        //    ReplaceIsDirectlyControllable(matcher, target, true);
-        //    ReplaceIsDirectlyControllable(matcher, target, true);
-
-        //    return matcher.Instructions();
-        //}
-
-        //[HarmonyPatch(typeof(TurnController), nameof(TurnController.Prepare))]
-        //[HarmonyTranspiler]
-        //public static IEnumerable<CodeInstruction> TurnController_Prepare_Transpiler(IEnumerable<CodeInstruction> instructions)
-        //{
-        //    var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
-        //    var matcher = new CodeMatcher(instructions);
-
-        //    for (int i = 1; i <= 7; i++)
-        //    {
-        //        ReplaceIsDirectlyControllable(matcher, target, i == 7);
-        //    }
-
-        //    return matcher.Instructions();
-        //}
+            return matcher.Instructions();
+        }
 
         [HarmonyPatch(typeof(TurnController), nameof(TurnController.Tick))]
         [HarmonyTranspiler]
@@ -358,11 +318,6 @@ namespace WOTRMultiplayer.HarmonyPatches.TurnBasedCombat
         {
             var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
             var matcher = new CodeMatcher(instructions);
-
-            //ReplaceIsDirectlyControllable(matcher, target);
-            //ReplaceIsDirectlyControllable(matcher, target);
-            //ReplaceIsDirectlyControllable(matcher, target, fromEnd: true);
-
 
             var replaceWith = AccessTools.Method(typeof(TurnBasedCombatPatches), nameof(TurnBasedCombatPatches.TryCatchedInvokeCursorUpdate));
             var lookFor = AccessTools.Method(typeof(TurnController), nameof(TurnController.InvokeCursorUpdate));
@@ -377,8 +332,6 @@ namespace WOTRMultiplayer.HarmonyPatches.TurnBasedCombat
 
             match.RemoveInstruction();
             match.Insert(call);
-
-            PatchesUtils.Dump(matcher.Instructions());
 
             return matcher.Instructions();
         }
@@ -427,34 +380,9 @@ namespace WOTRMultiplayer.HarmonyPatches.TurnBasedCombat
             }
             catch (System.Exception)
             {
-                // who cares about cursor
+                // who cares about cursor, but please, stop spamming errors
             }
         }
-
-        //[HarmonyPatch(typeof(TurnBasedCommandCancelController), nameof(TurnBasedCommandCancelController.HandleUnitMakeOffensiveAction))]
-        //[HarmonyTranspiler]
-        //public static IEnumerable<CodeInstruction> TurnBasedCommandCancelController_HandleUnitMakeOffensiveAction_Transpiler(IEnumerable<CodeInstruction> instructions)
-        //{
-        //    var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
-        //    var matcher = new CodeMatcher(instructions);
-
-        //    ReplaceIsDirectlyControllable(matcher, target);
-        //    ReplaceIsDirectlyControllable(matcher, target);
-
-        //    return matcher.Instructions();
-        //}
-
-        //[HarmonyPatch(typeof(UnitProneController), nameof(UnitProneController.Tick), [typeof(UnitEntityData)])]
-        //[HarmonyTranspiler]
-        //public static IEnumerable<CodeInstruction> UnitProneController_Tick_Transpiler(IEnumerable<CodeInstruction> instructions)
-        //{
-        //    var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
-        //    var matcher = new CodeMatcher(instructions);
-
-        //    ReplaceIsDirectlyControllable(matcher, target);
-
-        //    return matcher.Instructions();
-        //}
 
         private static void ReplaceIsDirectlyControllable(CodeMatcher matcher, string target, bool withLabels = false, bool fromEnd = false)
         {

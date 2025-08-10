@@ -505,7 +505,7 @@ namespace WOTRMultiplayer.MP.Actors
 
                 if (Game.RandomEncounter.RandomUnitSeed.HasValue)
                 {
-                    EnsureForcePaused(UIStringConsts.GameNotifications.ForcedPauseReasons.RandomEncounterLoading);
+                    EnsureForcePaused(UIStringConsts.GameNotifications.ForcedPauseReasons.RandomEncounterLoading, SettingsProvider.Settings.ForcedPauseRandomEncounterTerminationDelay);
                 }
             }
             catch (Exception ex)

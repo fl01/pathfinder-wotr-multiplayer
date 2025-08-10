@@ -6,7 +6,6 @@ namespace WOTRMultiplayer.Abstractions.MP
 {
     public interface IMultiplayerRollsProcessor
     {
-
         bool OnBeforeRuleCalculateDamageTrigger(RuleCalculateDamage ruleCalculateDamage);
         void OnAfterRuleCalculateDamageTrigger(RuleCalculateDamage ruleCalculateDamage);
 
@@ -41,5 +40,8 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         bool OnBeforeRuleDispelMagicRoll(RuleDispelMagic ruleDispelMagic);
         void OnAfterRuleDispelMagicTrigger(RuleDispelMagic ruleDispelMagic);
+
+        bool OnBeforeRuleCheckCastingDefensivelyRoll(RuleCheckCastingDefensively ruleCheckCastingDefensively);
+        void OnAfterRuleCheckCastingDefensivelyTrigger(RuleCheckCastingDefensively ruleCheckCastingDefensively);
     }
 }

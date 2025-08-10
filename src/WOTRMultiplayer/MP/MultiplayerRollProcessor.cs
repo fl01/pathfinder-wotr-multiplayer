@@ -428,7 +428,7 @@ namespace WOTRMultiplayer.MP
         {
             try
             {
-                if (!ShouldRetrieveSkillCheckRoll(ruleSkillCheck))
+                if (!ShouldRetrieveRoll(ruleSkillCheck))
                 {
                     return true;
                 }
@@ -455,7 +455,7 @@ namespace WOTRMultiplayer.MP
         {
             try
             {
-                if (!ShouldStoreSkillCheckRoll(ruleSkillCheck))
+                if (!ShouldStoreRoll(ruleSkillCheck))
                 {
                     return;
                 }
@@ -656,29 +656,71 @@ namespace WOTRMultiplayer.MP
             }
         }
 
-        private bool ShouldRetrieveSkillCheckRoll(RuleSkillCheck rule)
+
+        public bool OnBeforeRuleCheckCastingDefensivelyRoll(RuleCheckCastingDefensively ruleCheckCastingDefensively)
         {
-            var gameMode = _gameInteractionService.CurrentGameMode;
-            return _multiplayerActorAccessor.Current != null && IsMeaningfulRoll(gameMode, rule) && _multiplayerActorAccessor.Client.IsActive;
+            try
+            {
+                if (!ShouldRetrieveRoll(ruleCheckCastingDefensively))
+                {
+                    return true;
+                }
+
+                var roll = CreateCastingDefensivelyRoll(NetworkDiceRollType.Hit, ruleCheckCastingDefensively);
+                var d20 = RetrieveRoll<RuleRollD20>(roll, ruleCheckCastingDefensively.Initiator);
+                if (d20 == null)
+                {
+                    return true;
+                }
+
+                ruleCheckCastingDefensively.D20 = d20;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
-        private bool ShouldStoreSkillCheckRoll(RuleSkillCheck rule)
+        public void OnAfterRuleCheckCastingDefensivelyTrigger(RuleCheckCastingDefensively ruleCheckCastingDefensively)
         {
-            var gameMode = _gameInteractionService.CurrentGameMode;
-            return _multiplayerActorAccessor.Current != null && IsMeaningfulRoll(gameMode, rule) && _multiplayerActorAccessor.Host.IsActive;
-        }
+            try
+            {
+                if (!ShouldStoreRoll(ruleCheckCastingDefensively))
+                {
+                    return;
+                }
 
+                var roll = CreateCastingDefensivelyRoll(NetworkDiceRollType.Hit, ruleCheckCastingDefensively);
+                SaveIntRollValue(roll, ruleCheckCastingDefensively.D20);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
+        }
 
         private bool ShouldRetrieveRoll(object rule)
         {
             var gameMode = _gameInteractionService.CurrentGameMode;
-            return _multiplayerActorAccessor.Current != null && IsMeaningfulRoll(gameMode, rule) && !_multiplayerActorAccessor.Current.IsDiceRollOwner(false);
+            return _multiplayerActorAccessor.Current != null && IsMeaningfulRoll(gameMode, rule) && !IsRollOwner(rule, false);
         }
 
         private bool ShouldStoreRoll(object rule)
         {
             var gameMode = _gameInteractionService.CurrentGameMode;
-            return _multiplayerActorAccessor.Current != null && IsMeaningfulRoll(gameMode, rule) && _multiplayerActorAccessor.Current.IsDiceRollOwner(true);
+            return _multiplayerActorAccessor.Current != null && IsMeaningfulRoll(gameMode, rule) && IsRollOwner(rule, true);
+        }
+
+        private bool IsRollOwner(object rule, bool silent)
+        {
+            return rule switch
+            {
+                RuleSkillCheck => _multiplayerActorAccessor.Host.IsActive,
+                _ => _multiplayerActorAccessor.Current.IsDiceRollOwner(silent),
+            };
         }
 
         private bool IsMeaningfulRoll(GameModeType gameModeType, object rule)
@@ -984,6 +1026,18 @@ namespace WOTRMultiplayer.MP
         private InitiativeRoll CreateInitiativeRoll(NetworkDiceRollType diceRollType, RuleInitiativeRoll initiativeRoll)
         {
             var roll = new InitiativeRoll(initiativeRoll.Initiator.UniqueId, initiativeRoll.GetType().Name, diceRollType, initiativeRoll.Modifier);
+            return roll;
+        }
+
+        private CastingDefensivelyRoll CreateCastingDefensivelyRoll(NetworkDiceRollType diceRollType, RuleCheckCastingDefensively ruleCheckCastingDefensively)
+        {
+            var roll = new CastingDefensivelyRoll(ruleCheckCastingDefensively.Initiator.UniqueId, ruleCheckCastingDefensively.GetType().Name, diceRollType, ruleCheckCastingDefensively.TotalBonusValue)
+            {
+                AbilityId = ruleCheckCastingDefensively.Reason.Ability?.StickyTouch?.UniqueId ?? ruleCheckCastingDefensively.Reason.Ability?.UniqueId ?? ruleCheckCastingDefensively.Spell?.UniqueId,
+                Concentration = ruleCheckCastingDefensively.Concentration,
+                DC = ruleCheckCastingDefensively.DC
+            };
+
             return roll;
         }
     }

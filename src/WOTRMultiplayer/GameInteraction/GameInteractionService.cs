@@ -48,6 +48,7 @@ using Kingmaker.Utility;
 using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
+using TurnBased.Controllers;
 using UnityEngine;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.UI;
@@ -601,22 +602,19 @@ namespace WOTRMultiplayer.GameInteraction
 
         private void ForceAIRecalculateAction(UnitEntityData unit)
         {
-            if (IsUnitAI(unit.UniqueId))
+            Game.Instance.TurnBasedCombatController.UpdateNavigationGrid();
+            AiBrainController.Context.ReleaseUnit();
+            unit.CombatState.AIData.NextCommandTime = Time.time;
+            foreach (UnitCommand unitCommand in unit.Commands.Raw)
             {
-                Game.Instance.TurnBasedCombatController.UpdateNavigationGrid();
-                AiBrainController.Context.ReleaseUnit();
-                unit.CombatState.AIData.NextCommandTime = Time.time;
-                foreach (UnitCommand unitCommand in unit.Commands.Raw)
+                if (unitCommand != null)
                 {
-                    if (unitCommand != null)
-                    {
-                        unitCommand.AiCanInterruptMark = true;
-                    }
+                    unitCommand.AiCanInterruptMark = true;
                 }
-                unit.Commands.InterruptAiCommands();
-
-                Kingmaker.AI.AiBrainController.TickBrain(unit);
             }
+            unit.Commands.InterruptAiCommands();
+
+            Kingmaker.AI.AiBrainController.TickBrain(unit);
         }
 
         public void EndTurnBasedCombatTurn()
