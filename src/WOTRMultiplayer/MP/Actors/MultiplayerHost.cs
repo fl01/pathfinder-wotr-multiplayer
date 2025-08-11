@@ -325,6 +325,10 @@ namespace WOTRMultiplayer.MP.Actors
             return true;
         }
 
+        /// <summary>
+        /// 35 - UnitCombatPrepareController
+        /// </summary>
+        /// <returns></returns>
         public bool CanInitializeCombat()
         {
             // confirmation from host is required
@@ -333,14 +337,16 @@ namespace WOTRMultiplayer.MP.Actors
                 return true;
             }
 
-            Game.Combat.IsCombatPrepared = true;
-
             return true;
         }
 
+        /// <summary>
+        /// 12 - CombatController
+        /// </summary>
+        /// <returns></returns>
         public bool CanContinueCombat()
         {
-            if (Game.Combat == null || !Game.Combat.IsCombatPrepared)
+            if (Game.Combat == null)
             {
                 return false;
             }

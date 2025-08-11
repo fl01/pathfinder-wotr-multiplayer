@@ -218,19 +218,19 @@ namespace WOTRMultiplayer.MP.Actors
             return false;
         }
 
+        /// <summary>
+        /// 35 - UnitCombatPrepareController
+        /// </summary>
+        /// <returns></returns>
         public bool CanInitializeCombat()
         {
-            // confirmation from host is required
-            if (Game.Combat == null || !Game.Combat.IsInitialized)
-            {
-                return false;
-            }
-
-            Game.Combat.IsCombatPrepared = true;
-
-            return true;
+            return Game.Combat != null && Game.Combat.IsInitialized;
         }
 
+        /// <summary>
+        /// 12 - CombatController
+        /// </summary>
+        /// <returns></returns>
         public bool CanContinueCombat()
         {
             if (Game.Combat == null)
@@ -238,7 +238,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return false;
             }
 
-            return Game.Combat.IsInitialized && Game.Combat.IsCombatPrepared;
+            return Game.Combat.IsInitialized;
         }
 
         public bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound)

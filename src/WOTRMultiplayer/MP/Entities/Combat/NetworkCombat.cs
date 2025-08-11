@@ -11,8 +11,6 @@ namespace WOTRMultiplayer.MP.Entities.Combat
 
         public int CombatPreparedFrames { get; set; }
 
-        public bool IsCombatPrepared { get; set; }
-
         public int Round
         {
             // sometimes combat is being paused (on client) before round started event, but we need to initialize everything as first round
