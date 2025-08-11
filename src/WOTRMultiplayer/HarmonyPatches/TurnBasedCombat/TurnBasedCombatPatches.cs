@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -162,7 +163,7 @@ namespace WOTRMultiplayer.HarmonyPatches.TurnBasedCombat
         {
             try
             {
-                var result = string.Compare(xi.UniqueId, yi.UniqueId, System.StringComparison.OrdinalIgnoreCase);
+                var result = new[] { xi, yi }.OrderBy(x => x.UniqueId, StringComparer.OrdinalIgnoreCase).First() == xi ? -1 : 1;
                 Main.GetLogger<CombatController.UnitsOrderComaprer>().LogInformation("Units have same initiave order, comparing by uniqueId. Result={result}, Unit1={unit1}, Unit2={unit2}", result, xi.UniqueId, yi.UniqueId);
                 return result;
             }
@@ -171,6 +172,24 @@ namespace WOTRMultiplayer.HarmonyPatches.TurnBasedCombat
                 Main.GetLogger<CombatController.UnitsOrderComaprer>().LogError(ex, "Error while comparing by unique id. Unit1={unit1}, Unit2={unit2}", xi.UniqueId, yi.UniqueId);
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Should cancel player commands (if IsDirectlyControllable)
+        /// </summary>
+        /// <param name="instructions"></param>
+        /// <returns></returns>
+        [HarmonyPatch(typeof(TurnBasedCommandCancelController), nameof(TurnBasedCommandCancelController.HandleUnitMakeOffensiveAction))]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> TurnBasedCommandCancelController_HandleUnitMakeOffensiveAction_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var matcher = new CodeMatcher(instructions);
+
+            ReplaceIsDirectlyControllable(matcher, target);
+            ReplaceIsDirectlyControllable(matcher, target);
+
+            return matcher.Instructions();
         }
 
         ///// <summary>

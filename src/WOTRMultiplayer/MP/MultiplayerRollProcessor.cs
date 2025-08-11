@@ -1062,7 +1062,6 @@ namespace WOTRMultiplayer.MP
                 TargetId = attackWithWeapon.Target.UniqueId,
                 ExtraAttack = attackWithWeapon.ExtraAttack,
                 IsFirstAttack = attackWithWeapon.IsFirstAttack,
-                AttacksCount = attackWithWeapon.AttacksCount,
             };
 
             return roll;

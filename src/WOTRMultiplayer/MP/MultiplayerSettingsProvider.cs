@@ -25,7 +25,7 @@ namespace WOTRMultiplayer.MP
                 HostPortRangeStart = 1024,
                 HostPortRangeEnd = ushort.MaxValue,
                 ForcedPauseDefaultTerminationDelay = TimeSpan.FromSeconds(3),
-                ForcedPauseRandomEncounterTerminationDelay = TimeSpan.FromSeconds(4),
+                ForcedPauseRandomEncounterTerminationDelay = TimeSpan.FromSeconds(8),
             };
         }
     }

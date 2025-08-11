@@ -534,6 +534,8 @@ namespace WOTRMultiplayer.GameInteraction
                     }
                 }
 
+                _logger.LogInformation("Finished updating units. UnitsCount={unitsCount}", networkUnits.Count);
+
                 taskCompletion.SetResult(true);
             });
 
@@ -1553,7 +1555,7 @@ namespace WOTRMultiplayer.GameInteraction
             return ability;
         }
 
-        private AbilityData GetSpellAbility(Spellbook spellbook, string abilityId)
+        private AbilityData GetKnownSpell(Spellbook spellbook, string abilityId)
         {
             for (int level = 0; level < spellbook.m_KnownSpells.Length; level++)
             {
@@ -1588,7 +1590,7 @@ namespace WOTRMultiplayer.GameInteraction
 
             if (!string.IsNullOrEmpty(abilityUse.ConvertedFromId))
             {
-                var spellConversionSource = GetSpellAbility(spellbook, abilityUse.ConvertedFromId);
+                var spellConversionSource = GetKnownSpell(spellbook, abilityUse.ConvertedFromId);
                 if (spellConversionSource == null)
                 {
                     _logger.LogError("Can't find spell for converted ability. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}, ConvertedAbilityId={convertedId}", unit.UniqueId, abilityUse.Id, spellbook.Blueprint.Name, abilityUse.ConvertedFromId);
@@ -1609,15 +1611,33 @@ namespace WOTRMultiplayer.GameInteraction
                 return convertedSpell;
             }
 
-            var spell = GetSpellAbility(spellbook, abilityUse.Id);
+            var spell = GetKnownSpell(spellbook, abilityUse.Id);
             if (spell != null)
             {
-                _logger.LogInformation("Spell has been found. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}", unit.UniqueId, abilityUse.Id, spellbook.Blueprint.Name);
+                _logger.LogInformation("Spell has been found in known spells. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}", unit.UniqueId, abilityUse.Id, spellbook.Blueprint.Name);
+                return spell;
             }
 
-            return spell;
+            for (int level = 0; level < spellbook.m_MemorizedSpells.Length; level++)
+            {
+                var spellLevel = spellbook.m_MemorizedSpells[level];
+                var spellSlot = spellLevel.FirstOrDefault(s => string.Equals(s.Spell?.UniqueId, abilityUse.Id, StringComparison.OrdinalIgnoreCase));
+                if (spellSlot != null)
+                {
+                    _logger.LogInformation("Spell has been found in memorized spells. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}, SpellLevel={spellLevel}", unit.UniqueId, abilityUse.Id, spellbook.Blueprint.Name, spellSlot.SpellLevel);
+                    return spellSlot.Spell;
+                }
+            }
+
+            return null;
         }
 
+        /// <summary>
+        /// I never thought it would be so rough to find casted ability
+        /// </summary>
+        /// <param name="unit"></param>
+        /// <param name="abilityUse"></param>
+        /// <returns></returns>
         private AbilityData FindAbility(UnitEntityData unit, NetworkAbility abilityUse)
         {
             if (!string.IsNullOrEmpty(abilityUse.SpellbookId))

@@ -642,7 +642,9 @@ namespace WOTRMultiplayer.MP.Actors
                     var unitsToSync = GameInteraction.GetUnitsInCombat();
                     var message = new NotifyCombatTurnSynchronizationRequired
                     {
-                        Units = Mapper.Map<List<Networking.Messages.Contracts.NetworkUnit>>(unitsToSync)
+                        Units = Mapper.Map<List<Networking.Messages.Contracts.NetworkUnit>>(unitsToSync),
+                        Round = Game.Combat.Round,
+                        UnitId = Game.Combat.Turn.UnitId
                     };
                     _networkServer.SendAll(message);
                 }
@@ -753,7 +755,7 @@ namespace WOTRMultiplayer.MP.Actors
                     var delay = removalDelay.HasValue ? Task.Delay(removalDelay.Value) : Task.CompletedTask;
                     Game.ForcedPause = null;
 
-                    Logger.LogInformation("Forced pause is going to be ended. Delay={delay}", removalDelay);
+                    Logger.LogInformation("Forced pause will be lifted soon. Delay={delay}", removalDelay);
                     delay.ContinueWith(x =>
                     {
                         GameInteraction.Pause(false);

@@ -558,12 +558,20 @@ namespace WOTRMultiplayer.MP.Actors
         {
             try
             {
-                Logger.LogInformation("Received {messageType}. Units={unitsCount}", nameof(NotifyCombatTurnSynchronizationRequired), required.Units.Count);
+                Logger.LogInformation("Received {messageType}. Units={unitsCount}, Round={round}, UnitTurn={unitTurn}", nameof(NotifyCombatTurnSynchronizationRequired), required.Units.Count, required.Round, required.UnitId);
+
+                var round = Game.Combat.Round;
+                var unitId = Game.Combat.Turn.UnitId;
+                if (round != required.Round || !string.Equals(unitId, required.UnitId, StringComparison.OrdinalIgnoreCase))
+                {
+                    Logger.LogWarning("Synchronization request contains mismatched round or unit. LocalRound={localRound}, LocalUnitId={localUnitId}, RemoteRound={remoteRound}, RemoteUnitId={remoteUnitId}", round, unitId, required.Round, required.UnitId);
+                    return;
+                }
 
                 await SynchronizeUnitsAsync(required.Units);
 
-                Logger.LogInformation("Units have been synchronized. Sending {messageType} confirmation", nameof(NotifyCombatTurnSynchronizationRequired));
-                var message = new ClientCombatTurnSynchronized { Round = Game.Combat.Round, UnitId = Game.Combat.Turn.UnitId };
+                var message = new ClientCombatTurnSynchronized { Round = round, UnitId = unitId };
+                Logger.LogInformation("Units have been synchronized. Sending {messageType} confirmation. Round={round}, UnitId={unitId}", nameof(NotifyCombatTurnSynchronizationRequired), round, unitId);
                 _networkServerClient.Send(message);
             }
             catch (Exception ex)
@@ -663,11 +671,11 @@ namespace WOTRMultiplayer.MP.Actors
             Game.Combat.IsInitialized = true;
         }
 
-        private async Task SynchronizeUnitsAsync(List<Networking.Messages.Contracts.NetworkUnit> units)
+        private Task SynchronizeUnitsAsync(List<Networking.Messages.Contracts.NetworkUnit> units)
         {
             var unitsToSync = Mapper.Map<List<NetworkUnit>>(units);
 
-            await GameInteraction.UpdateUnitsAsync(unitsToSync);
+            return GameInteraction.UpdateUnitsAsync(unitsToSync);
         }
 
         private async void OnNotifyDialogStarted(NotifyDialogStarted started)

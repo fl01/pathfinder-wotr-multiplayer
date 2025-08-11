@@ -583,17 +583,17 @@ namespace WOTRMultiplayer.MP
                 return;
             }
 
-            if (!_multiplayerActorAccessor.Host.IsActive)
+            if (_multiplayerActorAccessor.Host.IsActive)
             {
-                if (_gameInteractionService.RemoteContext?.RandomEncounter != null)
-                {
-                    _gameInteractionService.RemoteContext.RandomEncounter = null;
-                }
-
+                _multiplayerActorAccessor.Host.OnAfterTryRollRandomEncounter();
                 return;
             }
 
-            _multiplayerActorAccessor.Host.OnAfterTryRollRandomEncounter();
+            if (_gameInteractionService.RemoteContext?.RandomEncounter != null)
+            {
+                _gameInteractionService.RemoteContext.RandomEncounter = null;
+                _gameInteractionService.UpdateIsInCombatStatus();
+            }
         }
 
         public int? GetNextRestBanter(int minInclusive, int maxExclusive)
