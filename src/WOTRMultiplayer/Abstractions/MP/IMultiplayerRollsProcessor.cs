@@ -9,8 +9,6 @@ namespace WOTRMultiplayer.Abstractions.MP
         bool OnBeforeRuleCalculateDamageTrigger(RuleCalculateDamage ruleCalculateDamage);
         void OnAfterRuleCalculateDamageTrigger(RuleCalculateDamage ruleCalculateDamage);
 
-        int OnAfterRollRuleHealDamage(RuleHealDamage instance, int unitsCount, int result);
-
         bool OnBeforeRuleAttackOvercomeConcealmentRoll(RuleAttackRoll ruleAttackRoll);
         void OnAfterRuleAttackOvercomeConcealmentRoll(RuleAttackRoll ruleAttackRoll);
         bool OnBeforeRuleAttackFortificationRoll(RuleAttackRoll ruleAttackRoll);
@@ -43,5 +41,8 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         bool OnBeforeRuleCheckCastingDefensivelyRoll(RuleCheckCastingDefensively ruleCheckCastingDefensively);
         void OnAfterRuleCheckCastingDefensivelyTrigger(RuleCheckCastingDefensively ruleCheckCastingDefensively);
+
+        bool OnBeforeRollRuleHealDamage(RuleHealDamage ruleHealDamage, int unitsCount, bool isTacticalCombat);
+        void OnAfterRollRuleHealDamage(RuleHealDamage ruleHealDamage, int unitsCount, int result, bool isTacticalCombat);
     }
 }

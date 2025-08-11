@@ -2,6 +2,9 @@
 
 namespace WOTRMultiplayer.Random
 {
+    /// <summary>
+    /// Description attribute value is used as prefix during ID generation
+    /// </summary>
     public enum UniqueIdType
     {
         [Description("UN")]
@@ -17,6 +20,9 @@ namespace WOTRMultiplayer.Random
         Fact,
 
         [Description("EV")]
-        EntityView
+        EntityView,
+
+        [Description("AE")]
+        AreaEffect
     }
 }

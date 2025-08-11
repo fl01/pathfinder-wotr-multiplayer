@@ -103,46 +103,62 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
         public static int OnSpecialEncounterRoll(int randomMin, int randomMax, BlueprintCampingEncounter encounter)
         {
-            if (!Main.Multiplayer.IsActive)
+            try
             {
-                return UnityEngine.Random.Range(randomMin, randomMax);
+                if (!Main.Multiplayer.IsActive)
+                {
+                    return UnityEngine.Random.Range(randomMin, randomMax);
+                }
+
+                var context = Main.Multiplayer.RemoteContext.RandomEncounter;
+
+                var encounterKey = encounter.AssetGuid.ToString();
+                if (context.Recording != null)
+                {
+                    var roll = UnityEngine.Random.Range(randomMin, randomMax);
+                    context.Recording.SpecialEncounters.Add(encounterKey, roll);
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded SpecialEncounter. Key={key}, Roll={roll}, Min={min}, Max={max}", encounterKey, roll, randomMin, randomMax);
+                    return roll;
+                }
+
+                context.PreRecorded.SpecialEncounters.TryGetValue(encounterKey, out var remoteRoll);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded SpecialEncounter. Key={key}, Roll={roll}, Min={min}, Max={max}", encounterKey, remoteRoll, randomMin, randomMax);
+                return remoteRoll;
             }
-
-            var context = Main.Multiplayer.RemoteContext.RandomEncounter;
-
-            var encounterKey = encounter.AssetGuid.ToString();
-            if (context.Recording != null)
+            catch (System.Exception ex)
             {
-                var roll = UnityEngine.Random.Range(randomMin, randomMax);
-                context.Recording.SpecialEncounters.Add(encounterKey, roll);
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded SpecialEncounter. Key={key}, Roll={roll}, Min={min}, Max={max}", encounterKey, roll, randomMin, randomMax);
-                return roll;
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            context.PreRecorded.SpecialEncounters.TryGetValue(encounterKey, out var remoteRoll);
-            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded SpecialEncounter. Key={key}, Roll={roll}, Min={min}, Max={max}", encounterKey, remoteRoll, randomMin, randomMax);
-            return remoteRoll;
         }
 
         public static float OnSpecialEncounterHoursPassedRoll(float randomMin, float randomMax)
         {
-            if (!Main.Multiplayer.IsActive)
+            try
             {
-                return UnityEngine.Random.Range(randomMin, randomMax);
+                if (!Main.Multiplayer.IsActive)
+                {
+                    return UnityEngine.Random.Range(randomMin, randomMax);
+                }
+
+                var context = Main.Multiplayer.RemoteContext.RandomEncounter;
+
+                if (context.Recording != null)
+                {
+                    var roll = UnityEngine.Random.Range(randomMin, randomMax);
+                    context.Recording.HoursPassedBeforeEncounter = roll;
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded HoursPassedBeforeEncounter. Roll={roll}, Min={min}, Max={max}", context.Recording.HoursPassedBeforeEncounter, randomMin, randomMax);
+                    return context.Recording.HoursPassedBeforeEncounter;
+                }
+
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded HoursPassedBeforeEncounter. Roll={roll}, Min={min}, Max={max}", context.PreRecorded.HoursPassedBeforeEncounter, randomMin, randomMax);
+                return context.PreRecorded.HoursPassedBeforeEncounter;
             }
-
-            var context = Main.Multiplayer.RemoteContext.RandomEncounter;
-
-            if (context.Recording != null)
+            catch (System.Exception ex)
             {
-                var roll = UnityEngine.Random.Range(randomMin, randomMax);
-                context.Recording.HoursPassedBeforeEncounter = roll;
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded HoursPassedBeforeEncounter. Roll={roll}, Min={min}, Max={max}", context.Recording.HoursPassedBeforeEncounter, randomMin, randomMax);
-                return context.Recording.HoursPassedBeforeEncounter;
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded HoursPassedBeforeEncounter. Roll={roll}, Min={min}, Max={max}", context.PreRecorded.HoursPassedBeforeEncounter, randomMin, randomMax);
-            return context.PreRecorded.HoursPassedBeforeEncounter;
         }
 
         [HarmonyPatch(typeof(RestController), nameof(RestController.RollEncounter))]
@@ -205,44 +221,60 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
         public static int OnEncounterGuardSlotRoll(int randomMin, int randomMax)
         {
-            if (!Main.Multiplayer.IsActive)
+            try
             {
-                return UnityEngine.Random.Range(randomMin, randomMax);
+                if (!Main.Multiplayer.IsActive)
+                {
+                    return UnityEngine.Random.Range(randomMin, randomMax);
+                }
+
+                var context = Main.Multiplayer.RemoteContext.RandomEncounter;
+
+                if (context.Recording != null)
+                {
+                    var roll = UnityEngine.Random.Range(randomMin, randomMax);
+                    context.Recording.GuardSlotRoll = roll;
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded GuardSlotRoll. Roll={roll}, Min={min}, Max={max}", context.Recording.GuardSlotRoll, randomMin, randomMax);
+                    return context.Recording.GuardSlotRoll;
+                }
+
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded GuardSlotRoll. Roll={roll}, Min={min}, Max={max}", context.PreRecorded.GuardSlotRoll, randomMin, randomMax);
+                return context.PreRecorded.GuardSlotRoll;
             }
-
-            var context = Main.Multiplayer.RemoteContext.RandomEncounter;
-
-            if (context.Recording != null)
+            catch (System.Exception ex)
             {
-                var roll = UnityEngine.Random.Range(randomMin, randomMax);
-                context.Recording.GuardSlotRoll = roll;
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded GuardSlotRoll. Roll={roll}, Min={min}, Max={max}", context.Recording.GuardSlotRoll, randomMin, randomMax);
-                return context.Recording.GuardSlotRoll;
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded GuardSlotRoll. Roll={roll}, Min={min}, Max={max}", context.PreRecorded.GuardSlotRoll, randomMin, randomMax);
-            return context.PreRecorded.GuardSlotRoll;
         }
 
         public static int OnEncounterCamouflageRoll(int randomMin, int randomMax)
         {
-            if (!Main.Multiplayer.IsActive)
+            try
             {
-                return UnityEngine.Random.Range(randomMin, randomMax);
+                if (!Main.Multiplayer.IsActive)
+                {
+                    return UnityEngine.Random.Range(randomMin, randomMax);
+                }
+
+                var context = Main.Multiplayer.RemoteContext.RandomEncounter;
+
+                if (context.Recording != null)
+                {
+                    var roll = UnityEngine.Random.Range(randomMin, randomMax);
+                    context.Recording.CamouflageRoll = roll;
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded CamouflageRoll. Roll={roll}, Min={min}, Max={max}", context.Recording.CamouflageRoll, randomMin, randomMax);
+                    return context.Recording.CamouflageRoll;
+                }
+
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded CamouflageRoll. Roll={roll}, Min={min}, Max={max}", context.PreRecorded.CamouflageRoll, randomMin, randomMax);
+                return context.PreRecorded.CamouflageRoll;
             }
-
-            var context = Main.Multiplayer.RemoteContext.RandomEncounter;
-
-            if (context.Recording != null)
+            catch (System.Exception ex)
             {
-                var roll = UnityEngine.Random.Range(randomMin, randomMax);
-                context.Recording.CamouflageRoll = roll;
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded CamouflageRoll. Roll={roll}, Min={min}, Max={max}", context.Recording.CamouflageRoll, randomMin, randomMax);
-                return context.Recording.CamouflageRoll;
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded CamouflageRoll. Roll={roll}, Min={min}, Max={max}", context.PreRecorded.CamouflageRoll, randomMin, randomMax);
-            return context.PreRecorded.CamouflageRoll;
         }
 
         [HarmonyPatch(typeof(RandomEncounterUnitSelector), nameof(RandomEncounterUnitSelector.SelectUnits))]
@@ -273,23 +305,31 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
         public static int OnEncounterRandomUnitSeedRoll(int randomMin, int randomMax)
         {
-            if (!Main.Multiplayer.IsActive)
+            try
             {
-                return UnityEngine.Random.Range(randomMin, randomMax);
+                if (!Main.Multiplayer.IsActive)
+                {
+                    return UnityEngine.Random.Range(randomMin, randomMax);
+                }
+
+                var context = Main.Multiplayer.RemoteContext.RandomEncounter;
+
+                if (context.Recording != null)
+                {
+                    var roll = UnityEngine.Random.Range(randomMin, randomMax);
+                    context.Recording.RandomUnitSeed = roll;
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded RandomUnitSeed. Roll={roll}", context.Recording.RandomUnitSeed.Value);
+                    return context.Recording.RandomUnitSeed.Value;
+                }
+
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded RandomUnitSeed. Roll={roll}, Min={min}, Max={max}", context.PreRecorded.RandomUnitSeed.Value, randomMin, randomMax);
+                return context.PreRecorded.RandomUnitSeed.Value;
             }
-
-            var context = Main.Multiplayer.RemoteContext.RandomEncounter;
-
-            if (context.Recording != null)
+            catch (System.Exception ex)
             {
-                var roll = UnityEngine.Random.Range(randomMin, randomMax);
-                context.Recording.RandomUnitSeed = roll;
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded RandomUnitSeed. Roll={roll}", context.Recording.RandomUnitSeed.Value);
-                return context.Recording.RandomUnitSeed.Value;
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded RandomUnitSeed. Roll={roll}, Min={min}, Max={max}", context.PreRecorded.RandomUnitSeed, randomMin, randomMax);
-            return context.PreRecorded.RandomUnitSeed.Value;
         }
 
         [HarmonyPatch(typeof(RandomEncounterUnitSelector), nameof(RandomEncounterUnitSelector.PlaceUnitsInCamp))]
@@ -405,87 +445,119 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
         public static UnitEntityData OnEncounterPlaceUnitsInCampRangedTargetUnitRoll(List<UnitEntityData> units, UnitEntityData unit)
         {
-            if (!Main.Multiplayer.IsActive)
+            try
             {
-                return units.Random();
-            }
+                if (!Main.Multiplayer.IsActive)
+                {
+                    return units.Random();
+                }
 
-            var context = Main.Multiplayer.RemoteContext.RandomEncounter;
-            if (context.Recording != null)
+                var context = Main.Multiplayer.RemoteContext.RandomEncounter;
+                if (context.Recording != null)
+                {
+                    var spawnAt = units.Random();
+                    context.Recording.PlaceUnitsInCampRangedTargetRolls.Add(unit.UniqueId, spawnAt.UniqueId);
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsInCampRangedTargetRolls. Key={key}, SpawnAt={roll}", unit.UniqueId, spawnAt.UniqueId);
+                    return spawnAt;
+                }
+
+                context.PreRecorded.PlaceUnitsInCampRangedTargetRolls.TryGetValue(unit.UniqueId, out var remoteRoll);
+                var remoteSpawnAt = units.FirstOrDefault(u => string.Equals(u.UniqueId, remoteRoll, System.StringComparison.OrdinalIgnoreCase));
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsInCampRangedTargetRolls. Key={key}, Roll={roll}", unit.UniqueId, remoteSpawnAt?.UniqueId);
+                return remoteSpawnAt;
+            }
+            catch (System.Exception ex)
             {
-                var spawnAt = units.Random();
-                context.Recording.PlaceUnitsInCampRangedTargetRolls.Add(unit.UniqueId, spawnAt.UniqueId);
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsInCampRangedTargetRolls. Key={key}, Roll={roll}", unit.UniqueId, spawnAt.UniqueId);
-                return spawnAt;
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            context.PreRecorded.PlaceUnitsInCampRangedTargetRolls.TryGetValue(unit.UniqueId, out var remoteRoll);
-            var remoteSpawnAt = units.FirstOrDefault(u => string.Equals(u.UniqueId, remoteRoll, System.StringComparison.OrdinalIgnoreCase));
-            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsInCampRangedTargetRolls. Key={key}, Roll={roll}", unit.UniqueId, remoteSpawnAt.UniqueId);
-            return remoteSpawnAt;
         }
 
         public static float OnEncounterPlaceUnitsInCampRangedRoll(UnitEntityData unit)
         {
-            if (!Main.Multiplayer.IsActive)
+            try
             {
-                return UnityEngine.Random.value;
-            }
+                if (!Main.Multiplayer.IsActive)
+                {
+                    return UnityEngine.Random.value;
+                }
 
-            var context = Main.Multiplayer.RemoteContext.RandomEncounter;
-            if (context.Recording != null)
+                var context = Main.Multiplayer.RemoteContext.RandomEncounter;
+                if (context.Recording != null)
+                {
+                    var roll = UnityEngine.Random.value;
+                    context.Recording.PlaceUnitsInCampRangedRolls.Add(unit.UniqueId, roll);
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsInCampRangedRolls. Key={key}, Roll={roll}", unit.UniqueId, roll);
+                    return roll;
+                }
+
+                context.PreRecorded.PlaceUnitsInCampRangedRolls.TryGetValue(unit.UniqueId, out var remoteRoll);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsInCampRangedRolls. Key={key}, Roll={roll}", unit.UniqueId, remoteRoll);
+                return remoteRoll;
+            }
+            catch (System.Exception ex)
             {
-                var roll = UnityEngine.Random.value;
-                context.Recording.PlaceUnitsInCampRangedRolls.Add(unit.UniqueId, roll);
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsInCampRangedRolls. Key={key}, Roll={roll}", unit.UniqueId, roll);
-                return roll;
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            context.PreRecorded.PlaceUnitsInCampRangedRolls.TryGetValue(unit.UniqueId, out var remoteRoll);
-            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsInCampRangedRolls. Key={key}, Roll={roll}", unit.UniqueId, remoteRoll);
-            return remoteRoll;
         }
 
         public static float OnEncounterPlaceUnitsInCampUnitYRoll(float randomMin, float randomMax, UnitEntityData unit)
         {
-            if (!Main.Multiplayer.IsActive)
+            try
             {
-                return UnityEngine.Random.Range(randomMin, randomMax);
-            }
+                if (!Main.Multiplayer.IsActive)
+                {
+                    return UnityEngine.Random.Range(randomMin, randomMax);
+                }
 
-            var context = Main.Multiplayer.RemoteContext.RandomEncounter;
-            if (context.Recording != null)
+                var context = Main.Multiplayer.RemoteContext.RandomEncounter;
+                if (context.Recording != null)
+                {
+                    var roll = UnityEngine.Random.Range(randomMin, randomMax);
+                    context.Recording.PlaceUnitsInCampUnitYRolls.Add(unit.UniqueId, roll);
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsInCampUnitYRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, roll, randomMin, randomMax);
+                    return roll;
+                }
+
+                context.PreRecorded.PlaceUnitsInCampUnitYRolls.TryGetValue(unit.UniqueId, out var remoteRoll);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsInCampUnitYRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, remoteRoll, randomMin, randomMax);
+                return remoteRoll;
+            }
+            catch (System.Exception ex)
             {
-                var roll = UnityEngine.Random.Range(randomMin, randomMax);
-                context.Recording.PlaceUnitsInCampUnitYRolls.Add(unit.UniqueId, roll);
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsInCampUnitYRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, roll, randomMin, randomMax);
-                return roll;
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            context.PreRecorded.PlaceUnitsInCampUnitYRolls.TryGetValue(unit.UniqueId, out var remoteRoll);
-            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsInCampUnitYRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, remoteRoll, randomMin, randomMax);
-            return remoteRoll;
         }
 
         public static float OnEncounterPlaceUnitsInCampUnitEndPositionRoll(float randomMin, float randomMax, UnitEntityData unit)
         {
-            if (!Main.Multiplayer.IsActive)
+            try
             {
-                return UnityEngine.Random.Range(randomMin, randomMax);
-            }
+                if (!Main.Multiplayer.IsActive)
+                {
+                    return UnityEngine.Random.Range(randomMin, randomMax);
+                }
 
-            var context = Main.Multiplayer.RemoteContext.RandomEncounter;
-            if (context.Recording != null)
+                var context = Main.Multiplayer.RemoteContext.RandomEncounter;
+                if (context.Recording != null)
+                {
+                    var roll = UnityEngine.Random.Range(randomMin, randomMax);
+                    context.Recording.PlaceUnitsInCampUnitEndPositionRolls.Add(unit.UniqueId, roll);
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsInCampUnitEndPositionRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, roll, randomMin, randomMax);
+                    return roll;
+                }
+
+                context.PreRecorded.PlaceUnitsInCampUnitEndPositionRolls.TryGetValue(unit.UniqueId, out var remoteRoll);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsInCampUnitEndPositionRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, remoteRoll, randomMin, randomMax);
+                return remoteRoll;
+            }
+            catch (System.Exception ex)
             {
-                var roll = UnityEngine.Random.Range(randomMin, randomMax);
-                context.Recording.PlaceUnitsInCampUnitEndPositionRolls.Add(unit.UniqueId, roll);
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsInCampUnitEndPositionRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, roll, randomMin, randomMax);
-                return roll;
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            context.PreRecorded.PlaceUnitsInCampUnitEndPositionRolls.TryGetValue(unit.UniqueId, out var remoteRoll);
-            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsInCampUnitEndPositionRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, remoteRoll, randomMin, randomMax);
-            return remoteRoll;
         }
 
         [HarmonyPatch(typeof(RandomEncounterUnitSelector), nameof(RandomEncounterUnitSelector.PlaceUnitsOutsideOfCamp))]
@@ -576,67 +648,91 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
         public static float OnEncounterPlaceUnitsOutsideOfCampSharedYRoll(float randomMin, float randomMax)
         {
-            if (!Main.Multiplayer.IsActive)
+            try
             {
-                return UnityEngine.Random.Range(randomMin, randomMax);
+                if (!Main.Multiplayer.IsActive)
+                {
+                    return UnityEngine.Random.Range(randomMin, randomMax);
+                }
+
+                var context = Main.Multiplayer.RemoteContext.RandomEncounter;
+
+                if (context.Recording != null)
+                {
+                    var roll = UnityEngine.Random.Range(randomMin, randomMax);
+                    context.Recording.PlaceUnitsOutsideOfCampSharedYRoll = roll;
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsOutsideOfCampSharedYRoll. Roll={roll}, Min={min}, Max={max}", context.Recording.PlaceUnitsOutsideOfCampSharedYRoll, randomMin, randomMax);
+                    return context.Recording.PlaceUnitsOutsideOfCampSharedYRoll;
+                }
+
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsOutsideOfCampSharedYRoll. Roll={roll}, Min={min}, Max={max}", context.PreRecorded.PlaceUnitsOutsideOfCampSharedYRoll, randomMin, randomMax);
+                return context.PreRecorded.PlaceUnitsOutsideOfCampSharedYRoll;
             }
-
-            var context = Main.Multiplayer.RemoteContext.RandomEncounter;
-
-            if (context.Recording != null)
+            catch (System.Exception ex)
             {
-                var roll = UnityEngine.Random.Range(randomMin, randomMax);
-                context.Recording.PlaceUnitsOutsideOfCampSharedYRoll = roll;
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsOutsideOfCampSharedYRoll. Roll={roll}, Min={min}, Max={max}", context.Recording.PlaceUnitsOutsideOfCampSharedYRoll, randomMin, randomMax);
-                return context.Recording.PlaceUnitsOutsideOfCampSharedYRoll;
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsOutsideOfCampSharedYRoll. Roll={roll}, Min={min}, Max={max}", context.PreRecorded.PlaceUnitsOutsideOfCampSharedYRoll, randomMin, randomMax);
-            return context.PreRecorded.PlaceUnitsOutsideOfCampSharedYRoll;
         }
 
         public static float OnEncounterPlaceUnitsOutsideOfCampUnitYRoll(float randomMin, float randomMax, int index, IList<UnitEntityData> units)
         {
-            if (!Main.Multiplayer.IsActive)
+            try
             {
-                return UnityEngine.Random.Range(randomMin, randomMax);
-            }
+                if (!Main.Multiplayer.IsActive)
+                {
+                    return UnityEngine.Random.Range(randomMin, randomMax);
+                }
 
-            var context = Main.Multiplayer.RemoteContext.RandomEncounter;
-            var unit = units[index];
-            if (context.Recording != null)
+                var context = Main.Multiplayer.RemoteContext.RandomEncounter;
+                var unit = units[index];
+                if (context.Recording != null)
+                {
+                    var roll = UnityEngine.Random.Range(randomMin, randomMax);
+                    context.Recording.PlaceUnitsOutsideOfCampUnitYRolls.Add(unit.UniqueId, roll);
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsOutsideOfCampUnitYRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, roll, randomMin, randomMax);
+                    return roll;
+                }
+
+                context.PreRecorded.PlaceUnitsOutsideOfCampUnitYRolls.TryGetValue(unit.UniqueId, out var remoteRoll);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsOutsideOfCampUnitYRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, remoteRoll, randomMin, randomMax);
+                return remoteRoll;
+            }
+            catch (System.Exception ex)
             {
-                var roll = UnityEngine.Random.Range(randomMin, randomMax);
-                context.Recording.PlaceUnitsOutsideOfCampUnitYRolls.Add(unit.UniqueId, roll);
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsOutsideOfCampUnitYRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, roll, randomMin, randomMax);
-                return roll;
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            context.PreRecorded.PlaceUnitsOutsideOfCampUnitYRolls.TryGetValue(unit.UniqueId, out var remoteRoll);
-            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsOutsideOfCampUnitYRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, remoteRoll, randomMin, randomMax);
-            return remoteRoll;
         }
 
         public static float OnEncounterPlaceUnitsOutsideOfCampUnitEndPositionRoll(float randomMin, float randomMax, int index, IList<UnitEntityData> units)
         {
-            if (!Main.Multiplayer.IsActive)
+            try
             {
-                return UnityEngine.Random.Range(randomMin, randomMax);
-            }
+                if (!Main.Multiplayer.IsActive)
+                {
+                    return UnityEngine.Random.Range(randomMin, randomMax);
+                }
 
-            var context = Main.Multiplayer.RemoteContext.RandomEncounter;
-            var unit = units[index];
-            if (context.Recording != null)
+                var context = Main.Multiplayer.RemoteContext.RandomEncounter;
+                var unit = units[index];
+                if (context.Recording != null)
+                {
+                    var roll = UnityEngine.Random.Range(randomMin, randomMax);
+                    context.Recording.PlaceUnitsOutsideOfCampUnitEndPositionRolls.Add(unit.UniqueId, roll);
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsOutsideOfCampUnitEndPositionRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, roll, randomMin, randomMax);
+                    return roll;
+                }
+
+                context.PreRecorded.PlaceUnitsOutsideOfCampUnitEndPositionRolls.TryGetValue(unit.UniqueId, out var remoteRoll);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsOutsideOfCampUnitEndPositionRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, remoteRoll, randomMin, randomMax);
+                return remoteRoll;
+            }
+            catch (System.Exception ex)
             {
-                var roll = UnityEngine.Random.Range(randomMin, randomMax);
-                context.Recording.PlaceUnitsOutsideOfCampUnitEndPositionRolls.Add(unit.UniqueId, roll);
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsOutsideOfCampUnitEndPositionRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, roll, randomMin, randomMax);
-                return roll;
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            context.PreRecorded.PlaceUnitsOutsideOfCampUnitEndPositionRolls.TryGetValue(unit.UniqueId, out var remoteRoll);
-            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsOutsideOfCampUnitEndPositionRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, remoteRoll, randomMin, randomMax);
-            return remoteRoll;
         }
     }
 }

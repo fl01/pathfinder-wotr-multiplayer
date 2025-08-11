@@ -10,11 +10,5 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     {
         [ProtoMember(1)]
         public List<NetworkUnit> Units { get; set; } = [];
-
-        [ProtoMember(2)]
-        public List<string> UnitsCombatOrder { get; set; } = [];
-
-        [ProtoMember(3)]
-        public string NextUnitTurn { get; set; }
     }
 }

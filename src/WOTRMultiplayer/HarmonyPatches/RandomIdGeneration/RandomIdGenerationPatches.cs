@@ -10,7 +10,11 @@ using Kingmaker.Controllers;
 using Kingmaker.EntitySystem;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.Items;
+using Kingmaker.UnitLogic.Abilities.Blueprints;
+using Kingmaker.UnitLogic.Mechanics;
+using Kingmaker.Utility;
 using Kingmaker.View;
+using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Random;
 
@@ -30,7 +34,22 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
                 return;
             }
 
-            Main.GetLogger<RandomIdGenerationPatches>().LogError("Player.GetNewUniqueId should never be called", __result);
+            Main.GetLogger<RandomIdGenerationPatches>().LogError("Player.GetNewUniqueId should never be called, Result={result}, StackTrace={stackTrace}", __result, Environment.StackTrace);
+        }
+
+
+        [HarmonyPatch(typeof(AreaEffectsController), nameof(AreaEffectsController.Spawn), [typeof(MechanicsContext), typeof(BlueprintAbilityAreaEffect), typeof(TargetWrapper), typeof(TimeSpan?), typeof(bool)])]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> AreaEffectsController_Spawn_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var replaceWith = AccessTools.Method(typeof(RandomIdGenerationPatches), nameof(RandomIdGenerationPatches.GetNewAreaEffectUniqueId));
+            var newInstructions = new List<CodeInstruction>()
+            {
+                new(OpCodes.Ldloc_2),
+                new(OpCodes.Call, replaceWith),
+            };
+            return PatchPlayerIdGeneration(target, instructions, newInstructions);
         }
 
         [HarmonyPatch(typeof(EntityCreationController), nameof(EntityCreationController.SpawnEntity))]
@@ -137,6 +156,14 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             match.Insert(newInstructions);
             Main.GetLogger<RandomIdGenerationPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
             return matcher.Instructions();
+        }
+
+
+        public static string GetNewAreaEffectUniqueId(AreaEffectView areaEffectView)
+        {
+            var identifier = $"{GetCommonIdPart()}:{areaEffectView.GetType().Name}:{areaEffectView.name}";
+            var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.AreaEffect, Game.Instance.Player.GameId, identifier);
+            return id;
         }
 
         public static string GetNewEntityUniqueId(EntityViewBase prefab)

@@ -261,5 +261,9 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
         public void ApplyInspectionKnowledgeCheck(NetworkInspectionKnowledgeCheck check)
         {
         }
+
+        public void UpdateIsInCombatStatus()
+        {
+        }
     }
 }

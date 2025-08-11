@@ -608,22 +608,6 @@ namespace WOTRMultiplayer.MP.Actors
             UnitJoinedMidCombat
         }
 
-        protected void PrepareCombat()
-        {
-            // looks dumb af, but seems like combat could start before all initiatives are rolled
-            // so let's make sure combat is 100% prepared before allowing to proceed
-            const int combatPreparationFramesDelay = 10;
-            if (Game.Combat.CombatPreparedFrames < combatPreparationFramesDelay)
-            {
-                Game.Combat.CombatPreparedFrames++;
-            }
-
-            if (!Game.Combat.IsCombatPrepared && Game.Combat.CombatPreparedFrames == combatPreparationFramesDelay)
-            {
-                Game.Combat.IsCombatPrepared = true;
-            }
-        }
-
         protected void InvokeOnStartGame()
         {
             ResetGameIdGenerator();
@@ -703,6 +687,12 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 var damageValues = Mapper.Map<NetworkDamageListRollValue>(rollResponse.RollValue);
                 return damageValues as TRollValue;
+            }
+
+            if (rollResponse.RollValue.NamedIntValues.Count > 0)
+            {
+                var namedIntValues = Mapper.Map<NetworkNamedIntRollValue>(rollResponse.RollValue);
+                return namedIntValues as TRollValue;
             }
 
             var intValue = Mapper.Map<NetworkIntRollValue>(rollResponse.RollValue);

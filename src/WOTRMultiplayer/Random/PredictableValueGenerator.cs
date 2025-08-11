@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.ComponentModel;
-using Kingmaker.Dungeon.Utils;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.Hashing;
@@ -12,7 +11,7 @@ namespace WOTRMultiplayer.Random
     public class PredictableValueGenerator : IValueGenerator
     {
         private readonly ConcurrentDictionary<string, UniqueIdCounters> _entityCounters = new();
-        private readonly ConcurrentDictionary<int, PersistentRandom> _seedGenerators = new();
+        private readonly ConcurrentDictionary<int, System.Random> _seedGenerators = new();
         private readonly ILogger<PredictableValueGenerator> _logger;
         private readonly IGameInteractionService _gameInteractionService;
         private readonly IHashService _hashService;
@@ -29,8 +28,8 @@ namespace WOTRMultiplayer.Random
 
         public int Range(int seed, int minInclusive, int maxExclusive)
         {
-            var generator = _seedGenerators.GetOrAdd(seed, k => new PersistentRandom(k));
-            var result = generator.Range(minInclusive, maxExclusive);
+            var generator = _seedGenerators.GetOrAdd(seed, k => new System.Random(k));
+            var result = generator.Next(minInclusive, maxExclusive);
             return result;
         }
 

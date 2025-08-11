@@ -14,5 +14,8 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
 
         [ProtoMember(3)]
         public List<NetworkDamageRollValue> DamageValues { get; set; } = [];
+
+        [ProtoMember(4)]
+        public Dictionary<string, int> NamedIntValues { get; set; } = [];
     }
 }

@@ -52,6 +52,11 @@ namespace WOTRMultiplayer.Config.Mapping
                 .ReverseMap()
                 .ForMember(m => m.Value, o => o.MapFrom(v => v.DamageValues));
 
+            CreateMap<NetworkNamedIntRollValue, Networking.Messages.Contracts.NetworkRollValue>()
+                .ForMember(m => m.NamedIntValues, o => o.MapFrom(v => v.Value))
+                .ReverseMap()
+                .ForMember(m => m.Value, o => o.MapFrom(v => v.NamedIntValues));
+
             CreateMap<NetworkIntRollValue, Networking.Messages.Contracts.NetworkRollValue>()
                 .ForMember(m => m.Result, o => o.MapFrom(v => v.Value))
                 .ReverseMap()

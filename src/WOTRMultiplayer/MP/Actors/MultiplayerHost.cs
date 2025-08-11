@@ -333,7 +333,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return true;
             }
 
-            PrepareCombat();
+            Game.Combat.IsCombatPrepared = true;
 
             return true;
         }
@@ -348,18 +348,14 @@ namespace WOTRMultiplayer.MP.Actors
             if (Game.Combat.Round == 1 && !Game.Combat.IsInitialized)
             {
                 var unitsInCombat = GameInteraction.GetUnitsInCombat();
-                var unitsCombatOrder = GameInteraction.GetUnitsCombatOrder();
-                var nextUnitTurn = GameInteraction.GetNextUnitTurn();
                 var message = new NotifyCombatInitialized
                 {
-                    Units = Mapper.Map<List<Networking.Messages.Contracts.NetworkUnit>>(unitsInCombat),
-                    UnitsCombatOrder = unitsCombatOrder,
-                    NextUnitTurn = nextUnitTurn
+                    Units = Mapper.Map<List<Networking.Messages.Contracts.NetworkUnit>>(unitsInCombat)
                 };
                 _networkServer.SendAll(message);
                 Game.Combat.IsInitialized = true;
                 Game.Combat.PlayersCombatInitialization.TryAdd(Game.LocalPlayerId, true);
-                Logger.LogInformation("Sending {messageType}. UnitsInCombat={unitsCount}, CombatOrder={order}", nameof(NotifyCombatInitialized), message.Units.Count, message.UnitsCombatOrder);
+                Logger.LogInformation("Sending {messageType}. UnitsInCombat={unitsCount}", nameof(NotifyCombatInitialized), message.Units.Count);
             }
 
             var canContinue = Game.Combat.PlayersCombatInitialization.Count >= Game.Players.Count;
@@ -507,6 +503,7 @@ namespace WOTRMultiplayer.MP.Actors
                 if (Game.RandomEncounter.RandomUnitSeed.HasValue)
                 {
                     EnsureForcePaused(UIStringConsts.GameNotifications.ForcedPauseReasons.RandomEncounterLoading, SettingsProvider.Settings.ForcedPauseRandomEncounterTerminationDelay);
+                    GameInteraction.UpdateIsInCombatStatus();
                 }
             }
             catch (Exception ex)

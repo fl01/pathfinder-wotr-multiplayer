@@ -40,6 +40,7 @@ using Kingmaker.UI.MVVM._PCView.InGame;
 using Kingmaker.UI.MVVM._PCView.Rest;
 using Kingmaker.UI.MVVM._VM.Dialog.Dialog;
 using Kingmaker.UI.MVVM._VM.Rest;
+using Kingmaker.UnitLogic;
 using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.UnitLogic.ActivatableAbilities;
 using Kingmaker.UnitLogic.Commands;
@@ -48,7 +49,6 @@ using Kingmaker.Utility;
 using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
-using TurnBased.Controllers;
 using UnityEngine;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.UI;
@@ -1348,6 +1348,15 @@ namespace WOTRMultiplayer.GameInteraction
             _networkExecutionContext.Value = RemoteExecutionContext.Create(context);
         }
 
+        public void UpdateIsInCombatStatus()
+        {
+            Game.Instance.Player.UpdateIsInCombat();
+            _mainThreadAccessor.Enqueue(() =>
+            {
+                Game.Instance.Player.UpdateIsInCombat();
+            });
+        }
+
         private CraftItemInfo GetCampingCraftItemInfo(UnitEntityData crafter, UsableItemType itemType, string itemBlueprintId)
         {
             if (crafter == null)
@@ -1544,36 +1553,76 @@ namespace WOTRMultiplayer.GameInteraction
             return ability;
         }
 
+        private AbilityData GetSpellAbility(Spellbook spellbook, string abilityId)
+        {
+            for (int level = 0; level < spellbook.m_KnownSpells.Length; level++)
+            {
+                var spellLevel = spellbook.m_KnownSpells[level];
+                var spellSlot = spellLevel.FirstOrDefault(s => string.Equals(s.UniqueId, abilityId, StringComparison.OrdinalIgnoreCase));
+                if (spellSlot != null)
+                {
+                    return spellSlot;
+                }
+            }
+
+            return null;
+        }
+
+        private AbilityData FindAbilityInSpellbook(UnitEntityData unit, NetworkAbility abilityUse)
+        {
+            var spellbook = unit.Spellbooks.FirstOrDefault(s => string.Equals(s.Blueprint.Name.Key, abilityUse.SpellbookId));
+            if (spellbook == null)
+            {
+                _logger.LogError("Unable to find ability due to missing spellbook. UnitId={unitId}, AbilityId={abilityId}, SpellbookId={spellbookId}", unit.UniqueId, abilityUse.Id, abilityUse.SpellbookId);
+                return null;
+            }
+
+            var cantrips = spellbook.m_KnownSpells.FirstOrDefault();
+            var cantrip = cantrips.FirstOrDefault(s => string.Equals(s.UniqueId, abilityUse.Id, StringComparison.OrdinalIgnoreCase));
+
+            if (cantrip != null)
+            {
+                _logger.LogInformation("Cantrip spell has been found. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}", unit.UniqueId, abilityUse.Id, spellbook.Blueprint.Name);
+                return cantrip;
+            }
+
+            if (!string.IsNullOrEmpty(abilityUse.ConvertedFromId))
+            {
+                var spellConversionSource = GetSpellAbility(spellbook, abilityUse.ConvertedFromId);
+                if (spellConversionSource == null)
+                {
+                    _logger.LogError("Can't find spell for converted ability. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}, ConvertedAbilityId={convertedId}", unit.UniqueId, abilityUse.Id, spellbook.Blueprint.Name, abilityUse.ConvertedFromId);
+                    return null;
+                }
+
+                var convertedSpell = spellConversionSource.GetConversions().FirstOrDefault(
+                    c => string.Equals(c.UniqueId, abilityUse.Id, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(c.NameForAcronym, abilityUse.Name, StringComparison.OrdinalIgnoreCase));
+
+                if (convertedSpell == null)
+                {
+                    _logger.LogError("Can't find target abiliy in spell conversion list. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}, ConvertedAbilityId={convertedId}", unit.UniqueId, abilityUse.Id, spellbook.Blueprint.Name, abilityUse.ConvertedFromId);
+                    return null;
+                }
+
+                _logger.LogInformation("Converted spell has been found. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}", unit.UniqueId, abilityUse.Id, spellbook.Blueprint.Name);
+                return convertedSpell;
+            }
+
+            var spell = GetSpellAbility(spellbook, abilityUse.Id);
+            if (spell != null)
+            {
+                _logger.LogInformation("Spell has been found. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}", unit.UniqueId, abilityUse.Id, spellbook.Blueprint.Name);
+            }
+
+            return spell;
+        }
+
         private AbilityData FindAbility(UnitEntityData unit, NetworkAbility abilityUse)
         {
             if (!string.IsNullOrEmpty(abilityUse.SpellbookId))
             {
-                var spellbook = unit.Spellbooks.FirstOrDefault(s => string.Equals(s.Blueprint.Name.Key, abilityUse.SpellbookId));
-                if (spellbook == null)
-                {
-                    _logger.LogError("Unable to find ability due to missing spellbook. UnitId={unitId}, AbilityId={abilityId}, SpellbookId={spellbookId}", unit.UniqueId, abilityUse.Id, abilityUse.SpellbookId);
-                    return null;
-                }
-
-                var cantrips = spellbook.m_KnownSpells.FirstOrDefault();
-                var cantrip = cantrips.FirstOrDefault(s => string.Equals(s.UniqueId, abilityUse.Id, StringComparison.OrdinalIgnoreCase));
-
-                if (cantrip != null)
-                {
-                    _logger.LogInformation("Cantrip spell has been found. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}", unit.UniqueId, abilityUse.Id, spellbook.Blueprint.Name);
-                    return cantrip;
-                }
-
-                for (int level = 0; level < spellbook.m_MemorizedSpells.Length; level++)
-                {
-                    var spellLevel = spellbook.m_MemorizedSpells[level];
-                    var spellSlot = spellLevel.FirstOrDefault(s => string.Equals(s.Spell?.UniqueId, abilityUse.Id, StringComparison.OrdinalIgnoreCase));
-                    if (spellSlot != null)
-                    {
-                        _logger.LogInformation("Spell has been found. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}, SpellLevel={spellLevel}", unit.UniqueId, abilityUse.Id, spellbook.Blueprint.Name, level);
-                        return spellSlot.Spell;
-                    }
-                }
+                return FindAbilityInSpellbook(unit, abilityUse);
             }
 
             if (!string.IsNullOrEmpty(abilityUse.ConvertedFromId))

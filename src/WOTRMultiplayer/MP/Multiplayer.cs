@@ -585,6 +585,11 @@ namespace WOTRMultiplayer.MP
 
             if (!_multiplayerActorAccessor.Host.IsActive)
             {
+                if (_gameInteractionService.RemoteContext?.RandomEncounter != null)
+                {
+                    _gameInteractionService.RemoteContext.RandomEncounter = null;
+                }
+
                 return;
             }
 
@@ -600,6 +605,7 @@ namespace WOTRMultiplayer.MP
 
             var banterSeed = _multiplayerActorAccessor.Current.RestBanterSeed;
             var nextBanter = ValueGenerator.Range(banterSeed, minInclusive, maxExclusive);
+            _logger.LogInformation("Next rest banter has been selected. Seed={seed}, Index={index}", banterSeed, nextBanter);
             return nextBanter;
         }
 

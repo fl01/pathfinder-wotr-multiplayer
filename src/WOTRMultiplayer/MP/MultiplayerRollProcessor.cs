@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Kingmaker.EntitySystem.Entities;
@@ -126,33 +127,74 @@ namespace WOTRMultiplayer.MP
             }
         }
 
-        public int OnAfterRollRuleHealDamage(RuleHealDamage ruleHealDamage, int unitsCount, int result)
+        public bool OnBeforeRollRuleHealDamage(RuleHealDamage ruleHealDamage, int unitsCount, bool isTacticalCombat)
         {
             try
             {
-                if (_multiplayerActorAccessor.Current == null)
+                if (!ShouldRetrieveRoll(ruleHealDamage))
                 {
-                    return result;
+                    return true;
                 }
 
-                var roll = CreateHealDamageRoll(NetworkDiceRollType.Heal, ruleHealDamage, unitsCount);
+                var roll = CreateHealDamageRoll(NetworkDiceRollType.Hit, ruleHealDamage, unitsCount, isTacticalCombat);
                 var rollId = GetDiceRollId(roll);
                 if (rollId == null)
                 {
-                    _logger.LogInformation("Unable to get rollId for healing, SourceFactId={factId}, CasterId={casterId}, TargetId={targetId}, EmpowerBonus={emopower}, Result={result}",
-                        ruleHealDamage.SourceFact?.UniqueId, ruleHealDamage.Initiator.UniqueId, ruleHealDamage.Target.UniqueId, ruleHealDamage.EmpowerModifier, result);
-                    return result;
+                    _logger.LogWarning("Heal Damage retrieving has been skipped due to unability to generate rollId. InitiatorName={initiatorName}, InitiatorId={initiatorId}", ruleHealDamage.Initiator?.CharacterName, ruleHealDamage.Initiator?.UniqueId);
+                    return true;
                 }
 
-                if (_multiplayerActorAccessor.Current.IsDiceRollOwner(false))
+                var networkRoll = _multiplayerActorAccessor.Current.RetrieveRoll<NetworkNamedIntRollValue>(rollId.Value, ruleHealDamage.Initiator.UniqueId);
+                if (networkRoll == null)
                 {
-                    var value = new NetworkIntRollValue { Value = result };
-                    SaveRollValue(rollId.Value, value);
-                    return result;
+                    _logger.LogCritical("Failed to acquire heal damage roll from remote player which guarantees desync in the game. RollId={rollId}", rollId.Value);
+                    _gameInteractionService.ShowModalMessage($"Failed to acquire heal damage roll from remote player which guarantees desync in the game");
+                    return true;
                 }
 
-                var d20 = RetrieveRoll<RuleRollD20>(roll, ruleHealDamage.Initiator);
-                return d20.Result;
+                networkRoll.Value.TryGetValue(nameof(ruleHealDamage.Bonus), out var bonusValue);
+                ruleHealDamage.GetType()
+                  .GetProperty(nameof(ruleHealDamage.Bonus))
+                  .SetPropertyValue(ruleHealDamage, bonusValue);
+
+                networkRoll.Value.TryGetValue(nameof(ruleHealDamage.RollResult), out var rollResult);
+                ruleHealDamage.RollResult = rollResult;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
+        }
+
+        public void OnAfterRollRuleHealDamage(RuleHealDamage ruleHealDamage, int unitsCount, int result, bool isTacticalCombat)
+        {
+            try
+            {
+                if (!ShouldStoreRoll(ruleHealDamage))
+                {
+                    return;
+                }
+
+                var roll = CreateHealDamageRoll(NetworkDiceRollType.Hit, ruleHealDamage, unitsCount, isTacticalCombat);
+                var rollId = GetDiceRollId(roll);
+                if (rollId == null)
+                {
+                    _logger.LogWarning("Heal Damage saving has been skipped due to unability to generate rollId. InitiatorName={initiatorName}, InitiatorId={initiatorId}", ruleHealDamage.Initiator?.CharacterName, ruleHealDamage.Initiator?.UniqueId);
+                    return;
+                }
+
+                var rollValue = new NetworkNamedIntRollValue
+                {
+                    Value = new Dictionary<string, int>
+                    {
+                        { nameof(ruleHealDamage.Bonus), ruleHealDamage.Bonus },
+                        { nameof(ruleHealDamage.RollResult), result },
+                    }
+                };
+
+                SaveRollValue(rollId.Value, rollValue);
             }
             catch (Exception ex)
             {
@@ -933,15 +975,18 @@ namespace WOTRMultiplayer.MP
             return roll;
         }
 
-        private HealDamageRoll CreateHealDamageRoll(NetworkDiceRollType diceRollType, RuleHealDamage ruleHealDamage, int unitsCount)
+        private HealDamageRoll CreateHealDamageRoll(NetworkDiceRollType diceRollType, RuleHealDamage ruleHealDamage, int unitsCount, bool isTacticalCombat)
         {
-            var roll = new HealDamageRoll(ruleHealDamage.Initiator?.UniqueId, ruleHealDamage.GetType().Name, diceRollType, ruleHealDamage.Bonus)
+            var roll = new HealDamageRoll(ruleHealDamage.Initiator?.UniqueId, ruleHealDamage.GetType().Name, diceRollType, 0)
             {
                 AbilityId = ruleHealDamage.Reason.Ability?.StickyTouch?.UniqueId ?? ruleHealDamage.Reason.Ability?.UniqueId,
                 AbilitySchoolId = ruleHealDamage.Reason.Ability?.Spellbook?.Blueprint.name,
                 TargetId = ruleHealDamage.Target?.UniqueId,
                 UnitsCount = unitsCount,
                 EmpowerModifier = ruleHealDamage.EmpowerModifier,
+                IsTacticalCombat = isTacticalCombat,
+                AdditionalBonus = ruleHealDamage.AdditionalBonus,
+                HealResistance = ruleHealDamage.HealResistance
             };
 
             return roll;

@@ -15,7 +15,7 @@ namespace WOTRMultiplayer.MP.Entities.Combat
 
         public int Round
         {
-            // sometimes combat is being paused (on client) before round started event, but still we need to initialize everything as first round aka 1
+            // sometimes combat is being paused (on client) before round started event, but we need to initialize everything as first round
             get { return _round == 0 ? 1 : _round; }
             set { _round = value; }
         }

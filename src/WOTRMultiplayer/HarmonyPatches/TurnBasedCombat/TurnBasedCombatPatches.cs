@@ -12,8 +12,6 @@ using TurnBased.Controllers;
 
 namespace WOTRMultiplayer.HarmonyPatches.TurnBasedCombat
 {
-    // order after host allowed to start combat
-    // UnitCombatPrepareController.Tick -> CombatController_Reset -> CombatController_Tick
     [HarmonyPatch]
     public class TurnBasedCombatPatches
     {
@@ -52,7 +50,6 @@ namespace WOTRMultiplayer.HarmonyPatches.TurnBasedCombat
                 return true;
             }
 
-            // block on host/client until everyone is not trying to start same turn
             var canContinue = Main.Multiplayer.OnBeforeStartTurn(__instance.Rider.UniqueId, actingInSurpriseRound);
             return canContinue;
         }
@@ -83,7 +80,7 @@ namespace WOTRMultiplayer.HarmonyPatches.TurnBasedCombat
             if (!canContinue && Game.Instance.TurnBasedCombatController.CurrentTurn != null)
             {
                 // game treats characters without control as AI and tries to skip turn if they are stuck
-                // but in reality those characters are controlled by other players and we are waiting their actions
+                // but in reality those characters are controlled by other players and we are waiting for their actions
                 // I believe this could reworked by using transpiler to replace generic condition 'IsDirectlyControllable' in TurnController.Tick => (Status == TurnStatus.Acting && Rider.Commands.Empty && !Rider.IsDirectlyControllable)
                 // with something smarter, but resetting counters work fine for now
                 Game.Instance.TurnBasedCombatController.CurrentTurn.AIForcedTickCount = 0;

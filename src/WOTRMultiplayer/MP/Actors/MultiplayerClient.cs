@@ -226,7 +226,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return false;
             }
 
-            PrepareCombat();
+            Game.Combat.IsCombatPrepared = true;
 
             return true;
         }
@@ -238,13 +238,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return false;
             }
 
-            if (Game.Combat.IsCombatPrepared && Game.Combat.InitialCombatOrder.Count > 0)
-            {
-                GameInteraction.UpdateCombatOrder(Game.Combat.InitialCombatOrder);
-                Game.Combat.InitialCombatOrder.Clear();
-            }
-
-            return Game.Combat.IsCombatPrepared;
+            return Game.Combat.IsInitialized && Game.Combat.IsCombatPrepared;
         }
 
         public bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound)
@@ -661,9 +655,6 @@ namespace WOTRMultiplayer.MP.Actors
             }
 
             await SynchronizeUnitsAsync(combatInitialized.Units);
-            GameInteraction.SetNextUnitCombatTurn(combatInitialized.NextUnitTurn);
-
-            Game.Combat.InitialCombatOrder = [.. combatInitialized.UnitsCombatOrder];
 
             Logger.LogInformation("Sending {messageType}", nameof(ClientCombatInitialized));
             var message = new ClientCombatInitialized();
