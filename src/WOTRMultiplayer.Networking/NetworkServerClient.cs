@@ -113,7 +113,7 @@ namespace WOTRMultiplayer.Networking
             var messageType = message.GetType();
             if (message is IAwaitableMessage awaitableMessage && _awaiters.TryRemove(awaitableMessage.GetKey(), out var taskCompletion))
             {
-                _logger.LogInformation("Awaiter has been found, other handlers will be skipped. AwaiterKey={awaiterKey}", awaitableMessage.GetKey());
+                _logger.LogDebug("Awaiter has been found, other handlers will be skipped. AwaiterKey={awaiterKey}", awaitableMessage.GetKey());
                 taskCompletion.SetResult(message);
                 return;
             }

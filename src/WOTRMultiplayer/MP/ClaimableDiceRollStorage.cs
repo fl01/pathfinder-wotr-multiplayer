@@ -70,15 +70,14 @@ namespace WOTRMultiplayer.MP
             {
                 if (!_rolls.TryGetValue(rollId, out var entry))
                 {
-                    AddRollEntry(rollId, claimingList, roll);
+                    AddRollEntry(rollId, claimingList, roll, false);
                     return;
                 }
 
                 if (entry.IsClaimed)
                 {
-                    _logger.LogWarning("Duplicate entry id, but all previous values have been claimed. RollId={rollId}, RollType={rollType}", rollId, roll.GetType().Name);
                     _rolls.TryRemove(rollId, out _);
-                    AddRollEntry(rollId, claimingList, roll);
+                    AddRollEntry(rollId, claimingList, roll, true);
                     return;
                 }
 
@@ -95,13 +94,13 @@ namespace WOTRMultiplayer.MP
             _logger.LogInformation("All previous rolls have been removed");
         }
 
-        private void AddRollEntry(int rollId, List<long> claimingList, RollValueBase roll)
+        private void AddRollEntry(int rollId, List<long> claimingList, RollValueBase roll, bool isReplacement)
         {
             var rollValue = CreateClaimableRoll(claimingList, roll);
             var entry = new ClaimableDiceRollEntry();
             entry.Rolls.Add(rollValue);
             _rolls.TryAdd(rollId, entry);
-            _logger.LogInformation("Created claimable roll value. RollId={rollId}, RollType={rollType}, OrderId={orderId}, ClaimingListCount={playerId}", rollId, roll.GetType().Name, rollValue.OrderId, claimingList.Count);
+            _logger.LogInformation("Created claimable roll value. RollId={rollId}, RollType={rollType}, OrderId={orderId}, ClaimingListCount={playerId}, RollValue={rollValue}, IsReplacement={isReplacement}", rollId, roll.GetType().Name, rollValue.OrderId, claimingList.Count, rollValue.Roll, isReplacement);
         }
 
         private ClaimableDiceRollValue<RollValueBase> CreateClaimableRoll(List<long> claimingList, RollValueBase roll)

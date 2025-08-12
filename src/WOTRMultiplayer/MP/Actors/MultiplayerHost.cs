@@ -209,15 +209,6 @@ namespace WOTRMultiplayer.MP.Actors
         {
             base.OnAreaScenesLoaded();
 
-            lock (ActionLock)
-            {
-                EnsureForcePaused(UIStringConsts.GameNotifications.ForcedPauseReasons.AreaLoading);
-                var localPlayerId = GetLocalPlayerId();
-                Game.ForcedPause.ReadyPlayers.Add(localPlayerId);
-            }
-
-            GameInteraction.Pause(true);
-
             TryEndForcedPause();
         }
 
@@ -577,10 +568,11 @@ namespace WOTRMultiplayer.MP.Actors
 
         protected override DiceRollValueResponse RetrieveRoll(DiceRollValueRequest request, string unitId)
         {
-            var character = GetCharacterOwnership(unitId);
+            var isAI = GameInteraction.IsUnitAI(unitId);
+            var character = isAI ? GetCharacterOwnership(Game.Combat.Turn.UnitId) : GetCharacterOwnership(unitId);
             if (character?.Owner == null)
             {
-                Logger.LogError("Unable to retrieve roll due to missing character ownership. UnitId={unitId}", unitId);
+                Logger.LogError("Unable to retrieve roll due to missing character ownership. UnitId={unitId}, IsAI={isAI}", unitId, isAI);
                 return null;
             }
 

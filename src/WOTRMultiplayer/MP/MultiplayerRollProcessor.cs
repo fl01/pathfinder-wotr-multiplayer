@@ -814,7 +814,6 @@ namespace WOTRMultiplayer.MP
         {
             var claimingList = _multiplayerActorAccessor.Current.GetOtherPlayers().Select(i => i.Id).ToList();
             _diceRollStorage.Add(rollId, claimingList, rollValue);
-            _logger.LogInformation("Roll value has been stored. RollId={rollId}, RollValueType={rollValueType}, RollStringValue={rollValueString}, ClaimingListCount={claimingListCount}", rollId, rollValue.GetType().Name, rollValue, claimingList.Count);
         }
 
         private int? GetDamageRollId(RuleCalculateDamage ruleCalculateDamage)

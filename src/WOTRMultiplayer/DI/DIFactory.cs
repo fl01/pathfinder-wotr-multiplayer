@@ -33,7 +33,8 @@ namespace WOTRMultiplayer.DI
         public static IServiceProvider Create(Config.UnityMod.UnityModManagerSettings settings)
         {
             var serviceCollection = new ServiceCollection();
-            if (!Enum.TryParse<LogEventLevel>(settings.MinimumLogLevel, true, out var logLevel))
+            var logLevel = (LogEventLevel)settings.MinimumLogLevel;
+            if (!typeof(LogEventLevel).IsEnumDefined(logLevel))
             {
                 logLevel = LogEventLevel.Information;
             }

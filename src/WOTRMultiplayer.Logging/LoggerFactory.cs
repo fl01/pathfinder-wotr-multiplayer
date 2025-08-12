@@ -21,8 +21,7 @@ namespace WOTRMultiplayer.Logging
             }
 
             logConfig
-                .MinimumLevel.Is(minimumLevel)
-                .WriteTo.Console(outputTemplate: template)
+                .WriteTo.Console(outputTemplate: template, restrictedToMinimumLevel: minimumLevel)
                 .WriteTo.File("./Mods/WOTRMultiplayer/logs/wotr-multiplayer.log", outputTemplate: template, rollingInterval: RollingInterval.Day)
                 .Enrich.FromLogContext()
                 .Enrich.With(new ClassNameEnricher())

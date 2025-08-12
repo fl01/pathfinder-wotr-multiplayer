@@ -5,6 +5,8 @@ using HarmonyLib;
 using Kingmaker.PubSubSystem;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Serilog.Events;
+using UnityEngine;
 using UnityModManagerNet;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.UI;
@@ -117,12 +119,25 @@ namespace WOTRMultiplayer
 
         private static void OnGui(UnityModManager.ModEntry entry)
         {
-            UnityEngine.GUILayout.BeginHorizontal();
-            _settings.UseDebugConsole = UnityEngine.GUILayout.Toggle(_settings.UseDebugConsole, $"Use Debug Console (requires game client restart)", UnityEngine.GUILayout.ExpandWidth(false));
-            UnityEngine.GUILayout.EndHorizontal();
-            UnityEngine.GUILayout.BeginHorizontal();
-            _settings.AddUnitIdToOvertip = UnityEngine.GUILayout.Toggle(_settings.AddUnitIdToOvertip, $"Add UnitId to overtip (requires area reload)", UnityEngine.GUILayout.ExpandWidth(false));
-            UnityEngine.GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("---Debug Console settings (requires game client restart)");
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            _settings.UseDebugConsole = GUILayout.Toggle(_settings.UseDebugConsole, $"Enable Debug Console", GUILayout.ExpandWidth(false));
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Minimum Log Level (Information is recommended, Debug - if you are mad)");
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            _settings.MinimumLogLevel = GUILayout.Toolbar(_settings.MinimumLogLevel, Enum.GetNames(typeof(LogEventLevel)));
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("---Utils");
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            _settings.AddUnitIdToOvertip = GUILayout.Toggle(_settings.AddUnitIdToOvertip, $"Add UnitId to overtip (requires area reload)", GUILayout.ExpandWidth(false));
+            GUILayout.EndHorizontal();
         }
     }
 }

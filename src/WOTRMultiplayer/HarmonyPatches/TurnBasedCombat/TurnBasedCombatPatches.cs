@@ -8,7 +8,9 @@ using Kingmaker;
 using Kingmaker.AI;
 using Kingmaker.Controllers.Combat;
 using Kingmaker.Controllers.Units;
+using Kingmaker.Designers.EventConditionActionSystem.Actions;
 using Kingmaker.EntitySystem.Entities;
+using Kingmaker.EntitySystem.Persistence.JsonUtility;
 using Kingmaker.TurnBasedMode;
 using Microsoft.Extensions.Logging;
 using TurnBased.Controllers;
@@ -128,6 +130,11 @@ namespace WOTRMultiplayer.HarmonyPatches.TurnBasedCombat
             return matcher.Instructions();
         }
 
+        /// <summary>
+        /// Removes random initiative
+        /// </summary>
+        /// <param name="instructions"></param>
+        /// <returns></returns>
         [HarmonyPatch(typeof(UnitCombatPrepareController), nameof(UnitCombatPrepareController.Tick))]
         [HarmonyTranspiler]
         public static IEnumerable<CodeInstruction> UnitCombatPrepareController_Tick_Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -303,6 +310,59 @@ namespace WOTRMultiplayer.HarmonyPatches.TurnBasedCombat
             var matcher = new CodeMatcher(instructions);
 
             ReplaceIsDirectlyControllable(matcher, target);
+
+            return matcher.Instructions();
+        }
+
+        [HarmonyPatch(typeof(StartCombat), nameof(StartCombat.RunAction))]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> StartCombat_RunAction_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var matcher = new CodeMatcher(instructions);
+
+            ReplaceIsDirectlyControllable(matcher, target);
+            ReplaceIsDirectlyControllable(matcher, target);
+            ReplaceIsDirectlyControllable(matcher, target);
+
+            return matcher.Instructions();
+        }
+
+        [HarmonyPatch(typeof(UnitEntityData), nameof(UnitEntityData.AlwaysRevealedInFogOfWar), MethodType.Getter)]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> UnitEntityData_AlwaysRevealedInFogOfWar_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var matcher = new CodeMatcher(instructions);
+
+            ReplaceIsDirectlyControllable(matcher, target);
+
+            return matcher.Instructions();
+        }
+
+        [HarmonyPatch(typeof(SceneEntitiesStateConverter), nameof(SceneEntitiesStateConverter.CanBeOptimizedUnit))]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> SceneEntitiesStateConverter_CanBeOptimizedUnit_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var matcher = new CodeMatcher(instructions);
+
+            ReplaceIsDirectlyControllable(matcher, target);
+
+            return matcher.Instructions();
+        }
+
+        [HarmonyPatch(typeof(TurnController), nameof(TurnController.Prepare))]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> TurnController_Prepare_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var matcher = new CodeMatcher(instructions);
+
+            for (int i = 1; i <= 7; i++)
+            {
+                ReplaceIsDirectlyControllable(matcher, target, i == 7);
+            }
 
             return matcher.Instructions();
         }

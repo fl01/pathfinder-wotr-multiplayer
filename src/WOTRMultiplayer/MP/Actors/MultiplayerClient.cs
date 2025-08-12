@@ -142,10 +142,6 @@ namespace WOTRMultiplayer.MP.Actors
         public override void OnAreaScenesLoaded()
         {
             base.OnAreaScenesLoaded();
-
-            Logger.LogInformation("Area loaded");
-            EnsureForcePaused(UIStringConsts.GameNotifications.ForcedPauseReasons.AreaLoading);
-            GameInteraction.Pause(true);
             _networkServerClient.Send(new ClientAreaLoaded());
         }
 

@@ -22,6 +22,7 @@ using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
 using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
 using WOTRMultiplayer.Networking.Messages.Requests;
+using WOTRMultiplayer.UI;
 
 namespace WOTRMultiplayer.MP.Actors
 {
@@ -311,9 +312,19 @@ namespace WOTRMultiplayer.MP.Actors
 
         public virtual void OnAreaScenesLoaded()
         {
+            Logger.LogInformation("Area loaded");
+
             SoftReset();
 
             PartyChanged();
+
+            lock (ActionLock)
+            {
+                EnsureForcePaused(UIStringConsts.GameNotifications.ForcedPauseReasons.AreaLoading);
+                var localPlayerId = GetLocalPlayerId();
+                Game.ForcedPause.ReadyPlayers.Add(localPlayerId);
+                GameInteraction.Pause(true);
+            }
         }
 
         /// <summary>
@@ -472,11 +483,15 @@ namespace WOTRMultiplayer.MP.Actors
 
         protected void EnsureForcePaused(string reason, TimeSpan? removalDelay)
         {
-            Game.ForcedPause ??= new NetworkForcedPause
+            if (Game.ForcedPause == null)
             {
-                Reason = reason,
-                RemovalDelay = removalDelay
-            };
+                Game.ForcedPause = new NetworkForcedPause
+                {
+                    Reason = reason,
+                    RemovalDelay = removalDelay
+                };
+                Logger.LogInformation("Forced pause has been initialized. Delay={delay}", removalDelay);
+            }
         }
 
         protected void EnsureForcePaused(string reason)

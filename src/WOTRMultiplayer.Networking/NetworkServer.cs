@@ -132,7 +132,7 @@ namespace WOTRMultiplayer.Networking
                 && _awaiters.TryGetValue(clientId, out var clientAwaiters)
                 && clientAwaiters.TryRemove(awaitable.GetKey(), out var awaiter))
             {
-                _logger.LogInformation("Awaiter has been found, other handlers will be skipped. ClientId={clientId}, AwaiterKey={awaiterKey}", clientId, awaitable.GetKey());
+                _logger.LogDebug("Awaiter has been found, other handlers will be skipped. ClientId={clientId}, AwaiterKey={awaiterKey}", clientId, awaitable.GetKey());
                 awaiter.SetResult(args.Message);
                 return;
             }
