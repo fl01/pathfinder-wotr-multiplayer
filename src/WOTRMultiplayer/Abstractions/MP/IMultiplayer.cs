@@ -7,6 +7,7 @@ using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.GameInteraction.Contexts;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
+using WOTRMultiplayer.MP.Entities.Combat;
 using WOTRMultiplayer.MP.Entities.Equipment;
 using WOTRMultiplayer.MP.Entities.Inspect;
 using WOTRMultiplayer.MP.Entities.Loot;
@@ -112,5 +113,7 @@ namespace WOTRMultiplayer.Abstractions.MP
         int? GetNextRestBanter(int minInclusive, int maxExclusive);
 
         void OnInterrupRestBanterBark(NetworkRestBanter networkBanter);
+
+        NetworkAIAction OnAfterAISelectedAction(NetworkAIAction action);
     }
 }

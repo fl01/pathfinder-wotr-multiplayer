@@ -13,5 +13,7 @@ namespace WOTRMultiplayer.MP
         public TimeSpan? ForcedPauseDefaultTerminationDelay { get; set; }
 
         public TimeSpan? ForcedPauseRandomEncounterTerminationDelay { get; set; }
+
+        public bool EnableCombatAIActionsSync { get; set; }
     }
 }

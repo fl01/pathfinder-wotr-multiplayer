@@ -16,6 +16,7 @@ using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.GameInteraction.Contexts;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
+using WOTRMultiplayer.MP.Entities.Combat;
 using WOTRMultiplayer.MP.Entities.Dialogs;
 using WOTRMultiplayer.MP.Entities.Equipment;
 using WOTRMultiplayer.MP.Entities.Inspect;
@@ -289,7 +290,7 @@ namespace WOTRMultiplayer.MP.Actors
                 var message = new RandomEncounterContextRequest { Timeout = TimeSpan.FromSeconds(45) };
                 var response = _networkServerClient.SendAndWaitFor<RandomEncounterContextResponse>(message);
 
-                if (response?.Context == null)
+                if (response?.Encounter == null)
                 {
                     Logger.LogError("Host return null encounter");
                     return;
@@ -297,7 +298,7 @@ namespace WOTRMultiplayer.MP.Actors
 
                 var context = new NetworkRandomEncounterContext
                 {
-                    PreRecorded = Mapper.Map<NetworkRandomEncounter>(response.Context)
+                    PreRecorded = Mapper.Map<NetworkRandomEncounter>(response.Encounter)
                 };
 
                 Logger.LogInformation("Random encounter context has been retrieved. Data={encounter}", context.PreRecorded);
@@ -313,6 +314,52 @@ namespace WOTRMultiplayer.MP.Actors
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Unable to retreive random encounter context");
+                throw;
+            }
+        }
+
+        public NetworkAIAction OnAfterAISelectedAction(NetworkAIAction networkAIAction)
+        {
+            try
+            {
+                if (!SettingsProvider.Settings.EnableCombatAIActionsSync || string.IsNullOrEmpty(networkAIAction.ActionBlueprintId))
+                {
+                    return null;
+                }
+
+                var message = new AIActionRequest
+                {
+                    Timeout = TimeSpan.FromSeconds(3),
+                    UnitId = networkAIAction.UnitId,
+                    ActionIndex = Game.Combat.AIActions.Count
+                };
+
+                Logger.LogInformation("Retrieving AI action. UnitId={unitID}, ActionIndex={inadex}", networkAIAction.UnitId, message.ActionIndex);
+
+                var response = _networkServerClient.SendAndWaitFor<AIActionResponse>(message);
+
+                if (response?.Action == null)
+                {
+                    Logger.LogWarning("Host has no next action for current unit. UnitId={unitId}", networkAIAction.UnitId);
+                    return null;
+                }
+
+                var action = Mapper.Map<NetworkAIAction>(response.Action);
+
+                if (string.Equals(action.ActionBlueprintId, networkAIAction.ActionBlueprintId, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(action.TargetId, networkAIAction.TargetId, StringComparison.OrdinalIgnoreCase))
+                {
+                    Logger.LogInformation("Host AI action is the same, nothing to do here. UnitId={unitID}, ActionBlueprintId={actionId}, TargetUnitId={targetId}", networkAIAction.UnitId, networkAIAction.ActionBlueprintId, networkAIAction.TargetId);
+                    Game.Combat.AIActions.Add(networkAIAction);
+                    return null;
+                }
+
+                Game.Combat.AIActions.Add(action);
+                return action;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Unable to retreive AI action. UnitId={unitId}", networkAIAction.UnitId);
                 throw;
             }
         }

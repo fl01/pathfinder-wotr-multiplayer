@@ -807,6 +807,7 @@ namespace WOTRMultiplayer.MP.Actors
             if (Game.Combat.Turn != null && Game.Combat.Turn.IsInProgress)
             {
                 UpdateConfirmedMidCombatUnits();
+                Game.Combat.AIActions.Clear();
                 Logger.LogInformation("Turn start is allowed. UnitId={unitId}, IsActingInSurpiseRound={isActingInSurpriseRound}, TurnUnitId={turnUnitId}", unitId, isActingInSurpriseRound, Game.Combat.Turn.UnitId);
                 return true;
             }
@@ -817,7 +818,7 @@ namespace WOTRMultiplayer.MP.Actors
                 IsInProgress = false,
                 IsActingInSurpriseRound = isActingInSurpriseRound,
                 IsLocalPlayer = IsControlledByLocalPlayer(unitId),
-                IsAI = GameInteraction.IsUnitAI(unitId)
+                IsAI = GameInteraction.IsUnitAI(unitId),
             };
 
             Logger.LogInformation("OnTurnStart. UnitId={unitId}, IsLocalPlayer={isLocalPlayer}, IsAI={isAI}, IsActingInSurpriseRound={isActingInSurpriseRound}, IsInProgress={isInProgress}",

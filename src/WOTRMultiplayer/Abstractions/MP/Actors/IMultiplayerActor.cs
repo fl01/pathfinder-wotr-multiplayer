@@ -4,6 +4,7 @@ using Kingmaker.Controllers.Rest;
 using Kingmaker.GameModes;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
+using WOTRMultiplayer.MP.Entities.Combat;
 using WOTRMultiplayer.MP.Entities.Equipment;
 using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
@@ -110,5 +111,6 @@ namespace WOTRMultiplayer.Abstractions.MP.Actors
         bool OnShowRestView(RestPhase phase);
 
         void OnInterrupRestBanterBark(NetworkRestBanter networkBanter);
+        NetworkAIAction OnAfterAISelectedAction(NetworkAIAction action);
     }
 }

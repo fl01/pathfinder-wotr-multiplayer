@@ -115,6 +115,9 @@ namespace WOTRMultiplayer.Config.Mapping
 
             CreateMap<NetworkRestBanter, Networking.Messages.Contracts.NetworkRestBanter>()
                 .ReverseMap();
+
+            CreateMap<NetworkAIAction, Networking.Messages.Contracts.NetworkAIAction>()
+                .ReverseMap();
         }
     }
 }

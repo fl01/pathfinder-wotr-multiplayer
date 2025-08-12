@@ -13,5 +13,6 @@
         public bool IsInProgress { get; set; }
 
         public bool RequiresTurnEntitiesSynchronization { get; set; }
+
     }
 }

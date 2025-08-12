@@ -328,20 +328,21 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             return matcher.Instructions();
         }
 
-        [HarmonyPatch(typeof(TurnController), nameof(TurnController.Prepare))]
-        [HarmonyTranspiler]
-        public static IEnumerable<CodeInstruction> TurnController_Prepare_Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
-            var matcher = new CodeMatcher(instructions);
+        // some replacement breaks touch abilities with move part
+        //[HarmonyPatch(typeof(TurnController), nameof(TurnController.Prepare))]
+        //[HarmonyTranspiler]
+        //public static IEnumerable<CodeInstruction> TurnController_Prepare_Transpiler(IEnumerable<CodeInstruction> instructions)
+        //{
+        //    var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+        //    var matcher = new CodeMatcher(instructions);
 
-            for (int i = 1; i <= 7; i++)
-            {
-                ReplaceIsDirectlyControllable(matcher, target, i == 7);
-            }
+        //    for (int i = 1; i <= 7; i++)
+        //    {
+        //        ReplaceIsDirectlyControllable(matcher, target, i == 7);
+        //    }
 
-            return matcher.Instructions();
-        }
+        //    return matcher.Instructions();
+        //}
 
         /// <summary>
         /// Resets path each frame if !IsDirectlyControllable which breaks Multi Command sticky touch abilities, e.g. Cure Wounds

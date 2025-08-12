@@ -14,6 +14,7 @@ using WOTRMultiplayer.Abstractions.MP.Actors;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
+using WOTRMultiplayer.MP.Entities.Combat;
 using WOTRMultiplayer.MP.Entities.Dialogs;
 using WOTRMultiplayer.MP.Entities.Equipment;
 using WOTRMultiplayer.MP.Entities.Inspect;
@@ -403,7 +404,9 @@ namespace WOTRMultiplayer.MP.Actors
 
         public void OnInspectionKnowledgeCheck(NetworkInspectionKnowledgeCheck check)
         {
-            Logger.LogInformation("Sending {messageType}. TargetUnitId={targetUnitId}, InitiatorUnitId={initiatorId}, StatType={statType}, DC={dc}", nameof(NotifyInspectionKnowledgeCheckRolled), check.TargetUnitId, check.InitiatorUnitId, check.StatType, check.DC);
+            Logger.LogInformation("Sending {messageType}. TargetUnitId={targetUnitId}, InitiatorUnitId={initiatorId}, StatType={statType}, DC={dc}",
+                nameof(NotifyInspectionKnowledgeCheckRolled), check.TargetUnitId, check.InitiatorUnitId, check.StatType, check.DC);
+
             var message = new NotifyInspectionKnowledgeCheckRolled
             {
                 Check = Mapper.Map<Networking.Messages.Contracts.NetworkInspectionKnowledgeCheck>(check)
@@ -493,7 +496,7 @@ namespace WOTRMultiplayer.MP.Actors
                     Logger.LogWarning("Previous random encounter context has not been disposed correctly");
                 }
 
-                Game.RandomEncounter = Mapper.Map<NetworkRandomEncounter>(encounterContext.Recording);
+                Game.RandomEncounter = encounterContext.Recording;
 
                 Logger.LogInformation("Random encounter context has been stored. Data={encounter}", Game.RandomEncounter);
 
@@ -503,6 +506,26 @@ namespace WOTRMultiplayer.MP.Actors
                     GameInteraction.UpdateIsInCombatStatus();
                     GameInteraction.Pause(true);
                 }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Unable to store random encounter context");
+                throw;
+            }
+        }
+
+        public NetworkAIAction OnAfterAISelectedAction(NetworkAIAction action)
+        {
+            try
+            {
+                if (Game.Combat == null || !SettingsProvider.Settings.EnableCombatAIActionsSync)
+                {
+                    return null;
+                }
+
+                Game.Combat.AIActions.Add(action);
+                Logger.LogInformation("AI action selection has been stored. UnitId={unitId}, ActionBlueprintId={actionBlueprintId}, TargetId={targetId}", action.UnitId, action.ActionBlueprintId, action.TargetId);
+                return null;
             }
             catch (Exception ex)
             {
@@ -826,6 +849,7 @@ namespace WOTRMultiplayer.MP.Actors
                 .Register<DiceRollValueRequest>(OnDiceRollValueRequest)
                 .Register<DiceRollValueResponse>(null) // usable as awaiter only
                 .Register<RandomEncounterContextRequest>(OnRandomEncounterContextRequest)
+                .Register<AIActionRequest>(OnAIActionRequest)
 
                 .Register<PlayerReadyStatusChanged>(OnPlayerReadyStatusChanged)
                 .Register<ClientGameServerConnectionConfirmed>(OnPlayerNameResponse)
@@ -854,6 +878,43 @@ namespace WOTRMultiplayer.MP.Actors
                 ;
         }
 
+        private async void OnAIActionRequest(long playerId, AIActionRequest request)
+        {
+            Logger.LogInformation("Received {messageType}. PlayerId={playerId}, UnitId={unitId}, ActionIndex={actionIndex}", nameof(AIActionRequest), playerId, request.UnitId, request.ActionIndex);
+            var timeout = Task.Delay(request.Timeout);
+            try
+            {
+                NetworkAIAction networkAIAction = null;
+                do
+                {
+                    var turnActions = Game.Combat?.AIActions;
+                    if (turnActions == null || turnActions.Count == 0 || turnActions.Count < request.ActionIndex)
+                    {
+                        await Task.Delay(TimeSpan.FromMilliseconds(10));
+                        continue;
+                    }
+
+                    networkAIAction = turnActions[request.ActionIndex];
+                    break;
+                }
+                while (!timeout.IsCompleted);
+
+                var message = new AIActionResponse
+                {
+                    UnitId = request.UnitId,
+                    Action = Mapper.Map<Networking.Messages.Contracts.NetworkAIAction>(networkAIAction)
+                };
+
+                Logger.LogInformation("Sending {messageType}. PlayerId={playerId}, ActionBlueprintId={actionId}, TargetId={targetId}", nameof(AIActionResponse), playerId, message.Action?.ActionBlueprintId, message.Action?.TargetId);
+                Send(playerId, message);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error while looking for a correct AI action. PlayerId={playerId}, UnitId={unitId}", playerId, request.UnitId);
+                throw;
+            }
+        }
+
         private void OnNotifyRestBanterInterrupted(long playerId, NotifyRestBanterInterrupted interrupted)
         {
             Logger.LogInformation("Received {messageType}. PlayerId={playerId}, SpeakerUnitId={speakerUnitId}, Key={key}", nameof(NotifyRestBanterInterrupted), playerId, interrupted.Banter.SpeakerUnitId, interrupted.Banter.Key);
@@ -876,10 +937,10 @@ namespace WOTRMultiplayer.MP.Actors
 
             var response = new RandomEncounterContextResponse
             {
-                Context = Mapper.Map<Networking.Messages.Contracts.NetworkRandomEncounter>(Game.RandomEncounter)
+                Encounter = Mapper.Map<Networking.Messages.Contracts.NetworkRandomEncounter>(Game.RandomEncounter)
             };
 
-            Logger.LogInformation("Sending {messageType}. IsAvailable={isAvailable}", response.Context != null);
+            Logger.LogInformation("Sending {messageType}. IsAvailable={isAvailable}", response.Encounter != null);
 
             Send(playerId, response);
         }

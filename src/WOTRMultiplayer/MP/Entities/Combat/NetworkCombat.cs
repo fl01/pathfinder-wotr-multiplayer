@@ -42,6 +42,6 @@ namespace WOTRMultiplayer.MP.Entities.Combat
 
         public HashSet<string> ConfirmedMidCombatUnits { get; set; } = [];
 
-        public List<string> InitialCombatOrder { get; set; } = [];
+        public List<NetworkAIAction> AIActions { get; set; } = [];
     }
 }

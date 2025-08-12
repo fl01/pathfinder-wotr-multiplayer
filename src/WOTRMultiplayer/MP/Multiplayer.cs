@@ -13,6 +13,7 @@ using WOTRMultiplayer.Abstractions.UI.Windows;
 using WOTRMultiplayer.GameInteraction.Contexts;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
+using WOTRMultiplayer.MP.Entities.Combat;
 using WOTRMultiplayer.MP.Entities.Equipment;
 using WOTRMultiplayer.MP.Entities.Inspect;
 using WOTRMultiplayer.MP.Entities.Loot;
@@ -468,7 +469,6 @@ namespace WOTRMultiplayer.MP
             if (_multiplayerActorAccessor.Client.IsActive)
             {
                 return false;
-
             }
 
             var check = new NetworkInspectionKnowledgeCheck
@@ -618,6 +618,17 @@ namespace WOTRMultiplayer.MP
             }
 
             _multiplayerActorAccessor.Current.OnInterrupRestBanterBark(networkBanter);
+        }
+
+        public NetworkAIAction OnAfterAISelectedAction(NetworkAIAction action)
+        {
+            if (_multiplayerActorAccessor == null)
+            {
+                return null;
+            }
+
+            var possibleOverride = _multiplayerActorAccessor.Current.OnAfterAISelectedAction(action);
+            return possibleOverride;
         }
 
         private void ShowEscMenuMultiplayerLobby()
