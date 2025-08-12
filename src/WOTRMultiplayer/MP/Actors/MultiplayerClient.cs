@@ -351,7 +351,7 @@ namespace WOTRMultiplayer.MP.Actors
             return true;
         }
 
-        protected override DiceRollValueResponse RetrieveRoll(DiceRollValueRequest request, string unitId)
+        protected override DiceRollValueResponse RetrieveRoll(DiceRollValueRequest request)
         {
             return _networkServerClient.SendAndWaitFor<DiceRollValueResponse>(request);
         }

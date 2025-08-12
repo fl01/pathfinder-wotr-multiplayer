@@ -119,9 +119,9 @@ namespace WOTRMultiplayer.MP.Actors
 
                 var player = Game.Players[playerIndex];
 
-                if (Game.Characters.Count < characterIndex)
+                if (Game.Characters.Count <= characterIndex)
                 {
-                    Logger.LogError("Unable to change character owner as characterIndex is out of range. CharacterOwnersCount={characterOwnersCount}, CharacterIndex={characterIndex}", Game.Characters.Count, characterIndex);
+                    Logger.LogWarning("Unable to change character owner as characterIndex is out of range. CharacterOwnersCount={characterOwnersCount}, CharacterIndex={characterIndex}", Game.Characters.Count, characterIndex);
                     return;
                 }
 
@@ -566,19 +566,19 @@ namespace WOTRMultiplayer.MP.Actors
             return true;
         }
 
-        protected override DiceRollValueResponse RetrieveRoll(DiceRollValueRequest request, string unitId)
+        protected override DiceRollValueResponse RetrieveRoll(DiceRollValueRequest request)
         {
-            var isAI = GameInteraction.IsUnitAI(unitId);
-            var character = isAI ? GetCharacterOwnership(Game.Combat.Turn.UnitId) : GetCharacterOwnership(unitId);
+            // the only case when host is retrieving rolls - he is not the turn owner + it's not AI turn
+            var character = GetCharacterOwnership(Game.Combat.Turn.UnitId);
             if (character?.Owner == null)
             {
-                Logger.LogError("Unable to retrieve roll due to missing character ownership. UnitId={unitId}, IsAI={isAI}", unitId, isAI);
+                Logger.LogError("Unable to retrieve roll due to missing character ownership. UnitId={unitId}");
                 return null;
             }
 
             if (character.Owner.Id == LocalHostPlayerId)
             {
-                Logger.LogError("Host is character owner, but tries to retrieve network roll. UnitId={unitId}", unitId);
+                Logger.LogError("Host is character owner, but tries to retrieve network roll");
                 return null;
             }
 
@@ -1208,7 +1208,7 @@ namespace WOTRMultiplayer.MP.Actors
                 && character.Owner.Id != playerId)
             {
                 Logger.LogInformation("Asking another client for a roll. PlayerId={playerId}, RollId={rollId}, UnitId={unitId}", character.Owner.Id, request.RollId, request.UnitId);
-                var rollFromAnotherClient = RetrieveRoll(request, request.UnitId);
+                var rollFromAnotherClient = RetrieveRoll(request);
                 Send(playerId, rollFromAnotherClient);
                 return;
             }

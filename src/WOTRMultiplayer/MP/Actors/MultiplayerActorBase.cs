@@ -189,7 +189,7 @@ namespace WOTRMultiplayer.MP.Actors
             var request = new DiceRollValueRequest { RollId = networkDiceRollId, Timeout = waitForRollTimeout, UnitId = unitId };
             // it's important to block current thread since we cannot proceed without response
             // yeah most likely it will cause the game to freeze in case of bad network
-            var response = RetrieveRoll(request, unitId);
+            var response = RetrieveRoll(request);
 
             return ResponseToRollValue<TRollValue>(response);
         }
@@ -302,7 +302,7 @@ namespace WOTRMultiplayer.MP.Actors
 
         public void OnInteractWithMapObjectOvertip(NetworkOvertip networkOvertip)
         {
-            Logger.LogWarning("Sending overtip interaction. MapObjectId={mapObjectId}, Units={units}", networkOvertip.MapObject.Id, networkOvertip.Units);
+            Logger.LogInformation("Sending overtip interaction. MapObjectId={mapObjectId}, Units={units}", networkOvertip.MapObject.Id, networkOvertip.Units);
             var message = new NotifyOvertipInteracted
             {
                 Overtip = Mapper.Map<Networking.Messages.Contracts.NetworkOvertip>(networkOvertip)
@@ -536,7 +536,7 @@ namespace WOTRMultiplayer.MP.Actors
             return false;
         }
 
-        protected abstract DiceRollValueResponse RetrieveRoll(DiceRollValueRequest rollRequest, string unitId);
+        protected abstract DiceRollValueResponse RetrieveRoll(DiceRollValueRequest rollRequest);
 
         protected abstract void OnLocalPlayerTurnStart();
 
