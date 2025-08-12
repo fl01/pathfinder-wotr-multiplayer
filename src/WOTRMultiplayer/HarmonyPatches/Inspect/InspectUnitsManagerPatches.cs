@@ -48,9 +48,10 @@ namespace WOTRMultiplayer.HarmonyPatches.Inspect
             }
 
             match = match.Advance(-9);
+            var oldLabels = match.Instruction.ExtractLabels();
             var newInstructions = new List<CodeInstruction>()
             {
-                new(OpCodes.Ldarg_1),
+                new CodeInstruction(OpCodes.Ldarg_1).WithLabels(oldLabels),
                 new(OpCodes.Ldloc_S, 6),
                 new(OpCodes.Ldloc_S, 4),
                 new(OpCodes.Ldloc_3),
@@ -71,6 +72,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Inspect
             }
 
             var canContinue = Main.Multiplayer.OnInspectionKnowledgeCheck(target.UniqueId, initiator.UniqueId, statType, dc);
+            Main.GetLogger<InspectUnitsManagerPatches>().LogInformation("Can continue Inspection Knowledge check. Result={result}", canContinue);
             return canContinue;
         }
     }

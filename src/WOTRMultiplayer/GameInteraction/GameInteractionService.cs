@@ -1062,8 +1062,9 @@ namespace WOTRMultiplayer.GameInteraction
                 return;
             }
 
-            _mainThreadAccessor.Equals(() =>
+            _mainThreadAccessor.Enqueue(() =>
             {
+                _logger.LogInformation("Applying inspection knowledge check. InitiatorUnitId={initiatorUnitId}, TargetUnitId={targetUnitId}, StatType={statType}", check.InitiatorUnitId, check.TargetUnitId, check.StatType);
                 var blueprintForInspection = targetUnit.Descriptor.BlueprintForInspection;
                 InspectUnitsManager.UnitInfo info = Game.Instance.Player.InspectUnitsManager.GetInfo(blueprintForInspection);
                 if (info == null)
@@ -1071,6 +1072,12 @@ namespace WOTRMultiplayer.GameInteraction
                     info = new InspectUnitsManager.UnitInfo(blueprintForInspection);
                     Game.Instance.Player.InspectUnitsManager.m_UnitInfos.Add(info);
                 }
+
+                if (info.IsAllPartsUnlocked)
+                {
+                    return;
+                }
+
                 var ruleSkillCheck = GameHelper.TriggerSkillCheck(new RuleSkillCheck(initiatorUnit, check.StatType, check.DC)
                 {
                     IgnoreDifficultyBonusToDC = true
