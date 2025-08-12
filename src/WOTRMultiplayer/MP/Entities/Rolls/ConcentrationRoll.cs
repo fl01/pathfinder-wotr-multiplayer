@@ -8,7 +8,7 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
 
         public int Concentration { get; set; }
 
-        public string AbilityId { get; set; }
+        public string AbilityName { get; set; }
 
         public int Damage { get; set; }
 
@@ -21,7 +21,7 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
 
         public override IEnumerable<string> GetUniquinessIdentifiers()
         {
-            return [DC.ToString(), Concentration.ToString(), AbilityId, Damage.ToString(), AddTwiceSpellLevel.ToString()];
+            return [DC.ToString(), Concentration.ToString(), AbilityName, Damage.ToString(), AddTwiceSpellLevel.ToString()];
         }
     }
 }

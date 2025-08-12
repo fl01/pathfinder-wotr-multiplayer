@@ -936,7 +936,7 @@ namespace WOTRMultiplayer.MP
                 DC = ruleCheckConcentration.DC,
                 Concentration = ruleCheckConcentration.Concentration,
                 Damage = ruleCheckConcentration.Damage?.Result ?? 0,
-                AbilityId = ruleCheckConcentration.Reason?.Ability?.UniqueId,
+                AbilityName = ruleCheckConcentration.Reason?.Ability?.NameForAcronym,
                 AddTwiceSpellLevel = ruleCheckConcentration.AddTwiceSpellLevel
             };
 
@@ -978,7 +978,7 @@ namespace WOTRMultiplayer.MP
         {
             var roll = new HealDamageRoll(ruleHealDamage.Initiator?.UniqueId, ruleHealDamage.GetType().Name, diceRollType, 0)
             {
-                AbilityId = ruleHealDamage.Reason.Ability?.StickyTouch?.UniqueId ?? ruleHealDamage.Reason.Ability?.UniqueId,
+                AbilityName = ruleHealDamage.Reason.Ability?.StickyTouch?.NameForAcronym ?? ruleHealDamage.Reason.Ability?.NameForAcronym,
                 AbilitySchoolId = ruleHealDamage.Reason.Ability?.Spellbook?.Blueprint.name,
                 TargetId = ruleHealDamage.Target?.UniqueId,
                 UnitsCount = unitsCount,
@@ -995,7 +995,7 @@ namespace WOTRMultiplayer.MP
         {
             var roll = new AbilityDamageRoll(ruleCalculateDamage.Initiator.UniqueId, ruleCalculateDamage.ParentRule?.GetType().Name, diceRollType, ruleCalculateDamage.TotalBonusValue)
             {
-                AbilityId = ruleCalculateDamage.Reason.Ability?.UniqueId,
+                AbilityName = ruleCalculateDamage.Reason.Ability?.NameForAcronym,
                 AbilitySchoolId = ruleCalculateDamage.Reason.Ability?.Spellbook?.Blueprint.name,
                 TargetId = ruleCalculateDamage.Target?.UniqueId
             };
@@ -1041,7 +1041,7 @@ namespace WOTRMultiplayer.MP
 
         private AttackRoll CreateAttackRoll(NetworkDiceRollType diceRollType, RuleAttackRoll ruleAttackRoll, bool isCriticalRoll)
         {
-            var roll = new AttackRoll(ruleAttackRoll.Initiator.UniqueId, ruleAttackRoll.GetType().Name, diceRollType, ruleAttackRoll.AttackBonus)
+            var roll = new AttackRoll(ruleAttackRoll.Initiator.UniqueId, ruleAttackRoll.GetType().Name, diceRollType, 0) // ruleAttackRoll.AttackBonus is not consistent due to flanking3
             {
                 AttackType = ruleAttackRoll.AttackType.ToString(),
                 TargetId = ruleAttackRoll.Target.UniqueId,
@@ -1076,7 +1076,7 @@ namespace WOTRMultiplayer.MP
         {
             var roll = new CastingDefensivelyRoll(ruleCheckCastingDefensively.Initiator.UniqueId, ruleCheckCastingDefensively.GetType().Name, diceRollType, ruleCheckCastingDefensively.TotalBonusValue)
             {
-                AbilityId = ruleCheckCastingDefensively.Reason.Ability?.StickyTouch?.UniqueId ?? ruleCheckCastingDefensively.Reason.Ability?.UniqueId ?? ruleCheckCastingDefensively.Spell?.UniqueId,
+                AbilityName = ruleCheckCastingDefensively.Reason.Ability?.StickyTouch?.NameForAcronym ?? ruleCheckCastingDefensively.Reason.Ability?.NameForAcronym ?? ruleCheckCastingDefensively.Spell?.NameForAcronym,
                 Concentration = ruleCheckCastingDefensively.Concentration,
                 DC = ruleCheckCastingDefensively.DC
             };

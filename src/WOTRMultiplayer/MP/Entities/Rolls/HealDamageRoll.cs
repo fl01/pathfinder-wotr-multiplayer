@@ -6,7 +6,7 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
     {
         public string TargetId { get; set; }
 
-        public string AbilityId { get; set; }
+        public string AbilityName { get; set; }
 
         public string AbilitySchoolId { get; set; }
 
@@ -27,7 +27,7 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
 
         public override IEnumerable<string> GetUniquinessIdentifiers()
         {
-            return [TargetId, AbilityId, AbilitySchoolId, UnitsCount.ToString(), EmpowerModifier.ToString(), IsTacticalCombat.ToString(), AdditionalBonus.ToString(), HealResistance.ToString()];
+            return [TargetId, AbilityName, AbilitySchoolId, UnitsCount.ToString(), EmpowerModifier.ToString(), IsTacticalCombat.ToString(), AdditionalBonus.ToString(), HealResistance.ToString()];
         }
     }
 }

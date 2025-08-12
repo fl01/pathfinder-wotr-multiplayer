@@ -415,7 +415,7 @@ namespace WOTRMultiplayer.MP.Actors
 
         protected override void OnLocalPlayerTurnEnded()
         {
-            var message = new PlayerCombatTurnEnded { Round = Game.Combat.Round, UnitId = Game.Combat.Turn.UnitId };
+            var message = new PlayerCombatTurnEnded { UnitId = Game.Combat.Turn.UnitId };
             _networkServerClient.Send(message);
         }
 
@@ -476,10 +476,19 @@ namespace WOTRMultiplayer.MP.Actors
                 .Register<NotifyCampingUnitsRoleChanged>(OnNotifyCampingUnitsRoleChanged)
                 .Register<NotifyRestStarted>(OnNotifyRestStarted)
                 .Register<NotifyRestBanterInterrupted>(OnNotifyRestBanterInterrupted)
+                .Register<NotifyInvalidCombatTurnStarted>(OnNotifyInvalidCombatTurnStarted)
                 ;
 
             _networkServerClient.OnError = OnNetworkClientError;
             _networkServerClient.OnConnected = OnNetworkClientConnected;
+        }
+
+        private void OnNotifyInvalidCombatTurnStarted(NotifyInvalidCombatTurnStarted started)
+        {
+            Logger.LogInformation("Received {messageType}. UnitId={unitId}", nameof(NotifyInvalidCombatTurnStarted), started.UnitId);
+            Game.Combat.Turn = null;
+            var actionsState = Mapper.Map<NetworkActionsState>(started.ActionsState);
+            GameInteraction.StartTurnBasedCombatTurnAsAnotherUnit(started.UnitId, actionsState);
         }
 
         private void OnNotifyRestBanterInterrupted(NotifyRestBanterInterrupted interrupted)
@@ -610,20 +619,19 @@ namespace WOTRMultiplayer.MP.Actors
         {
             try
             {
-                Logger.LogInformation("Received {messageType}. Units={unitsCount}, Round={round}, UnitTurn={unitTurn}", nameof(NotifyCombatTurnSynchronizationRequired), required.Units.Count, required.Round, required.UnitId);
+                Logger.LogInformation("Received {messageType}. Units={unitsCount}, UnitTurn={unitTurn}", nameof(NotifyCombatTurnSynchronizationRequired), required.Units.Count, required.UnitId);
 
-                var round = Game.Combat.Round;
                 var unitId = Game.Combat.Turn.UnitId;
-                if (round != required.Round || !string.Equals(unitId, required.UnitId, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(unitId, required.UnitId, StringComparison.OrdinalIgnoreCase))
                 {
-                    Logger.LogWarning("Synchronization request contains mismatched round or unit. LocalRound={localRound}, LocalUnitId={localUnitId}, RemoteRound={remoteRound}, RemoteUnitId={remoteUnitId}", round, unitId, required.Round, required.UnitId);
+                    Logger.LogWarning("Synchronization request contains mismatched unit. LocalUnitId={localUnitId}, RemoteRound={remoteRound}, RemoteUnitId={remoteUnitId}", unitId, required.UnitId);
                     return;
                 }
 
                 await SynchronizeUnitsAsync(required.Units);
 
-                var message = new ClientCombatTurnSynchronized { Round = round, UnitId = unitId };
-                Logger.LogInformation("Units have been synchronized. Sending {messageType} confirmation. Round={round}, UnitId={unitId}", nameof(NotifyCombatTurnSynchronizationRequired), round, unitId);
+                var message = new ClientCombatTurnSynchronized { UnitId = unitId };
+                Logger.LogInformation("Units have been synchronized. Sending {messageType} confirmation. UnitId={unitId}", nameof(NotifyCombatTurnSynchronizationRequired), unitId);
                 _networkServerClient.Send(message);
             }
             catch (Exception ex)
@@ -635,11 +643,14 @@ namespace WOTRMultiplayer.MP.Actors
 
         private void OnPlayerCombatTurnEnded(PlayerCombatTurnEnded ended)
         {
-            Logger.LogInformation("Received {messageType}. Round={round}, UnitId={unitId}", nameof(PlayerCombatTurnEnded), ended.Round, ended.UnitId);
-            if (Game.Combat.Round == ended.Round && string.Equals(Game.Combat.Turn?.UnitId, ended.UnitId, StringComparison.OrdinalIgnoreCase))
+            Logger.LogInformation("Received {messageType}. UnitId={unitId}", nameof(PlayerCombatTurnEnded), ended.UnitId);
+            if (!string.Equals(Game.Combat.Turn?.UnitId, ended.UnitId, StringComparison.OrdinalIgnoreCase))
             {
-                EndLocalTurn();
+                Logger.LogWarning("Another player ended different turn. LocalUnitId={localUnitId}, RemoteUnitId={remoteUnitId}", Game.Combat.Turn?.UnitId, ended.UnitId);
+                return;
             }
+
+            EndLocalTurn();
         }
 
         private void OnNotifyGroundClicked(NotifyGroundClicked clicked)

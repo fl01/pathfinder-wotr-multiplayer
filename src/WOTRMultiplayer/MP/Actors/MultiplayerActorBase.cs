@@ -580,11 +580,6 @@ namespace WOTRMultiplayer.MP.Actors
 
         protected HashSet<long> AddPlayerReadyStatus(PlayerTurnReadinessType playerReadinessType, long playerId, string unitId)
         {
-            return AddPlayerReadyStatus(playerReadinessType, playerId, null, unitId);
-        }
-
-        protected HashSet<long> AddPlayerReadyStatus(PlayerTurnReadinessType playerReadinessType, long playerId, int? round, string unitId)
-        {
             try
             {
                 lock (ActionLock)
@@ -592,15 +587,13 @@ namespace WOTRMultiplayer.MP.Actors
                     var tracker = GetPlayerTurnReadinessTracker(playerReadinessType);
                     if (tracker == null)
                     {
-                        Logger.LogError("Unable to find readiness tracker for provided type. Type={type}, PlayerId={playerId}, Round={round}, UnitId={unitId}", playerReadinessType, playerId, round, unitId);
+                        Logger.LogError("Unable to find readiness tracker for provided type. Type={type}, PlayerId={playerId}, UnitId={unitId}", playerReadinessType, playerId, unitId);
                         return null;
                     }
 
-                    var key = GetPlayerReadinessKey(round, unitId);
+                    var isFirstAdd = !tracker.TryGetValue(unitId, out var readyPlayers) || !readyPlayers.Contains(playerId);
 
-                    var isFirstAdd = !tracker.TryGetValue(key, out var readyPlayers) || !readyPlayers.Contains(playerId);
-
-                    var players = tracker.AddOrUpdate(key,
+                    var players = tracker.AddOrUpdate(unitId,
                          key => new HashSet<long>(collection: [playerId]),
                          (key, existing) =>
                          {
@@ -610,7 +603,7 @@ namespace WOTRMultiplayer.MP.Actors
 
                     if (isFirstAdd)
                     {
-                        Logger.LogInformation("Player ready status has been confirmed. Type={readinessTypeName}, Key={key}, PlayersCount={playersCount}, KeysCount={keysCount}", playerReadinessType, key, tracker[key].Count, tracker.Keys.Count);
+                        Logger.LogInformation("Player ready status has been confirmed. Type={readinessTypeName}, Key={key}, PlayersCount={playersCount}, KeysCount={keysCount}", playerReadinessType, unitId, tracker[unitId].Count, tracker.Keys.Count);
                     }
 
                     return players;
@@ -618,7 +611,7 @@ namespace WOTRMultiplayer.MP.Actors
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Unable to confirm player readiness. PlayerId={playerId}, Round={round}, UnitId={unitId}", playerId, round, unitId);
+                Logger.LogError(ex, "Unable to confirm player readiness. PlayerId={playerId}, UnitId={unitId}", playerId, unitId);
                 throw;
             }
         }
@@ -842,18 +835,13 @@ namespace WOTRMultiplayer.MP.Actors
         protected bool IsPlayerReady(PlayerTurnReadinessType playerTurnReadinessType, long playerId, int? round, string unitId)
         {
             var tracker = GetPlayerTurnReadinessTracker(playerTurnReadinessType);
-            var key = GetPlayerReadinessKey(round, unitId);
-            var missingPlayers = GetMissingPlayers(key, tracker);
+            var missingPlayers = GetMissingPlayers(unitId, tracker);
             return !missingPlayers.Any(p => p.Id == playerId);
         }
 
         protected bool IsPlayerReady(PlayerTurnReadinessType playerTurnReadinessType, long playerId, string unitId)
         {
             return IsPlayerReady(playerTurnReadinessType, playerId, null, unitId);
-        }
-
-        protected virtual void OnTurnStartConfirmed()
-        {
         }
 
         protected NetworkCharacterOwnership GetCharacterOwnership(string unitId)
@@ -866,11 +854,6 @@ namespace WOTRMultiplayer.MP.Actors
             var realCharacterId = GameInteraction.GetPetOwnerId(unitId) ?? unitId;
 
             return Game.Characters.FirstOrDefault(c => string.Equals(c.UnitId, realCharacterId, StringComparison.OrdinalIgnoreCase));
-        }
-
-        protected string GetTurnReadinessKey(int round, string unitId)
-        {
-            return $"{round}-{unitId}";
         }
 
         protected NetworkPlayer GetPlayer(long playerId)
@@ -894,17 +877,12 @@ namespace WOTRMultiplayer.MP.Actors
             return IsControlledByLocalPlayer(units?.FirstOrDefault());
         }
 
-        private string GetPlayerReadinessKey(int? round, string unitId)
-        {
-            return round.HasValue ? $"{round}-{unitId}" : unitId;
-        }
-
         private ConcurrentDictionary<string, HashSet<long>> GetPlayerTurnReadinessTracker(PlayerTurnReadinessType type)
         {
             var tracker = type switch
             {
-                PlayerTurnReadinessType.Start => Game.Combat.PlayersTurnStartInitialization,
-                PlayerTurnReadinessType.UnitSynchronization => Game.Combat.PlayersTurnSynchronization,
+                PlayerTurnReadinessType.Start => Game.Combat.PlayersNextTurnInitialization,
+                PlayerTurnReadinessType.UnitSynchronization => Game.Combat.PlayersNextTurnSynchronization,
                 PlayerTurnReadinessType.UnitJoinedMidCombat => Game.Combat.MidCombatUnitJoins,
                 _ => null,
             };

@@ -751,7 +751,7 @@ namespace WOTRMultiplayer.GameInteraction
 
                 _mainThreadAccessor.Enqueue(() =>
                 {
-                    _logger.LogInformation("Running abilit use command. Caster={casterId}, AbilityId={abilityId}", caster.UniqueId, ((UnitUseAbility)command).Ability?.UniqueId);
+                    _logger.LogInformation("Running ability use command. Caster={casterId}, AbilityId={abilityId}", caster.UniqueId, ((UnitUseAbility)command).Ability?.UniqueId);
                     caster.Commands.Run(command);
                 });
             }
@@ -1398,6 +1398,27 @@ namespace WOTRMultiplayer.GameInteraction
             });
         }
 
+        public void StartTurnBasedCombatTurnAsAnotherUnit(string unitId)
+        {
+            _mainThreadAccessor.Enqueue(() =>
+            {
+                var unit = GetUnitEntity(unitId);
+                if (unit == null)
+                {
+                    _logger.LogError("Unable to find unit to start turn. UnitId={unitI}", unitId);
+                    return;
+                }
+
+                var isSurpriseRound = Game.Instance.TurnBasedCombatController.CurrentTurn.m_ActingInSurpriseRound;
+                var previousUnit = Game.Instance.TurnBasedCombatController.CurrentTurn.Rider.UniqueId;
+                Game.Instance.TurnBasedCombatController.CurrentTurn.Dispose();
+
+                _logger.LogWarning("Starting turn as another unit due to desync. NewUnitId={unitId}, PreviousUnitId={previousUnit}", unitId, previousUnit);
+                Game.Instance.TurnBasedCombatController.CurrentTurn = new TurnBased.Controllers.TurnController(unit);
+                Game.Instance.TurnBasedCombatController.CurrentTurn.Start(isSurpriseRound);
+            });
+        }
+
         private CraftItemInfo GetCampingCraftItemInfo(UnitEntityData crafter, UsableItemType itemType, string itemBlueprintId)
         {
             if (crafter == null)
@@ -1594,12 +1615,14 @@ namespace WOTRMultiplayer.GameInteraction
             return ability;
         }
 
-        private AbilityData GetKnownSpell(Spellbook spellbook, string abilityId)
+        private AbilityData GetKnownSpell(Spellbook spellbook, string abilityId, string abilityName)
         {
             for (int level = 0; level < spellbook.m_KnownSpells.Length; level++)
             {
                 var spellLevel = spellbook.m_KnownSpells[level];
-                var spellSlot = spellLevel.FirstOrDefault(s => string.Equals(s.UniqueId, abilityId, StringComparison.OrdinalIgnoreCase));
+                var spellSlot = spellLevel.FirstOrDefault(s => string.Equals(s.UniqueId, abilityId, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(s.NameForAcronym, abilityName, StringComparison.OrdinalIgnoreCase));
+
                 if (spellSlot != null)
                 {
                     return spellSlot;
@@ -1609,12 +1632,14 @@ namespace WOTRMultiplayer.GameInteraction
             return null;
         }
 
-        private AbilityData GetMemorizedSpell(Spellbook spellbook, string abilityId)
+        private AbilityData GetMemorizedSpell(Spellbook spellbook, string abilityId, string abilityName)
         {
             for (int level = 0; level < spellbook.m_MemorizedSpells.Length; level++)
             {
                 var spellLevel = spellbook.m_MemorizedSpells[level];
-                var spellSlot = spellLevel.FirstOrDefault(s => string.Equals(s.Spell?.UniqueId, abilityId, StringComparison.OrdinalIgnoreCase));
+                var spellSlot = spellLevel.FirstOrDefault(s => string.Equals(s.Spell?.UniqueId, abilityId, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(s.Spell?.NameForAcronym, abilityName, StringComparison.OrdinalIgnoreCase));
+
                 if (spellSlot != null)
                 {
                     return spellSlot.Spell;
@@ -1629,13 +1654,13 @@ namespace WOTRMultiplayer.GameInteraction
             var spellbook = unit.Spellbooks.FirstOrDefault(s => string.Equals(s.Blueprint.Name.Key, networkAbility.SpellbookId));
             if (spellbook == null)
             {
-                _logger.LogError("Unable to find ability due to missing spellbook. UnitId={unitId}, AbilityId={abilityId}, SpellbookId={spellbookId}", unit.UniqueId, networkAbility.Id, networkAbility.SpellbookId);
+                _logger.LogError("Unable to 4find ability due to missing spellbook. UnitId={unitId}, AbilityId={abilityId}, SpellbookId={spellbookId}", unit.UniqueId, networkAbility.Id, networkAbility.SpellbookId);
                 return null;
             }
 
             if (!string.IsNullOrEmpty(networkAbility.ConvertedFromId))
             {
-                var spellConversionSource = GetKnownSpell(spellbook, networkAbility.ConvertedFromId) ?? GetMemorizedSpell(spellbook, networkAbility.ConvertedFromId);
+                var spellConversionSource = GetKnownSpell(spellbook, networkAbility.ConvertedFromId, networkAbility.Name) ?? GetMemorizedSpell(spellbook, networkAbility.ConvertedFromId, networkAbility.Name);
                 if (spellConversionSource == null)
                 {
                     _logger.LogError("Can't find spell conversion source for converted ability. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}, ConvertedAbilityId={convertedId}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name, networkAbility.ConvertedFromId);
@@ -1653,14 +1678,14 @@ namespace WOTRMultiplayer.GameInteraction
                 return convertedSpell;
             }
 
-            var knownSpell = GetKnownSpell(spellbook, networkAbility.Id);
+            var knownSpell = GetKnownSpell(spellbook, networkAbility.Id, networkAbility.Name);
             if (knownSpell != null)
             {
                 _logger.LogInformation("Spell has been found in known spells. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name);
                 return knownSpell;
             }
 
-            var memorizedSpell = GetMemorizedSpell(spellbook, networkAbility.Id);
+            var memorizedSpell = GetMemorizedSpell(spellbook, networkAbility.Id, networkAbility.Name);
             if (memorizedSpell != null)
             {
                 _logger.LogInformation("Spell has been found in memorized spells. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name);
@@ -1709,7 +1734,9 @@ namespace WOTRMultiplayer.GameInteraction
                 return convertedAbility;
             }
 
-            var byAbilityId = unit.Abilities.Enumerable.FirstOrDefault(a => !string.IsNullOrEmpty(abilityUse.Id) && string.Equals(a.Data.UniqueId, abilityUse.Id, StringComparison.OrdinalIgnoreCase));
+            var byAbilityId = unit.Abilities.Enumerable.FirstOrDefault(a => string.Equals(a.Data.UniqueId, abilityUse.Id, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(a.Data.NameForAcronym, abilityUse.Name, StringComparison.OrdinalIgnoreCase));
+
             if (byAbilityId != null)
             {
                 _logger.LogInformation("Ability has been found by abilityId. UnitId={unitId}, AbilityId={abilityId}", unit.UniqueId, abilityUse.Id);

@@ -8,7 +8,7 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
 
         public int Concentration { get; set; }
 
-        public string AbilityId { get; set; }
+        public string AbilityName { get; set; }
 
         public CastingDefensivelyRoll(string initiatorId, string ruleName, NetworkDiceRollType networkDiceRollType, int totalModifierBonus)
             : base(initiatorId, ruleName, networkDiceRollType, totalModifierBonus)
@@ -17,7 +17,7 @@ namespace WOTRMultiplayer.MP.Entities.Rolls
 
         public override IEnumerable<string> GetUniquinessIdentifiers()
         {
-            return [DC.ToString(), Concentration.ToString(), AbilityId];
+            return [DC.ToString(), Concentration.ToString(), AbilityName];
         }
     }
 }

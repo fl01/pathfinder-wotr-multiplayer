@@ -5,7 +5,7 @@ using WOTRMultiplayer.Networking.Messages.Contracts;
 namespace WOTRMultiplayer.Networking.Messages.Requests
 {
     [ProtoContract]
-    [BeetleX.Packets.MessageType(9006)]
+    [BeetleX.Packets.MessageType(9005)]
     public class AIActionResponse : IAwaitableMessage
     {
         [ProtoMember(1)]

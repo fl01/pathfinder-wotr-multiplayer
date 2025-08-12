@@ -7,9 +7,6 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     public class ClientCombatTurnSynchronized
     {
         [ProtoMember(1)]
-        public int Round { get; set; }
-
-        [ProtoMember(2)]
         public string UnitId { get; set; }
     }
 }

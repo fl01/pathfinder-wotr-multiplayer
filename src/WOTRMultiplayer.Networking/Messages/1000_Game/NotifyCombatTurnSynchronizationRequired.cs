@@ -12,9 +12,6 @@ namespace WOTRMultiplayer.Networking.Messages.Game
         public List<NetworkUnit> Units { get; set; } = [];
 
         [ProtoMember(2)]
-        public int Round { get; set; }
-
-        [ProtoMember(3)]
         public string UnitId { get; set; }
     }
 }

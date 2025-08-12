@@ -269,5 +269,9 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
         public void TryInterruptRestBanter(NetworkRestBanter banter)
         {
         }
+
+        public void StartTurnBasedCombatTurnAsAnotherUnit(string unitId)
+        {
+        }
     }
 }

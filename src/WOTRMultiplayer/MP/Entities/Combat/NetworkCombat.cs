@@ -20,24 +20,12 @@ namespace WOTRMultiplayer.MP.Entities.Combat
 
         public NetworkCombatTurn Turn { get; set; }
 
-        /// <summary>
-        /// key: playerId
-        /// </summary>
         public ConcurrentDictionary<long, bool> PlayersCombatInitialization { get; set; } = new();
 
-        /// <summary>
-        /// key: round+unitid
-        /// </summary>
-        public ConcurrentDictionary<string, HashSet<long>> PlayersTurnStartInitialization { get; set; } = new();
+        public ConcurrentDictionary<string, HashSet<long>> PlayersNextTurnInitialization { get; set; } = new();
 
-        /// <summary>
-        /// key: round+unitid
-        /// </summary>
-        public ConcurrentDictionary<string, HashSet<long>> PlayersTurnSynchronization { get; set; } = new();
+        public ConcurrentDictionary<string, HashSet<long>> PlayersNextTurnSynchronization { get; set; } = new();
 
-        /// <summary>
-        /// key: unitId
-        /// </summary>
         public ConcurrentDictionary<string, HashSet<long>> MidCombatUnitJoins { get; set; } = new();
 
         public HashSet<string> ConfirmedMidCombatUnits { get; set; } = [];
