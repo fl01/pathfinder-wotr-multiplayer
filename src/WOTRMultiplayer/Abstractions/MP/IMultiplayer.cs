@@ -115,5 +115,8 @@ namespace WOTRMultiplayer.Abstractions.MP
         void OnInterrupRestBanterBark(NetworkRestBanter networkBanter);
 
         NetworkAIAction OnAfterAISelectedAction(NetworkAIAction action);
+
+        bool ShouldGroundHandlerMoveAllUnitsToPoint();
+        void ResetExecutionContext();
     }
 }

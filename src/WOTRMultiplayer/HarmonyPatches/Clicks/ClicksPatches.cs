@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using HarmonyLib;
 using Kingmaker;
 using Kingmaker.Controllers.Clicks.Handlers;
@@ -16,6 +17,19 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
     public class ClicksPatches
     {
+        [HarmonyPatch(typeof(ClickGroundHandler), nameof(ClickGroundHandler.MoveSelectedUnitsToPoint), [typeof(Vector3), typeof(Vector3), typeof(bool), typeof(bool), typeof(float), typeof(bool), typeof(Action<UnitEntityData, ClickGroundHandler.CommandSettings>)])]
+        [HarmonyPrefix]
+        public static bool ClickGroundHandler_MoveSelectedUnitsToPoint_Prefix(Vector3 worldPosition, Vector3 direction, bool preview, bool showTargetMarker, float formationSpaceFactor, bool ignoreHold, Action<UnitEntityData, ClickGroundHandler.CommandSettings> commandRunner)
+        {
+            if (!Main.Multiplayer.IsActive || !Main.Multiplayer.ShouldGroundHandlerMoveAllUnitsToPoint())
+            {
+                return true;
+            }
+
+            ClickGroundHandlerEx.MoveSelectedUnitsToPoint(worldPosition, direction, preview, showTargetMarker, formationSpaceFactor, ignoreHold, commandRunner);
+            return false;
+        }
+
         /// <summary>
         /// handles movement outside of combat since it runs after formation calculations
         /// could be merged with ClickGroundHandler_OnClick_Postfix, but it requires repeating formation calculations

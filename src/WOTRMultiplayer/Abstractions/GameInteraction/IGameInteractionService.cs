@@ -54,6 +54,10 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void ShowModalMessage(string error);
 
+        void ShowWarningNotification(string text);
+
+        void AddCombatText(string text);
+
         bool IsUnitAI(string unitId);
 
         List<NetworkUnit> GetUnitsInCombat();
@@ -67,6 +71,8 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         string GetPetOwnerId(string unitId);
 
         void StartTurnBasedCombatTurn(bool isActingInSurpriseRound);
+
+        void StartTurnBasedCombatTurn(string unitId);
 
         void EndTurnBasedCombatTurn();
 
@@ -114,8 +120,6 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void ApplyGameSettings(NetworkGameSettings gameSettings);
 
-        void ShowWarningNotification(string text);
-
         void SpawnCampPlace(NetworkVector3 position);
 
         void SetCampingUseHealingSpells(bool isOn);
@@ -139,5 +143,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void TryInterruptRestBanter(NetworkRestBanter banter);
 
         void StartTurnBasedCombatTurnAsAnotherUnit(string unitId);
+
+        void SetGroundMoveEveryone();
     }
 }

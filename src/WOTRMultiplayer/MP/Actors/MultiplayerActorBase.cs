@@ -832,16 +832,11 @@ namespace WOTRMultiplayer.MP.Actors
             return notReadyPlayers;
         }
 
-        protected bool IsPlayerReady(PlayerTurnReadinessType playerTurnReadinessType, long playerId, int? round, string unitId)
+        protected bool IsPlayerReady(PlayerTurnReadinessType playerTurnReadinessType, long playerId, string unitId)
         {
             var tracker = GetPlayerTurnReadinessTracker(playerTurnReadinessType);
             var missingPlayers = GetMissingPlayers(unitId, tracker);
             return !missingPlayers.Any(p => p.Id == playerId);
-        }
-
-        protected bool IsPlayerReady(PlayerTurnReadinessType playerTurnReadinessType, long playerId, string unitId)
-        {
-            return IsPlayerReady(playerTurnReadinessType, playerId, null, unitId);
         }
 
         protected NetworkCharacterOwnership GetCharacterOwnership(string unitId)

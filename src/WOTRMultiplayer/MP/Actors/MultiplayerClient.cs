@@ -486,9 +486,9 @@ namespace WOTRMultiplayer.MP.Actors
         private void OnNotifyInvalidCombatTurnStarted(NotifyInvalidCombatTurnStarted started)
         {
             Logger.LogInformation("Received {messageType}. UnitId={unitId}", nameof(NotifyInvalidCombatTurnStarted), started.UnitId);
+            GameInteraction.AddCombatText(UIStringConsts.GameNotifications.CombatLog.ClientIsFixingCombaTurnOrderDesync);
             Game.Combat.Turn = null;
-            var actionsState = Mapper.Map<NetworkActionsState>(started.ActionsState);
-            GameInteraction.StartTurnBasedCombatTurnAsAnotherUnit(started.UnitId, actionsState);
+            GameInteraction.StartTurnBasedCombatTurnAsAnotherUnit(started.UnitId);
         }
 
         private void OnNotifyRestBanterInterrupted(NotifyRestBanterInterrupted interrupted)
@@ -709,7 +709,7 @@ namespace WOTRMultiplayer.MP.Actors
             }
 
             Game.Combat.Turn.IsInProgress = true;
-            GameInteraction.StartTurnBasedCombatTurn(Game.Combat.Turn.IsActingInSurpriseRound);
+            GameInteraction.StartTurnBasedCombatTurn(Game.Combat.Turn.UnitId);
         }
 
         private async void OnNotifyCombatInitialized(NotifyCombatInitialized combatInitialized)

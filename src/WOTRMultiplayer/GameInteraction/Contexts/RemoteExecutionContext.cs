@@ -20,6 +20,10 @@ namespace WOTRMultiplayer.GameInteraction.Contexts
 
         public NetworkRandomEncounterContext RandomEncounter { get; set; }
 
+        public OvertipInteractionContext Overtip { get; set; }
+
+        public UnitsMovementContext UnitsMovementContext { get; set; }
+
         public void Dispose()
         {
             SelectedUnits = null;
@@ -27,6 +31,9 @@ namespace WOTRMultiplayer.GameInteraction.Contexts
             DropItem = null;
             Equipment = null;
             HandEquipment = null;
+            RandomEncounter = null;
+            Overtip = null;
+            UnitsMovementContext = null;
         }
 
         public static RemoteExecutionContext CreateDropItem(string itemId, string unitId)
@@ -80,6 +87,11 @@ namespace WOTRMultiplayer.GameInteraction.Contexts
         public static RemoteExecutionContext Create(NetworkRandomEncounterContext encounterContext)
         {
             return new RemoteExecutionContext { RandomEncounter = encounterContext };
+        }
+
+        public static RemoteExecutionContext Create(UnitsMovementContext unitsMovementContext)
+        {
+            return new RemoteExecutionContext { UnitsMovementContext = unitsMovementContext };
         }
     }
 }

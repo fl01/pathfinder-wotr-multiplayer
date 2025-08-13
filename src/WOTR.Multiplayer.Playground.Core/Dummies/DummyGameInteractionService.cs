@@ -273,5 +273,17 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
         public void StartTurnBasedCombatTurnAsAnotherUnit(string unitId)
         {
         }
+
+        public void StartTurnBasedCombatTurn(string unitId)
+        {
+        }
+
+        public void SetGroundMoveEveryone()
+        {
+        }
+
+        public void AddCombatText(string text)
+        {
+        }
     }
 }

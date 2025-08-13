@@ -418,7 +418,39 @@ namespace WOTRMultiplayer.MP
                 return;
             }
 
+            var context = _gameInteractionService.RemoteContext?.Overtip;
+            if (context != null && string.Equals(context.MapObjectId, networkOvertip.MapObject.Id, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (networkOvertip.RequiresEveryoneToMoveMove)
+            {
+                _gameInteractionService.SetGroundMoveEveryone();
+            }
+
             _multiplayerActorAccessor.Current.OnInteractWithMapObjectOvertip(networkOvertip);
+        }
+
+        public void ResetExecutionContext()
+        {
+            if (_multiplayerActorAccessor.Current == null)
+            {
+                return;
+            }
+
+            _gameInteractionService.RemoteContext?.Dispose();
+        }
+
+        public bool ShouldGroundHandlerMoveAllUnitsToPoint()
+        {
+            if (_multiplayerActorAccessor.Current == null)
+            {
+                return false;
+            }
+
+            var context = _gameInteractionService.RemoteContext?.UnitsMovementContext;
+            return context != null && context.ShouldMoveEveryone;
         }
 
         public bool CanUnitJoinCombat(string unitId)

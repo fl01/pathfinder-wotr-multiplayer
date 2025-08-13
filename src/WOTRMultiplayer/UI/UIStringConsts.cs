@@ -63,13 +63,18 @@
 
         public class GameNotifications
         {
-            public const string TryingToLeaveAsAClient = "Can't leave area as a multiplayer client";
             public const string TryingToSetUpCampAsAClient = "Camp can be placed by the host only";
 
             public class ForcedPauseReasons
             {
                 public const string AreaLoading = "Please wait for other players to finish loading the area";
                 public const string RandomEncounterLoading = "Please wait for other players to finish loading the random encounter";
+            }
+
+            public class CombatLog
+            {
+                public const string ClientIsFixingCombaTurnOrderDesync = "Host detected desync in turn order, fixing...";
+                public const string HostDetectedDesyncInCombatTurnOrder = "Player {0} is trying to start different turn, fixing...";
             }
         }
     }

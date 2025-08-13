@@ -2,7 +2,11 @@
 using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
+using Kingmaker;
+using Kingmaker.EntitySystem.Entities;
+using Kingmaker.View;
 using Microsoft.Extensions.Logging;
+using UnityEngine;
 
 namespace WOTRMultiplayer.HarmonyPatches
 {

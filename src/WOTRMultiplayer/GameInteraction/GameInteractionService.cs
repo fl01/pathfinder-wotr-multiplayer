@@ -33,6 +33,7 @@ using Kingmaker.TurnBasedMode;
 using Kingmaker.TurnBasedMode.Controllers;
 using Kingmaker.UI;
 using Kingmaker.UI._ConsoleUI.Overtips;
+using Kingmaker.UI.Models.Log.Events;
 using Kingmaker.UI.MVVM._PCView.Dialog.BookEvent;
 using Kingmaker.UI.MVVM._PCView.Dialog.Dialog;
 using Kingmaker.UI.MVVM._PCView.Dialog.Interchapter;
@@ -116,6 +117,12 @@ namespace WOTRMultiplayer.GameInteraction
             {
                 var units = networkOvertip.Units.Select(GetUnitEntity).ToList();
                 using var context = _networkExecutionContext.Value = RemoteExecutionContext.Create(units);
+                context.Overtip = new OvertipInteractionContext { MapObjectId = networkOvertip.MapObject.Id };
+                if (networkOvertip.RequiresEveryoneToMoveMove)
+                {
+                    context.UnitsMovementContext = new UnitsMovementContext { ShouldMoveEveryone = true };
+                }
+
                 var mapObject = GetMapObject(networkOvertip.MapObject.Id);
                 if (mapObject == null)
                 {
@@ -123,12 +130,43 @@ namespace WOTRMultiplayer.GameInteraction
                     return;
                 }
 
+                if (mapObject.Interactions.Count == 0)
+                {
+                    var view = FindOvertipForObject(mapObject);
+                    if (view is AreaTransitionOvertipView areaTransitionOvertip)
+                    {
+                        _logger.LogInformation("Interacting with {overtipType}. MapObjectId={mapObjectId}", nameof(AreaTransitionOvertipView), mapObject.UniqueId);
+                        areaTransitionOvertip.OnClick();
+                        return;
+                    }
+
+                    _logger.LogWarning("Unable to find overtip for object with 0 interactions. MapObjectId={mapObjectId}", mapObject.UniqueId);
+                    return;
+                }
+
+                _logger.LogInformation("Interacting with object via OvertipVM", mapObject.UniqueId);
                 // overtips are created by game on demand, but we need to make sure overtip exists
                 var overtipVM = new EntityOvertipVM(mapObject, OvertipsView.Instance.GetViewModel() as OvertipsVM);
                 // TODO: maybe get exact interactionpart
                 overtipVM.Interact(mapObject.Interactions.FirstOrDefault());
                 overtipVM.Dispose();
             });
+        }
+
+
+
+        private OvertipViewBase FindOvertipForObject(MapObjectEntityData mapObject)
+        {
+            foreach (var kv in OvertipsView.Instance.m_Views)
+            {
+                var view = kv.Value.FirstOrDefault(v => string.Equals(v.m_ObjectView?.Data.UniqueId, mapObject.UniqueId, StringComparison.OrdinalIgnoreCase));
+                if (view != null)
+                {
+                    return view;
+                }
+            }
+
+            return null;
         }
 
         public string GetSaveGamePath()
@@ -145,7 +183,6 @@ namespace WOTRMultiplayer.GameInteraction
 
         public void LeaveArea(string areaExitId)
         {
-            _logger.LogInformation("Leaving area. AreaExitId={areaExitId}", areaExitId);
             _mainThreadAccessor.Enqueue(() =>
             {
                 var allTransitions = Game.Instance.State.MapObjects.All.Select(o => o.View.GetComponent<AreaTransition>()).Where(t => t != null).ToList();
@@ -167,6 +204,7 @@ namespace WOTRMultiplayer.GameInteraction
                     }
                 }
 
+                _logger.LogInformation("Leaving area. AreaExitId={areaExitId}", areaExitId);
                 Game.Instance.LoadArea(areaTransition.AreaEnterPoint, areaTransition.Settings.AutoSaveMode, null);
             });
 
@@ -221,7 +259,6 @@ namespace WOTRMultiplayer.GameInteraction
                 PlaySound(UISoundType.GlobalMapRandomEncounter);
             }
         }
-
         private void MarkInterchapterAnswer(InterchapterPCView interchapterView, List<NetworkDialogAnswerSuggestion> suggestions)
         {
             if (interchapterView == null)
@@ -456,6 +493,22 @@ namespace WOTRMultiplayer.GameInteraction
             });
         }
 
+        public void ShowWarningNotification(string text)
+        {
+            _mainThreadAccessor.Enqueue(() =>
+            {
+                EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(text, true), true);
+            });
+        }
+
+        public void AddCombatText(string text)
+        {
+            _mainThreadAccessor.Enqueue(() =>
+            {
+                Game.Instance.GameLogController.AddReadyEvent(new GameLogEventWarningNotification(text));
+            });
+        }
+
         public bool IsUnitAI(string unitId)
         {
             var unit = Game.Instance.Player.PartyAndPets.FirstOrDefault(p => string.Equals(p.UniqueId, unitId, StringComparison.OrdinalIgnoreCase));
@@ -577,6 +630,30 @@ namespace WOTRMultiplayer.GameInteraction
             }
 
             return unit.IsPet ? unit.Master.UniqueId : null;
+        }
+
+        public void StartTurnBasedCombatTurn(string unitId)
+        {
+            _mainThreadAccessor.Enqueue(() =>
+            {
+                try
+                {
+                    _logger.LogInformation("Calling CombatController.StartTurn. UnitId={unitId}", unitId);
+                    var currentUnit = GetUnitEntity(unitId);
+                    if (currentUnit == null)
+                    {
+                        _logger.LogError("Unable to find unit to call CombatController.StartTurn. UnitId={unitId}", unitId);
+                        return;
+                    }
+
+                    Game.Instance.TurnBasedCombatController.StartTurn(currentUnit);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Unable to start CombatController.StartTurn");
+                    throw;
+                }
+            });
         }
 
         public void StartTurnBasedCombatTurn(bool isActingInSurpriseRound)
@@ -1233,14 +1310,6 @@ namespace WOTRMultiplayer.GameInteraction
             });
         }
 
-        public void ShowWarningNotification(string text)
-        {
-            _mainThreadAccessor.Enqueue(() =>
-            {
-                EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(text, true), true);
-            });
-        }
-
         public void SpawnCampPlace(NetworkVector3 position)
         {
             _mainThreadAccessor.Enqueue(() =>
@@ -1355,6 +1424,14 @@ namespace WOTRMultiplayer.GameInteraction
         public void SetRandomEncounterContext(NetworkRandomEncounterContext context)
         {
             _networkExecutionContext.Value = RemoteExecutionContext.Create(context);
+        }
+
+        public void SetGroundMoveEveryone()
+        {
+            _networkExecutionContext.Value = new RemoteExecutionContext
+            {
+                UnitsMovementContext = new UnitsMovementContext { ShouldMoveEveryone = true }
+            };
         }
 
         public void UpdateIsInCombatStatus()

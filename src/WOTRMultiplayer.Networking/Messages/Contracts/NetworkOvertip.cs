@@ -11,5 +11,8 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
 
         [ProtoMember(2)]
         public List<string> Units { get; set; } = [];
+
+        [ProtoMember(3)]
+        public bool RequiresEveryoneToMoveMove { get; set; }
     }
 }

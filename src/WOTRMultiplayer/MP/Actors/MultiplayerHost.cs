@@ -645,14 +645,16 @@ namespace WOTRMultiplayer.MP.Actors
                 {
                     var players = desyncedPlayers.SelectMany(x => x.Value).Distinct().ToList();
                     Logger.LogWarning("Players have started different turn. Initiating recovering. Players={players}", players);
-
-                    foreach (var player in players)
+                    foreach (var playerId in players)
                     {
+                        var player = GetPlayer(playerId);
+                        GameInteraction.AddCombatText(string.Format(UIStringConsts.GameNotifications.CombatLog.HostDetectedDesyncInCombatTurnOrder, player?.Name));
+
                         var desyncedTurnStartMessage = new NotifyInvalidCombatTurnStarted
                         {
                             UnitId = Game.Combat.Turn.UnitId,
                         };
-                        Send(player, desyncedTurnStartMessage);
+                        Send(playerId, desyncedTurnStartMessage);
                     }
 
                     foreach (var desynced in desyncedPlayers)
@@ -700,7 +702,7 @@ namespace WOTRMultiplayer.MP.Actors
 
                 Game.Combat.Turn.IsInProgress = true;
             }
-            GameInteraction.StartTurnBasedCombatTurn(Game.Combat.Turn.IsActingInSurpriseRound);
+            GameInteraction.StartTurnBasedCombatTurn(Game.Combat.Turn.UnitId);
         }
 
         protected override void OnLocalPlayerTurnEnded()
