@@ -23,6 +23,9 @@ namespace WOTRMultiplayer.Random
         EntityView,
 
         [Description("AE")]
-        AreaEffect
+        AreaEffect,
+
+        [Description("AD")]
+        AbilityData
     }
 }

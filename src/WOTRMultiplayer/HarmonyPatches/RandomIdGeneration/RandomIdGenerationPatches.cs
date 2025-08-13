@@ -5,11 +5,14 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using Kingmaker;
 using Kingmaker.Blueprints;
+using Kingmaker.Blueprints.Classes.Spells;
 using Kingmaker.Blueprints.Items;
 using Kingmaker.Controllers;
 using Kingmaker.EntitySystem;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.Items;
+using Kingmaker.UnitLogic;
+using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.UnitLogic.Abilities.Blueprints;
 using Kingmaker.UnitLogic.Mechanics;
 using Kingmaker.Utility;
@@ -37,6 +40,36 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             Main.GetLogger<RandomIdGenerationPatches>().LogError("Player.GetNewUniqueId should never be called, Result={result}, StackTrace={stackTrace}", __result, Environment.StackTrace);
         }
 
+
+        [HarmonyPatch(typeof(AbilityData), MethodType.Constructor, argumentTypes: [typeof(BlueprintAbility), typeof(UnitDescriptor), typeof(Ability), typeof(BlueprintSpellbook)])]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> AbilityData_Constructor_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var lookFor = AccessTools.Method(typeof(Guid), nameof(Guid.NewGuid));
+            var replaceWith = AccessTools.Method(typeof(RandomIdGenerationPatches), nameof(RandomIdGenerationPatches.GetAbilityDataEntityId));
+            var matcher = new CodeMatcher(instructions);
+            var match = matcher.SearchForward(x => x.Calls(lookFor)).Advance(-1);
+            if (match.IsInvalid)
+            {
+                Main.GetLogger<RandomIdGenerationPatches>().LogError("Unable to find Guid.NewGuid() call. Target={target}", target);
+                return matcher.Instructions();
+            }
+
+            match.RemoveInstruction();
+            var newInstructions = new List<CodeInstruction>
+            {
+                new(OpCodes.Ldarg_1),
+                new(OpCodes.Ldarg_2),
+                new(OpCodes.Ldarg_3),
+                new(OpCodes.Ldarg_S, 4),
+                new(OpCodes.Call, replaceWith),
+            };
+            match.Insert(newInstructions);
+
+            Main.GetLogger<RandomIdGenerationPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            return matcher.Instructions();
+        }
 
         [HarmonyPatch(typeof(AreaEffectsController), nameof(AreaEffectsController.Spawn), [typeof(MechanicsContext), typeof(BlueprintAbilityAreaEffect), typeof(TargetWrapper), typeof(TimeSpan?), typeof(bool)])]
         [HarmonyTranspiler]
@@ -198,6 +231,13 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
         {
             var identifier = $"{GetCommonIdPart()}:{blueprintItem.NameForAcronym}:{blueprintItem.ItemType}:{blueprintItem.MiscellaneousType}";
             var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.ItemEntity, Game.Instance.Player.GameId, identifier);
+            return id;
+        }
+
+        public static string GetAbilityDataEntityId(BlueprintAbility blueprint, UnitDescriptor caster, Ability fact, BlueprintSpellbook blueprintSpellbook)
+        {
+            var identifier = $"{GetCommonIdPart()}:{blueprint.NameForAcronym}:{caster.Unit?.UniqueId}:{fact?.UniqueId}:{blueprintSpellbook?.name}";
+            var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.AbilityData, Game.Instance.Player.GameId, identifier);
             return id;
         }
 
