@@ -10,6 +10,7 @@ using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
+using WOTRMultiplayer.MP.Entities.Vendor;
 
 namespace WOTRMultiplayer.Abstractions.MP.Actors
 {
@@ -111,6 +112,9 @@ namespace WOTRMultiplayer.Abstractions.MP.Actors
         bool OnShowRestView(RestPhase phase);
 
         void OnInterrupRestBanterBark(NetworkRestBanter networkBanter);
+
         NetworkAIAction OnAfterAISelectedAction(NetworkAIAction action);
+
+        void OnTransferVendorItem(NetworkVendorItemTransfer transfer);
     }
 }

@@ -35,5 +35,8 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
 
         [ProtoMember(10)]
         public bool IsLootBagMapObject { get; set; }
+
+        [ProtoMember(11)]
+        public string AttackMode { get; set; }
     }
 }

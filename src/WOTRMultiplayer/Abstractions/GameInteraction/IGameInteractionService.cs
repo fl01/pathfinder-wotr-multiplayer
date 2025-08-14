@@ -14,6 +14,7 @@ using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Settings;
+using WOTRMultiplayer.MP.Entities.Vendor;
 
 namespace WOTRMultiplayer.Abstractions.GameInteraction
 {
@@ -26,10 +27,15 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         GameModeType CurrentGameMode { get; }
 
         string CampingPotionBlueprintRecipeId { get; }
+
         string CampingCookingBlueprintRecipeId { get; }
+
         string CampingScrollBlueprintRecipeId { get; }
+
         bool CampingAutotuneIterationsStatus { get; }
+
         int CampingIterationsCount { get; }
+
         bool IsRandomEncounter { get; }
 
         void LeaveArea(string areaExitId);
@@ -69,8 +75,6 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         string GetSaveGamePath();
 
         string GetPetOwnerId(string unitId);
-
-        void StartTurnBasedCombatTurn(bool isActingInSurpriseRound);
 
         void StartTurnBasedCombatTurn(string unitId);
 
@@ -142,8 +146,12 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void TryInterruptRestBanter(NetworkRestBanter banter);
 
-        void StartTurnBasedCombatTurnAsAnotherUnit(string unitId);
-
         void SetGroundMoveEveryone();
+
+        void TransferVendorItem(NetworkVendorItemTransfer transfer);
+
+        void CloseVendorWindow();
+
+        void MakeVendorDeal();
     }
 }

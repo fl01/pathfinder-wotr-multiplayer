@@ -22,7 +22,9 @@ namespace WOTRMultiplayer.GameInteraction.Contexts
 
         public OvertipInteractionContext Overtip { get; set; }
 
-        public UnitsMovementContext UnitsMovementContext { get; set; }
+        public UnitsMovementContext UnitsMovement { get; set; }
+
+        public VendorItemTransferContext VendorItemTransfer { get; set; }
 
         public void Dispose()
         {
@@ -33,7 +35,8 @@ namespace WOTRMultiplayer.GameInteraction.Contexts
             HandEquipment = null;
             RandomEncounter = null;
             Overtip = null;
-            UnitsMovementContext = null;
+            UnitsMovement = null;
+            VendorItemTransfer = null;
         }
 
         public static RemoteExecutionContext CreateDropItem(string itemId, string unitId)
@@ -91,7 +94,18 @@ namespace WOTRMultiplayer.GameInteraction.Contexts
 
         public static RemoteExecutionContext Create(UnitsMovementContext unitsMovementContext)
         {
-            return new RemoteExecutionContext { UnitsMovementContext = unitsMovementContext };
+            return new RemoteExecutionContext { UnitsMovement = unitsMovementContext };
+        }
+
+        public static RemoteExecutionContext CreateVendorItemTransfer(string itemId)
+        {
+            return new RemoteExecutionContext
+            {
+                VendorItemTransfer = new VendorItemTransferContext
+                {
+                    ItemId = itemId
+                }
+            };
         }
     }
 }

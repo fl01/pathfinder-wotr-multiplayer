@@ -17,6 +17,7 @@ using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Settings;
+using WOTRMultiplayer.MP.Entities.Vendor;
 
 namespace WOTR.Multiplayer.Playground.Core.Dummies
 {
@@ -283,6 +284,18 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
         }
 
         public void AddCombatText(string text)
+        {
+        }
+
+        public void TransferVendorItem(NetworkVendorItemTransfer transfer)
+        {
+        }
+
+        public void CloseVendorWindow()
+        {
+        }
+
+        public void MakeVendorDeal()
         {
         }
     }

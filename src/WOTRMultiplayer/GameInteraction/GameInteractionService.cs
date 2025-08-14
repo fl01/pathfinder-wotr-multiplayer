@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Kingmaker;
-using Kingmaker.AI;
 using Kingmaker.Blueprints.Items.Equipment;
 using Kingmaker.Blueprints.Root;
 using Kingmaker.Cheats;
@@ -41,6 +40,7 @@ using Kingmaker.UI.MVVM._PCView.InGame;
 using Kingmaker.UI.MVVM._PCView.Rest;
 using Kingmaker.UI.MVVM._VM.Dialog.Dialog;
 using Kingmaker.UI.MVVM._VM.Rest;
+using Kingmaker.UI.MVVM._VM.Vendor;
 using Kingmaker.UnitLogic;
 using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.UnitLogic.ActivatableAbilities;
@@ -66,6 +66,7 @@ using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Settings;
+using WOTRMultiplayer.MP.Entities.Vendor;
 
 namespace WOTRMultiplayer.GameInteraction
 {
@@ -95,6 +96,7 @@ namespace WOTRMultiplayer.GameInteraction
 
         private InGamePCView InGamePCView => (Game.Instance.RootUiContext.m_UIView as InGamePCView);
         private RestPCView RestView => InGamePCView?.m_StaticPartPCView?.m_RestContextPCView?.m_RestPCView;
+        private VendorVM VendorViewVM => InGamePCView?.m_StaticPartPCView?.m_VendorPCView?.GetViewModel() as VendorVM;
 
         public bool IsRandomEncounter => (Game.Instance.RestController.Status?.NightRandomEncounter ?? false) || (Game.Instance.RestController.Status?.WasNightRandomEncounter ?? false);
 
@@ -120,7 +122,7 @@ namespace WOTRMultiplayer.GameInteraction
                 context.Overtip = new OvertipInteractionContext { MapObjectId = networkOvertip.MapObject.Id };
                 if (networkOvertip.RequiresEveryoneToMoveMove)
                 {
-                    context.UnitsMovementContext = new UnitsMovementContext { ShouldMoveEveryone = true };
+                    context.UnitsMovement = new UnitsMovementContext { ShouldMoveEveryone = true };
                 }
 
                 var mapObject = GetMapObject(networkOvertip.MapObject.Id);
@@ -571,8 +573,8 @@ namespace WOTRMultiplayer.GameInteraction
                         }
 
                         if (unit.Position.x != networkUnit.Position.X
-                            && unit.Position.y != networkUnit.Position.Y
-                            && unit.Position.z != networkUnit.Position.Z)
+                            || unit.Position.y != networkUnit.Position.Y
+                            || unit.Position.z != networkUnit.Position.Z)
                         {
                             var newPosition = new UnityEngine.Vector3(networkUnit.Position.X, networkUnit.Position.Y, networkUnit.Position.Z);
                             var oldPosition = unit.Position;
@@ -654,46 +656,6 @@ namespace WOTRMultiplayer.GameInteraction
                     throw;
                 }
             });
-        }
-
-        public void StartTurnBasedCombatTurn(bool isActingInSurpriseRound)
-        {
-            _logger.LogInformation("Starting turn. IsActingInSurpriseRound={isActingInSurpriseRound}", isActingInSurpriseRound);
-            _mainThreadAccessor.Post(() =>
-            {
-                try
-                {
-                    var currentUnit = Game.Instance.TurnBasedCombatController.CurrentTurn.Rider;
-                    if (IsUnitAI(currentUnit.UniqueId))
-                    {
-                        ForceAIRecalculateAction(currentUnit);
-                    }
-
-                    Game.Instance.TurnBasedCombatController.CurrentTurn.Start(isActingInSurpriseRound);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Unable to start turn");
-                    throw;
-                }
-            });
-        }
-
-        private void ForceAIRecalculateAction(UnitEntityData unit)
-        {
-            Game.Instance.TurnBasedCombatController.UpdateNavigationGrid();
-            AiBrainController.Context.ReleaseUnit();
-            unit.CombatState.AIData.NextCommandTime = Time.time;
-            foreach (UnitCommand unitCommand in unit.Commands.Raw)
-            {
-                if (unitCommand != null)
-                {
-                    unitCommand.AiCanInterruptMark = true;
-                }
-            }
-            unit.Commands.InterruptAiCommands();
-
-            Kingmaker.AI.AiBrainController.TickBrain(unit);
         }
 
         public void EndTurnBasedCombatTurn()
@@ -934,32 +896,37 @@ namespace WOTRMultiplayer.GameInteraction
 
             _mainThreadAccessor.Post(() =>
             {
-                var countToDrop = dropItem.Item.Count;
-                foreach (var item in possibleItemsToDrop)
-                {
-                    var difference = countToDrop - item.Count;
-                    if (difference == 0)
-                    {
-                        DropItem(entity.Inventory, item, dropItem.OwnerEntityId);
-                        break;
-                    }
-                    else if (difference < 0)
-                    {
-                        var itemsToDrop = item.Split(countToDrop);
-                        DropItem(entity.Inventory, itemsToDrop, dropItem.OwnerEntityId);
-                        break;
-                    }
-                    else
-                    {
-                        // less than needed
-                        countToDrop = difference;
-                        DropItem(entity.Inventory, item, dropItem.OwnerEntityId);
-                        continue;
-                    }
-                }
+                MatchSameNumberOfItems(possibleItemsToDrop, dropItem.Item.Count,
+                    (item) => DropItem(entity.Inventory, item, dropItem.OwnerEntityId));
 
                 RefreshInventoryWindow();
             });
+        }
+
+        private void MatchSameNumberOfItems(List<ItemEntity> possibleItemsBag, int countToDrop, Action<ItemEntity> onMatched)
+        {
+            foreach (var item in possibleItemsBag)
+            {
+                var difference = countToDrop - item.Count;
+                if (difference == 0)
+                {
+                    onMatched(item);
+                    break;
+                }
+                else if (difference < 0)
+                {
+                    var itemToDrop = item.Split(countToDrop);
+                    onMatched(itemToDrop);
+                    break;
+                }
+                else
+                {
+                    // less than needed
+                    countToDrop = difference;
+                    onMatched(item);
+                    continue;
+                }
+            }
         }
 
         private void DropItem(ItemsCollection inventory, ItemEntity itemEntity, string ownerId)
@@ -1430,7 +1397,7 @@ namespace WOTRMultiplayer.GameInteraction
         {
             _networkExecutionContext.Value = new RemoteExecutionContext
             {
-                UnitsMovementContext = new UnitsMovementContext { ShouldMoveEveryone = true }
+                UnitsMovement = new UnitsMovementContext { ShouldMoveEveryone = true }
             };
         }
 
@@ -1475,25 +1442,134 @@ namespace WOTRMultiplayer.GameInteraction
             });
         }
 
-        public void StartTurnBasedCombatTurnAsAnotherUnit(string unitId)
+        public void TransferVendorItem(NetworkVendorItemTransfer transfer)
         {
             _mainThreadAccessor.Post(() =>
             {
-                var unit = GetUnitEntity(unitId);
-                if (unit == null)
+                try
                 {
-                    _logger.LogError("Unable to find unit to start turn. UnitId={unitI}", unitId);
+                    if (transfer.ItemActionTarget == VendorItemActionTarget.Sell && transfer.ItemAction == VendorItemAction.Add)
+                    {
+                        // add for sell is different due to unsynced state of the player's inventory
+                        AddItemToVendorSellCollection(transfer);
+                        RefreshVendorScreen();
+                        return;
+                    }
+
+                    var (item, action) = GetDataForVendorTransferAction(transfer.Item, transfer.Count, transfer.ItemActionTarget, transfer.ItemAction);
+                    if (item == null)
+                    {
+                        _logger.LogError("Unable to find item for make vendor transfer action. ItemId={itemId}, ActionTarget={actionTarget}, ActionType={actionType}", transfer.Item.UniqueId, transfer.ItemActionTarget, transfer.ItemAction);
+                        return;
+                    }
+
+                    if (action == null)
+                    {
+                        _logger.LogError("Unable to find to determine correct action to make vendor transfer. ItemId={itemId}, ActionTarget={actionTarget}, ActionType={actionType}", transfer.Item.UniqueId, transfer.ItemActionTarget, transfer.ItemAction);
+                        return;
+                    }
+
+                    using var context = _networkExecutionContext.Value = RemoteExecutionContext.CreateVendorItemTransfer(item.UniqueId);
+                    var transferredItem = action(item);
+                    RefreshVendorScreen();
+                    _logger.LogInformation("Vendor item has been transferred. ItemId={itemId}, Count={count}, ActionTarget={actionTarget}, ActionType={actionType}", transferredItem.UniqueId, transferredItem.Count, transfer.ItemActionTarget, transfer.ItemAction);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error while transfering vendor items");
+                    throw;
+                }
+            });
+        }
+
+        public void CloseVendorWindow()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                if (VendorViewVM == null)
+                {
+                    _logger.LogWarning("Unable to close vendor screen due to missing VendorViewVM");
                     return;
                 }
 
-                var isSurpriseRound = Game.Instance.TurnBasedCombatController.CurrentTurn.m_ActingInSurpriseRound;
-                var previousUnit = Game.Instance.TurnBasedCombatController.CurrentTurn.Rider.UniqueId;
-                Game.Instance.TurnBasedCombatController.CurrentTurn.Dispose();
-
-                _logger.LogWarning("Starting turn as another unit due to desync. NewUnitId={unitId}, PreviousUnitId={previousUnit}", unitId, previousUnit);
-                Game.Instance.TurnBasedCombatController.CurrentTurn = new TurnBased.Controllers.TurnController(unit);
-                Game.Instance.TurnBasedCombatController.CurrentTurn.Start(isSurpriseRound);
+                VendorViewVM.m_CloseAction?.Invoke();
+                Pause(false);
             });
+        }
+
+        public void MakeVendorDeal()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                if (VendorViewVM == null)
+                {
+                    _logger.LogWarning("Unable to make vendor deal due to missing VendorViewVM");
+                    return;
+                }
+
+                VendorViewVM.Deal();
+            });
+        }
+
+        private void RefreshVendorScreen()
+        {
+            if (VendorViewVM == null)
+            {
+                _logger.LogWarning("Unable to refresh vendor screen due to missing VendorViewVM");
+                return;
+            }
+
+            try
+            {
+                VendorViewVM.UpdateVendorSide();
+                VendorViewVM.UpdatePlayerSide();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while refreshing vendor screen");
+                throw;
+            }
+        }
+
+        private ItemEntity AddItemToVendorSellCollection(NetworkVendorItemTransfer transfer)
+        {
+            var possibleItems = Game.Instance.Player.Inventory.Where(i => IsSameItem(i, transfer.Item) &&
+                (string.IsNullOrEmpty(transfer.Item.HoldingSlotOwnerId) || string.Equals(i.HoldingSlot?.Owner?.Unit.UniqueId, transfer.Item.HoldingSlotOwnerId, StringComparison.OrdinalIgnoreCase)))
+                .OrderBy(x => x.Count)
+                .ToList();
+
+            ItemEntity lastAddedItem = null;
+            MatchSameNumberOfItems(possibleItems, transfer.Count,
+                item =>
+                {
+                    using var context = _networkExecutionContext.Value = RemoteExecutionContext.CreateVendorItemTransfer(item.UniqueId);
+                    lastAddedItem = Game.Instance.Vendor.AddForSell(item, item.Count);
+                    _logger.LogInformation("Vendor item has been transferred. ItemId={itemId}, Count={count}, ActionTarget={actionTarget}, ActionType={actionType}", item.UniqueId, item.Count, transfer.ItemActionTarget, transfer.ItemAction);
+                });
+
+            return lastAddedItem;
+        }
+
+        private (ItemEntity itemEntity, Func<ItemEntity, ItemEntity> vendorAction) GetDataForVendorTransferAction(NetworkItem networkItem, int count, VendorItemActionTarget target, VendorItemAction itemAction)
+        {
+            Func<ItemEntity, ItemEntity> removeFromSellAction = i => Game.Instance.Vendor.RemoveFromSell(i, count);
+            (ItemsCollection source, Func<ItemEntity, ItemEntity> vendorAction) = target switch
+            {
+                VendorItemActionTarget.Sell when itemAction == VendorItemAction.Remove => (Game.Instance.Vendor.ItemsForSell, removeFromSellAction),
+                VendorItemActionTarget.Buy when itemAction == VendorItemAction.Add => (Game.Instance.Vendor.StoreItems, i => Game.Instance.Vendor.AddForBuy(i, count)),
+                VendorItemActionTarget.Buy when itemAction == VendorItemAction.Remove => (Game.Instance.Vendor.ItemsForBuy, i => Game.Instance.Vendor.RemoveFromBuy(i, count)),
+                _ => (null, null),
+            };
+
+            if (source == null)
+            {
+                _logger.LogError("Unable to find correct vendor item source. Target={target}, ItemAction={itemAction}", target, itemAction);
+                return (null, null);
+            }
+
+            // there items could never be slotted
+            var item = source.Items.FirstOrDefault(i => IsSameItem(i, networkItem));
+            return (item, vendorAction);
         }
 
         private CraftItemInfo GetCampingCraftItemInfo(UnitEntityData crafter, UsableItemType itemType, string itemBlueprintId)
@@ -1868,6 +1944,12 @@ namespace WOTRMultiplayer.GameInteraction
 
                         var pathForCurrentUnit = PathVisualizer.Instance.CurrentPathForUnit(Game.Instance.TurnBasedCombatController.CurrentTurn.SelectedUnit.View)?.vectorPath.Count;
                         _logger.LogInformation("Configured unit path. Vectors={vectorsCount}", pathForCurrentUnit);
+                    }
+
+                    if (Game.Instance.TurnBasedCombatController.CurrentTurn != null && click.AttackMode != null)
+                    {
+                        Game.Instance.TurnBasedCombatController.CurrentTurn.m_AttackMode = click.AttackMode.Value;
+                        _logger.LogInformation("AttackMode has been set. AttackMode={attackMode}", click.AttackMode.Value);
                     }
 
                     clickEventHandler.OnClick(targetUnit?.View?.gameObject, worldPosition, click.Button, simulate: false, click.MuteEvents, IsTMBClick: false);

@@ -24,6 +24,7 @@ using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Settings;
+using WOTRMultiplayer.MP.Entities.Vendor;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
@@ -477,10 +478,33 @@ namespace WOTRMultiplayer.MP.Actors
                 .Register<NotifyRestStarted>(OnNotifyRestStarted)
                 .Register<NotifyRestBanterInterrupted>(OnNotifyRestBanterInterrupted)
                 .Register<NotifyInvalidCombatTurnStarted>(OnNotifyInvalidCombatTurnStarted)
+                .Register<NotifyVendorItemTransferred>(OnNotifyVendorItemTransferred)
+                .Register<NotifyVendorDealMade>(OnNotifyVendorDealMade)
+                .Register<NotifyVendorWindowClosed>(OnNotifyVendorWindowClosed)
                 ;
 
             _networkServerClient.OnError = OnNetworkClientError;
             _networkServerClient.OnConnected = OnNetworkClientConnected;
+        }
+
+        private void OnNotifyVendorWindowClosed(NotifyVendorWindowClosed closed)
+        {
+            Logger.LogInformation("Received {messageType}", nameof(NotifyVendorWindowClosed));
+            GameInteraction.CloseVendorWindow();
+        }
+
+        private void OnNotifyVendorDealMade(NotifyVendorDealMade made)
+        {
+            Logger.LogInformation("Received {messageType}", nameof(NotifyVendorDealMade));
+            GameInteraction.MakeVendorDeal();
+        }
+
+        private void OnNotifyVendorItemTransferred(NotifyVendorItemTransferred message)
+        {
+            Logger.LogInformation("Received {messageType}. ItemId={itemId}, Count={count}, Action={action}, ActionTarget={actionTarget}", nameof(NotifyVendorItemTransferred), message.ItemTransfer.Item.UniqueId, message.ItemTransfer.Count, message.ItemTransfer.ItemAction, message.ItemTransfer.ItemActionTarget);
+
+            var transfer = Mapper.Map<NetworkVendorItemTransfer>(message.ItemTransfer);
+            GameInteraction.TransferVendorItem(transfer);
         }
 
         private void OnNotifyInvalidCombatTurnStarted(NotifyInvalidCombatTurnStarted started)
@@ -488,7 +512,7 @@ namespace WOTRMultiplayer.MP.Actors
             Logger.LogInformation("Received {messageType}. UnitId={unitId}", nameof(NotifyInvalidCombatTurnStarted), started.UnitId);
             GameInteraction.AddCombatText(UIStringConsts.GameNotifications.CombatLog.ClientIsFixingCombaTurnOrderDesync);
             Game.Combat.Turn = null;
-            GameInteraction.StartTurnBasedCombatTurnAsAnotherUnit(started.UnitId);
+            GameInteraction.StartTurnBasedCombatTurn(started.UnitId);
         }
 
         private void OnNotifyRestBanterInterrupted(NotifyRestBanterInterrupted interrupted)

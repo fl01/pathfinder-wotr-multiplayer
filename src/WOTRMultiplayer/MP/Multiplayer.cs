@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Kingmaker.EntitySystem.Persistence;
-using Kingmaker.EntitySystem.Stats;
 using Kingmaker.GameModes;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.GameInteraction;
@@ -19,6 +18,7 @@ using WOTRMultiplayer.MP.Entities.Inspect;
 using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 using WOTRMultiplayer.MP.Entities.Rest;
+using WOTRMultiplayer.MP.Entities.Vendor;
 using WOTRMultiplayer.UI;
 using WOTRMultiplayer.UI.Menu;
 
@@ -449,7 +449,7 @@ namespace WOTRMultiplayer.MP
                 return false;
             }
 
-            var context = _gameInteractionService.RemoteContext?.UnitsMovementContext;
+            var context = _gameInteractionService.RemoteContext?.UnitsMovement;
             return context != null && context.ShouldMoveEveryone;
         }
 
@@ -654,6 +654,57 @@ namespace WOTRMultiplayer.MP
 
             var possibleOverride = _multiplayerActorAccessor.Current.OnAfterAISelectedAction(action);
             return possibleOverride;
+        }
+
+        public void OnTransferVendorItem(NetworkVendorItemTransfer transfer)
+        {
+            if (_multiplayerActorAccessor == null)
+            {
+                return;
+            }
+
+            var vendorItemTransfer = _gameInteractionService.RemoteContext?.VendorItemTransfer;
+            if (vendorItemTransfer != null && string.Equals(vendorItemTransfer.ItemId, transfer.Item.UniqueId, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            _multiplayerActorAccessor.Current.OnTransferVendorItem(transfer);
+        }
+
+        public void OnMakeVendorDeal()
+        {
+            if (_multiplayerActorAccessor == null)
+            {
+                return;
+            }
+
+            if (_multiplayerActorAccessor.Client.IsActive)
+            {
+                return;
+            }
+
+            _multiplayerActorAccessor.Host.OnMakeVendorDeal();
+        }
+
+        public void OnCloseVendorWindow()
+        {
+            if (_multiplayerActorAccessor == null)
+            {
+                return;
+            }
+
+            if (_multiplayerActorAccessor.Client.IsActive)
+            {
+                return;
+            }
+
+            _multiplayerActorAccessor.Host.OnCloseVendorWindow();
+        }
+
+        public bool CanFullyControlVendorUI()
+        {
+            return _multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Host.IsActive;
         }
 
         private void ShowEscMenuMultiplayerLobby()

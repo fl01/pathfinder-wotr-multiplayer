@@ -28,5 +28,8 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
 
         [ProtoMember(8)]
         public int EnchantmentsCount { get; set; }
+
+        [ProtoMember(9)]
+        public string HoldingSlotOwnerId { get; set; }
     }
 }

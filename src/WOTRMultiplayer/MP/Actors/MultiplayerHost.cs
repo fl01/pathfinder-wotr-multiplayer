@@ -22,6 +22,7 @@ using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Settings;
+using WOTRMultiplayer.MP.Entities.Vendor;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
@@ -534,6 +535,20 @@ namespace WOTRMultiplayer.MP.Actors
             }
         }
 
+        public void OnMakeVendorDeal()
+        {
+            var message = new NotifyVendorDealMade();
+            Logger.LogInformation("Sending {messageType}", nameof(NotifyVendorDealMade));
+            Send(message);
+        }
+
+        public void OnCloseVendorWindow()
+        {
+            var message = new NotifyVendorWindowClosed();
+            Logger.LogInformation("Sending {messageType}", nameof(NotifyVendorWindowClosed));
+            Send(message);
+        }
+
         private void UpdateStartRestButtonAfterResults(long player)
         {
             lock (ActionLock)
@@ -630,7 +645,7 @@ namespace WOTRMultiplayer.MP.Actors
 
         protected void TryStartTurn()
         {
-            Logger.LogInformation("Checking if turn could be started. Round={round}, UnitId={unitId}", Game.Combat.Round, Game.Combat.Turn.UnitId);
+            Logger.LogInformation("Checking if turn could be started. Round={round}, UnitId={unitId}", Game.Combat.Round, Game.Combat.Turn?.UnitId);
 
             lock (ActionLock)
             {
@@ -901,7 +916,19 @@ namespace WOTRMultiplayer.MP.Actors
                 .Register<ClientGameModeTypeEnded>(OnClientGameModeTypeEnded)
                 .Register<ClientRestEnded>(OnClientRestEnded)
                 .Register<NotifyRestBanterInterrupted>(OnNotifyRestBanterInterrupted)
+                .Register<NotifyVendorItemTransferred>(OnNotifyVendorItemTransferred)
                 ;
+        }
+
+        private void OnNotifyVendorItemTransferred(long playerId, NotifyVendorItemTransferred message)
+        {
+            Logger.LogInformation("Received {messageType}. PlayerId={playerId}, ItemId={itemId}, Count={count}, Action={action}, ActionTarget={actionTarget}", nameof(NotifyVendorItemTransferred), playerId, message.ItemTransfer.Item.UniqueId, message.ItemTransfer.Count, message.ItemTransfer.ItemAction, message.ItemTransfer.ItemActionTarget);
+
+            var transfer = Mapper.Map<NetworkVendorItemTransfer>(message.ItemTransfer);
+            GameInteraction.TransferVendorItem(transfer);
+
+            Logger.LogInformation("Resending {messageType}", nameof(NotifyOvertipInteracted));
+            _networkServer.SendAllExcept(playerId, message);
         }
 
         private async void OnAIActionRequest(long playerId, AIActionRequest request)

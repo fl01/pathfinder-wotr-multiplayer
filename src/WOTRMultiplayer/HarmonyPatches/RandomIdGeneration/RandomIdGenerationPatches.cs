@@ -49,14 +49,14 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             var lookFor = AccessTools.Method(typeof(Guid), nameof(Guid.NewGuid));
             var replaceWith = AccessTools.Method(typeof(RandomIdGenerationPatches), nameof(RandomIdGenerationPatches.GetAbilityDataEntityId));
             var matcher = new CodeMatcher(instructions);
-            var match = matcher.SearchForward(x => x.Calls(lookFor)).Advance(-1);
+            var match = matcher.SearchForward(x => x.Calls(lookFor));
             if (match.IsInvalid)
             {
                 Main.GetLogger<RandomIdGenerationPatches>().LogError("Unable to find Guid.NewGuid() call. Target={target}", target);
                 return matcher.Instructions();
             }
 
-            match.RemoveInstruction();
+            match.RemoveInstructions(5);
             var newInstructions = new List<CodeInstruction>
             {
                 new(OpCodes.Ldarg_1),
@@ -194,51 +194,107 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
 
         public static string GetNewAreaEffectUniqueId(AreaEffectView areaEffectView)
         {
-            var identifier = $"{GetCommonIdPart()}:{areaEffectView.GetType().Name}:{areaEffectView.name}";
-            var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.AreaEffect, Game.Instance.Player.GameId, identifier);
-            return id;
+            try
+            {
+                var identifier = $"{GetCommonIdPart()}:{areaEffectView.GetType().Name}:{areaEffectView.name}";
+                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.AreaEffect, Game.Instance.Player.GameId, identifier);
+                return id;
+            }
+            catch (Exception ex)
+            {
+                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating {type}", UniqueIdType.AreaEffect);
+                throw;
+            }
         }
 
         public static string GetNewEntityUniqueId(EntityViewBase prefab)
         {
-            var identifier = $"{GetCommonIdPart()}:{prefab.GetType().Name}:{prefab.name}";
-            var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.EntityView, Game.Instance.Player.GameId, identifier);
-            return id;
+            try
+            {
+                var identifier = $"{GetCommonIdPart()}:{prefab.GetType().Name}:{prefab.name}";
+                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.EntityView, Game.Instance.Player.GameId, identifier);
+                return id;
+            }
+            catch (Exception ex)
+            {
+                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating {type}", UniqueIdType.EntityView);
+                throw;
+            }
         }
 
         public static string GetNewUnitUniqueId(BlueprintUnit unit, UnitEntityView prefab)
         {
-            var identifier = $"{GetCommonIdPart()}:{prefab.name}:{unit?.CharacterName}";
-            var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.Unit, Game.Instance.Player.GameId, identifier);
-            return id;
+            try
+            {
+                var identifier = $"{GetCommonIdPart()}:{prefab.name}:{unit?.CharacterName}";
+                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.Unit, Game.Instance.Player.GameId, identifier);
+                return id;
+            }
+            catch (Exception ex)
+            {
+                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating {type}", UniqueIdType.Unit);
+                throw;
+            }
         }
 
         public static string GetNewEntityFactUniqueId(EntityFact fact)
         {
-            var identifier = $"{GetCommonIdPart()}:{fact.GetType().Name}:{fact.NameForAcronym}:{fact.Owner?.UniqueId}";
-            var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.Fact, Game.Instance.Player.GameId, identifier);
-            return id;
+            try
+            {
+                var identifier = $"{GetCommonIdPart()}:{fact.GetType().Name}:{fact.NameForAcronym}:{fact.Owner?.UniqueId}";
+                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.Fact, Game.Instance.Player.GameId, identifier);
+                return id;
+            }
+            catch (Exception ex)
+            {
+                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating {type}", UniqueIdType.Fact);
+                throw;
+            }
         }
 
         public static string GetNewChangeBlueprintUniqueId(UnitEntityData unitEntityData, BlueprintUnit blueprintUnit)
         {
-            var identifier = $"{GetCommonIdPart()}:{unitEntityData.CharacterName}:{blueprintUnit?.name}";
-            var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.ChangeBlueprintUnit, Game.Instance.Player.GameId, identifier);
-            return id;
+            try
+            {
+                var identifier = $"{GetCommonIdPart()}:{unitEntityData.CharacterName}:{blueprintUnit?.name}";
+                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.ChangeBlueprintUnit, Game.Instance.Player.GameId, identifier);
+                return id;
+            }
+            catch (Exception ex)
+            {
+                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating {type}", UniqueIdType.ChangeBlueprintUnit);
+                throw;
+            }
         }
 
         public static string GetNewItemEntityId(BlueprintItem blueprintItem)
         {
-            var identifier = $"{GetCommonIdPart()}:{blueprintItem.NameForAcronym}:{blueprintItem.ItemType}:{blueprintItem.MiscellaneousType}";
-            var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.ItemEntity, Game.Instance.Player.GameId, identifier);
-            return id;
+            try
+            {
+                var identifier = $"{GetCommonIdPart()}:{blueprintItem.NameForAcronym}:{blueprintItem.ItemType}:{blueprintItem.MiscellaneousType}";
+                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.ItemEntity, Game.Instance.Player.GameId, identifier);
+                return id;
+            }
+            catch (Exception ex)
+            {
+                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating {type}", UniqueIdType.ItemEntity);
+                throw;
+            }
         }
 
         public static string GetAbilityDataEntityId(BlueprintAbility blueprint, UnitDescriptor caster, Ability fact, BlueprintSpellbook blueprintSpellbook)
         {
-            var identifier = $"{GetCommonIdPart()}:{blueprint.NameForAcronym}:{caster.Unit?.UniqueId}:{fact?.UniqueId}:{blueprintSpellbook?.name}";
-            var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.AbilityData, Game.Instance.Player.GameId, identifier);
-            return id;
+            try
+            {
+                var identifier = $"{GetCommonIdPart()}:{blueprint.NameForAcronym}:{caster?.Unit?.UniqueId}:{fact?.UniqueId}:{blueprintSpellbook?.name}";
+                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.AbilityData, Game.Instance.Player.GameId, identifier);
+                return id;
+            }
+            catch (Exception ex)
+            {
+                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating {type}", UniqueIdType.AbilityData);
+                throw;
+            }
         }
 
         private static string GetCommonIdPart()

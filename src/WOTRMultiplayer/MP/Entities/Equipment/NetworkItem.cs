@@ -21,6 +21,8 @@ namespace WOTRMultiplayer.MP.Entities.Equipment
 
         public int EnchantmentsCount { get; set; }
 
+        public string HoldingSlotOwnerId { get; set; }
+
         public static NetworkItem FromItemEntity(ItemEntity itemEntity)
         {
             var item = new NetworkItem
@@ -33,6 +35,7 @@ namespace WOTRMultiplayer.MP.Entities.Equipment
                 EnchantmentValue = itemEntity.EnchantmentValue,
                 EnchantmentsCount = itemEntity.Enchantments.Count,
                 FirstEnchantmentName = itemEntity.Enchantments.FirstOrDefault()?.NameForAcronym,
+                HoldingSlotOwnerId = itemEntity.HoldingSlot?.Owner?.Unit.UniqueId
             };
 
             return item;

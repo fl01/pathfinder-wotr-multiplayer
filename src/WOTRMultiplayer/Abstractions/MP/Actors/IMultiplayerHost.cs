@@ -33,5 +33,8 @@ namespace WOTRMultiplayer.Abstractions.MP.Actors
         void OnStartRest();
 
         void OnAfterTryRollRandomEncounter();
+
+        void OnMakeVendorDeal();
+        void OnCloseVendorWindow();
     }
 }

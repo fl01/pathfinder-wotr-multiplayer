@@ -133,7 +133,8 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
                 WorldPosition = new NetworkVector3(worldPosition.x, worldPosition.y, worldPosition.z),
                 MuteEvents = muteEvents,
                 VectorPath = [.. path?.vectorPath?.Select(v => new NetworkVector3 { X = v.x, Y = v.y, Z = v.z }) ?? []],
-                ActionsState = actionState
+                ActionsState = actionState,
+                AttackMode = Game.Instance.TurnBasedCombatController.CurrentTurn?.m_AttackMode
             };
         }
     }

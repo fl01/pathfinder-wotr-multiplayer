@@ -70,18 +70,94 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             return canContinue;
         }
 
-        //[HarmonyPatch(typeof(TurnController), nameof(TurnController.Start))]
-        //[HarmonyPrefix]
-        //public static bool TurnController_Start_Prefix(TurnController __instance, bool actingInSurpriseRound)
-        //{
-        //    if (!Main.Multiplayer.IsActive)
-        //    {
-        //        return true;
-        //    }
 
-        //    var canContinue = Main.Multiplayer.OnBeforeStartTurn(__instance.Rider.UniqueId, actingInSurpriseRound);
-        //    return canContinue;
-        //}
+        [HarmonyPatch(typeof(TurnController), nameof(TurnController.Tick))]
+        [HarmonyPrefix]
+        public static bool TurnController_Tick_Prefix(TurnController __instance)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return true;
+            }
+
+            return __instance.Rider != null;
+        }
+
+        [HarmonyPatch(typeof(TurnController), nameof(TurnController.Start))]
+        [HarmonyPrefix]
+        public static bool TurnController_Start_Prefix(TurnController __instance)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return true;
+            }
+
+            return __instance.Rider != null;
+        }
+
+        [HarmonyPatch(typeof(TurnController), nameof(TurnController.TrySelectDirectControllableUnit))]
+        [HarmonyPrefix]
+        public static bool TurnController_TrySelectDirectControllableUnit_Prefix(TurnController __instance, bool checkIfSelected)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return true;
+            }
+
+            TurnControllerTrySelectDirectControllableUnit(__instance, checkIfSelected);
+            return false;
+        }
+
+        private static void TurnControllerTrySelectDirectControllableUnit(TurnController __instance, bool checkIfSelected)
+        {
+            try
+            {
+                UnitEntityData unitEntityData = null;
+                if (__instance.Rider.IsDirectlyControllable)
+                {
+                    unitEntityData = __instance.Rider;
+                }
+                else
+                {
+                    UnitEntityData mount = __instance.Mount;
+                    if (mount != null && mount.IsDirectlyControllable)
+                    {
+                        unitEntityData = __instance.Mount;
+                    }
+                }
+                if (unitEntityData == null)
+                {
+                    return;
+                }
+                if (checkIfSelected)
+                {
+                    UnitEntityData singleSelectedUnit = Game.Instance.SelectionCharacter.SingleSelectedUnit;
+                    if (singleSelectedUnit != null && singleSelectedUnit.IsCurrentUnit())
+                    {
+                        return;
+                    }
+                }
+                Game.Instance.SelectionCharacter.SetSelected(unitEntityData);
+            }
+            catch (Exception ex)
+            {
+                Main.GetLogger<TurnBasedCombatPatches>().LogError(ex, "TrySelectDirectControllableUnit");
+                throw;
+            }
+        }
+
+        [HarmonyPatch(typeof(TurnController), nameof(TurnController.TrySelectDirectControllableUnit))]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> TurnController_TrySelectDirectControllableUnit_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var matcher = new CodeMatcher(instructions);
+
+            CommonTranspilerReplacements.ReplaceIsDirectlyControllable(matcher, target);
+            CommonTranspilerReplacements.ReplaceIsDirectlyControllable(matcher, target, true);
+
+            return matcher.Instructions();
+        }
 
         [HarmonyPatch(typeof(TurnController), nameof(TurnController.End))]
         [HarmonyPrefix]
@@ -195,6 +271,23 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             var matcher = new CodeMatcher(instructions);
 
             CommonTranspilerReplacements.ReplaceIsDirectlyControllable(matcher, target);
+            CommonTranspilerReplacements.ReplaceIsDirectlyControllable(matcher, target);
+
+            return matcher.Instructions();
+        }
+
+        /// <summary>
+        /// FullAttack is always true if !IsDirectlyControllable
+        /// </summary>
+        /// <param name="instructions"></param>
+        /// <returns></returns>
+        [HarmonyPatch(typeof(TurnController), nameof(TurnController.GetEnabledFullAttack))]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> TurnController_GetEnabledFullAttack_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var matcher = new CodeMatcher(instructions);
+
             CommonTranspilerReplacements.ReplaceIsDirectlyControllable(matcher, target);
 
             return matcher.Instructions();

@@ -290,7 +290,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private void ActivateLobbyControls()
         {
-            MainThreadAccessor.Enqueue(() =>
+            MainThreadAccessor.Post(() =>
             {
                 ReadyButtonObject.GetComponentInChildren<TextMeshProUGUI>().SetText(UIStringConsts.MultiplayerWindow.HostMenu.ReadyNotReadyButtonLabel);
 
@@ -302,7 +302,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private void ActivateJoinLobbyControls()
         {
-            MainThreadAccessor.Enqueue(() =>
+            MainThreadAccessor.Post(() =>
             {
                 Lobby.ResetData();
                 SetButtonActive(JoinButtonObject, true);
@@ -330,7 +330,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private void SetButtonActive(GameObject button, bool isActive)
         {
-            MainThreadAccessor.Enqueue(() =>
+            MainThreadAccessor.Post(() =>
             {
                 button.GetComponent<OwlcatButton>().Interactable = isActive;
             });

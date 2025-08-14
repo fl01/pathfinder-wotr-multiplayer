@@ -20,6 +20,7 @@ using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
+using WOTRMultiplayer.MP.Entities.Vendor;
 using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
 using WOTRMultiplayer.Networking.Messages.Requests;
@@ -486,6 +487,16 @@ namespace WOTRMultiplayer.MP.Actors
             };
 
             Logger.LogInformation("Sending {messageType}. SpeakerUnitId={speakerUnitId}, Key={key}", nameof(NotifyRestBanterInterrupted), message.Banter.SpeakerUnitId, message.Banter.Key);
+            Send(message);
+        }
+
+        public void OnTransferVendorItem(NetworkVendorItemTransfer transfer)
+        {
+            var message = new NotifyVendorItemTransferred
+            {
+                ItemTransfer = Mapper.Map<Networking.Messages.Contracts.NetworkVendorItemTransfer>(transfer)
+            };
+            Logger.LogInformation("Sending {messageType}. ItemId={itemId}, Count={count}, Action={action}, ActionTarget={actionTarget}", nameof(NetworkVendorItemTransfer), message.ItemTransfer.Item.UniqueId, message.ItemTransfer.Count, message.ItemTransfer.ItemAction, message.ItemTransfer.ItemActionTarget);
             Send(message);
         }
 

@@ -12,6 +12,7 @@ using WOTRMultiplayer.MP.Entities.Inspect;
 using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 using WOTRMultiplayer.MP.Entities.Rest;
+using WOTRMultiplayer.MP.Entities.Vendor;
 
 namespace WOTRMultiplayer.Abstractions.MP
 {
@@ -116,6 +117,15 @@ namespace WOTRMultiplayer.Abstractions.MP
         NetworkAIAction OnAfterAISelectedAction(NetworkAIAction action);
 
         bool ShouldGroundHandlerMoveAllUnitsToPoint();
+
         void ResetExecutionContext();
+
+        void OnTransferVendorItem(NetworkVendorItemTransfer transfer);
+
+        bool CanFullyControlVendorUI();
+
+        void OnMakeVendorDeal();
+
+        void OnCloseVendorWindow();
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TurnBased.Controllers;
 
 namespace WOTRMultiplayer.MP.Entities
 {
@@ -23,5 +24,7 @@ namespace WOTRMultiplayer.MP.Entities
         public NetworkActionsState ActionsState { get; set; }
 
         public bool IsTurnBasedModeClick { get; set; }
+
+        public TurnController.AttackMode? AttackMode { get; set; }
     }
 }
