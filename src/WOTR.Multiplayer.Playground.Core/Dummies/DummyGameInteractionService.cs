@@ -17,6 +17,7 @@ using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Settings;
+using WOTRMultiplayer.MP.Entities.Spells;
 using WOTRMultiplayer.MP.Entities.Vendor;
 
 namespace WOTR.Multiplayer.Playground.Core.Dummies
@@ -296,6 +297,14 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
         }
 
         public void MakeVendorDeal()
+        {
+        }
+
+        public void ForgetSpell(NetworkSpellSlot slot)
+        {
+        }
+
+        public void MemorizeSpell(NetworkSpellSlot slot)
         {
         }
     }

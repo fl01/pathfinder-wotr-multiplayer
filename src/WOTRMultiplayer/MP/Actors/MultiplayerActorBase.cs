@@ -20,6 +20,7 @@ using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
+using WOTRMultiplayer.MP.Entities.Spells;
 using WOTRMultiplayer.MP.Entities.Vendor;
 using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
@@ -497,6 +498,29 @@ namespace WOTRMultiplayer.MP.Actors
                 ItemTransfer = Mapper.Map<Networking.Messages.Contracts.NetworkVendorItemTransfer>(transfer)
             };
             Logger.LogInformation("Sending {messageType}. ItemId={itemId}, Count={count}, Action={action}, ActionTarget={actionTarget}", nameof(NetworkVendorItemTransfer), message.ItemTransfer.Item.UniqueId, message.ItemTransfer.Count, message.ItemTransfer.ItemAction, message.ItemTransfer.ItemActionTarget);
+            Send(message);
+        }
+        public void OnMemorizeSpell(NetworkSpellSlot slot)
+        {
+            var message = new NotifySpellMemorized
+            {
+                Slot = Mapper.Map<Networking.Messages.Contracts.NetworkSpellSlot>(slot)
+            };
+            Logger.LogInformation("Sending {messageType}. UnitId={unitId}, SpellbookId={spellbookId}, SpellId={spellId}, SpellLevel={spellLevel}, SpellName={spellName}, SpellSlotIndex={spellSlotIndex}, SpellSlotType={spellSlotType}",
+                nameof(NotifySpellMemorized), slot.UnitId, slot.SpellbookId, slot.SpellId, slot.SpellLevel, slot.SpellName, slot.Index, slot.Type);
+
+            Send(message);
+        }
+
+        public void OnForgetSpell(NetworkSpellSlot slot)
+        {
+            var message = new NotifySpellForgotten
+            {
+                Slot = Mapper.Map<Networking.Messages.Contracts.NetworkSpellSlot>(slot)
+            };
+            Logger.LogInformation("Sending {messageType}. UnitId={unitId}, SpellbookId={spellbookId}, SpellSlotIndex={spellSlotIndex}, SpellSlotType={spellSlotType}",
+                nameof(NotifySpellForgotten), slot.UnitId, slot.SpellbookId, slot.Index, slot.Type);
+
             Send(message);
         }
 

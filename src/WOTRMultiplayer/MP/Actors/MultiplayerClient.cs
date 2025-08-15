@@ -24,6 +24,7 @@ using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Settings;
+using WOTRMultiplayer.MP.Entities.Spells;
 using WOTRMultiplayer.MP.Entities.Vendor;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Game;
@@ -481,10 +482,32 @@ namespace WOTRMultiplayer.MP.Actors
                 .Register<NotifyVendorItemTransferred>(OnNotifyVendorItemTransferred)
                 .Register<NotifyVendorDealMade>(OnNotifyVendorDealMade)
                 .Register<NotifyVendorWindowClosed>(OnNotifyVendorWindowClosed)
+                .Register<NotifySpellMemorized>(OnNotifySpellMemorized)
+                .Register<NotifySpellForgotten>(OnNotifySpellForgotten)
                 ;
 
             _networkServerClient.OnError = OnNetworkClientError;
             _networkServerClient.OnConnected = OnNetworkClientConnected;
+        }
+
+        private void OnNotifySpellForgotten(NotifySpellForgotten spellForgotten)
+        {
+            Logger.LogInformation("Received {messageType}. UnitId={unitId}, SpellbookId={spellbookId}, SpellSlotIndex={spellSlotIndex}, SpellSlotType={spellSlotType}",
+                nameof(NotifySpellForgotten), spellForgotten.Slot.UnitId, spellForgotten.Slot.SpellbookId, spellForgotten.Slot.Index, spellForgotten.Slot.Type);
+
+            var slot = Mapper.Map<NetworkSpellSlot>(spellForgotten.Slot);
+
+            GameInteraction.ForgetSpell(slot);
+        }
+
+        private void OnNotifySpellMemorized(NotifySpellMemorized memorized)
+        {
+            Logger.LogInformation("Received {messageType}. UnitId={unitId}, SpellbookId={spellbookId}, SpellId={spellId}, SpellLevel={spellLevel}, SpellName={spellName}, SpellSlotIndex={spellSlotIndex}, SpellSlotType={spellSlotType}",
+                nameof(NotifySpellMemorized), memorized.Slot.UnitId, memorized.Slot.SpellbookId, memorized.Slot.SpellId, memorized.Slot.SpellLevel, memorized.Slot.SpellName, memorized.Slot.Index, memorized.Slot.Type);
+
+            var slot = Mapper.Map<NetworkSpellSlot>(memorized.Slot);
+
+            GameInteraction.MemorizeSpell(slot);
         }
 
         private void OnNotifyVendorWindowClosed(NotifyVendorWindowClosed closed)

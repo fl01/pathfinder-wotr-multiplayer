@@ -65,6 +65,8 @@
         {
             public const string TryingToSetUpCampAsAClient = "Camp can be placed by the host only";
 
+            public const string CantChangeSpellSlotsIfNoControl = "Changing spells is restricted to character owner only";
+
             public class ForcedPauseReasons
             {
                 public const string AreaLoading = "Please wait for other players to finish loading the area";
@@ -75,6 +77,9 @@
             {
                 public const string ClientIsFixingCombaTurnOrderDesync = "Host detected desync in turn order, fixing...";
                 public const string HostDetectedDesyncInCombatTurnOrder = "Player {0} is trying to start different turn, fixing...";
+
+                public const string SpellMemorized = "{0} has been memorized by {1}";
+                public const string SpellForgotten = "{0} has been forgotten by {1}";
             }
         }
     }

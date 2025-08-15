@@ -14,6 +14,7 @@ using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Settings;
+using WOTRMultiplayer.MP.Entities.Spells;
 using WOTRMultiplayer.MP.Entities.Vendor;
 
 namespace WOTRMultiplayer.Abstractions.GameInteraction
@@ -153,5 +154,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void CloseVendorWindow();
 
         void MakeVendorDeal();
+        void ForgetSpell(NetworkSpellSlot slot);
+        void MemorizeSpell(NetworkSpellSlot slot);
     }
 }

@@ -10,6 +10,7 @@ using WOTRMultiplayer.MP.Entities.MapObjects;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
 using WOTRMultiplayer.MP.Entities.Settings;
+using WOTRMultiplayer.MP.Entities.Spells;
 using WOTRMultiplayer.MP.Entities.Vendor;
 
 namespace WOTRMultiplayer.Config.Mapping
@@ -121,7 +122,10 @@ namespace WOTRMultiplayer.Config.Mapping
                 .ReverseMap();
 
             CreateMap<NetworkVendorItemTransfer, Networking.Messages.Contracts.NetworkVendorItemTransfer>()
-               .ReverseMap();
+                .ReverseMap();
+
+            CreateMap<NetworkSpellSlot, Networking.Messages.Contracts.NetworkSpellSlot>()
+                .ReverseMap();
         }
     }
 }

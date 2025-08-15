@@ -40,6 +40,7 @@ using Kingmaker.UI.MVVM._PCView.InGame;
 using Kingmaker.UI.MVVM._PCView.Rest;
 using Kingmaker.UI.MVVM._VM.Dialog.Dialog;
 using Kingmaker.UI.MVVM._VM.Rest;
+using Kingmaker.UI.MVVM._VM.ServiceWindows.Spellbook.MemorizingPanel;
 using Kingmaker.UI.MVVM._VM.Vendor;
 using Kingmaker.UnitLogic;
 using Kingmaker.UnitLogic.Abilities;
@@ -66,7 +67,9 @@ using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Settings;
+using WOTRMultiplayer.MP.Entities.Spells;
 using WOTRMultiplayer.MP.Entities.Vendor;
+using WOTRMultiplayer.UI;
 
 namespace WOTRMultiplayer.GameInteraction
 {
@@ -97,6 +100,7 @@ namespace WOTRMultiplayer.GameInteraction
         private InGamePCView InGamePCView => (Game.Instance.RootUiContext.m_UIView as InGamePCView);
         private RestPCView RestView => InGamePCView?.m_StaticPartPCView?.m_RestContextPCView?.m_RestPCView;
         private VendorVM VendorViewVM => InGamePCView?.m_StaticPartPCView?.m_VendorPCView?.GetViewModel() as VendorVM;
+        private SpellbookMemorizingPanelVM SpellbookMemorizingVM => InGamePCView.m_StaticPartPCView?.m_ServiceWindowsPCView?.m_SpellbookPCView?.m_MemorizingPanelView?.GetViewModel() as SpellbookMemorizingPanelVM;
 
         public bool IsRandomEncounter => (Game.Instance.RestController.Status?.NightRandomEncounter ?? false) || (Game.Instance.RestController.Status?.WasNightRandomEncounter ?? false);
 
@@ -764,7 +768,7 @@ namespace WOTRMultiplayer.GameInteraction
                 var abilityData = FindAbility(caster, abilityUse);
                 if (abilityData == null)
                 {
-                    _logger.LogError("Unable to find ability. UnitId={unitId}, AbilityId={abilityId}, SpellbookBlueprintId={spellbookBlueprintId}", caster.UniqueId, abilityUse.Id, abilityUse.Id);
+                    _logger.LogError("Unable to find ability. UnitId={unitId}, AbilityId={abilityId}, SpellbookBlueprintId={spellbookBlueprintId}", caster.UniqueId, abilityUse.Id, abilityUse.SpellbookId);
                     return;
                 }
 
@@ -1509,6 +1513,81 @@ namespace WOTRMultiplayer.GameInteraction
 
                 VendorViewVM.Deal();
             });
+        }
+
+        public void ForgetSpell(NetworkSpellSlot slot)
+        {
+            var unit = GetUnitEntity(slot.UnitId);
+            if (unit == null)
+            {
+                _logger.LogError("Unable to find unit to forget spell. UnitId={unitId}", slot.UnitId);
+                return;
+            }
+
+            var spellbook = unit.Spellbooks.FirstOrDefault(s => string.Equals(s.Blueprint.Name.Key, slot.SpellbookId, StringComparison.OrdinalIgnoreCase));
+            if (spellbook == null)
+            {
+                _logger.LogError("Unable to find spellbook to forget spell. UnitId={unitId}, SpellbookId={spellBookId}", slot.UnitId, slot.SpellbookId);
+                return;
+            }
+
+            _mainThreadAccessor.Post(() =>
+            {
+                var spellSlot = GetSpellSlot(spellbook, slot);
+                if (spellSlot == null)
+                {
+                    _logger.LogError("Unable to find spellslot to forget. UnitId={unitId}, SpellbookId={spellBookId}, SpellSlotIndex={index}, SpellSlotType={type}", slot.UnitId, slot.SpellbookId, slot.Index, slot.Type);
+                    return;
+                }
+
+                AddCombatText(string.Format(UIStringConsts.GameNotifications.CombatLog.SpellForgotten, spellSlot.SpellShell?.Name, unit.CharacterName));
+                spellbook.ForgetMemorized(spellSlot);
+                RefreshSpellbookUI();
+            });
+        }
+
+        public void MemorizeSpell(NetworkSpellSlot slot)
+        {
+            var unit = GetUnitEntity(slot.UnitId);
+            if (unit == null)
+            {
+                _logger.LogError("Unable to find unit to memorize spell. UnitId={unitId}", slot.UnitId);
+                return;
+            }
+
+            var spellbook = unit.Spellbooks.FirstOrDefault(s => string.Equals(s.Blueprint.Name.Key, slot.SpellbookId, StringComparison.OrdinalIgnoreCase));
+            if (spellbook == null)
+            {
+                _logger.LogError("Unable to find spellbook to memorize spell. UnitId={unitId}, SpellbookId={spellBookId}", slot.UnitId, slot.SpellbookId);
+                return;
+            }
+
+            _mainThreadAccessor.Post(() =>
+            {
+                var spellSlot = GetSpellSlot(spellbook, slot);
+                var spell = GetKnownSpell(spellbook, slot.SpellId, slot.SpellName);
+                spellbook.Memorize(spell, spellSlot);
+                AddCombatText(string.Format(UIStringConsts.GameNotifications.CombatLog.SpellMemorized, spell.Name, unit.CharacterName));
+                RefreshSpellbookUI();
+            });
+        }
+
+        private SpellSlot GetSpellSlot(Spellbook spellbook, NetworkSpellSlot slot)
+        {
+            if (spellbook.m_MemorizedSpells.Length < slot.SpellLevel)
+            {
+                return null;
+            }
+
+            var spellLevel = spellbook.m_MemorizedSpells[slot.SpellLevel];
+            var spellSlot = spellLevel.FirstOrDefault(s => s.Index == slot.Index && s.Type == slot.Type);
+
+            return spellSlot;
+        }
+
+        private void RefreshSpellbookUI()
+        {
+            SpellbookMemorizingVM?.UpdateSlots();
         }
 
         private void RefreshVendorScreen()

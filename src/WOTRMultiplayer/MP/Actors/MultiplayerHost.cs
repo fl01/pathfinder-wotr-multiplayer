@@ -22,6 +22,7 @@ using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Settings;
+using WOTRMultiplayer.MP.Entities.Spells;
 using WOTRMultiplayer.MP.Entities.Vendor;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Game;
@@ -812,7 +813,7 @@ namespace WOTRMultiplayer.MP.Actors
                     var delay = removalDelay.HasValue ? Task.Delay(removalDelay.Value) : Task.CompletedTask;
                     Game.ForcedPause = null;
 
-                    Logger.LogInformation("Forced pause will be lifted soon. Delay={delay}", removalDelay);
+                    Logger.LogInformation("Forced pause will be lifted soon. Delay={delay}", removalDelay.GetValueOrDefault());
                     delay.ContinueWith(x =>
                     {
                         GameInteraction.Pause(false);
@@ -917,7 +918,35 @@ namespace WOTRMultiplayer.MP.Actors
                 .Register<ClientRestEnded>(OnClientRestEnded)
                 .Register<NotifyRestBanterInterrupted>(OnNotifyRestBanterInterrupted)
                 .Register<NotifyVendorItemTransferred>(OnNotifyVendorItemTransferred)
+                .Register<NotifySpellMemorized>(OnNotifySpellMemorized)
+                .Register<NotifySpellForgotten>(OnNotifySpellForgotten)
                 ;
+        }
+
+        private void OnNotifySpellForgotten(long playerId, NotifySpellForgotten spellForgotten)
+        {
+            Logger.LogInformation("Received {messageType}. PlayerId={playerId}, UnitId={unitId}, SpellbookId={spellbookId}, SpellSlotIndex={spellSlotIndex}, SpellSlotType={spellSlotType}",
+                nameof(NotifySpellForgotten), playerId, spellForgotten.Slot.UnitId, spellForgotten.Slot.SpellbookId, spellForgotten.Slot.Index, spellForgotten.Slot.Type);
+
+            var slot = Mapper.Map<NetworkSpellSlot>(spellForgotten.Slot);
+
+            GameInteraction.ForgetSpell(slot);
+
+            Logger.LogInformation("Resending {messageType}", nameof(NotifySpellForgotten));
+            _networkServer.SendAllExcept(playerId, spellForgotten);
+        }
+
+        private void OnNotifySpellMemorized(long playerId, NotifySpellMemorized memorized)
+        {
+            Logger.LogInformation("Received {messageType}. PlayerId={playerId}, UnitId={unitId}, SpellbookId={spellbookId}, SpellId={spellId}, SpellLevel={spellLevel}, SpellName={spellName}, SpellSlotIndex={spellSlotIndex}, SpellSlotType={spellSlotType}",
+                nameof(NotifySpellMemorized), playerId, memorized.Slot.UnitId, memorized.Slot.SpellbookId, memorized.Slot.SpellId, memorized.Slot.SpellLevel, memorized.Slot.SpellName, memorized.Slot.Index, memorized.Slot.Type);
+
+            var slot = Mapper.Map<NetworkSpellSlot>(memorized.Slot);
+
+            GameInteraction.MemorizeSpell(slot);
+
+            Logger.LogInformation("Resending {messageType}", nameof(NotifySpellMemorized));
+            _networkServer.SendAllExcept(playerId, memorized);
         }
 
         private void OnNotifyVendorItemTransferred(long playerId, NotifyVendorItemTransferred message)

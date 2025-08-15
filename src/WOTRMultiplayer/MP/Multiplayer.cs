@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Kingmaker.EntitySystem.Persistence;
 using Kingmaker.GameModes;
 using Microsoft.Extensions.Logging;
@@ -18,6 +19,7 @@ using WOTRMultiplayer.MP.Entities.Inspect;
 using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
 using WOTRMultiplayer.MP.Entities.Rest;
+using WOTRMultiplayer.MP.Entities.Spells;
 using WOTRMultiplayer.MP.Entities.Vendor;
 using WOTRMultiplayer.UI;
 using WOTRMultiplayer.UI.Menu;
@@ -113,56 +115,96 @@ namespace WOTRMultiplayer.MP
 
         public void MoveNonCombatCharacter(string unitId, NetworkVector3 destination, float delay, float orientation)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return;
+
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.MoveNonCombatCharacter(unitId, destination, delay, orientation);
             }
-
-            _multiplayerActorAccessor.Current.MoveNonCombatCharacter(unitId, destination, delay, orientation);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
-
 
         public string GetMultiplayerOwnerName(string unitId)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return null;
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return null;
+                }
+
+                return _multiplayerActorAccessor.Current.GetMultiplayerOwnerName(unitId);
             }
-
-            return _multiplayerActorAccessor.Current.GetMultiplayerOwnerName(unitId);
-
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
+
         public bool IsControlledByLocalPlayer(string unitId)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return false;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return false;
+                }
 
-            return _multiplayerActorAccessor.Current.IsControlledByLocalPlayer(unitId);
+                return _multiplayerActorAccessor.Current.IsControlledByLocalPlayer(unitId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while checking if controlled by local player. UnitId={unitId}", unitId);
+                throw;
+            }
         }
 
         public bool OnStartGameMode(GameModeType type)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return true;
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return true;
+                }
+
+
+                var canContinue = _multiplayerActorAccessor.Current.OnStartGameMode(type);
+                return canContinue;
             }
-
-
-            var canContinue = _multiplayerActorAccessor.Current.OnStartGameMode(type);
-            return canContinue;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public bool OnStopGameMode(GameModeType type)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return true;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return true;
+                }
 
-            var canContinue = _multiplayerActorAccessor.Current.OnStopGameMode(type);
-            return canContinue;
+                var canContinue = _multiplayerActorAccessor.Current.OnStopGameMode(type);
+                return canContinue;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public bool CanLeaveArea()
@@ -172,46 +214,78 @@ namespace WOTRMultiplayer.MP
 
         public void OnAfterCueShow(string dialogName, string cueName, bool hasSystemAnswer)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
 
-            _multiplayerActorAccessor.Current.OnAfterCueShow(dialogName, cueName, hasSystemAnswer);
+                _multiplayerActorAccessor.Current.OnAfterCueShow(dialogName, cueName, hasSystemAnswer);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public bool OnBeforeSelectDialogAnswer(string dialogName, string cueName, string answerName, bool isExitAnswer, string manualUnitSelectionId)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return true;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return true;
+                }
 
-            var shouldContinueExecution = _multiplayerActorAccessor.Current.OnBeforeSelectDialogAnswer(dialogName, cueName, answerName, isExitAnswer, manualUnitSelectionId);
-            return shouldContinueExecution;
+                var shouldContinueExecution = _multiplayerActorAccessor.Current.OnBeforeSelectDialogAnswer(dialogName, cueName, answerName, isExitAnswer, manualUnitSelectionId);
+                return shouldContinueExecution;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public void OnAfterPlayDialogCue()
         {
-            if (_multiplayerActorAccessor.Client.IsActive)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
 
-            _multiplayerActorAccessor.Host.SendSelectedAnswer();
+                _multiplayerActorAccessor.Host.SendSelectedAnswer();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public bool StartDialog(string dialogName, string targetUnitId, string initiatorUnitId, string mapObjectId, string speakerKey)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return true;
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return true;
+                }
+
+                _logger.LogInformation("Start dialog. DialogueName={dialogName},  TargetUnitId={targetUnitId}, InitiatorUnitId={initiatorUnitId}, MapObjectId={mapObjectId}, SpeakerKey={speakerKey}",
+                    dialogName, targetUnitId, initiatorUnitId, mapObjectId, speakerKey);
+
+                return _multiplayerActorAccessor.Current.StartDialog(dialogName, targetUnitId, initiatorUnitId, mapObjectId, speakerKey);
             }
-
-            _logger.LogInformation("Start dialog. DialogueName={dialogName},  TargetUnitId={targetUnitId}, InitiatorUnitId={initiatorUnitId}, MapObjectId={mapObjectId}, SpeakerKey={speakerKey}",
-                dialogName, targetUnitId, initiatorUnitId, mapObjectId, speakerKey);
-
-            return _multiplayerActorAccessor.Current.StartDialog(dialogName, targetUnitId, initiatorUnitId, mapObjectId, speakerKey);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public bool CanTickUnitCombatPrepareController()
@@ -252,184 +326,304 @@ namespace WOTRMultiplayer.MP
 
         public bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return true;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return true;
+                }
 
-            return _multiplayerActorAccessor.Current.OnBeforeStartTurn(unitId, actingInSurpriseRound);
+                return _multiplayerActorAccessor.Current.OnBeforeStartTurn(unitId, actingInSurpriseRound);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public bool OnBeforeEndTurn(string unitId)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return true;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return true;
+                }
 
-            return _multiplayerActorAccessor.Current.OnBeforeEndTurn(unitId);
+                return _multiplayerActorAccessor.Current.OnBeforeEndTurn(unitId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public void ForceLoadGame(SaveInfo saveInfo)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
 
-            // extra validation is not required since everything is already validated by the game
-            var savePath = saveInfo.FolderName;
-            _logger.LogInformation("Force load game. Save={saveLocation}, GameId={gameId}", savePath, saveInfo.GameId);
-            _multiplayerActorAccessor.Current.ForceLoadGame(savePath, saveInfo.GameId);
+                // extra validation is not required since everything is already validated by the game
+                var savePath = saveInfo.FolderName;
+                _logger.LogInformation("Force load game. Save={saveLocation}, GameId={gameId}", savePath, saveInfo.GameId);
+                _multiplayerActorAccessor.Current.ForceLoadGame(savePath, saveInfo.GameId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public bool IsControlledByPlayers(string unitId)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return true;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return true;
+                }
 
-            var result = _multiplayerActorAccessor.Current.IsControlledByPlayers(unitId);
-            return result;
+                var result = _multiplayerActorAccessor.Current.IsControlledByPlayers(unitId);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public void OnClickUnit(NetworkClick click)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
 
-            _multiplayerActorAccessor.Current.OnClickUnit(click);
+                _multiplayerActorAccessor.Current.OnClickUnit(click);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public void OnClickGround(NetworkClick click)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
 
-            _multiplayerActorAccessor.Current.OnClickGround(click);
+                _multiplayerActorAccessor.Current.OnClickGround(click);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public void OnClickMapObject(NetworkClick click)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
 
-            _multiplayerActorAccessor.Current.OnClickMapObject(click);
+                _multiplayerActorAccessor.Current.OnClickMapObject(click);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public void OnAbilityUse(NetworkAbility ability)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
 
-            _multiplayerActorAccessor.Current.OnAbilityUse(ability);
+                _multiplayerActorAccessor.Current.OnAbilityUse(ability);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public void OnToggleActivatableAbility(NetworkActivatableAbility activatableAbilityUse)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
 
-            _multiplayerActorAccessor.Current.OnToggleActivatableAbility(activatableAbilityUse);
+                _multiplayerActorAccessor.Current.OnToggleActivatableAbility(activatableAbilityUse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public NetworkActionsState GetActionsState()
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return null;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return null;
+                }
 
-            var actionsState = _gameInteractionService.GetActionsState();
-            return actionsState;
+                var actionsState = _gameInteractionService.GetActionsState();
+                return actionsState;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public bool CanLootUnit(string initiatorUnitId)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return true;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return true;
+                }
 
-            var isControlledByLocalPlayer = _multiplayerActorAccessor.Current.IsControlledByLocalPlayer(initiatorUnitId);
-            return isControlledByLocalPlayer;
+                var isControlledByLocalPlayer = _multiplayerActorAccessor.Current.IsControlledByLocalPlayer(initiatorUnitId);
+                return isControlledByLocalPlayer;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public void OnLootContainer(NetworkLootContainer container)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
 
-            _multiplayerActorAccessor.Current.OnLootContainer(container);
+                _multiplayerActorAccessor.Current.OnLootContainer(container);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public void OnDropItem(NetworkDropItem dropItem)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
 
-            var context = _gameInteractionService.RemoteContext?.DropItem;
-            if (context != null && string.Equals(context.UnitId, dropItem.OwnerEntityId, StringComparison.OrdinalIgnoreCase)
-                && string.Equals(context.ItemId, dropItem.Item.UniqueId, StringComparison.OrdinalIgnoreCase))
+                var context = _gameInteractionService.RemoteContext?.DropItem;
+                if (context != null && string.Equals(context.UnitId, dropItem.OwnerEntityId, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(context.ItemId, dropItem.Item.UniqueId, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnDropItem(dropItem);
+            }
+            catch (Exception ex)
             {
-                return;
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            _multiplayerActorAccessor.Current.OnDropItem(dropItem);
         }
 
         public void OnChangeActiveHandEquipmentSet(NetworkActiveHandEquipmentSet set)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
 
-            var context = _gameInteractionService.RemoteContext?.HandEquipment;
-            if (context != null
-                && context.Index == set.Index
-                && string.Equals(context.UnitId, set.UnitId, StringComparison.OrdinalIgnoreCase))
+                var context = _gameInteractionService.RemoteContext?.HandEquipment;
+                if (context != null
+                    && context.Index == set.Index
+                    && string.Equals(context.UnitId, set.UnitId, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnChangeActiveHandEquipmentSet(set);
+            }
+            catch (Exception ex)
             {
-                return;
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            _multiplayerActorAccessor.Current.OnChangeActiveHandEquipmentSet(set);
         }
 
         public void OnInteractWithMapObjectOvertip(NetworkOvertip networkOvertip)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
 
-            var context = _gameInteractionService.RemoteContext?.Overtip;
-            if (context != null && string.Equals(context.MapObjectId, networkOvertip.MapObject.Id, StringComparison.OrdinalIgnoreCase))
+                var context = _gameInteractionService.RemoteContext?.Overtip;
+                if (context != null && string.Equals(context.MapObjectId, networkOvertip.MapObject.Id, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                if (networkOvertip.RequiresEveryoneToMoveMove)
+                {
+                    _gameInteractionService.SetGroundMoveEveryone();
+                }
+
+                _multiplayerActorAccessor.Current.OnInteractWithMapObjectOvertip(networkOvertip);
+            }
+            catch (Exception ex)
             {
-                return;
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            if (networkOvertip.RequiresEveryoneToMoveMove)
-            {
-                _gameInteractionService.SetGroundMoveEveryone();
-            }
-
-            _multiplayerActorAccessor.Current.OnInteractWithMapObjectOvertip(networkOvertip);
         }
 
         public void ResetExecutionContext()
@@ -455,22 +649,38 @@ namespace WOTRMultiplayer.MP
 
         public bool CanUnitJoinCombat(string unitId)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return true;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return true;
+                }
 
-            return _multiplayerActorAccessor.Current.CanUnitJoinCombat(unitId);
+                return _multiplayerActorAccessor.Current.CanUnitJoinCombat(unitId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public void OnPerceptionCheck(NetworkPerceptionCheck check)
         {
-            if (!_multiplayerActorAccessor.Host.IsActive)
+            try
             {
-                return;
-            }
+                if (!_multiplayerActorAccessor.Host.IsActive)
+                {
+                    return;
+                }
 
-            _multiplayerActorAccessor.Host.OnPerceptionCheck(check);
+                _multiplayerActorAccessor.Host.OnPerceptionCheck(check);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public bool CanMakePerceptionCheck(string unitId, string mapObjectId)
@@ -493,18 +703,26 @@ namespace WOTRMultiplayer.MP
 
         public bool OnInspectionKnowledgeCheck(NetworkInspectionKnowledgeCheck check)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return true;
+                }
+
+                if (_multiplayerActorAccessor.Client.IsActive)
+                {
+                    return false;
+                }
+
+                _multiplayerActorAccessor.Host.OnInspectionKnowledgeCheck(check);
                 return true;
             }
-
-            if (_multiplayerActorAccessor.Client.IsActive)
+            catch (Exception ex)
             {
-                return false;
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            _multiplayerActorAccessor.Host.OnInspectionKnowledgeCheck(check);
-            return true;
         }
 
         public bool CanMakeInspectionBuffCheck()
@@ -519,66 +737,98 @@ namespace WOTRMultiplayer.MP
 
         public bool OnSpawnCampPlace(NetworkVector3 position)
         {
-            if (_multiplayerActorAccessor.Client.IsActive)
+            try
             {
-                _gameInteractionService.ShowWarningNotification(UIStringConsts.GameNotifications.TryingToSetUpCampAsAClient);
-                return false;
-            }
+                if (_multiplayerActorAccessor.Client.IsActive)
+                {
+                    _gameInteractionService.ShowWarningNotification(UIStringConsts.GameNotifications.TryingToSetUpCampAsAClient);
+                    return false;
+                }
 
-            if (!_multiplayerActorAccessor.Host.IsActive)
+                if (!_multiplayerActorAccessor.Host.IsActive)
+                {
+                    return true;
+                }
+
+                var canContinue = _multiplayerActorAccessor.Host.OnSpawnCampPlace(position);
+                return canContinue;
+            }
+            catch (Exception ex)
             {
-                return true;
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            var canContinue = _multiplayerActorAccessor.Host.OnSpawnCampPlace(position);
-            return canContinue;
         }
 
 
         public bool OnCampingUseHealingSpellsChanged(bool isOn)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return true;
+                }
+
+                if (_multiplayerActorAccessor.Client.IsActive)
+                {
+                    return false;
+                }
+
+                _multiplayerActorAccessor.Host.OnCampingUseHealingSpellsChanged(isOn);
                 return true;
             }
-
-            if (_multiplayerActorAccessor.Client.IsActive)
+            catch (Exception ex)
             {
-                return false;
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            _multiplayerActorAccessor.Host.OnCampingUseHealingSpellsChanged(isOn);
-            return true;
         }
 
         public void OnCampingUnitsRoleChanged(List<NetworkCampingRole> roles)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
 
-            if (_multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnCampingUnitsRoleChanged(roles);
+            }
+            catch (Exception ex)
             {
-                return;
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            _multiplayerActorAccessor.Host.OnCampingUnitsRoleChanged(roles);
         }
 
         public void OnStartRest()
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
 
-            if (_multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnStartRest();
+            }
+            catch (Exception ex)
             {
-                return;
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            _multiplayerActorAccessor.Host.OnStartRest();
         }
 
         public bool CanUseCampingUI()
@@ -588,123 +838,223 @@ namespace WOTRMultiplayer.MP
 
         public void OnBeforeTryRollRandomEncounter()
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
 
-            if (_multiplayerActorAccessor.Host.IsActive)
+                if (_multiplayerActorAccessor.Host.IsActive)
+                {
+                    _gameInteractionService.SetRandomEncounterContext(new NetworkRandomEncounterContext() { Recording = new NetworkRandomEncounter() });
+                    return;
+                }
+
+                _multiplayerActorAccessor.Client.OnBeforeTryRollRandomEncounter();
+            }
+            catch (Exception ex)
             {
-                _gameInteractionService.SetRandomEncounterContext(new NetworkRandomEncounterContext() { Recording = new NetworkRandomEncounter() });
-                return;
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            _multiplayerActorAccessor.Client.OnBeforeTryRollRandomEncounter();
         }
 
         public void OnAfterTryRollRandomEncounter()
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
 
-            if (_multiplayerActorAccessor.Host.IsActive)
-            {
-                _multiplayerActorAccessor.Host.OnAfterTryRollRandomEncounter();
-                return;
-            }
+                if (_multiplayerActorAccessor.Host.IsActive)
+                {
+                    _multiplayerActorAccessor.Host.OnAfterTryRollRandomEncounter();
+                    return;
+                }
 
-            if (_gameInteractionService.RemoteContext?.RandomEncounter != null)
+                if (_gameInteractionService.RemoteContext?.RandomEncounter != null)
+                {
+                    _gameInteractionService.RemoteContext.RandomEncounter = null;
+                    _gameInteractionService.UpdateIsInCombatStatus();
+                }
+            }
+            catch (Exception ex)
             {
-                _gameInteractionService.RemoteContext.RandomEncounter = null;
-                _gameInteractionService.UpdateIsInCombatStatus();
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
         }
 
         public int? GetNextRestBanter(int minInclusive, int maxExclusive)
         {
-            if (_multiplayerActorAccessor.Current == null)
+            try
             {
-                return null;
-            }
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return null;
+                }
 
-            var banterSeed = _multiplayerActorAccessor.Current.RestBanterSeed;
-            var nextBanter = ValueGenerator.Range(banterSeed, minInclusive, maxExclusive);
-            _logger.LogInformation("Next rest banter has been selected. Seed={seed}, Index={index}", banterSeed, nextBanter);
-            return nextBanter;
+                var banterSeed = _multiplayerActorAccessor.Current.RestBanterSeed;
+                var nextBanter = ValueGenerator.Range(banterSeed, minInclusive, maxExclusive);
+                _logger.LogInformation("Next rest banter has been selected. Seed={seed}, Index={index}", banterSeed, nextBanter);
+                return nextBanter;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public void OnInterrupRestBanterBark(NetworkRestBanter networkBanter)
         {
-            if (_multiplayerActorAccessor == null)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor == null)
+                {
+                    return;
+                }
 
-            _multiplayerActorAccessor.Current.OnInterrupRestBanterBark(networkBanter);
+                _multiplayerActorAccessor.Current.OnInterrupRestBanterBark(networkBanter);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public NetworkAIAction OnAfterAISelectedAction(NetworkAIAction action)
         {
-            if (_multiplayerActorAccessor == null)
+            try
             {
-                return null;
-            }
+                if (_multiplayerActorAccessor == null)
+                {
+                    return null;
+                }
 
-            var possibleOverride = _multiplayerActorAccessor.Current.OnAfterAISelectedAction(action);
-            return possibleOverride;
+                var possibleOverride = _multiplayerActorAccessor.Current.OnAfterAISelectedAction(action);
+                return possibleOverride;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         public void OnTransferVendorItem(NetworkVendorItemTransfer transfer)
         {
-            if (_multiplayerActorAccessor == null)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor == null)
+                {
+                    return;
+                }
 
-            var vendorItemTransfer = _gameInteractionService.RemoteContext?.VendorItemTransfer;
-            if (vendorItemTransfer != null && string.Equals(vendorItemTransfer.ItemId, transfer.Item.UniqueId, StringComparison.OrdinalIgnoreCase))
+                var vendorItemTransfer = _gameInteractionService.RemoteContext?.VendorItemTransfer;
+                if (vendorItemTransfer != null && string.Equals(vendorItemTransfer.ItemId, transfer.Item.UniqueId, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnTransferVendorItem(transfer);
+            }
+            catch (Exception ex)
             {
-                return;
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            _multiplayerActorAccessor.Current.OnTransferVendorItem(transfer);
         }
 
         public void OnMakeVendorDeal()
         {
-            if (_multiplayerActorAccessor == null)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor == null)
+                {
+                    return;
+                }
 
-            if (_multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnMakeVendorDeal();
+            }
+            catch (Exception ex)
             {
-                return;
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            _multiplayerActorAccessor.Host.OnMakeVendorDeal();
         }
 
         public void OnCloseVendorWindow()
         {
-            if (_multiplayerActorAccessor == null)
+            try
             {
-                return;
-            }
+                if (_multiplayerActorAccessor == null)
+                {
+                    return;
+                }
 
-            if (_multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnCloseVendorWindow();
+            }
+            catch (Exception ex)
             {
-                return;
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
             }
-
-            _multiplayerActorAccessor.Host.OnCloseVendorWindow();
         }
 
         public bool CanFullyControlVendorUI()
         {
             return _multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Host.IsActive;
+        }
+
+        public void OnMemorizeSpell(NetworkSpellSlot slot)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnMemorizeSpell(slot);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
+        }
+
+        public void OnForgetSpell(NetworkSpellSlot slot)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnForgetSpell(slot);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
         }
 
         private void ShowEscMenuMultiplayerLobby()
