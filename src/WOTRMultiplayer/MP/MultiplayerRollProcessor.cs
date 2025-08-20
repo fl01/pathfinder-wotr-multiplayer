@@ -747,21 +747,21 @@ namespace WOTRMultiplayer.MP
         private bool ShouldRetrieveRoll(object rule)
         {
             var gameMode = _gameInteractionService.CurrentGameMode;
-            return _multiplayerActorAccessor.Current != null && IsMeaningfulRoll(gameMode, rule) && !IsRollOwner(rule, false);
+            return _multiplayerActorAccessor.Current != null && IsMeaningfulRoll(gameMode, rule) && !IsRollOwner(rule);
         }
 
         private bool ShouldStoreRoll(object rule)
         {
             var gameMode = _gameInteractionService.CurrentGameMode;
-            return _multiplayerActorAccessor.Current != null && IsMeaningfulRoll(gameMode, rule) && IsRollOwner(rule, true);
+            return _multiplayerActorAccessor.Current != null && IsMeaningfulRoll(gameMode, rule) && IsRollOwner(rule);
         }
 
-        private bool IsRollOwner(object rule, bool silent)
+        private bool IsRollOwner(object rule)
         {
             return rule switch
             {
                 RuleSkillCheck => _multiplayerActorAccessor.Host.IsActive,
-                _ => _multiplayerActorAccessor.Current.IsDiceRollOwner(silent),
+                _ => _multiplayerActorAccessor.Current.IsDiceRollOwner(),
             };
         }
 

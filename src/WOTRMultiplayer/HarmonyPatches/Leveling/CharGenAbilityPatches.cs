@@ -11,7 +11,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
     {
         [HarmonyPatch(typeof(CharGenAbilityScoreAllocatorCommonView), nameof(CharGenSkillAllocatorCommonView.OnUpButton))]
         [HarmonyPrefix]
-        public static bool CharGenAbilityScoreAllocatorCommonView_OnUpButton_Prefix(CharGenAbilityScoreAllocatorCommonView __instance)
+        public static bool CharGenAbilityScoreAllocatorCommonView_OnUpButton_Prefix()
         {
             if (!Main.Multiplayer.IsActive)
             {
@@ -24,7 +24,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
 
         [HarmonyPatch(typeof(CharGenAbilityScoreAllocatorCommonView), nameof(CharGenSkillAllocatorCommonView.OnDownButton))]
         [HarmonyPrefix]
-        public static bool CharGenAbilityScoreAllocatorCommonView_OnDownButton_Prefix(CharGenAbilityScoreAllocatorCommonView __instance)
+        public static bool CharGenAbilityScoreAllocatorCommonView_OnDownButton_Prefix()
         {
             if (!Main.Multiplayer.IsActive)
             {

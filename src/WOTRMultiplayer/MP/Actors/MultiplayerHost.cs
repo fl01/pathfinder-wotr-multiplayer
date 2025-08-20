@@ -371,9 +371,9 @@ namespace WOTRMultiplayer.MP.Actors
             }
         }
 
-        public bool IsDiceRollOwner(bool silent)
+        public bool IsDiceRollOwner()
         {
-            return IsRolledByHost(silent) || IsRolledByLocalPlayer(silent);
+            return IsRolledByHost() || IsRolledByLocalPlayer();
         }
 
         public void OnPerceptionCheck(NetworkPerceptionCheck check)

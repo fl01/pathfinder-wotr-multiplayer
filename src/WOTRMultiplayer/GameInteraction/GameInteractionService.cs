@@ -2116,13 +2116,12 @@ namespace WOTRMultiplayer.GameInteraction
 
         private (ItemEntity itemEntity, Func<ItemEntity, ItemEntity> vendorAction) GetDataForVendorTransferAction(NetworkItem networkItem, int count, VendorItemActionTarget target, VendorItemAction itemAction)
         {
-            Func<ItemEntity, ItemEntity> removeFromSellAction = i => Game.Instance.Vendor.RemoveFromSell(i, count);
             (ItemsCollection source, Func<ItemEntity, ItemEntity> vendorAction) = target switch
             {
-                VendorItemActionTarget.Sell when itemAction == VendorItemAction.Remove => (Game.Instance.Vendor.ItemsForSell, removeFromSellAction),
-                VendorItemActionTarget.Buy when itemAction == VendorItemAction.Add => (Game.Instance.Vendor.StoreItems, i => Game.Instance.Vendor.AddForBuy(i, count)),
-                VendorItemActionTarget.Buy when itemAction == VendorItemAction.Remove => (Game.Instance.Vendor.ItemsForBuy, i => Game.Instance.Vendor.RemoveFromBuy(i, count)),
-                _ => (null, null),
+                VendorItemActionTarget.Sell when itemAction == VendorItemAction.Remove => Tuple.Create<ItemsCollection, Func<ItemEntity, ItemEntity>>(Game.Instance.Vendor.ItemsForSell, i => Game.Instance.Vendor.RemoveFromSell(i, count)),
+                VendorItemActionTarget.Buy when itemAction == VendorItemAction.Add => Tuple.Create<ItemsCollection, Func<ItemEntity, ItemEntity>>(Game.Instance.Vendor.StoreItems, i => Game.Instance.Vendor.AddForBuy(i, count)),
+                VendorItemActionTarget.Buy when itemAction == VendorItemAction.Remove => Tuple.Create<ItemsCollection, Func<ItemEntity, ItemEntity>>(Game.Instance.Vendor.ItemsForBuy, i => Game.Instance.Vendor.RemoveFromBuy(i, count)),
+                _ => Tuple.Create<ItemsCollection, Func<ItemEntity, ItemEntity>>(null, null),
             };
 
             if (source == null)
@@ -2131,7 +2130,6 @@ namespace WOTRMultiplayer.GameInteraction
                 return (null, null);
             }
 
-            // there items could never be slotted
             var item = source.Items.FirstOrDefault(i => IsSameItem(i, networkItem));
             return (item, vendorAction);
         }

@@ -116,10 +116,6 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
             return null;
         }
 
-        public void StartTurnBasedCombatTurn(bool isActingInSurpriseRound)
-        {
-        }
-
         public void EndTurnBasedCombatTurn()
         {
         }
@@ -270,10 +266,6 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
         }
 
         public void TryInterruptRestBanter(NetworkRestBanter banter)
-        {
-        }
-
-        public void StartTurnBasedCombatTurnAsAnotherUnit(string unitId)
         {
         }
 

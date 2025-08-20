@@ -1002,9 +1002,8 @@ namespace WOTRMultiplayer.MP.Actors
             }
         }
 
-        protected bool IsRolledByHost(bool silent)
+        protected bool IsRolledByHost()
         {
-            silent = true;
             var isNotInCombat = Game.Combat == null;
             var isCombatNotInitialized = !(Game.Combat?.IsInitialized ?? false);
             var isTurnNotInitialized = Game.Combat?.Turn == null;
@@ -1014,28 +1013,15 @@ namespace WOTRMultiplayer.MP.Actors
                 || isTurnNotInitialized // could happen when some new NPC joins midfight in midturns, e.g. Anevia in prologue
                 || isAI; // clients are getting their AI rolls from host
 
-            if (!silent)
-            {
-                Logger.LogInformation("IsRolledByHost calculation. Result={result}, IsNotInCombat={isNotInCombat}, IsCombatNotInitialized={isCombatNotInitialized}, IsTurnNotInitialized={isTurnNotInitialized}, IsAI={isAI}",
-                    result, isNotInCombat, isCombatNotInitialized, isTurnNotInitialized, isAI);
-            }
-
             return result;
         }
 
-        protected bool IsRolledByLocalPlayer(bool silent)
+        protected bool IsRolledByLocalPlayer()
         {
-            silent = true;
             var isNotAI = !(Game.Combat?.Turn?.IsAI ?? false);
             var isLocalPlayer = Game.Combat?.Turn?.IsLocalPlayer ?? false;
             var result = isNotAI  // clients are getting their AI rolls from host
                 && isLocalPlayer; // other MP players are getting rolls from turn owner
-
-            if (!silent)
-            {
-                Logger.LogInformation("IsRolledByLocalPlayer calculation. Result={result}, IsNotAI={isNotAI}, IsLocalPlayer={isLocalPlayer}",
-                result, isNotAI, isLocalPlayer);
-            }
 
             return result;
         }

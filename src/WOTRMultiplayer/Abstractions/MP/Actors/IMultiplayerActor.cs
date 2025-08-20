@@ -76,7 +76,7 @@ namespace WOTRMultiplayer.Abstractions.MP.Actors
 
         void ForceLoadGame(string savePath, string gameId);
 
-        bool IsDiceRollOwner(bool silent);
+        bool IsDiceRollOwner();
 
         TRollValue RetrieveRoll<TRollValue>(int networkDiceRollId, string unitId)
             where TRollValue : RollValueBase;
