@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using WOTRMultiplayer.Networking.Messages;
@@ -9,7 +10,7 @@ namespace WOTRMultiplayer.Networking.UnitTests.Messages
     public class MessagesTests
     {
         [Test]
-        public void NetworkMessages_HaveUniqueIds()
+        public void NetworkMessages_HaveNoDuplicateMessageTypeIds()
         {
             // Arrange
             var allMessages = Assembly
@@ -26,10 +27,10 @@ namespace WOTRMultiplayer.Networking.UnitTests.Messages
             Assert.That(duplicateIds.Count, Is.EqualTo(0), "Duplicate Ids: " + string.Join(", ", duplicateIds.Select(x => $"{x.Key} ({string.Join(",", x.Select(a => a.Type.Name).ToList())})")));
         }
 
-        [TestCase(100, 1000, "Lobby")]
-        [TestCase(1001, 9000, "Game")]
-        [TestCase(9000, 10000, "Requests")]
-        public void NetworkMessages_NoMissingIds(int start, int end, string groupName)
+        [TestCase((int)MessageTypes.Lobby.None)]
+        [TestCase((int)MessageTypes.Game.None)]
+        [TestCase((int)MessageTypes.Request.None)]
+        public void NetworkMessages_ShouldNotUseDelimiterValueAsMessageTypeId(int delimiter)
         {
             // Arrange
             var allMessages = Assembly
@@ -38,17 +39,36 @@ namespace WOTRMultiplayer.Networking.UnitTests.Messages
                 .Where(t => t.GetCustomAttribute<BeetleX.Packets.MessageTypeAttribute>() != null)
                 .Select(t => new { Type = t, MessageType = t.GetCustomAttribute<BeetleX.Packets.MessageTypeAttribute>() })
                 .ToList();
-            var messagesInRange = allMessages
-                .Where(x => (int)x.MessageType.ID >= start && (int)x.MessageType.ID < end)
-                .OrderBy(x => (int)x.MessageType.ID)
-                .ToList();
-            var expectedRange = Enumerable.Range(start, messagesInRange.Count).ToList();
 
             // Act
-            var missingIds = expectedRange.Except(messagesInRange.Select(x => (int)x.MessageType.ID));
+            var restrictedIdsCount = allMessages.Count(x => (int)x.MessageType.ID == delimiter);
 
             // Assert
-            Assert.That(missingIds.Count, Is.EqualTo(0), $"{groupName} missing Ids: " + string.Join(",", missingIds.Select(x => x.ToString())));
+            Assert.That(restrictedIdsCount, Is.EqualTo(0));
+        }
+
+        [TestCase(typeof(MessageTypes.Lobby))]
+        [TestCase(typeof(MessageTypes.Game))]
+        [TestCase(typeof(MessageTypes.Request))]
+        public void NetworkMessages_EveryEnumValueIsInUse(Type type)
+        {
+            // Arrange
+            var allMessageIds = Assembly
+                .GetAssembly(typeof(ProtobufPacket))
+                .GetTypes()
+                .Where(t => t.GetCustomAttribute<BeetleX.Packets.MessageTypeAttribute>() != null)
+                .Select(t => new { Type = t, MessageType = t.GetCustomAttribute<BeetleX.Packets.MessageTypeAttribute>() })
+                .Select(x => (int)x.MessageType.ID)
+                .ToList();
+
+            // element 1 is None
+            var allEnumValues = Enum.GetValues(type).Cast<int>().Skip(1).ToList();
+
+            // Act
+            var notUsedValues = allEnumValues.Except(allMessageIds);
+
+            // Assert
+            Assert.That(notUsedValues.Count, Is.EqualTo(0));
         }
     }
 }
