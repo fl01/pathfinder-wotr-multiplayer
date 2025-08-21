@@ -21,7 +21,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
     {
         [HarmonyPatch(typeof(UnitCombatPrepareController), nameof(UnitCombatPrepareController.Tick))]
         [HarmonyPrefix]
-        public static bool UnitCombatPrepareController_Tick_Prefix(UnitCombatPrepareController __instance)
+        public static bool UnitCombatPrepareController_Tick_Prefix()
         {
             if (!Main.Multiplayer.IsActive)
             {
@@ -34,7 +34,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
         [HarmonyPatch(typeof(CombatController), nameof(CombatController.Tick))]
         [HarmonyPrefix]
-        public static bool CombatController_Tick_Prefix(CombatController __instance)
+        public static bool CombatController_Tick_Prefix()
         {
             if (!Main.Multiplayer.IsActive)
             {

@@ -16,6 +16,7 @@ using WOTRMultiplayer.MP.Entities.Inspect;
 using WOTRMultiplayer.MP.Entities.Leveling;
 using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
+using WOTRMultiplayer.MP.Entities.Movement;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Settings;
 using WOTRMultiplayer.MP.Entities.Spells;
@@ -70,10 +71,6 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
         }
 
         public void MarkSuggestedDialogAnswers(List<NetworkDialogAnswerSuggestion> suggestions)
-        {
-        }
-
-        public void MoveNonCombatCharacter(string unitId, NetworkVector3 destination, float delay, float orientation)
         {
         }
 
@@ -354,6 +351,10 @@ namespace WOTR.Multiplayer.Playground.Core.Dummies
         }
 
         public void IncreaseLevelingAbilityScore(NetworkLevelingAbilityScore abilityScore)
+        {
+        }
+
+        public void MoveNonCombatCharacter(NetworkCharacterMove move)
         {
         }
     }

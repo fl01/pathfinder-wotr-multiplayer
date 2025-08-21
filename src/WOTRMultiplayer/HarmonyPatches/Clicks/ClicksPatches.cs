@@ -10,6 +10,7 @@ using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
 using UnityEngine;
 using WOTRMultiplayer.MP.Entities;
+using WOTRMultiplayer.MP.Entities.Movement;
 
 namespace WOTRMultiplayer.HarmonyPatches.Clicks
 {
@@ -43,8 +44,14 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
                 return;
             }
 
-            var destination = new NetworkVector3(settings.Destination.x, settings.Destination.y, settings.Destination.z);
-            Main.Multiplayer.MoveNonCombatCharacter(unit.UniqueId, destination, settings.Delay, settings.Orientation);
+            var move = new NetworkCharacterMove
+            {
+                UnitId = unit.UniqueId,
+                Delay = settings.Delay,
+                Destination = new NetworkVector3(settings.Destination.x, settings.Destination.y, settings.Destination.z),
+                Orientation = settings.Orientation
+            };
+            Main.Multiplayer.MoveNonCombatCharacter(move);
         }
 
         /// <summary>

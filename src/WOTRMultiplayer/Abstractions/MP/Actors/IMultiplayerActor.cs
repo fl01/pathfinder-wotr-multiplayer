@@ -9,6 +9,7 @@ using WOTRMultiplayer.MP.Entities.Equipment;
 using WOTRMultiplayer.MP.Entities.Leveling;
 using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
+using WOTRMultiplayer.MP.Entities.Movement;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
 using WOTRMultiplayer.MP.Entities.Spells;
@@ -30,7 +31,7 @@ namespace WOTRMultiplayer.Abstractions.MP.Actors
 
         bool ReadyChanged();
 
-        void MoveNonCombatCharacter(string unitId, NetworkVector3 destination, float delay, float orientation);
+        void MoveNonCombatCharacter(NetworkCharacterMove move);
 
         bool IsInCombat { get; }
 

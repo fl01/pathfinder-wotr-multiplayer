@@ -12,6 +12,7 @@ using WOTRMultiplayer.MP.Entities.Inspect;
 using WOTRMultiplayer.MP.Entities.Leveling;
 using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
+using WOTRMultiplayer.MP.Entities.Movement;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Spells;
 using WOTRMultiplayer.MP.Entities.Vendor;
@@ -32,7 +33,7 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         void InitializeEscMenuLobbyWindow(InitializeEscMenuLobbyWindowContext context);
 
-        void MoveNonCombatCharacter(string unitId, NetworkVector3 destination, float delay, float orientation);
+        void MoveNonCombatCharacter(NetworkCharacterMove move);
 
         bool OnStartGameMode(GameModeType type);
 

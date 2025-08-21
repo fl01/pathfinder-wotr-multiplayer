@@ -14,7 +14,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
     {
         [HarmonyPatch(typeof(AiBrainController), nameof(AiBrainController.TickBrain))]
         [HarmonyPrefix]
-        public static bool AiBrainController_TickBrain_Prefix(AiBrainController __instance, UnitEntityData unit)
+        public static bool AiBrainController_TickBrain_Prefix(UnitEntityData unit)
         {
             if (!Main.Multiplayer.IsActive)
             {
@@ -38,7 +38,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
         [HarmonyPatch(typeof(AiBrainController), nameof(AiBrainController.FindBestAction))]
         [HarmonyPostfix]
-        public static void AiBrainController_FindBestAction_Postfix(AiBrainController __instance, UnitEntityData unit, DecisionContext context, ref AiAction bestActionResult, ref UnitEntityData bestTargetResult, bool isAutoUseAbility)
+        public static void AiBrainController_FindBestAction_Postfix(UnitEntityData unit, DecisionContext context, ref AiAction bestActionResult, ref UnitEntityData bestTargetResult, bool isAutoUseAbility)
         {
             if (!Main.Multiplayer.IsActive)
             {

@@ -21,6 +21,7 @@ using WOTRMultiplayer.MP.Entities.Inspect;
 using WOTRMultiplayer.MP.Entities.Leveling;
 using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
+using WOTRMultiplayer.MP.Entities.Movement;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Settings;
 using WOTRMultiplayer.MP.Entities.Spells;
@@ -1486,12 +1487,12 @@ namespace WOTRMultiplayer.MP.Actors
             await SendLocalRollAsync(playerId, request);
         }
 
-        private void OnNotifyCharacterMove(long playerId, NotifyCharacterMove move)
+        private void OnNotifyCharacterMove(long playerId, NotifyCharacterMove characterMove)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, UnitId={UnitId}, Destination={Destination}", nameof(NotifyCharacterMove), playerId, move.UnitId, move.Destination);
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, UnitId={UnitId}, Destination={Destination}, Delay={Delay}, Orientation={Orientation}", nameof(NotifyCharacterMove), playerId, characterMove.Move.UnitId, characterMove.Move.Destination, characterMove.Move.Delay, characterMove.Move.Orientation);
 
-            var destination = Mapper.Map<NetworkVector3>(move.Destination);
-            GameInteraction.MoveNonCombatCharacter(move.UnitId, destination, move.Delay, move.Orientation);
+            var move = Mapper.Map<NetworkCharacterMove>(characterMove.Move);
+            GameInteraction.MoveNonCombatCharacter(move);
 
             Logger.LogInformation("Resending {MessageType}", nameof(NotifyCharacterMove));
             _networkServer.SendAllExcept(playerId, move);

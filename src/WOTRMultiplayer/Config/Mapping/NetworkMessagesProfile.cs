@@ -8,6 +8,7 @@ using WOTRMultiplayer.MP.Entities.Inspect;
 using WOTRMultiplayer.MP.Entities.Leveling;
 using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
+using WOTRMultiplayer.MP.Entities.Movement;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
 using WOTRMultiplayer.MP.Entities.Settings;
@@ -22,6 +23,9 @@ namespace WOTRMultiplayer.Config.Mapping
         {
             CreateMap<NetworkVector3, Networking.Messages.Contracts.NetworkVector3>()
                 .ReverseMap();
+
+            CreateMap<NetworkCharacterMove, Networking.Messages.Contracts.NetworkCharacterMove>()
+              .ReverseMap();
 
             CreateMap<NetworkDialogAnswerSuggestion, Networking.Messages.Contracts.NetworkDialogAnswerSuggestion>()
                .ReverseMap();

@@ -17,7 +17,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Loot
     {
         [HarmonyPatch(typeof(LootContextVM), nameof(LootContextVM.HandleLootInterraction))]
         [HarmonyPrefix]
-        public static bool LootContextVM_HandleLootInterraction_Prefix(LootContextVM __instance, UnitEntityData unit)
+        public static bool LootContextVM_HandleLootInterraction_Prefix(UnitEntityData unit)
         {
             if (!Main.Multiplayer.IsActive)
             {
@@ -51,7 +51,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Loot
 
         [HarmonyPatch(typeof(SlotsGroupVM<ItemSlotVM>), nameof(SlotsGroupVM<ItemSlotVM>.Collect))]
         [HarmonyPrefix]
-        public static void SlotsGroupVM_Collect_Prefix(SlotsGroupVM<ItemSlotVM> __instance, ItemSlotVM itemSlotVM)
+        public static void SlotsGroupVM_Collect_Prefix(ItemSlotVM itemSlotVM)
         {
             if (!Main.Multiplayer.IsActive || itemSlotVM == null || !itemSlotVM.HasItem || itemSlotVM.NeedSkinningToCollect && (!itemSlotVM.IsSkinned.Value || !itemSlotVM.SkinningResult))
             {

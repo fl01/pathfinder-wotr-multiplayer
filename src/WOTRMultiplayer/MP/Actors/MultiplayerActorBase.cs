@@ -19,6 +19,7 @@ using WOTRMultiplayer.MP.Entities.Equipment;
 using WOTRMultiplayer.MP.Entities.Leveling;
 using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
+using WOTRMultiplayer.MP.Entities.Movement;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
 using WOTRMultiplayer.MP.Entities.Spells;
@@ -440,7 +441,7 @@ namespace WOTRMultiplayer.MP.Actors
         {
             if (Game.Combat.Turn.IsAI || !Game.Combat.Turn.IsInProgress)
             {
-                Logger.LogInformation("Turn end is allowed. Round={Round}, UnitId={UnitId}, IsAI={IsAI}", Game.Combat.Round, Game.Combat.Turn.UnitId, Game.Combat.Turn.IsAI);
+                Logger.LogInformation("Turn end is allowed. Round={Round}, TurnUnitId={TurnUnitId}, IsAI={IsAI}, UnitId={UnitId}", Game.Combat.Round, Game.Combat.Turn.UnitId, Game.Combat.Turn.IsAI, unitId);
                 Game.Combat.Turn = null;
                 return true;
             }
@@ -768,21 +769,18 @@ namespace WOTRMultiplayer.MP.Actors
             Game.Leveling = null;
         }
 
-        public void MoveNonCombatCharacter(string unitId, NetworkVector3 destination, float delay, float orientation)
+        public void MoveNonCombatCharacter(NetworkCharacterMove move)
         {
             if (Game.Combat != null)
             {
                 return;
             }
 
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, Destination={Destination}, Delay={Delay}, Orientation={Orientation}", nameof(NotifyCharacterMove), unitId, destination, delay, orientation);
             var message = new NotifyCharacterMove
             {
-                UnitId = unitId,
-                Destination = new Networking.Messages.Contracts.NetworkVector3(destination.X, destination.Y, destination.Z),
-                Delay = delay,
-                Orientation = orientation
+                Move = Mapper.Map<Networking.Messages.Contracts.NetworkCharacterMove>(move)
             };
+            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, Destination={Destination}, Delay={Delay}, Orientation={Orientation}", nameof(NotifyCharacterMove), message.Move.UnitId, message.Move.Destination, message.Move.Delay, message.Move.Orientation);
 
             Send(message);
         }

@@ -11,6 +11,7 @@ using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.MP.Actors;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Dialogs;
+using WOTRMultiplayer.MP.Entities.Movement;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
 using WOTRMultiplayer.Networking.Abstractions;
 
@@ -97,7 +98,14 @@ namespace WOTRMultiplayer.Playground.Host
                         host.Start();
                         break;
                     case "move":
-                        host.MoveNonCombatCharacter("xdd", new NetworkVector3(22.92498f, 42.053f, -9.376869f), 0, 138.3618f);
+                        var move = new NetworkCharacterMove
+                        {
+                            UnitId = "xdd",
+                            Destination = new NetworkVector3(22.92498f, 42.053f, -9.376869f),
+                            Orientation = 138.3618f,
+                            Delay = 0
+                        };
+                        host.MoveNonCombatCharacter(move);
                         break;
                     case "loaded":
                         host.OnAreaScenesLoaded();

@@ -19,6 +19,7 @@ using WOTRMultiplayer.MP.Entities.Inspect;
 using WOTRMultiplayer.MP.Entities.Leveling;
 using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
+using WOTRMultiplayer.MP.Entities.Movement;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Spells;
 using WOTRMultiplayer.MP.Entities.Vendor;
@@ -114,7 +115,7 @@ namespace WOTRMultiplayer.MP
             _lobbyWindowController.OnCharacterOwnerChanged = OnLobbyCharacterOwnerChanged;
         }
 
-        public void MoveNonCombatCharacter(string unitId, NetworkVector3 destination, float delay, float orientation)
+        public void MoveNonCombatCharacter(NetworkCharacterMove move)
         {
             try
             {
@@ -124,7 +125,7 @@ namespace WOTRMultiplayer.MP
                     return;
                 }
 
-                _multiplayerActorAccessor.Current.MoveNonCombatCharacter(unitId, destination, delay, orientation);
+                _multiplayerActorAccessor.Current.MoveNonCombatCharacter(move);
             }
             catch (Exception ex)
             {

@@ -81,6 +81,7 @@ using WOTRMultiplayer.MP.Entities.Inspect;
 using WOTRMultiplayer.MP.Entities.Leveling;
 using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.MapObjects;
+using WOTRMultiplayer.MP.Entities.Movement;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Settings;
 using WOTRMultiplayer.MP.Entities.Spells;
@@ -355,22 +356,22 @@ namespace WOTRMultiplayer.GameInteraction
             }
         }
 
-        public void MoveNonCombatCharacter(string unitId, NetworkVector3 destination, float delay, float orientation)
+        public void MoveNonCombatCharacter(NetworkCharacterMove move)
         {
-            var character = Game.Instance.Player.PartyAndPets.FirstOrDefault(f => string.Equals(f.UniqueId, unitId, StringComparison.OrdinalIgnoreCase));
+            var character = Game.Instance.Player.PartyAndPets.FirstOrDefault(f => string.Equals(f.UniqueId, move.UnitId, StringComparison.OrdinalIgnoreCase));
             if (character == null)
             {
-                _logger.LogError("Can't move missing character. UnitId={UnitId}", unitId);
+                _logger.LogError("Can't move missing character. UnitId={UnitId}", move.UnitId);
                 return;
             }
 
             _mainThreadAccessor.Post(() =>
             {
-                var unityDestination = new UnityEngine.Vector3(destination.X, destination.Y, destination.Z);
+                var unityDestination = new UnityEngine.Vector3(move.Destination.X, move.Destination.Y, move.Destination.Z);
                 var command = new UnitMoveTo(unityDestination, 0.3f)
                 {
-                    MovementDelay = delay,
-                    Orientation = orientation,
+                    MovementDelay = move.Delay,
+                    Orientation = move.Orientation,
                     CreatedByPlayer = true
                 };
                 character.Commands.Run(command);
