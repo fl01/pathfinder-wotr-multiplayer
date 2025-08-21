@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
+using ProtoBuf;
 using WOTRMultiplayer.Networking.Messages;
 
 namespace WOTRMultiplayer.Networking.UnitTests.Messages
@@ -69,6 +70,23 @@ namespace WOTRMultiplayer.Networking.UnitTests.Messages
 
             // Assert
             Assert.That(notUsedValues.Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void NetworkMessages_EachPublicPropertyIsMarkedWithProtoMember()
+        {
+            // Arrange
+            var allProtoContracts = Assembly
+                .GetAssembly(typeof(ProtobufPacket))
+                .GetTypes()
+                .Where(t => t.GetCustomAttribute<ProtoContractAttribute>() != null)
+                .ToList();
+
+            // Act
+            var invalidProtoContracts = allProtoContracts.Where(x => x.GetProperties(BindingFlags.Public | BindingFlags.Instance).Any(x => x.GetCustomAttribute<ProtoMemberAttribute>() == null)).ToList();
+
+            // Assert
+            Assert.That(invalidProtoContracts.Count, Is.EqualTo(0), "Missing ProtoMember: " + string.Join(", ", invalidProtoContracts.Select(x => x.Name)));
         }
     }
 }
