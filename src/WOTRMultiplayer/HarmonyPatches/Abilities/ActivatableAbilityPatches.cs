@@ -27,7 +27,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Abilities
                 if (__instance.m_IsOn
                     || !__instance.Owner.Unit.Buffs.Enumerable.Any(a => string.Equals(a.Blueprint.NameForAcronym, "MountedBuff", System.StringComparison.OrdinalIgnoreCase)))
                 {
-                    Main.GetLogger<ActivatableAbilityPatches>().LogInformation("Mount toggle is ignored. IsActive={value}", __instance.m_IsOn);
+                    Main.GetLogger<ActivatableAbilityPatches>().LogInformation("Mount toggle is ignored. IsActive={IsActive}", __instance.m_IsOn);
                     return;
                 }
             }

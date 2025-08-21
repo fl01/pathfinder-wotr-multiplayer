@@ -43,7 +43,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             var match = matcher.Advance(1);
             if (match.Instruction.opcode != OpCodes.Ldarg_0)
             {
-                Main.GetLogger<RuleSavingThrowPatches>().LogError("Transpiler has not been applied. Target={target}", target);
+                Main.GetLogger<RuleSavingThrowPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
                 matcher.Instructions();
             }
 
@@ -57,7 +57,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             };
 
             match.Insert(newInstructions);
-            Main.GetLogger<RuleSavingThrowPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<RuleSavingThrowPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
 
             return matcher.Instructions();
         }

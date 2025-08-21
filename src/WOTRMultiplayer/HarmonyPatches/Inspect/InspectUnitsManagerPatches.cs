@@ -44,7 +44,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Inspect
             var match = matcher.Start().SearchForward(x => x.Calls(lookFor));
             if (labels.Count == 0 || match.IsInvalid)
             {
-                Main.GetLogger<InspectUnitsManagerPatches>().LogError("Transpiler has not been applied. Target={target}", target);
+                Main.GetLogger<InspectUnitsManagerPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
                 return instructions;
             }
 
@@ -61,7 +61,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Inspect
             };
             match.Insert(newInstructions);
 
-            Main.GetLogger<InspectUnitsManagerPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<InspectUnitsManagerPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 

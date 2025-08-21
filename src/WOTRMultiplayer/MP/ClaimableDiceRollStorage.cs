@@ -37,7 +37,7 @@ namespace WOTRMultiplayer.MP
                 {
                     if (claimableValue.ClaimingList.TryRemove(playerId, out _))
                     {
-                        _logger.LogInformation("Claimed roll value. RollId={rollId}, PlayerId={playerId}, OrderId={orderId}, RollType={rollType}", rollId, playerId, claimableValue.OrderId, claimableValue.Roll.GetType().Name);
+                        _logger.LogInformation("Claimed roll value. RollId={RollId}, PlayerId={PlayerId}, OrderId={OrderId}, RollType={RollType}", rollId, playerId, claimableValue.OrderId, claimableValue.Roll.GetType().Name);
                         return (TValue)claimableValue.Roll;
                     }
                 }
@@ -84,7 +84,7 @@ namespace WOTRMultiplayer.MP
                 var extraClaimableRoll = CreateClaimableRoll(claimingList, roll);
                 extraClaimableRoll.OrderId = entry.Rolls.Count;
                 entry.Rolls.Add(extraClaimableRoll);
-                _logger.LogWarning("Appended claimable roll value to existing entry. RollId={rollId}, RollType={rollType}, OrderId={orderId}, ClaimingListCount={playerId}", rollId, roll.GetType().Name, extraClaimableRoll.OrderId, claimingList.Count);
+                _logger.LogWarning("Appended claimable roll value to existing entry. RollId={RollId}, RollType={RollType}, OrderId={OrderId}, ClaimingListCount={ClaimingListCount}", rollId, roll.GetType().Name, extraClaimableRoll.OrderId, claimingList.Count);
             }
         }
 
@@ -100,7 +100,7 @@ namespace WOTRMultiplayer.MP
             var entry = new ClaimableDiceRollEntry();
             entry.Rolls.Add(rollValue);
             _rolls.TryAdd(rollId, entry);
-            _logger.LogInformation("Created claimable roll value. RollId={rollId}, RollType={rollType}, OrderId={orderId}, ClaimingListCount={playerId}, RollValue={rollValue}, IsReplacement={isReplacement}", rollId, roll.GetType().Name, rollValue.OrderId, claimingList.Count, rollValue.Roll, isReplacement);
+            _logger.LogInformation("Created claimable roll value. RollId={RollId}, RollType={RollType}, OrderId={OrderId}, ClaimingListCount={ClaimingListCount}, RollValue={RollValue}, IsReplacement={IsReplacement}", rollId, roll.GetType().Name, rollValue.OrderId, claimingList.Count, rollValue.Roll, isReplacement);
         }
 
         private ClaimableDiceRollValue<RollValueBase> CreateClaimableRoll(List<long> claimingList, RollValueBase roll)

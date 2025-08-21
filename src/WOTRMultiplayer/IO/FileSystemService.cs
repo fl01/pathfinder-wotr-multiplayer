@@ -15,13 +15,13 @@ namespace WOTRMultiplayer.IO
 
         public byte[] GetFile(string path)
         {
-            _logger.LogInformation("Retrieving file. Path={path}", path);
+            _logger.LogInformation("Retrieving file. Path={Path}", path);
             return File.Exists(path) ? File.ReadAllBytes(path) : null;
         }
 
         public bool WriteFile(string path, byte[] content)
         {
-            _logger.LogInformation("Writing file content. Path={path}, ContentSize={contentSize}", path, content.Length);
+            _logger.LogInformation("Writing file content. Path={Path}, ContentSize={ContentSize}", path, content.Length);
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
@@ -30,7 +30,7 @@ namespace WOTRMultiplayer.IO
             }
             catch (System.Exception ex)
             {
-                _logger.LogError(ex, "Unable to write file");
+                _logger.LogError(ex, "Unable to write file. Path={Path}", path);
                 return false;
             }
         }

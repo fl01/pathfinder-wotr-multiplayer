@@ -47,7 +47,7 @@ namespace WOTRMultiplayer.HarmonyPatches
             var match = fromEnd ? matcher.End().SearchBackwards(x => x.Calls(lookFor)) : matcher.SearchForward(x => x.Calls(lookFor));
             if (match.IsInvalid)
             {
-                Main.GetLogger<TurnBasedCombatPatches>().LogError("Transpiler has not been applied. Target={target}", target);
+                Main.GetLogger<TurnBasedCombatPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
                 return;
             }
 
@@ -61,7 +61,7 @@ namespace WOTRMultiplayer.HarmonyPatches
             match.RemoveInstruction();
             match.Insert(call);
 
-            Main.GetLogger<TurnBasedCombatPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<TurnBasedCombatPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
         }
 
         public static bool IsControlledByPlayers(UnitEntityData unit)

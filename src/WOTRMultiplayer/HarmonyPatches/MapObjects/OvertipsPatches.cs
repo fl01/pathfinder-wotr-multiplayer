@@ -72,7 +72,7 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
 
             if (match.IsInvalid)
             {
-                Main.GetLogger<OvertipsPatches>().LogError("Invalid transpiler position. Target={target}, Pos={pos}", target, match.Pos);
+                Main.GetLogger<OvertipsPatches>().LogError("Invalid transpiler position. Target={Target}, Position={Position}", target, match.Pos);
                 return instructions;
             }
 
@@ -84,7 +84,7 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
                 new(OpCodes.Call, replaceWith),
             };
             match.Insert(newInstructions);
-            Main.GetLogger<OvertipsPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<OvertipsPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 

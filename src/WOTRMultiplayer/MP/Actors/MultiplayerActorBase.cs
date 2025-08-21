@@ -138,7 +138,7 @@ namespace WOTRMultiplayer.MP.Actors
 
         public void CombatRoundStarted(int round)
         {
-            Logger.LogInformation("Combat round started. Round={round}", round);
+            Logger.LogInformation("Combat round started. Round={Round}", round);
             if (Game.Combat == null)
             {
                 Logger.LogWarning("Combat has not started yet");
@@ -155,7 +155,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return;
             }
 
-            Logger.LogInformation("Sending ability use. CasterId={unitId}, TargetId={targetId}, TargetPoint={targetPoint}, AbilityId={abilityId}, SpellbookId={spellbookId}, VectorPathCount={vectorPathCount}",
+            Logger.LogInformation("Sending ability use. CasterId={CasterId}, TargetId={TargetId}, TargetPoint={TargetPoint}, AbilityId={AbilityId}, SpellbookId={SpellbookId}, VectorPathCount={VectorPathCount}",
               ability.CasterId, ability.TargetId, ability.TargetPoint, ability.Id, ability.SpellbookId, ability.VectorPath?.Count);
 
             var message = new NotifyAbilityUse
@@ -173,7 +173,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return;
             }
 
-            Logger.LogInformation("Toggle activatable ability. CasterId={unitId}, TargetId={targetId}, AbilityId={abilityId}, IsActive={isActive}", activatableAbilityUse.CasterId, activatableAbilityUse.TargetId, activatableAbilityUse.Id, activatableAbilityUse.IsActive);
+            Logger.LogInformation("Toggle activatable ability. CasterId={CasterId}, TargetId={TargetId}, AbilityId={AbilityId}, IsActive={IsActive}", activatableAbilityUse.CasterId, activatableAbilityUse.TargetId, activatableAbilityUse.Id, activatableAbilityUse.IsActive);
 
             var message = new NotifyToggleActivatableAbility
             {
@@ -186,7 +186,7 @@ namespace WOTRMultiplayer.MP.Actors
         public TRollValue RetrieveRoll<TRollValue>(int networkDiceRollId, string unitId)
             where TRollValue : RollValueBase
         {
-            Logger.LogInformation("Retrieving roll over network. RollId={rollId}, UnitId={unitId}", networkDiceRollId, unitId);
+            Logger.LogInformation("Retrieving roll over network. RollId={RollId}, UnitId={UnitId}", networkDiceRollId, unitId);
 
             var waitForRollTimeout = TimeSpan.FromSeconds(10);
             var request = new DiceRollValueRequest { RollId = networkDiceRollId, Timeout = waitForRollTimeout, UnitId = unitId };
@@ -206,7 +206,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return;
             }
 
-            Logger.LogInformation("Sending unit click. TargetUnitId={targetUnitId}, VectorPathCount={pathCount}", click.TargetUnitId, click.VectorPath.Count);
+            Logger.LogInformation("Sending unit click. TargetUnitId={TargetUnitId}, VectorPathCount={VectorPathCount}", click.TargetUnitId, click.VectorPath.Count);
 
             var message = new NotifyUnitClicked
             {
@@ -223,7 +223,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return;
             }
 
-            Logger.LogInformation("Sending ground click. WorldPosition={worldPosition}, VectorPathCount={pathCount}, SelectedUnits={selectedUnits}", click.WorldPosition, click.VectorPath.Count, string.Join(";", click.SelectedUnits));
+            Logger.LogInformation("Sending ground click. WorldPosition={WorldPosition}, VectorPathCount={VectorPathCount}, SelectedUnits={SelectedUnits}", click.WorldPosition, click.VectorPath.Count, string.Join(";", click.SelectedUnits));
             var message = new NotifyGroundClicked
             {
                 Click = Mapper.Map<Networking.Messages.Contracts.NetworkClick>(click)
@@ -239,7 +239,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return;
             }
 
-            Logger.LogInformation("Sending map object click. WorldPosition={worldPosition}, VectorPathCount={pathCount}, SelectedUnits={selectedUnits}", click.WorldPosition, click.VectorPath.Count, string.Join(";", click.SelectedUnits));
+            Logger.LogInformation("Sending map object click. WorldPosition={WorldPosition}, VectorPathCount={VectorPathCount}, SelectedUnits={SelectedUnits}", click.WorldPosition, click.VectorPath.Count, string.Join(";", click.SelectedUnits));
             var message = new NotifyMapObjectClicked
             {
                 Click = Mapper.Map<Networking.Messages.Contracts.NetworkClick>(click)
@@ -250,7 +250,7 @@ namespace WOTRMultiplayer.MP.Actors
 
         public void OnLootContainer(NetworkLootContainer container)
         {
-            Logger.LogInformation("Sending looted container info. ContainerId={containerId}, ContainerPosition={containerPosition}, ItemsCount={itemsCount}, Items={itemsIds}", container.Id, container.Position, container.Items.Count, container.Items.Select(i => i.UniqueId));
+            Logger.LogInformation("Sending looted container info. ContainerId={ContainerId}, ContainerPosition={ContainerPosition}, ItemsCount={ItemsCount}, Items={Items}", container.Id, container.Position, container.Items.Count, container.Items.Select(i => i.UniqueId));
             var message = new NotifyContainerLooted
             {
                 Container = Mapper.Map<Networking.Messages.Contracts.NetworkLootContainer>(container)
@@ -261,7 +261,7 @@ namespace WOTRMultiplayer.MP.Actors
 
         public void OnDropItem(NetworkDropItem dropItem)
         {
-            Logger.LogInformation("Sending drop item. OwnerId={ownerId}, ItemId={itemId}, ItemName={itemName}", dropItem.OwnerEntityId, dropItem.Item.UniqueId, dropItem.Item.Name);
+            Logger.LogInformation("Sending drop item. OwnerId={OwnerId}, ItemId={ItemId}, ItemName={ItemName}", dropItem.OwnerEntityId, dropItem.Item.UniqueId, dropItem.Item.Name);
             var message = new NotifyDropItem
             {
                 Drop = Mapper.Map<Networking.Messages.Contracts.NetworkDropItem>(dropItem)
@@ -270,7 +270,6 @@ namespace WOTRMultiplayer.MP.Actors
             Send(message);
         }
 
-
         public void OnChangeActiveHandEquipmentSet(NetworkActiveHandEquipmentSet set)
         {
             if (!IsControlledByPlayers(set.UnitId))
@@ -278,7 +277,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return;
             }
 
-            Logger.LogInformation("Sending changed active hand equipment set. UnitId={unitId}, SetIndex={setIndex}", set.UnitId, set.Index);
+            Logger.LogInformation("Sending changed active hand equipment set. UnitId={UnitId}, SetIndex={SetIndex}", set.UnitId, set.Index);
             var message = new NotifyActiveHandEquipmentSetChanged
             {
                 Set = Mapper.Map<Networking.Messages.Contracts.NetworkActiveHandEquipmentSet>(set)
@@ -294,7 +293,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return;
             }
 
-            Logger.LogWarning("Sending changed equipment slot. SlotType={slotType}, SlotIndex={slotIndex}, ItemId={itemId}, OwnerId={ownerId}", equipmentSlot.Position.Type, equipmentSlot.Position.Index, equipmentSlot.Item?.UniqueId, equipmentSlot.OwnerId);
+            Logger.LogWarning("Sending changed equipment slot. SlotType={SlotType}, SlotIndex={SlotIndex}, ItemId={ItemId}, OwnerId={OwnerId}", equipmentSlot.Position.Type, equipmentSlot.Position.Index, equipmentSlot.Item?.UniqueId, equipmentSlot.OwnerId);
             var message = new NotifyEquipmentSlotChanged
             {
                 Slot = Mapper.Map<Networking.Messages.Contracts.NetworkEquipmentSlot>(equipmentSlot)
@@ -305,7 +304,7 @@ namespace WOTRMultiplayer.MP.Actors
 
         public void OnInteractWithMapObjectOvertip(NetworkOvertip networkOvertip)
         {
-            Logger.LogInformation("Sending overtip interaction. MapObjectId={mapObjectId}, Units={units}", networkOvertip.MapObject.Id, networkOvertip.Units);
+            Logger.LogInformation("Sending overtip interaction. MapObjectId={MapObjectId}, Units={Units}", networkOvertip.MapObject.Id, networkOvertip.Units);
             var message = new NotifyOvertipInteracted
             {
                 Overtip = Mapper.Map<Networking.Messages.Contracts.NetworkOvertip>(networkOvertip)
@@ -352,15 +351,16 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 var existingOwnershipConfiguration = oldCharacters.FirstOrDefault(old =>
                     old.Name == character.Name || old.Name.Contains(character.Name));
+
                 if (existingOwnershipConfiguration?.Owner != null)
                 {
                     character.Owner = existingOwnershipConfiguration.Owner;
-                    Logger.LogInformation("Character ownership has been preserved. UnitId={unitId}, CharacterName={characterName}, Owner={ownerId}", character.UnitId, character.Name, character.Owner.Id);
+                    Logger.LogInformation("Character ownership has been preserved. UnitId={UnitId}, CharacterName={CharacterName}, Owner={Owner}", character.UnitId, character.Name, character.Owner.Id);
                     continue;
                 }
 
                 character.Owner = defaultOwner;
-                Logger.LogInformation("Character ownership has been assigned to default player (host). UnitId={unitId}, CharacterName={characterName}, Owner={ownerId}", character.UnitId, character.Name, character.Owner.Id);
+                Logger.LogInformation("Character ownership has been assigned to default player (host). UnitId={UnitId}, CharacterName={CharacterName}, Owner={Owner}", character.UnitId, character.Name, character.Owner.Id);
             }
         }
 
@@ -376,7 +376,7 @@ namespace WOTRMultiplayer.MP.Actors
 
             ResetGameIdGenerator();
 
-            Logger.LogInformation("Notifying other players to force load save game. GameId={gameId}, Path={savePath}", Game.Id, savePath);
+            Logger.LogInformation("Notifying other players to force load save game. GameId={GameId}, Path={Path}", Game.Id, savePath);
             var message = new NotifySaveGameAssigned
             {
                 GameId = Game.Id,
@@ -409,6 +409,52 @@ namespace WOTRMultiplayer.MP.Actors
             Game.Combat = null;
         }
 
+        public bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound)
+        {
+            if (Game.Combat.Turn != null && Game.Combat.Turn.IsInProgress)
+            {
+                UpdateConfirmedMidCombatUnits();
+                Game.Combat.AIActions.Clear();
+                Logger.LogInformation("Turn start is allowed. UnitId={UnitId}, IsActingInSurpiseRound={IsActingInSurpiseRound}, TurnUnitId={TurnUnitId}", unitId, actingInSurpriseRound, Game.Combat.Turn.UnitId);
+                return true;
+            }
+
+            Game.Combat.Turn = new NetworkCombatTurn
+            {
+                UnitId = unitId,
+                IsInProgress = false,
+                IsActingInSurpriseRound = actingInSurpriseRound,
+                IsLocalPlayer = IsControlledByLocalPlayer(unitId),
+                IsAI = GameInteraction.IsUnitAI(unitId),
+            };
+
+            Logger.LogInformation("OnTurnStart. UnitId={UnitId}, IsLocalPlayer={IsLocalPlayer}, IsAI={IsAI}, IsActingInSurpriseRound={IsActingInSurpriseRound}, IsInProgress={IsInProgress}",
+                unitId, Game.Combat.Turn.IsLocalPlayer, Game.Combat.Turn.IsAI, Game.Combat.Turn.IsActingInSurpriseRound, Game.Combat.Turn.IsInProgress);
+
+            OnLocalPlayerTurnStart();
+
+            return false;
+        }
+
+        public bool OnBeforeEndTurn(string unitId)
+        {
+            if (Game.Combat.Turn.IsAI || !Game.Combat.Turn.IsInProgress)
+            {
+                Logger.LogInformation("Turn end is allowed. Round={Round}, UnitId={UnitId}, IsAI={IsAI}", Game.Combat.Round, Game.Combat.Turn.UnitId, Game.Combat.Turn.IsAI);
+                Game.Combat.Turn = null;
+                return true;
+            }
+
+            if (Game.Combat.Turn.IsLocalPlayer)
+            {
+                Logger.LogInformation("Ending local player turn. Round={Round}, UnitId={UnitId}", Game.Combat.Round, Game.Combat.Turn.UnitId);
+                OnLocalPlayerTurnEnded();
+            }
+
+            Game.Combat.Turn.IsInProgress = false;
+            return false;
+        }
+
         public bool CanUnitJoinCombat(string unitId)
         {
             try
@@ -426,7 +472,7 @@ namespace WOTRMultiplayer.MP.Actors
 
                 if (Game.Combat.ConfirmedMidCombatUnits.Contains(unitId))
                 {
-                    Logger.LogInformation("Unit has been allowed to join mid combat. UnitId={unitId}", unitId);
+                    Logger.LogInformation("Unit has been allowed to join mid combat. UnitId={UnitId}", unitId);
                     return true;
                 }
 
@@ -434,7 +480,7 @@ namespace WOTRMultiplayer.MP.Actors
                 var isFirstJoinEvent = !IsPlayerReady(PlayerTurnReadinessType.UnitJoinedMidCombat, localPlayerId, unitId);
                 if (isFirstJoinEvent)
                 {
-                    Logger.LogInformation("Sending {messageType}. UnitId={unitId}", nameof(NotifyUnitJoinedMidCombat), unitId);
+                    Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}", nameof(NotifyUnitJoinedMidCombat), unitId);
                     var message = new NotifyUnitJoinedMidCombat { UnitId = unitId, PlayerId = localPlayerId };
                     Send(message);
                 }
@@ -445,7 +491,7 @@ namespace WOTRMultiplayer.MP.Actors
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Unable to process unit join combat request. UnitId={unitId}", unitId);
+                Logger.LogError(ex, "Unable to process unit join combat request. UnitId={UnitId}", unitId);
                 throw;
             }
         }
@@ -469,7 +515,7 @@ namespace WOTRMultiplayer.MP.Actors
 
         public bool OnStopGameMode(GameModeType type)
         {
-            Logger.LogInformation("Trying to stop GameModeType. Mode={mode}", type.Name);
+            Logger.LogInformation("Trying to stop GameModeType. Mode={Mode}", type.Name);
 
             if (type == GameModeType.Pause && Game.ForcedPause != null)
             {
@@ -488,7 +534,7 @@ namespace WOTRMultiplayer.MP.Actors
                 Banter = Mapper.Map<Networking.Messages.Contracts.NetworkRestBanter>(networkBanter),
             };
 
-            Logger.LogInformation("Sending {messageType}. SpeakerUnitId={speakerUnitId}, Key={key}", nameof(NotifyRestBanterInterrupted), message.Banter.SpeakerUnitId, message.Banter.Key);
+            Logger.LogInformation("Sending {MessageType}. SpeakerUnitId={SpeakerUnitId}, Key={Key}", nameof(NotifyRestBanterInterrupted), message.Banter.SpeakerUnitId, message.Banter.Key);
             Send(message);
         }
 
@@ -498,7 +544,7 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 ItemTransfer = Mapper.Map<Networking.Messages.Contracts.NetworkVendorItemTransfer>(transfer)
             };
-            Logger.LogInformation("Sending {messageType}. ItemId={itemId}, Count={count}, Action={action}, ActionTarget={actionTarget}", nameof(NetworkVendorItemTransfer), message.ItemTransfer.Item.UniqueId, message.ItemTransfer.Count, message.ItemTransfer.ItemAction, message.ItemTransfer.ItemActionTarget);
+            Logger.LogInformation("Sending {MessageType}. ItemId={ItemId}, Count={Count}, Action={Action}, ActionTarget={ActionTarget}", nameof(NetworkVendorItemTransfer), message.ItemTransfer.Item.UniqueId, message.ItemTransfer.Count, message.ItemTransfer.ItemAction, message.ItemTransfer.ItemActionTarget);
             Send(message);
         }
         public void OnMemorizeSpell(NetworkSpellSlot slot)
@@ -507,7 +553,7 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 Slot = Mapper.Map<Networking.Messages.Contracts.NetworkSpellSlot>(slot)
             };
-            Logger.LogInformation("Sending {messageType}. UnitId={unitId}, SpellbookId={spellbookId}, SpellId={spellId}, SpellLevel={spellLevel}, SpellName={spellName}, SpellSlotIndex={spellSlotIndex}, SpellSlotType={spellSlotType}",
+            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, SpellbookId={SpellbookId}, SpellId={SpellId}, SpellLevel={SpellLevel}, SpellName={SpellName}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}",
                 nameof(NotifySpellMemorized), slot.UnitId, slot.SpellbookId, slot.SpellId, slot.SpellLevel, slot.SpellName, slot.Index, slot.Type);
 
             Send(message);
@@ -519,7 +565,7 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 Slot = Mapper.Map<Networking.Messages.Contracts.NetworkSpellSlot>(slot)
             };
-            Logger.LogInformation("Sending {messageType}. UnitId={unitId}, SpellbookId={spellbookId}, SpellSlotIndex={spellSlotIndex}, SpellSlotType={spellSlotType}",
+            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, SpellbookId={SpellbookId}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}",
                 nameof(NotifySpellForgotten), slot.UnitId, slot.SpellbookId, slot.Index, slot.Type);
 
             Send(message);
@@ -536,7 +582,7 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 ClassId = classId
             };
-            Logger.LogInformation("Sending {messageType}. ClassId={classId}", nameof(NotifyLevelingClassSelected), classId);
+            Logger.LogInformation("Sending {MessageType}. ClassId={ClassId}", nameof(NotifyLevelingClassSelected), classId);
             Send(message);
         }
 
@@ -551,7 +597,7 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 ArchetypeId = archetypeId
             };
-            Logger.LogInformation("Sending {messageType}. ArchetypeId={archetypeId}", nameof(NotifyLevelingClassArchetypeSelected), archetypeId);
+            Logger.LogInformation("Sending {MessageType}. ArchetypeId={ArchetypeId}", nameof(NotifyLevelingClassArchetypeSelected), archetypeId);
             Send(message);
         }
 
@@ -571,7 +617,7 @@ namespace WOTRMultiplayer.MP.Actors
                 Send(phaseChangedMessage);
                 Game.Leveling.PhaseIndex = phase.Index;
                 Game.Leveling.PlayerReadiness.Clear();
-                Logger.LogInformation("Sending {messageType}. Index={index}", nameof(NotifyLevelingPhaseChanged), phaseChangedMessage.Phase.Index);
+                Logger.LogInformation("Sending {MessageType}. Index={Index}", nameof(NotifyLevelingPhaseChanged), phaseChangedMessage.Phase.Index);
             }
 
             var localPlayer = GetLocalPlayerId();
@@ -581,7 +627,7 @@ namespace WOTRMultiplayer.MP.Actors
                 PlayerId = localPlayer,
                 Phase = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingPhase>(phase)
             };
-            Logger.LogInformation("Sending {messageType}. PlayerId={playerId}, Index={index}", nameof(NotifyLevelingPhaseWitnessed), message.PlayerId, message.Phase.Index);
+            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, Index={Index}", nameof(NotifyLevelingPhaseWitnessed), message.PlayerId, message.Phase.Index);
             Send(message);
         }
 
@@ -596,7 +642,7 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 Skill = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingSkillPoint>(skill)
             };
-            Logger.LogInformation("Sending {messageType}. StatType={type}", nameof(NotifyLevelingSkillPointIncreased), message.Skill.StatType);
+            Logger.LogInformation("Sending {MessageType}. StatType={StatType}", nameof(NotifyLevelingSkillPointIncreased), message.Skill.StatType);
             Send(message);
         }
 
@@ -611,7 +657,7 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 Skill = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingSkillPoint>(skill)
             };
-            Logger.LogInformation("Sending {messageType}. StatType={type}", nameof(NotifyLevelingSkillPointDecreased), message.Skill.StatType);
+            Logger.LogInformation("Sending {MessageType}. StatType={StatType}", nameof(NotifyLevelingSkillPointDecreased), message.Skill.StatType);
             Send(message);
         }
 
@@ -626,7 +672,7 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 AbilityScore = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingAbilityScore>(abilityScore)
             };
-            Logger.LogInformation("Sending {messageType}. StatType={type}", nameof(NotifyLevelingAbilityScoreIncreased), message.AbilityScore.StatType);
+            Logger.LogInformation("Sending {MessageType}. StatType={StatType}", nameof(NotifyLevelingAbilityScoreIncreased), message.AbilityScore.StatType);
             Send(message);
         }
 
@@ -641,7 +687,7 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 AbilityScore = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingAbilityScore>(abilityScore)
             };
-            Logger.LogInformation("Sending {messageType}. StatType={type}", nameof(NotifyLevelingAbilityScoreDecreased), message.AbilityScore.StatType);
+            Logger.LogInformation("Sending {MessageType}. StatType={StatType}", nameof(NotifyLevelingAbilityScoreDecreased), message.AbilityScore.StatType);
             Send(message);
         }
 
@@ -656,7 +702,7 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 Feature = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingFeature>(feature)
             };
-            Logger.LogInformation("Sending {messageType}. Name={name}, Id={id}", nameof(NetworkLevelingFeature), message.Feature.Name, message.Feature.Id);
+            Logger.LogInformation("Sending {MessageType}. FeatureName={FeatureName}, Id={Id}", nameof(NetworkLevelingFeature), message.Feature.Name, message.Feature.Id);
             Send(message);
         }
         public void OnLevelingSpellRemoved(NetworkLevelingSpell spell)
@@ -670,7 +716,7 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 Spell = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingSpell>(spell)
             };
-            Logger.LogInformation("Sending {messageType}. SpellName={name}, SpellId={id}", nameof(NotifyLevelingSpellRemoved), message.Spell.Name, message.Spell.Id);
+            Logger.LogInformation("Sending {MessageType}. SpellName={SpellName}, SpellId={SpellId}", nameof(NotifyLevelingSpellRemoved), message.Spell.Name, message.Spell.Id);
             Send(message);
         }
 
@@ -685,7 +731,7 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 Spell = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingSpell>(spell)
             };
-            Logger.LogInformation("Sending {messageType}. SpellName={name}, SpellId={id}", nameof(NotifyLevelingSpellChosen), message.Spell.Name, message.Spell.Id);
+            Logger.LogInformation("Sending {MessageType}. SpellName={SpellName}, SpellId={SpellId}", nameof(NotifyLevelingSpellChosen), message.Spell.Name, message.Spell.Id);
             Send(message);
         }
 
@@ -696,7 +742,7 @@ namespace WOTRMultiplayer.MP.Actors
             if (CanMakeLevelingDecisions())
             {
                 var message = new NotifyLevelingTerminated();
-                Logger.LogInformation("Sending {messageType}", nameof(NotifyLevelingTerminated));
+                Logger.LogInformation("Sending {MessageType}", nameof(NotifyLevelingTerminated));
                 Send(message);
             }
 
@@ -707,12 +753,12 @@ namespace WOTRMultiplayer.MP.Actors
 
         public void OnLevelingCompleted()
         {
-            Logger.LogInformation("Leveling has been completed. UnitId={unitId}", Game.Leveling.UnitId);
+            Logger.LogInformation("Leveling has been completed. UnitId={UnitId}", Game.Leveling.UnitId);
 
             if (CanMakeLevelingDecisions())
             {
                 var message = new NotifyLevelingCompleted();
-                Logger.LogInformation("Sending {messageType}", nameof(NotifyLevelingCompleted));
+                Logger.LogInformation("Sending {MessageType}", nameof(NotifyLevelingCompleted));
                 Send(message);
                 return;
             }
@@ -729,7 +775,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return;
             }
 
-            Logger.LogInformation("Sending {messageType}. UnitId={unitId}, Destination={destination}, Delay={delay}, Orientation={orientation}", nameof(NotifyCharacterMove), unitId, destination, delay, orientation);
+            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, Destination={Destination}, Delay={Delay}, Orientation={Orientation}", nameof(NotifyCharacterMove), unitId, destination, delay, orientation);
             var message = new NotifyCharacterMove
             {
                 UnitId = unitId,
@@ -754,7 +800,7 @@ namespace WOTRMultiplayer.MP.Actors
                     Reason = reason,
                     RemovalDelay = removalDelay
                 };
-                Logger.LogInformation("Forced pause has been initialized. Delay={delay}", removalDelay);
+                Logger.LogInformation("Forced pause has been initialized. Delay={Delay}", removalDelay);
             }
         }
 
@@ -816,7 +862,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return;
             }
 
-            GameInteraction.ShowModalMessage($"Player {networkPlayer.Name} has left the game");
+            GameInteraction.ShowModalMessage(string.Format(UIStringConsts.GameNotifications.PlayerLeft, networkPlayer.Name));
         }
 
         protected NetworkPlayer CleanupPlayer(long playerId)
@@ -824,7 +870,7 @@ namespace WOTRMultiplayer.MP.Actors
             var existingPlayer = GetPlayer(playerId);
             if (existingPlayer == null)
             {
-                Logger.LogWarning("Nothing to cleanup since player doesn't exist. PlayerId={playerId}", playerId);
+                Logger.LogWarning("Nothing to cleanup since player doesn't exist. PlayerId={PlayerId}", playerId);
                 return null;
             }
 
@@ -850,7 +896,7 @@ namespace WOTRMultiplayer.MP.Actors
                     var tracker = GetPlayerTurnReadinessTracker(playerReadinessType);
                     if (tracker == null)
                     {
-                        Logger.LogError("Unable to find readiness tracker for provided type. Type={type}, PlayerId={playerId}, UnitId={unitId}", playerReadinessType, playerId, unitId);
+                        Logger.LogError("Unable to find readiness tracker for provided type. ReadinessType={ReadinessTypeName}, PlayerId={PlayerId}, UnitId={UnitId}", playerReadinessType, playerId, unitId);
                         return null;
                     }
 
@@ -866,7 +912,7 @@ namespace WOTRMultiplayer.MP.Actors
 
                     if (isFirstAdd)
                     {
-                        Logger.LogInformation("Player ready status has been confirmed. Type={readinessTypeName}, Key={key}, PlayersCount={playersCount}, KeysCount={keysCount}", playerReadinessType, unitId, tracker[unitId].Count, tracker.Keys.Count);
+                        Logger.LogInformation("Player ready status has been confirmed. ReadinessType={ReadinessTypeName}, Key={Key}, PlayersCount={PlayersCount}, KeysCount={KeysCount}", playerReadinessType, unitId, tracker[unitId].Count, tracker.Keys.Count);
                     }
 
                     return players;
@@ -874,7 +920,7 @@ namespace WOTRMultiplayer.MP.Actors
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Unable to confirm player readiness. PlayerId={playerId}, UnitId={unitId}", playerId, unitId);
+                Logger.LogError(ex, "Unable to confirm player readiness. PlayerId={PlayerId}, UnitId={UnitId}", playerId, unitId);
                 throw;
             }
         }
@@ -895,14 +941,14 @@ namespace WOTRMultiplayer.MP.Actors
 
         protected void ForceLoadGame()
         {
-            Logger.LogInformation("Force loading save game. SavePath={savePath}", Game.SaveFilePath);
+            Logger.LogInformation("Force loading save game. SavePath={SavePath}", Game.SaveFilePath);
             Game.Id = GameInteraction.QuickLoadGame(Game.SaveFilePath);
             ResetGameIdGenerator();
         }
 
         protected void ResetGameIdGenerator()
         {
-            Logger.LogInformation("Resetting id counters. GameId={gameId}", Game.Id);
+            Logger.LogInformation("Resetting id counters. GameId={GameId}", Game.Id);
             _valueGenerator.Reset(Game.Id);
         }
 
@@ -921,7 +967,7 @@ namespace WOTRMultiplayer.MP.Actors
             var baseUnityPath = GameInteraction.GetSaveGamePath();
             var multiplayerPath = Regex.Replace(baseUnityPath, "(((\\\\|\\/)+)(Saved Games)((\\\\|\\/)+))$", "/Saved Multiplayer Games/");
             var savePath = Path.Combine(multiplayerPath, "latest save.zks");
-            Logger.LogInformation("Save game path changed. Path={path}", savePath);
+            Logger.LogInformation("Save game path changed. Path={Path}", savePath);
             if (!FileSystem.WriteFile(savePath, content))
             {
                 return null;
@@ -941,7 +987,7 @@ namespace WOTRMultiplayer.MP.Actors
             // midfight joins shouldn't have any actions?
             if (Game.Combat.Turn == null)
             {
-                Logger.LogWarning("Midfight action. UnitId={unitID}", sourceUnitId);
+                Logger.LogWarning("Midfight action. UnitId={UnitId}", sourceUnitId);
                 return IsHost;
             }
 
@@ -958,7 +1004,7 @@ namespace WOTRMultiplayer.MP.Actors
 
             if (rollResponse.RollValue == null)
             {
-                Logger.LogError("Specified roll is missing at remote player. RollId={rollId}", rollResponse?.RollId);
+                Logger.LogError("Specified roll is missing at remote player. RollId={RollId}", rollResponse?.RollId);
                 return null;
             }
 
@@ -990,7 +1036,7 @@ namespace WOTRMultiplayer.MP.Actors
                     RollValue = Mapper.Map<Networking.Messages.Contracts.NetworkRollValue>(roll)
                 };
 
-                Logger.LogInformation("Sending roll value response. RollId={rollId}, RollType={rollType}, Result={result}, DamageValuesCount={damageValuesCount}, RollHistoryCount={rollHistoryCount}",
+                Logger.LogInformation("Sending roll value response. RollId={RollId}, RollType={RollType}, Result={Result}, DamageValuesCount={DamageValuesCount}, RollHistoryCount={RollHistoryCount}",
                     response.RollId, roll?.GetType().Name, response.RollValue?.Result, response.RollValue?.DamageValues.Count, response.RollValue?.RollHistory.Count);
 
                 Send(playerId, response);
@@ -1024,51 +1070,6 @@ namespace WOTRMultiplayer.MP.Actors
                 && isLocalPlayer; // other MP players are getting rolls from turn owner
 
             return result;
-        }
-
-        protected bool OnTurnEnd()
-        {
-            if (Game.Combat.Turn.IsAI || !Game.Combat.Turn.IsInProgress)
-            {
-                Logger.LogInformation("Turn end is allowed. Round={round}, UnitId={unitId}, IsAI={isAI}", Game.Combat.Round, Game.Combat.Turn.UnitId, Game.Combat.Turn.IsAI);
-                Game.Combat.Turn = null;
-                return true;
-            }
-
-            if (Game.Combat.Turn.IsLocalPlayer)
-            {
-                Logger.LogInformation("Ending local player turn. Round={round}, UnitId={unitId}", Game.Combat.Round, Game.Combat.Turn.UnitId);
-                OnLocalPlayerTurnEnded();
-            }
-
-            Game.Combat.Turn.IsInProgress = false;
-            return false;
-        }
-
-        protected bool OnTurnStart(string unitId, bool isActingInSurpriseRound)
-        {
-            if (Game.Combat.Turn != null && Game.Combat.Turn.IsInProgress)
-            {
-                UpdateConfirmedMidCombatUnits();
-                Game.Combat.AIActions.Clear();
-                Logger.LogInformation("Turn start is allowed. UnitId={unitId}, IsActingInSurpiseRound={isActingInSurpriseRound}, TurnUnitId={turnUnitId}", unitId, isActingInSurpriseRound, Game.Combat.Turn.UnitId);
-                return true;
-            }
-
-            Game.Combat.Turn = new NetworkCombatTurn
-            {
-                UnitId = unitId,
-                IsInProgress = false,
-                IsActingInSurpriseRound = isActingInSurpriseRound,
-                IsLocalPlayer = IsControlledByLocalPlayer(unitId),
-                IsAI = GameInteraction.IsUnitAI(unitId),
-            };
-
-            Logger.LogInformation("OnTurnStart. UnitId={unitId}, IsLocalPlayer={isLocalPlayer}, IsAI={isAI}, IsActingInSurpriseRound={isActingInSurpriseRound}, IsInProgress={isInProgress}",
-                unitId, Game.Combat.Turn.IsLocalPlayer, Game.Combat.Turn.IsAI, Game.Combat.Turn.IsActingInSurpriseRound, Game.Combat.Turn.IsInProgress);
-
-            OnLocalPlayerTurnStart();
-            return false;
         }
 
         protected List<NetworkPlayer> GetMissingPlayers(string key, ConcurrentDictionary<string, HashSet<long>> playersReadinessTracker)

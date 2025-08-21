@@ -14,6 +14,7 @@ using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.MP.Entities.Rolls;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
+using WOTRMultiplayer.UI;
 
 namespace WOTRMultiplayer.MP
 {
@@ -51,7 +52,7 @@ namespace WOTRMultiplayer.MP
                 var rollId = GetDamageRollId(ruleCalculateDamage);
                 if (rollId == null)
                 {
-                    _logger.LogWarning("Damage Roll retrieving has been skipped due to unability to generate rollId. InitiatorName={initiatorName}, InitiatorId={initiatorId}", ruleCalculateDamage.Initiator?.CharacterName, ruleCalculateDamage.Initiator?.UniqueId);
+                    _logger.LogWarning("Damage Roll retrieving has been skipped due to unability to generate rollId. InitiatorName={InitiatorName}, InitiatorId={InitiatorId}", ruleCalculateDamage.Initiator?.CharacterName, ruleCalculateDamage.Initiator?.UniqueId);
                     return true;
                 }
 
@@ -59,15 +60,16 @@ namespace WOTRMultiplayer.MP
 
                 if (networkRoll == null)
                 {
-                    _logger.LogCritical("Failed to acquire damage roll from remote player which guarantees desync in the game. RollId={rollId}", rollId.Value);
-                    _gameInteractionService.ShowModalMessage($"Failed to acquire damage roll from remote player which guarantees desync in the game");
+                    _logger.LogCritical("Failed to acquire damage roll from remote player which guarantees desync in the game. RollId={RollId}", rollId.Value);
+
+                    _gameInteractionService.ShowModalMessage(UIStringConsts.GameNotifications.FailedToAcquireRemoteDamageRoll);
                     return true;
                 }
                 var bundles = ruleCalculateDamage.DamageBundle.ToList();
                 if (networkRoll.Value.Count != bundles.Count)
                 {
-                    _logger.LogCritical("Network damage contains invalid number of damage values. RollId={rollId}, ExpectedCount={expectedCount}, ActualCount={actualCount}", rollId.Value, bundles.Count, networkRoll.Value.Count);
-                    _gameInteractionService.ShowModalMessage($"Network damage contains an invalid number of damage values which guarantees desync in the game");
+                    _logger.LogCritical("Network damage contains invalid number of damage values. RollId={RollId}, ExpectedCount={ExpectedCount}, ActualCount={ActualCount}", rollId.Value, bundles.Count, networkRoll.Value.Count);
+                    _gameInteractionService.ShowModalMessage(UIStringConsts.GameNotifications.InvalidRemoteDamageRoll);
                     return true;
                 }
 
@@ -80,12 +82,12 @@ namespace WOTRMultiplayer.MP
                     ruleCalculateDamage.CalculatedDamage.Add(damageValue);
                 }
 
-                _logger.LogInformation("Damage roll result has been acquired from another player. RollId={rollId}, DamageValuesCount={damageValuesCount}", rollId.Value, ruleCalculateDamage.CalculatedDamage.Count);
+                _logger.LogInformation("Damage roll result has been acquired from another player. RollId={RollId}, DamageValuesCount={DamageValuesCount}", rollId.Value, ruleCalculateDamage.CalculatedDamage.Count);
                 return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error before damage rule trigger");
                 throw;
             }
         }
@@ -102,7 +104,7 @@ namespace WOTRMultiplayer.MP
                 var rollId = GetDamageRollId(ruleCalculateDamage);
                 if (rollId == null)
                 {
-                    _logger.LogWarning("Damage Roll saving has been skipped due to unability to generate rollId. InitiatorName={initiatorName}, InitiatorId={initiatorId}", ruleCalculateDamage.Initiator?.CharacterName, ruleCalculateDamage.Initiator?.UniqueId);
+                    _logger.LogWarning("Damage Roll saving has been skipped due to unability to generate rollId. InitiatorName={InitiatorName}, InitiatorId={InitiatorId}", ruleCalculateDamage.Initiator?.CharacterName, ruleCalculateDamage.Initiator?.UniqueId);
                     return;
                 }
 
@@ -122,7 +124,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error after damage rule trigger");
                 throw;
             }
         }
@@ -140,15 +142,15 @@ namespace WOTRMultiplayer.MP
                 var rollId = GetDiceRollId(roll);
                 if (rollId == null)
                 {
-                    _logger.LogWarning("Heal Damage retrieving has been skipped due to unability to generate rollId. InitiatorName={initiatorName}, InitiatorId={initiatorId}", ruleHealDamage.Initiator?.CharacterName, ruleHealDamage.Initiator?.UniqueId);
+                    _logger.LogWarning("Heal Damage retrieving has been skipped due to unability to generate rollId. InitiatorName={InitiatorName}, InitiatorId={InitiatorId}", ruleHealDamage.Initiator?.CharacterName, ruleHealDamage.Initiator?.UniqueId);
                     return true;
                 }
 
                 var networkRoll = _multiplayerActorAccessor.Current.RetrieveRoll<NetworkNamedIntRollValue>(rollId.Value, ruleHealDamage.Initiator.UniqueId);
                 if (networkRoll == null)
                 {
-                    _logger.LogCritical("Failed to acquire heal damage roll from remote player which guarantees desync in the game. RollId={rollId}", rollId.Value);
-                    _gameInteractionService.ShowModalMessage($"Failed to acquire heal damage roll from remote player which guarantees desync in the game");
+                    _logger.LogCritical("Failed to acquire heal damage roll from remote player which guarantees desync in the game. RollId={RollId}", rollId.Value);
+                    _gameInteractionService.ShowModalMessage(UIStringConsts.GameNotifications.FailedToAcquireRemoteHealRoll);
                     return true;
                 }
 
@@ -163,7 +165,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error before heal rule trigger");
                 throw;
             }
         }
@@ -181,7 +183,7 @@ namespace WOTRMultiplayer.MP
                 var rollId = GetDiceRollId(roll);
                 if (rollId == null)
                 {
-                    _logger.LogWarning("Heal Damage saving has been skipped due to unability to generate rollId. InitiatorName={initiatorName}, InitiatorId={initiatorId}", ruleHealDamage.Initiator?.CharacterName, ruleHealDamage.Initiator?.UniqueId);
+                    _logger.LogWarning("Heal Damage saving has been skipped due to unability to generate rollId. InitiatorName={InitiatorName}, InitiatorId={InitiatorId}", ruleHealDamage.Initiator?.CharacterName, ruleHealDamage.Initiator?.UniqueId);
                     return;
                 }
 
@@ -198,7 +200,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error after heal rule trigger");
                 throw;
             }
         }
@@ -224,7 +226,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -243,7 +245,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -269,7 +271,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -303,7 +305,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -333,7 +335,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -352,7 +354,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -371,7 +373,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -397,7 +399,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -416,7 +418,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -442,7 +444,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -461,7 +463,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -479,7 +481,7 @@ namespace WOTRMultiplayer.MP
                 var d20 = RetrieveRoll<RuleRollD20>(roll, ruleSkillCheck.Initiator);
                 if (d20 == null)
                 {
-                    _logger.LogInformation("Roll retrieving context={stackTrace}", Environment.StackTrace);
+                    _logger.LogInformation("Roll retrieving context={StackTrace}", Environment.StackTrace);
                     return true;
                 }
 
@@ -488,7 +490,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}. StackTrace={strackTrace}", MethodBase.GetCurrentMethod().Name, Environment.StackTrace);
+                _logger.LogError(ex, "Unable to handle {MethodName}. StackTrace={StackTrace}", MethodBase.GetCurrentMethod().Name, Environment.StackTrace);
                 throw;
             }
         }
@@ -507,7 +509,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -535,7 +537,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -554,7 +556,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -584,7 +586,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -603,7 +605,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -629,7 +631,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -648,7 +650,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -674,7 +676,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -693,7 +695,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -720,7 +722,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -739,7 +741,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle {methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -787,7 +789,7 @@ namespace WOTRMultiplayer.MP
             }
             var rawId = roll.GetIdString();
             var id = _hashService.Murmur3(rawId);
-            _logger.LogInformation("RollId has been generated. Id={rollId}, RollType={rollType}, RuleName={ruleName}, IdString={idString}", id, roll.RollType, roll.RuleName, rawId);
+            _logger.LogInformation("RollId has been generated. RollId={rollId}, RollType={RollType}, RuleName={RuleName}, IdString={IdString}", id, roll.RollType, roll.RuleName, rawId);
             return id;
         }
 
@@ -797,7 +799,7 @@ namespace WOTRMultiplayer.MP
             var rollId = GetDiceRollId(networkDiceRoll);
             if (rollId == null)
             {
-                _logger.LogWarning("Roll saving has been skipped due to unability to generate rollId. DiceType={diceType}, RollType={rollType}, InitiatorId={initiatorId}", ruleRollDice.GetType().Name, rollType, networkDiceRoll.InitiatorId);
+                _logger.LogWarning("Roll saving has been skipped due to unability to generate rollId. DiceType={DiceType}, RollType={RollType}, InitiatorId={InitiatorId}", ruleRollDice.GetType().Name, rollType, networkDiceRoll.InitiatorId);
                 return;
             }
 
@@ -827,14 +829,14 @@ namespace WOTRMultiplayer.MP
 
             if (roll == null)
             {
-                _logger.LogWarning("Unable to get damage roll id due to unhandled rule type. RuleType={ruleType} InitiatorId={initiatorId}", ruleCalculateDamage.Reason.Rule?.GetType().Name, ruleCalculateDamage.Initiator?.UniqueId);
+                _logger.LogWarning("Unable to get damage roll id due to unhandled rule type. RuleType={RuleType} InitiatorId={InitiatorId}", ruleCalculateDamage.Reason.Rule?.GetType().Name, ruleCalculateDamage.Initiator?.UniqueId);
                 return null;
             }
 
             var rollId = GetDiceRollId(roll);
             if (rollId == null)
             {
-                _logger.LogWarning("Unable to get damage roll id due to unability to generate rollId. InitiatorName={initiatorName}, InitiatorId={initiatorId}", ruleCalculateDamage.Initiator?.CharacterName, ruleCalculateDamage.Initiator?.UniqueId);
+                _logger.LogWarning("Unable to get damage roll id due to unability to generate rollId. InitiatorName={InitiatorName}, InitiatorId={InitiatorId}", ruleCalculateDamage.Initiator?.CharacterName, ruleCalculateDamage.Initiator?.UniqueId);
                 return null;
             }
 
@@ -850,15 +852,15 @@ namespace WOTRMultiplayer.MP
                 var rollId = GetDiceRollId(networkDiceRoll);
                 if (rollId == null)
                 {
-                    _logger.LogWarning("Unable to retrieve roll due to null rollId. RollType={rollType}, InitiatorId={initiatorId}", rollType, initiator.UniqueId);
+                    _logger.LogWarning("Unable to retrieve roll due to null rollId. RollType={RollType}, InitiatorId={InitiatorId}", rollType, initiator.UniqueId);
                     return null;
                 }
 
                 var roll = _multiplayerActorAccessor.Current.RetrieveRoll<NetworkIntRollValue>(rollId.Value, networkDiceRoll.InitiatorId);
                 if (roll == null)
                 {
-                    _logger.LogCritical("Failed to acquire roll from remote player which guarantees desync in the game. RollId={rollId}, RollType={rollType}, InitiatorId={initiatorId}", rollId.Value, rollType, initiator.UniqueId);
-                    _gameInteractionService.ShowModalMessage($"Failed to acquire {networkDiceRoll.RuleName} roll from remote player which guarantees desync in the game.");
+                    _logger.LogCritical("Failed to acquire roll from remote player which guarantees desync in the game. RollId={RollId}, RollType={RollType}, InitiatorId={InitiatorId}", rollId.Value, rollType, initiator.UniqueId);
+                    _gameInteractionService.ShowModalMessage(string.Format(UIStringConsts.GameNotifications.FailedToAcquireRemoteRoll, networkDiceRoll.RuleName));
                     return null;
                 }
 
@@ -872,13 +874,13 @@ namespace WOTRMultiplayer.MP
 
                 if (dice == null)
                 {
-                    _logger.LogError("Roll has been retrieved, but dicetype is not supported. DiceType={diceType}, RollId={rollId}", diceType, rollId.Value);
+                    _logger.LogError("Roll has been retrieved, but dicetype is not supported. DiceType={DiceType}, RollId={RollId}", diceType, rollId.Value);
                     return null;
                 }
 
                 dice.RollHistory = [.. roll.RollHistory];
 
-                _logger.LogInformation("{diceType} Roll has been acquired from another player. RollId={rollId}, Result={result}, RollType={rollType}, InitiatorId={initiatorId}",
+                _logger.LogInformation("Roll has been acquired from another player. DiceType={DiceType}, RollId={RollId}, Result={Result}, RollType={RollType}, InitiatorId={InitiatorId}",
                     diceType, rollId.Value, dice.Result, rollType, initiator.UniqueId);
                 return dice;
             }

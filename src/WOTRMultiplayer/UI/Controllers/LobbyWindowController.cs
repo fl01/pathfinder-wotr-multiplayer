@@ -80,18 +80,18 @@ namespace WOTRMultiplayer.UI.Controllers
 
         public void InitializeContent(LobbyWindowOwner owner, Transform parent)
         {
-            _logger.LogInformation("Initialize content. Owner={owner}", owner);
+            _logger.LogInformation("Initialize content. Owner={Owner}", owner);
 
             if (_contents.TryGetValue(owner, out var content) && content != null)
             {
-                _logger.LogWarning("Lobby content still exists on the scene, skipping initialization. Owner={owner}", owner);
+                _logger.LogWarning("Lobby content still exists on the scene, skipping initialization. Owner={Owner}", owner);
                 return;
             }
 
             var lobbyContent = _uIFactory.CreateLobbyWindowContent(parent);
             lobbyContent.SetActive(false);
             _contents.TryAdd(owner, lobbyContent);
-            _logger.LogInformation("Content has been created. Owner={owner}", owner);
+            _logger.LogInformation("Content has been created. Owner={Owner}", owner);
         }
 
         public void UpdatePlayers(List<NetworkPlayer> players)
@@ -103,7 +103,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
             _mainThreadAccessor.Post(() =>
             {
-                _logger.LogInformation("Updating player list. PlayersCount={playersCount}", players.Count);
+                _logger.LogInformation("Updating player list. PlayersCount={PlayersCount}", players.Count);
                 PlayersSectionContent.CleanupAllChildren();
                 foreach (var player in players)
                 {
@@ -150,7 +150,7 @@ namespace WOTRMultiplayer.UI.Controllers
                 var characterContainer = CharactersInfoContainer.transform.GetChild(characterIndex);
                 if (characterContainer == null)
                 {
-                    _logger.LogInformation("Unable to update character owner dropdow due to missing character container. Index={characterIndex}", characterIndex);
+                    _logger.LogInformation("Unable to update character owner dropdow due to missing character container. Index={Index}", characterIndex);
                     return;
                 }
 
@@ -190,14 +190,14 @@ namespace WOTRMultiplayer.UI.Controllers
         {
             if (_activeOwner != owner)
             {
-                _logger.LogInformation("Changing current owner. Previous={prevOwner}, NewOwner={newOwner}", _activeOwner, owner);
+                _logger.LogInformation("Changing current owner. PreviousOwner={PreviousOwner}, NewOwner={NewOwner}", _activeOwner, owner);
                 _activeOwner = owner;
             }
         }
 
         public void ResetOwnerContent(LobbyWindowOwner owner)
         {
-            _logger.LogInformation("Reset owner content objects. Owner={owner}", owner);
+            _logger.LogInformation("Reset owner content objects. Owner={Owner}", owner);
             _contents.TryRemove(owner, out var _);
         }
 
@@ -205,7 +205,7 @@ namespace WOTRMultiplayer.UI.Controllers
         {
             if (GetContentOwnedObject() == null)
             {
-                _logger.LogWarning("[{methodName}] Content doesn't exist for the current owner. Owner={owner}", nameof(UpdateCharacters), _activeOwner);
+                _logger.LogWarning("[{MethodName}] Content doesn't exist for the current owner. Owner={Owner}", nameof(UpdateCharacters), _activeOwner);
                 return;
             }
 
@@ -253,7 +253,7 @@ namespace WOTRMultiplayer.UI.Controllers
                 var characterContainer = CharactersInfoContainer.transform.GetChild(characterIndex);
                 if (characterContainer == null)
                 {
-                    _logger.LogInformation("Unable to update character owner dropdow due to missing character container. Index={characterIndex}", characterIndex);
+                    _logger.LogInformation("Unable to update character owner dropdow due to missing character container. Index={Index}", characterIndex);
                     return;
                 }
 
@@ -286,7 +286,7 @@ namespace WOTRMultiplayer.UI.Controllers
             var characterContainer = CharactersInfoContainer.transform.GetChild(characterIndex);
             if (characterContainer == null)
             {
-                _logger.LogInformation("Character doesn't exist. Index={characterIndex}", characterIndex);
+                _logger.LogInformation("Character doesn't exist. Index={Index}", characterIndex);
                 return;
             }
 
@@ -296,7 +296,7 @@ namespace WOTRMultiplayer.UI.Controllers
             portraitImage.color = portraitSprite == null ? Color.clear : Color.white;
             characterContainer.Find(CharacterOwnerObjectName).Find(UIFactory.DropdownGameObjectName).GetComponent<TMP_Dropdown>().interactable = isHost && portraitSprite != null;
 
-            _logger.LogInformation("Updated character portrait. Index={characterIndex}, SpriteName={spriteName}", characterIndex, portraitSprite?.name);
+            _logger.LogInformation("Updated character portrait. Index={Index}, SpriteName={SpriteName}", characterIndex, portraitSprite?.name);
         }
 
         private void OnOwnerDropdownChanged(TMP_Dropdown dropdown)
@@ -316,7 +316,7 @@ namespace WOTRMultiplayer.UI.Controllers
                 return;
             }
 
-            _logger.LogInformation("Character owner changed. CharacterIndex={characterIndex}, Player={player}", characterIndexComponent.CharacterIndex, player);
+            _logger.LogInformation("Character owner changed. CharacterIndex={CharacterIndex}, Player={Player}", characterIndexComponent.CharacterIndex, player);
             OnCharacterOwnerChanged?.Invoke(characterIndexComponent.CharacterIndex, dropdown.value);
         }
 
@@ -325,7 +325,7 @@ namespace WOTRMultiplayer.UI.Controllers
             var portrait = _resourceProvider.GetPortrait(portraitName);
             if (portrait == null)
             {
-                _logger.LogWarning("Unable to load character portrait. PortraitName={portraitName}", portraitName);
+                _logger.LogWarning("Unable to load character portrait. PortraitName={PortraitName}", portraitName);
             }
 
             return portrait;
@@ -335,7 +335,7 @@ namespace WOTRMultiplayer.UI.Controllers
         {
             if (!_contents.TryGetValue(_activeOwner, out var content) || content == null)
             {
-                _logger.LogWarning("[{callerName}] Content doesn't exist for the current owner. Owner={owner}", callerName, _activeOwner);
+                _logger.LogWarning("[{CallerName}] Content doesn't exist for the current owner. Owner={Owner}", callerName, _activeOwner);
                 return null;
             }
 

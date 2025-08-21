@@ -19,9 +19,11 @@ namespace WOTRMultiplayer.Networking
         private readonly TimeSpan _defaultAwaiterTimeout = TimeSpan.FromMinutes(1);
 
         public Action<Exception> OnError { get; set; }
+
         public Action<EndPoint> OnConnected { get; set; }
 
         public bool IsActive => (_client?.IsConnected ?? false);
+
         public bool IsConnecting { get; private set; } = false;
 
         public NetworkServerClient(ILogger<NetworkServerClient> logger)
@@ -55,10 +57,10 @@ namespace WOTRMultiplayer.Networking
             OnError?.Invoke(args.Error);
         }
 
-        public INetworkServerClient Register<TMessage>(Action<TMessage> handler)
+        public INetworkServerClient On<TMessage>(Action<TMessage> handler)
             where TMessage : class
         {
-            _logger.LogDebug("Registering handler. Type={type}", typeof(TMessage));
+            _logger.LogDebug("Adding message handler. Type={Type}", typeof(TMessage));
             _handlers.TryAdd(typeof(TMessage), message => handler((TMessage)message));
 
             return this;
@@ -94,16 +96,16 @@ namespace WOTRMultiplayer.Networking
             if (!taskCompletion.Task.IsCompleted)
             {
                 _awaiters.TryRemove(awaiterKey, out _);
-                _logger.LogWarning("Awaiter has been failed due to timeout. AwaiterKey={awaiterKey}, Timeout={timeout}", awaiterKey, _defaultAwaiterTimeout);
+                _logger.LogWarning("Awaiter has been failed due to timeout. AwaiterKey={AwaiterKey}, Timeout={Timeout}", awaiterKey, _defaultAwaiterTimeout);
                 return null;
             }
 
             return taskCompletion.Task.Result as T;
         }
 
-        public void Dispose()
+        public void Reset()
         {
-            _logger.LogInformation("Disposing");
+            _logger.LogInformation("Resetting. IsActive={IsActive}", IsActive);
             IsConnecting = false;
             _client?.Dispose();
         }
@@ -113,14 +115,14 @@ namespace WOTRMultiplayer.Networking
             var messageType = message.GetType();
             if (message is IAwaitableMessage awaitableMessage && _awaiters.TryRemove(awaitableMessage.GetKey(), out var taskCompletion))
             {
-                _logger.LogDebug("Awaiter has been found, other handlers will be skipped. AwaiterKey={awaiterKey}", awaitableMessage.GetKey());
+                _logger.LogDebug("Awaiter has been found, other handlers will be skipped. AwaiterKey={AwaiterKey}", awaitableMessage.GetKey());
                 taskCompletion.SetResult(message);
                 return;
             }
 
             if (!_handlers.TryGetValue(messageType, out var handler))
             {
-                _logger.LogWarning("Handler is not configured. Type={type}", messageType);
+                _logger.LogWarning("Handler is not configured. Type={Type}", messageType);
                 return;
             }
 
@@ -130,7 +132,7 @@ namespace WOTRMultiplayer.Networking
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle message. MessageType={messageType}", messageType.Name);
+                _logger.LogError(ex, "Unable to handle message. MessageType={MessageType}", messageType.Name);
             }
         }
     }

@@ -63,13 +63,13 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
             if (!string.Equals(bestActionResult.Blueprint.AssetGuid.ToString(), possibleOverride.ActionBlueprintId, StringComparison.OrdinalIgnoreCase))
             {
-                Main.GetLogger<AiBrainControllerPatches>().LogWarning("Replacing best action result. NewActionBlueprintId={actionId}", possibleOverride.ActionBlueprintId);
+                Main.GetLogger<AiBrainControllerPatches>().LogWarning("Replacing best action result. NewActionBlueprintId={NewActionBlueprintId}", possibleOverride.ActionBlueprintId);
                 bestActionResult = FindAIAction(unit, isAutoUseAbility, possibleOverride);
             }
 
             if (!string.Equals(bestTargetResult?.UniqueId, possibleOverride.TargetId, StringComparison.OrdinalIgnoreCase))
             {
-                Main.GetLogger<AiBrainControllerPatches>().LogWarning("Replacing best target result. NewTargetUnitId={targetUnitId}", possibleOverride.TargetId);
+                Main.GetLogger<AiBrainControllerPatches>().LogWarning("Replacing best target result. NewTargetUnitId={NewTargetUnitId}", possibleOverride.TargetId);
                 bestTargetResult = FindActionTarget(possibleOverride.TargetId);
             }
 
@@ -99,31 +99,31 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 if (isAutoUseAbility)
                 {
                     var action = unitEntityData.Brain.GetAvailableAutoUseAbility()?.DefaultAiAction;
-                    Main.GetLogger<AiBrainControllerPatches>().LogInformation("AutoUse AI action has been selected. ActionBlueprintId={actionId}", action?.Blueprint.AssetGuid.ToString());
+                    Main.GetLogger<AiBrainControllerPatches>().LogInformation("AutoUse AI action has been selected. ActionBlueprintId={ActionBlueprintId}", action?.Blueprint.AssetGuid.ToString());
                     return action;
                 }
 
                 var customAction = unitEntityData.Brain.CustomActions.FirstOrDefault(ca => string.Equals(ca.Blueprint.AssetGuid.ToString(), networkAIAction.ActionBlueprintId));
                 if (customAction != null)
                 {
-                    Main.GetLogger<AiBrainControllerPatches>().LogInformation("Custom AI action has been selected. ActionBlueprintId={actionId}", customAction?.Blueprint.AssetGuid.ToString());
+                    Main.GetLogger<AiBrainControllerPatches>().LogInformation("Custom AI action has been selected. ActionBlueprintId={ActionBlueprintId}", customAction?.Blueprint.AssetGuid.ToString());
                     return customAction;
                 }
 
                 var availableAction = unitEntityData.Brain.AvailableActions.FirstOrDefault(ca => string.Equals(ca.Blueprint.AssetGuid.ToString(), networkAIAction.ActionBlueprintId));
                 if (availableAction != null)
                 {
-                    Main.GetLogger<AiBrainControllerPatches>().LogInformation("Available AI action has been selected. ActionBlueprintId={actionId}", availableAction?.Blueprint.AssetGuid.ToString());
+                    Main.GetLogger<AiBrainControllerPatches>().LogInformation("Available AI action has been selected. ActionBlueprintId={ActionBlueprintId}", availableAction?.Blueprint.AssetGuid.ToString());
                     return availableAction;
                 }
 
-                Main.GetLogger<AiBrainControllerPatches>().LogError("Unable to find AI action. ActionBlueprintId={actionId}", availableAction?.Blueprint.AssetGuid.ToString());
+                Main.GetLogger<AiBrainControllerPatches>().LogError("Unable to find AI action. ActionBlueprintId={ActionBlueprintId}", availableAction?.Blueprint.AssetGuid.ToString());
                 return null;
             }
             catch (Exception ex)
             {
 
-                Main.GetLogger<AiBrainControllerPatches>().LogInformation(ex, "Error while selecting AI action. UnitId={unitId}", unitEntityData.UniqueId);
+                Main.GetLogger<AiBrainControllerPatches>().LogInformation(ex, "Error while selecting AI action. UnitId={UnitId}", unitEntityData.UniqueId);
                 throw;
             }
         }

@@ -38,7 +38,7 @@ namespace WOTRMultiplayer.Abstractions.MP.Actors
 
         bool IsInLobby { get; }
 
-        void Dispose();
+        void Reset();
 
         Action<string> OnStartGame { get; set; }
 

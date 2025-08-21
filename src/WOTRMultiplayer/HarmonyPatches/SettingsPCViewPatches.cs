@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Reflection;
 using HarmonyLib;
 using Kingmaker.UI.MVVM._PCView.Settings;
 using Microsoft.Extensions.Logging;
-using Serilog;
 
 namespace WOTRMultiplayer.HarmonyPatches
 {
@@ -13,8 +13,7 @@ namespace WOTRMultiplayer.HarmonyPatches
         [HarmonyPostfix]
         public static void SettingsPCView_Initialize_Prefix(SettingsPCView __instance)
         {
-            var logger = Main.GetLogger<SettingsPCViewPatches>();
-            logger.LogInformation("Applying patch [{patchName}]", nameof(SettingsPCView_Initialize_Prefix));
+            Main.GetLogger<BlueprintesCachePatches>().LogInformation("Applying patch. MethodName={MethodName}", MethodBase.GetCurrentMethod().Name);
 
             try
             {
@@ -22,7 +21,7 @@ namespace WOTRMultiplayer.HarmonyPatches
             }
             catch (Exception ex)
             {
-                Log.Logger.Error(ex, "Unable to apply SettingsPCView patch");
+                Main.GetLogger<SettingsPCViewPatches>().LogError(ex, "Unable to apply SettingsPCView patch");
                 throw;
             }
         }

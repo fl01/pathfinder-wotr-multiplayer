@@ -149,7 +149,7 @@ namespace WOTRMultiplayer.GameInteraction
                 var mapObject = GetMapObject(networkOvertip.MapObject.Id);
                 if (mapObject == null)
                 {
-                    _logger.LogError("Unable to perform overtip interaction with missing map object. MapObjectId={mapObjectId}", networkOvertip.MapObject.Id);
+                    _logger.LogError("Unable to perform overtip interaction with missing map object. MapObjectId={MapObjectId}", networkOvertip.MapObject.Id);
                     return;
                 }
 
@@ -158,12 +158,12 @@ namespace WOTRMultiplayer.GameInteraction
                     var view = FindOvertipForObject(mapObject);
                     if (view is AreaTransitionOvertipView areaTransitionOvertip)
                     {
-                        _logger.LogInformation("Interacting with {overtipType}. MapObjectId={mapObjectId}", nameof(AreaTransitionOvertipView), mapObject.UniqueId);
+                        _logger.LogInformation("Interacting with {overtipType}. MapObjectId={MapObjectId}", nameof(AreaTransitionOvertipView), mapObject.UniqueId);
                         areaTransitionOvertip.OnClick();
                         return;
                     }
 
-                    _logger.LogWarning("Unable to find overtip for object with 0 interactions. MapObjectId={mapObjectId}", mapObject.UniqueId);
+                    _logger.LogWarning("Unable to find overtip for object with 0 interactions. MapObjectId={MapObjectId}", mapObject.UniqueId);
                     return;
                 }
 
@@ -213,7 +213,7 @@ namespace WOTRMultiplayer.GameInteraction
                 var areaTransition = transition?.GetComponent<MapObjectView>()?.Data.Get<AreaTransitionPart>();
                 if (areaTransition == null)
                 {
-                    _logger.LogError("Unable to find requested area transition. TransitionsCount={transitionsCount}, AreaExitId={areaExitId}", allTransitions.Count, areaExitId);
+                    _logger.LogError("Unable to find requested area transition. TransitionsCount={TransitionsCount}, AreaExitId={AreaExitId}", allTransitions.Count, areaExitId);
                     return;
                 }
 
@@ -227,7 +227,7 @@ namespace WOTRMultiplayer.GameInteraction
                     }
                 }
 
-                _logger.LogInformation("Leaving area. AreaExitId={areaExitId}", areaExitId);
+                _logger.LogInformation("Leaving area. AreaExitId={AreaExitId}", areaExitId);
                 Game.Instance.LoadArea(areaTransition.AreaEnterPoint, areaTransition.Settings.AutoSaveMode, null);
             });
 
@@ -247,7 +247,7 @@ namespace WOTRMultiplayer.GameInteraction
         }
         private void ImmediatlyMarkSuggestedDialogAnswers(List<NetworkDialogAnswerSuggestion> suggestions)
         {
-            _logger.LogInformation("Marking dialog answer suggestions. Count={count}", suggestions.Count);
+            _logger.LogInformation("Marking dialog answer suggestions. Count={Count}", suggestions.Count);
             if (Game.Instance.DialogController?.Dialog == null)
             {
                 _logger.LogWarning("DialogController.Dialog is null");
@@ -273,7 +273,7 @@ namespace WOTRMultiplayer.GameInteraction
                     MarkBookAnswer(dialogContext.m_BookEventPCView, suggestions);
                     break;
                 default:
-                    _logger.LogWarning("Marking suggested answers has not been implemented for this dialog type. DialogType={dialogType}", Game.Instance.DialogController.Dialog.Type);
+                    _logger.LogWarning("Marking suggested answers has not been implemented for this dialog type. DialogType={DialogType}", Game.Instance.DialogController.Dialog.Type);
                     break;
             }
 
@@ -360,7 +360,7 @@ namespace WOTRMultiplayer.GameInteraction
             var character = Game.Instance.Player.PartyAndPets.FirstOrDefault(f => string.Equals(f.UniqueId, unitId, StringComparison.OrdinalIgnoreCase));
             if (character == null)
             {
-                _logger.LogError("Can't move missing character. UnitId={unitId}", unitId);
+                _logger.LogError("Can't move missing character. UnitId={UnitId}", unitId);
                 return;
             }
 
@@ -379,7 +379,7 @@ namespace WOTRMultiplayer.GameInteraction
 
         public void Pause(bool isPaused)
         {
-            _logger.LogInformation("Pause game. Value={isPaused}", isPaused);
+            _logger.LogInformation("Pause game. IsPaused={IsPaused}", isPaused);
             if (isPaused)
             {
                 Game.Instance.IsPaused = true;
@@ -451,7 +451,7 @@ namespace WOTRMultiplayer.GameInteraction
                         }
                     }
 
-                    _logger.LogInformation("Continue button updated. IsInteractable={isInteractable}, HotkeysEnabled={hotkeysEnabled}", isEnabled, hotkeysEnabled);
+                    _logger.LogInformation("Continue button updated. IsInteractable={IsInteractable}, HotkeysEnabled={HotkeysEnabled}", isEnabled, hotkeysEnabled);
                 }
                 catch (Exception ex)
                 {
@@ -475,7 +475,7 @@ namespace WOTRMultiplayer.GameInteraction
             var hasStartedDialogTask = new TaskCompletionSource<bool>();
             _mainThreadAccessor.Post(() =>
             {
-                _logger.LogInformation("Start dialog. DialogName={dialogName}, TargetUnitId={targetUnitId}, InitiatorUnitId={initiatorUnitId}, MapObjectId={mapObjectId}, SpeakerKey={speakerKey}",
+                _logger.LogInformation("Start dialog. DialogName={DialogName}, TargetUnitId={TargetUnitId}, InitiatorUnitId={InitiatorUnitId}, MapObjectId={MapObjectId}, SpeakerKey={SpeakerKey}",
                     dialogName, targetUnitId, initiatorUnitId, mapObjectId, speakerKey);
                 var dialogBlueprint = Utilities.GetBlueprint<BlueprintDialog>(dialogName);
                 var target = GetUnitEntity(targetUnitId);
@@ -484,7 +484,7 @@ namespace WOTRMultiplayer.GameInteraction
                 var speaker = speakerKey == null ? null : new LocalizedString { Key = speakerKey };
                 if (dialogBlueprint == null)
                 {
-                    _logger.LogError("Unable to find dialog. Name={dialogName}", dialogName);
+                    _logger.LogError("Unable to find dialog. DialogName={DialogName}", dialogName);
                     return;
                 }
 
@@ -577,19 +577,19 @@ namespace WOTRMultiplayer.GameInteraction
                         var unit = Game.Instance.State.Units.FirstOrDefault(u => string.Equals(u.UniqueId, networkUnit.Id, StringComparison.OrdinalIgnoreCase));
                         if (unit == null)
                         {
-                            _logger.LogError("Unable to find specified unit. UnitId={unitId}", networkUnit.Id);
+                            _logger.LogError("Unable to find specified unit. UnitId={UnitId}", networkUnit.Id);
                             continue;
                         }
 
                         if (!unit.IsInCombat)
                         {
-                            _logger.LogWarning("Updating unit outside of the combat. UnitId={unitId}", networkUnit.Id);
+                            _logger.LogWarning("Updating unit outside of the combat. UnitId={UnitId}", networkUnit.Id);
                         }
 
                         if (unit.Orientation != networkUnit.Orientation)
                         {
                             var previousOrientation = unit.Orientation;
-                            _logger.LogInformation("Orientation has been updated. UnitId={unitId}, PreviousOrientation={previousOrientation}, NewOrientation={newOrientation}", unit.UniqueId, previousOrientation.ToString("F4"), unit.Orientation.ToString("F4"));
+                            _logger.LogInformation("Orientation has been updated. UnitId={UnitId}, PreviousOrientation={PreviousOrientation}, NewOrientation={NewOrientation}", unit.UniqueId, previousOrientation.ToString("F4"), unit.Orientation.ToString("F4"));
                             unit.Orientation = networkUnit.Orientation;
                         }
 
@@ -600,17 +600,17 @@ namespace WOTRMultiplayer.GameInteraction
                             var newPosition = new UnityEngine.Vector3(networkUnit.Position.X, networkUnit.Position.Y, networkUnit.Position.Z);
                             var oldPosition = unit.Position;
                             unit.Translocate(newPosition, unit.Orientation);
-                            _logger.LogInformation("Unit position has been updated. UnitId={unitId}, PreviousPosition={oldPosition}, NewPosition={newPosition}", unit.UniqueId, oldPosition.ToString("F4"), newPosition.ToString("F4"));
+                            _logger.LogInformation("Unit position has been updated. UnitId={UnitId}, PreviousPosition={PreviousPosition}, NewPosition={NewPosition}", unit.UniqueId, oldPosition.ToString("F4"), newPosition.ToString("F4"));
                         }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Unable to update unit position. UnitId={unitId}", networkUnit.Id);
+                        _logger.LogError(ex, "Unable to update unit position. UnitId={UnitId}", networkUnit.Id);
                         continue;
                     }
                 }
 
-                _logger.LogInformation("Finished updating units. UnitsCount={unitsCount}", networkUnits.Count);
+                _logger.LogInformation("Finished updating units. UnitsCount={UnitsCount}", networkUnits.Count);
 
                 taskCompletion.SetResult(true);
             });
@@ -648,7 +648,7 @@ namespace WOTRMultiplayer.GameInteraction
 
             if (unit.IsPet && unit.Master == null)
             {
-                _logger.LogError("Pet has no master. UnitId={unitId}", unitId);
+                _logger.LogError("Pet has no master. UnitId={UnitId}", unitId);
                 return null;
             }
 
@@ -661,11 +661,11 @@ namespace WOTRMultiplayer.GameInteraction
             {
                 try
                 {
-                    _logger.LogInformation("Calling CombatController.StartTurn. UnitId={unitId}", unitId);
+                    _logger.LogInformation("Calling CombatController.StartTurn. UnitId={UnitId}", unitId);
                     var currentUnit = GetUnitEntity(unitId);
                     if (currentUnit == null)
                     {
-                        _logger.LogError("Unable to find unit to call CombatController.StartTurn. UnitId={unitId}", unitId);
+                        _logger.LogError("Unable to find unit to call CombatController.StartTurn. UnitId={UnitId}", unitId);
                         return;
                     }
 
@@ -690,7 +690,7 @@ namespace WOTRMultiplayer.GameInteraction
             _mainThreadAccessor.Post(() =>
             {
                 var turnStatus = Game.Instance.TurnBasedCombatController.CurrentTurn?.Status ?? null;
-                _logger.LogInformation("Ending combat turn if it's not ending yet. TurnStatus={turnStatus}", turnStatus);
+                _logger.LogInformation("Ending combat turn if it's not ending yet. TurnStatus={TurnStatus}", turnStatus);
                 if (turnStatus != TurnBased.Controllers.TurnController.TurnStatus.Ending && turnStatus != TurnBased.Controllers.TurnController.TurnStatus.Ended)
                 {
                     Game.Instance.TurnBasedCombatController.CurrentTurn?.End();
@@ -707,7 +707,7 @@ namespace WOTRMultiplayer.GameInteraction
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to initiate click handler. HandlerTy={handlerType}", typeof(ClickUnitHandler));
+                _logger.LogError(ex, "Unable to initiate click handler. HandlerType={HandlerType}", typeof(ClickUnitHandler));
                 throw;
             }
         }
@@ -721,7 +721,7 @@ namespace WOTRMultiplayer.GameInteraction
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to initiate click handler. HandlerTy={handlerType}", typeof(ClickGroundHandler));
+                _logger.LogError(ex, "Unable to initiate click handler. HandlerType={HandlerType}", typeof(ClickGroundHandler));
                 throw;
             }
         }
@@ -736,7 +736,7 @@ namespace WOTRMultiplayer.GameInteraction
                     var mapObject = click.IsLootBagMapObject ? GetNeareastLootBagMapObject(click.WorldPosition) : GetMapObject(click.MapObjectId);
                     if (mapObject == null)
                     {
-                        _logger.LogWarning("Unable to click missing map object. MapObjectId={uniqueId}", click.MapObjectId);
+                        _logger.LogWarning("Unable to click missing map object. MapObjectId={MapObjectId}", click.MapObjectId);
                         return;
                     }
 
@@ -746,7 +746,7 @@ namespace WOTRMultiplayer.GameInteraction
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Unable to interact with map object. MapObjectId={uniqueId}", click.MapObjectId);
+                    _logger.LogError(ex, "Unable to interact with map object. MapObjectId={MapObjectId}", click.MapObjectId);
                     throw;
                 }
             });
@@ -760,7 +760,7 @@ namespace WOTRMultiplayer.GameInteraction
                 var ability = FindActivatableAbility(caster, toggle.Id);
                 if (ability == null)
                 {
-                    _logger.LogError("Unable to find activatable ability. UnitId={unitId}, AbilityId={abilityId}", caster.UniqueId, toggle.Id);
+                    _logger.LogError("Unable to find activatable ability. UnitId={UnitId}, AbilityId={AbilityId}", caster.UniqueId, toggle.Id);
                     return;
                 }
 
@@ -772,7 +772,7 @@ namespace WOTRMultiplayer.GameInteraction
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to initiate ToggleActivatableAbility.  CasterId={casterId}, TargetId={targetId}, AbilityId={abilityId}", toggle.CasterId, toggle.TargetId, toggle.Id);
+                _logger.LogError(ex, "Unable to initiate ToggleActivatableAbility.  CasterId={CasterId}, TargetId={TargetId}, AbilityId={AbilityId}", toggle.CasterId, toggle.TargetId, toggle.Id);
                 throw;
             }
         }
@@ -785,7 +785,7 @@ namespace WOTRMultiplayer.GameInteraction
                 var abilityData = FindAbility(caster, abilityUse);
                 if (abilityData == null)
                 {
-                    _logger.LogError("Unable to find ability. UnitId={unitId}, AbilityId={abilityId}, SpellbookBlueprintId={spellbookBlueprintId}", caster.UniqueId, abilityUse.Id, abilityUse.SpellbookId);
+                    _logger.LogError("Unable to find ability. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookBlueprintId={SpellbookBlueprintId}", caster.UniqueId, abilityUse.Id, abilityUse.SpellbookId);
                     return;
                 }
 
@@ -811,14 +811,14 @@ namespace WOTRMultiplayer.GameInteraction
 
                 _mainThreadAccessor.Post(() =>
                 {
-                    _logger.LogInformation("Running ability use command. Caster={casterId}, AbilityId={abilityId}", caster.UniqueId, ((UnitUseAbility)command).Ability?.UniqueId);
+                    _logger.LogInformation("Running ability use command. Caster={Caster}, AbilityId={AbilityId}", caster.UniqueId, ((UnitUseAbility)command).Ability?.UniqueId);
                     caster.Commands.Run(command);
                 });
             }
             catch (Exception ex)
             {
 
-                _logger.LogError(ex, "Unable to initiate UseAbility.  CasterId={casterId}, TargetId={targetId}, AbilityId={abilityId}", abilityUse.CasterId, abilityUse.TargetId, abilityUse.Id);
+                _logger.LogError(ex, "Unable to initiate UseAbility.  CasterId={CasterId}, TargetId={TargetId}, AbilityId={AbilityId}", abilityUse.CasterId, abilityUse.TargetId, abilityUse.Id);
                 throw;
             }
         }
@@ -878,7 +878,7 @@ namespace WOTRMultiplayer.GameInteraction
                         }
                     }
 
-                    _logger.LogError("Unable to find valid nearest lootable map object. ContainerId={containerId}, Position={position}", networkLootContainer.Id, networkLootContainer.Position);
+                    _logger.LogError("Unable to find valid nearest lootable map object. ContainerId={ContainerId}, Position={Position}", networkLootContainer.Id, networkLootContainer.Position);
                 }
                 catch (Exception ex)
                 {
@@ -893,7 +893,7 @@ namespace WOTRMultiplayer.GameInteraction
             var entity = GetUnitEntity(dropItem.OwnerEntityId);
             if (entity == null)
             {
-                _logger.LogError("Unable to find entity to drop item. EntityId={entityId}", dropItem.OwnerEntityId);
+                _logger.LogError("Unable to find entity to drop item. EntityId={EntityId}", dropItem.OwnerEntityId);
                 return;
             }
 
@@ -904,14 +904,14 @@ namespace WOTRMultiplayer.GameInteraction
 
             if (possibleItemsToDrop.Count == 0)
             {
-                _logger.LogWarning("Unable to find item to drop. EntityId={entityId}, ItemId={itemId}", dropItem.OwnerEntityId, dropItem.Item.UniqueId);
+                _logger.LogWarning("Unable to find item to drop. EntityId={EntityId}, ItemId={ItemId}", dropItem.OwnerEntityId, dropItem.Item.UniqueId);
                 return;
             }
 
             var totalCount = possibleItemsToDrop.Sum(x => x.Count);
             if (totalCount < dropItem.Item.Count)
             {
-                _logger.LogError("Not enough items to drop, possibly desynced somewhere else. EntityId={entityId}, ItemId={itemId}, TotalCount={totalCount} RequiredCount={requiredCount}", dropItem.OwnerEntityId, dropItem.Item.UniqueId, totalCount, dropItem.Item.Count);
+                _logger.LogError("Not enough items to drop, possibly desynced somewhere else. EntityId={EntityId}, ItemId={ItemId}, TotalCount={TotalCount}, RequiredCount={RequiredCount}", dropItem.OwnerEntityId, dropItem.Item.UniqueId, totalCount, dropItem.Item.Count);
                 return;
             }
 
@@ -955,7 +955,7 @@ namespace WOTRMultiplayer.GameInteraction
             var itemId = itemEntity.UniqueId;
             using var context = _networkExecutionContext.Value = RemoteExecutionContext.CreateDropItem(itemId, ownerId);
             inventory.DropItem(itemEntity);
-            _logger.LogInformation("Item has been dropped. EntityId={entityId}, ItemId={itemId}, Count={count}", ownerId, itemId, itemEntity.Count);
+            _logger.LogInformation("Item has been dropped. EntityId={EntityId}, ItemId={ItemId}, Count={Count}", ownerId, itemId, itemEntity.Count);
         }
 
         public NetworkEquipmentSlotPosition GetEquipmentSlotPosition(ItemSlot slot)
@@ -969,7 +969,7 @@ namespace WOTRMultiplayer.GameInteraction
             var slotType = _equipmentDefinitions.GetSlotType(type);
             if (slotType == null)
             {
-                _logger.LogWarning("Unable to get slot type. Type={slotType}, OwnerId={ownerId}", type, slot.Owner.Unit.UniqueId);
+                _logger.LogWarning("Unable to get slot type. SlotType={slotType}, OwnerId={OwnerId}", type, slot.Owner.Unit.UniqueId);
                 return null;
             }
 
@@ -994,14 +994,14 @@ namespace WOTRMultiplayer.GameInteraction
                 var unit = GetUnitEntity(slot.OwnerId);
                 if (unit == null)
                 {
-                    _logger.LogError("Unable to update equipment slot for missing unit. UnitId={unitId}", slot.OwnerId);
+                    _logger.LogError("Unable to update equipment slot for missing unit. UnitId={UnitId}", slot.OwnerId);
                     return;
                 }
 
                 var slotType = _equipmentDefinitions.GetSlotType(slot.Position.Type);
                 if (slotType == null)
                 {
-                    _logger.LogError("Unable to update equipment slot with invalid slot type. UnitId={unitId}, SlotType={slotType}", slot.OwnerId, slot.Position.Type);
+                    _logger.LogError("Unable to update equipment slot with invalid slot type. UnitId={UnitId}, SlotType={SlotType}", slot.OwnerId, slot.Position.Type);
                     return;
                 }
 
@@ -1011,7 +1011,7 @@ namespace WOTRMultiplayer.GameInteraction
 
                 if (slotsOfSameType.Count < slot.Position.Index)
                 {
-                    _logger.LogError("Unable to update equipment slot with invalid slot index. UnitId={unitId}, SlotType={slotType}, SlotIndex={slotIndex}", slot.OwnerId, slot.Position.Type, slot.Position.Index);
+                    _logger.LogError("Unable to update equipment slot with invalid slot index. UnitId={UnitId}, SlotType={SlotType}, SlotIndex={SlotIndex}", slot.OwnerId, slot.Position.Type, slot.Position.Index);
                     return;
                 }
 
@@ -1022,7 +1022,7 @@ namespace WOTRMultiplayer.GameInteraction
                 {
                     slotToUpdate.RemoveItem();
                     RefreshInventoryWindow();
-                    _logger.LogInformation("Item has been unequipped. UnitId={unitId}, SlotType={slotType}, SlotIndex={slotIndex}", slot.OwnerId, slot.Position.Type, slot.Position.Index);
+                    _logger.LogInformation("Item has been unequipped. UnitId={UnitId}, SlotType={SlotType}, SlotIndex={SlotIndex}", slot.OwnerId, slot.Position.Type, slot.Position.Index);
                     return;
                 }
 
@@ -1037,7 +1037,7 @@ namespace WOTRMultiplayer.GameInteraction
 
                     if (sameItem == null)
                     {
-                        _logger.LogError("Unable to update equipment slot with missing item. UnitId={unitId}, SlotType={slotType}, SlotIndex={slotIndex}, ItemId={itemId}", slot.OwnerId, slot.Position.Type, slot.Position.Index, slot.Item.UniqueId);
+                        _logger.LogError("Unable to update equipment slot with missing item. UnitId={UnitId}, SlotType={SlotType}, SlotIndex={SlotIndex}, ItemId={ItemId}", slot.OwnerId, slot.Position.Type, slot.Position.Index, slot.Item.UniqueId);
                         return;
                     }
 
@@ -1047,7 +1047,7 @@ namespace WOTRMultiplayer.GameInteraction
 
                 slotToUpdate.InsertItem(item);
                 RefreshInventoryWindow();
-                _logger.LogInformation("Item has been equipped. UnitId={unitId}, SlotType={slotType}, SlotIndex={slotIndex}, ItemId={itemId}", slot.OwnerId, slot.Position.Type, slot.Position.Index, slot.Item.UniqueId);
+                _logger.LogInformation("Item has been equipped. UnitId={UnitId}, SlotType={SlotType}, SlotIndex={SlotIndex}, ItemId={ItemId}", slot.OwnerId, slot.Position.Type, slot.Position.Index, slot.Item.UniqueId);
             });
         }
 
@@ -1056,7 +1056,7 @@ namespace WOTRMultiplayer.GameInteraction
             var unit = GetUnitEntity(set.UnitId);
             if (unit == null)
             {
-                _logger.LogError("Unable to set active hand equipment set for missing unit. UnitId={unitID}", set.UnitId);
+                _logger.LogError("Unable to set active hand equipment set for missing unit. UnitId={UnitId}", set.UnitId);
                 return;
             }
 
@@ -1071,7 +1071,7 @@ namespace WOTRMultiplayer.GameInteraction
                 var previousIndex = unit.Body.CurrentHandEquipmentSetIndex;
                 unit.Body.CurrentHandEquipmentSetIndex = set.Index;
                 RefreshInventoryWindow();
-                _logger.LogInformation("Changed active hand equipment slot. UnitId={unitID}, PreviousIndex={previousIndex}, CurrentIndex={currentIndex}", set.UnitId, previousIndex, unit.Body.CurrentHandEquipmentSetIndex);
+                _logger.LogInformation("Changed active hand equipment slot. UnitId={UnitId}, PreviousIndex={PreviousIndex}, CurrentIndex={CurrentIndex}", set.UnitId, previousIndex, unit.Body.CurrentHandEquipmentSetIndex);
             });
         }
 
@@ -1092,20 +1092,20 @@ namespace WOTRMultiplayer.GameInteraction
             var mapObject = GetMapObject(check.MapObject.Id);
             if (mapObject == null)
             {
-                _logger.LogError("Unable to apply perception check due to missing map object. MapObjectId={mapObjectId}", check.MapObject.Id);
+                _logger.LogError("Unable to apply perception check due to missing map object. MapObjectId={MapObjectId}", check.MapObject.Id);
                 return;
             }
 
             var unit = GetUnitEntity(check.UnitId);
             if (unit == null)
             {
-                _logger.LogError("Unable to apply perception check due to missing unit. MapObjectId={mapObjectId}, UnitId={unitId}", check.MapObject.Id, check.UnitId);
+                _logger.LogError("Unable to apply perception check due to missing unit. MapObjectId={MapObjectId}, UnitId={UnitId}", check.MapObject.Id, check.UnitId);
                 return;
             }
 
             _mainThreadAccessor.Post(() =>
             {
-                _logger.LogInformation("Trigerring perception check. MapObjectId={mapObjectId}", check.MapObject.Id);
+                _logger.LogInformation("Trigerring perception check. MapObjectId={MapObjectId}", check.MapObject.Id);
                 using var context = _networkExecutionContext.Value = RemoteExecutionContext.Create(check);
                 PartyPerceptionController.RollPerception(unit, mapObject);
             });
@@ -1116,20 +1116,20 @@ namespace WOTRMultiplayer.GameInteraction
             var targetUnit = GetUnitEntity(check.TargetUnitId);
             if (targetUnit == null)
             {
-                _logger.LogError("Unable to apply inspection knowledge check due to missing target unit. TargetUnitId={targetUnitId}", check.TargetUnitId);
+                _logger.LogError("Unable to apply inspection knowledge check due to missing target unit. TargetUnitId={TargetUnitId}", check.TargetUnitId);
                 return;
             }
 
             var initiatorUnit = GetUnitEntity(check.InitiatorUnitId);
             if (initiatorUnit == null)
             {
-                _logger.LogError("Unable to apply inspection knowledge check due to missing initiator unit. InitiatorUnitId={targetUnitId}", check.InitiatorUnitId);
+                _logger.LogError("Unable to apply inspection knowledge check due to missing initiator unit. InitiatorUnitId={InitiatorUnitId}", check.InitiatorUnitId);
                 return;
             }
 
             _mainThreadAccessor.Post(() =>
             {
-                _logger.LogInformation("Applying inspection knowledge check. InitiatorUnitId={initiatorUnitId}, TargetUnitId={targetUnitId}, StatType={statType}", check.InitiatorUnitId, check.TargetUnitId, check.StatType);
+                _logger.LogInformation("Applying inspection knowledge check. InitiatorUnitId={InitiatorUnitId}, TargetUnitId={TargetUnitId}, StatType={StatType}", check.InitiatorUnitId, check.TargetUnitId, check.StatType);
                 var blueprintForInspection = targetUnit.Descriptor.BlueprintForInspection;
                 InspectUnitsManager.UnitInfo info = Game.Instance.Player.InspectUnitsManager.GetInfo(blueprintForInspection);
                 if (info == null)
@@ -1173,12 +1173,12 @@ namespace WOTRMultiplayer.GameInteraction
 
         public void UpdateCombatOrder(List<string> unitsCombatOrder)
         {
-            _logger.LogInformation("Update units combat order. Order={order}", unitsCombatOrder);
+            _logger.LogInformation("Update units combat order. Order={Order}", unitsCombatOrder);
 
             var existingUnits = Game.Instance.TurnBasedCombatController.m_Units.ToList();
             if (unitsCombatOrder.Count != existingUnits.Count)
             {
-                _logger.LogError("Combat units mismatch. LocalCount={localCount}, RemoteCount={remoteCount}, LocalUnits={localUnits}", existingUnits.Count, unitsCombatOrder.Count, existingUnits.Select(x => x.Unit.UniqueId));
+                _logger.LogError("Combat units mismatch. LocalCount={LocalCount}, RemoteCount={RemoteCount}, LocalUnits={LocalUnits}", existingUnits.Count, unitsCombatOrder.Count, existingUnits.Select(x => x.Unit.UniqueId));
                 return;
             }
 
@@ -1188,7 +1188,7 @@ namespace WOTRMultiplayer.GameInteraction
                 var localUnit = existingUnits.FirstOrDefault(u => string.Equals(remoteUnitId, u.Unit.UniqueId, StringComparison.OrdinalIgnoreCase));
                 if (localUnit == null)
                 {
-                    _logger.LogError("Unable to find unit to set correct combat order. UnitId={unitId}", remoteUnitId);
+                    _logger.LogError("Unable to find unit to set correct combat order. UnitId={UnitId}", remoteUnitId);
                     Game.Instance.TurnBasedCombatController.m_Units.Clear();
                     Game.Instance.TurnBasedCombatController.m_Units = [.. existingUnits];
                     return;
@@ -1253,7 +1253,7 @@ namespace WOTRMultiplayer.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                _logger.LogInformation("Applying settings. Settings={settings}", gameSettings);
+                _logger.LogInformation("Applying settings. Settings={Settings}", gameSettings);
                 SettingsRoot.Game.TurnBased.EnableTurnBasedMode.SetValueAndConfirm(gameSettings.TurnBased.IsTurnBasedModeEnabled);
                 SettingsRoot.Game.TurnBased.AutoEndTurn.SetValueAndConfirm(gameSettings.TurnBased.AutoEndTurn);
                 SettingsRoot.Game.TurnBased.AutoStopAfterFirstMoveAction.SetValueAndConfirm(gameSettings.TurnBased.AutoStopAfterFirstMoveAction);
@@ -1386,7 +1386,7 @@ namespace WOTRMultiplayer.GameInteraction
                     return;
                 }
 
-                _logger.LogInformation("Changing rest button state. IsInteractable={isInteractable}, ReadyPlayers={readyPlayer}, TotalPlayers={totalPlayers}", isInteractable, readyPlayersCount, totalPlayersCount);
+                _logger.LogInformation("Changing rest button state. IsInteractable={IsInteractable}, ReadyPlayers={ReadyPlayers}, TotalPlayers={TotalPlayers}", isInteractable, readyPlayersCount, totalPlayersCount);
 
                 RestView.m_StartRestButton.Interactable = isInteractable;
 
@@ -1447,17 +1447,17 @@ namespace WOTRMultiplayer.GameInteraction
                     var currentBark = currentBanterPlayer.m_Entries[currentEntryIndex];
                     if (!string.Equals(currentBark.Text.Key, networkRestBanter.Key, StringComparison.OrdinalIgnoreCase) || !string.Equals(currentBark.Speaker.UniqueId, networkRestBanter.SpeakerUnitId, StringComparison.OrdinalIgnoreCase))
                     {
-                        _logger.LogWarning("RestController is playing different banter. CurrentBanterKey={currentKey}, CurrentSpeakerUnitId={currentSpeakerUnitId}, NetworkBanterKey={networkBanterKey}, NetworkSpeakerUnitId={networkSpeakerUnitId}",
+                        _logger.LogWarning("RestController is playing different banter. CurrentBanterKey={CurrentBanterKey}, CurrentSpeakerUnitId={CurrentSpeakerUnitId}, NetworkBanterKey={NetworkBanterKey}, NetworkSpeakerUnitId={NetworkSpeakerUnitId}",
                                 currentBark.Text.Key, currentBark.Speaker.UniqueId, networkRestBanter.Key, networkRestBanter.SpeakerUnitId);
                         return;
                     }
 
                     currentBanterPlayer.InterruptBark();
-                    _logger.LogInformation("Rest bark has been interrupted. NetworkBanterKey={networkBanterKey}, NetworkSpeakerUnitId={networkSpeakerUnitId}", networkRestBanter.Key, networkRestBanter.SpeakerUnitId);
+                    _logger.LogInformation("Rest bark has been interrupted. NetworkBanterKey={NetworkBanterKey}, NetworkSpeakerUnitId={NetworkSpeakerUnitId}", networkRestBanter.Key, networkRestBanter.SpeakerUnitId);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Unable to interrupd bark. NetworkBanterKey={networkBanterKey}, NetworkSpeakerUnitId={networkSpeakerUnitId}", networkRestBanter.Key, networkRestBanter.SpeakerUnitId);
+                    _logger.LogError(ex, "Unable to interrupd bark. NetworkBanterKey={NetworkBanterKey}, NetworkSpeakerUnitId={NetworkSpeakerUnitId}", networkRestBanter.Key, networkRestBanter.SpeakerUnitId);
                     throw;
                 }
             });
@@ -1480,20 +1480,20 @@ namespace WOTRMultiplayer.GameInteraction
                     var (item, action) = GetDataForVendorTransferAction(transfer.Item, transfer.Count, transfer.ItemActionTarget, transfer.ItemAction);
                     if (item == null)
                     {
-                        _logger.LogError("Unable to find item for make vendor transfer action. ItemId={itemId}, ActionTarget={actionTarget}, ActionType={actionType}", transfer.Item.UniqueId, transfer.ItemActionTarget, transfer.ItemAction);
+                        _logger.LogError("Unable to find item for make vendor transfer action. ItemId={ItemId}, ActionTarget={ActionTarget}, ActionType={ActionType}", transfer.Item.UniqueId, transfer.ItemActionTarget, transfer.ItemAction);
                         return;
                     }
 
                     if (action == null)
                     {
-                        _logger.LogError("Unable to find to determine correct action to make vendor transfer. ItemId={itemId}, ActionTarget={actionTarget}, ActionType={actionType}", transfer.Item.UniqueId, transfer.ItemActionTarget, transfer.ItemAction);
+                        _logger.LogError("Unable to find to determine correct action to make vendor transfer. ItemId={ItemId}, ActionTarget={ActionTarget}, ActionType={ActionType}", transfer.Item.UniqueId, transfer.ItemActionTarget, transfer.ItemAction);
                         return;
                     }
 
                     using var context = _networkExecutionContext.Value = RemoteExecutionContext.CreateVendorItemTransfer(item.UniqueId);
                     var transferredItem = action(item);
                     RefreshVendorScreen();
-                    _logger.LogInformation("Vendor item has been transferred. ItemId={itemId}, Count={count}, ActionTarget={actionTarget}, ActionType={actionType}", transferredItem.UniqueId, transferredItem.Count, transfer.ItemActionTarget, transfer.ItemAction);
+                    _logger.LogInformation("Vendor item has been transferred. ItemId={ItemId}, Count={Count}, ActionTarget={ActionTarget}, ActionType={ActionType}", transferredItem.UniqueId, transferredItem.Count, transfer.ItemActionTarget, transfer.ItemAction);
                 }
                 catch (Exception ex)
                 {
@@ -1537,14 +1537,14 @@ namespace WOTRMultiplayer.GameInteraction
             var unit = GetUnitEntity(slot.UnitId);
             if (unit == null)
             {
-                _logger.LogError("Unable to find unit to forget spell. UnitId={unitId}", slot.UnitId);
+                _logger.LogError("Unable to find unit to forget spell. UnitId={UnitId}", slot.UnitId);
                 return;
             }
 
             var spellbook = unit.Spellbooks.FirstOrDefault(s => string.Equals(s.Blueprint.Name.Key, slot.SpellbookId, StringComparison.OrdinalIgnoreCase));
             if (spellbook == null)
             {
-                _logger.LogError("Unable to find spellbook to forget spell. UnitId={unitId}, SpellbookId={spellBookId}", slot.UnitId, slot.SpellbookId);
+                _logger.LogError("Unable to find spellbook to forget spell. UnitId={UnitId}, SpellbookId={SpellbookId}", slot.UnitId, slot.SpellbookId);
                 return;
             }
 
@@ -1553,7 +1553,7 @@ namespace WOTRMultiplayer.GameInteraction
                 var spellSlot = GetSpellSlot(spellbook, slot);
                 if (spellSlot == null)
                 {
-                    _logger.LogError("Unable to find spellslot to forget. UnitId={unitId}, SpellbookId={spellBookId}, SpellSlotIndex={index}, SpellSlotType={type}", slot.UnitId, slot.SpellbookId, slot.Index, slot.Type);
+                    _logger.LogError("Unable to find spellslot to forget. UnitId={UnitId}, SpellbookId={SpellbookId}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}", slot.UnitId, slot.SpellbookId, slot.Index, slot.Type);
                     return;
                 }
 
@@ -1568,14 +1568,14 @@ namespace WOTRMultiplayer.GameInteraction
             var unit = GetUnitEntity(slot.UnitId);
             if (unit == null)
             {
-                _logger.LogError("Unable to find unit to memorize spell. UnitId={unitId}", slot.UnitId);
+                _logger.LogError("Unable to find unit to memorize spell. UnitId={UnitId}", slot.UnitId);
                 return;
             }
 
             var spellbook = unit.Spellbooks.FirstOrDefault(s => string.Equals(s.Blueprint.Name.Key, slot.SpellbookId, StringComparison.OrdinalIgnoreCase));
             if (spellbook == null)
             {
-                _logger.LogError("Unable to find spellbook to memorize spell. UnitId={unitId}, SpellbookId={spellBookId}", slot.UnitId, slot.SpellbookId);
+                _logger.LogError("Unable to find spellbook to memorize spell. UnitId={UnitId}, SpellbookId={SpellbookId}", slot.UnitId, slot.SpellbookId);
                 return;
             }
 
@@ -1598,16 +1598,16 @@ namespace WOTRMultiplayer.GameInteraction
                     var partyView = InGamePCView.m_StaticPartPCView.m_PartyPCView?.m_Characters?.FirstOrDefault(p => string.Equals(p.UnitEntityData.UniqueId, unitId, StringComparison.OrdinalIgnoreCase));
                     if (partyView?.GetViewModel() is not PartyCharacterVM partyVM)
                     {
-                        _logger.LogError("Unable to start leveling due to missing party character vm. UnitId={unitId}", unitId);
+                        _logger.LogError("Unable to start leveling due to missing party character vm. UnitId={UnitId}", unitId);
                         return;
                     }
 
-                    _logger.LogInformation("Starting leveling process. UnitId={unitId}", unitId);
+                    _logger.LogInformation("Starting leveling process. UnitId={UnitId}", unitId);
                     partyVM.LevelUp();
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error while starting leveling process. UnitId={unitId}", unitId);
+                    _logger.LogError(ex, "Error while starting leveling process. UnitId={UnitId}", unitId);
                     throw;
                 }
             });
@@ -1657,11 +1657,11 @@ namespace WOTRMultiplayer.GameInteraction
                     viewModel.SelectedClassVM.Value.SelectedArchetype.Value = archetype;
                     viewModel.OnSelectorArchetypeChanged(archetype.Archetype);
                     viewModel.LastSelectedArchetypeVM = archetype;
-                    _logger.LogInformation("Leveling archetype has been set. Class={class}, Archetype={archetype}", viewModel.SelectedClassVM.Value.Class.NameForAcronym, viewModel.SelectedClassVM.Value.SelectedArchetype.Value?.Archetype?.NameForAcronym);
+                    _logger.LogInformation("Leveling archetype has been set. ClassName={ClassName}, ArchetypeId={ArchetypeId}", viewModel.SelectedClassVM.Value.Class.NameForAcronym, viewModel.SelectedClassVM.Value.SelectedArchetype.Value?.Archetype?.NameForAcronym);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error while selecting leveling class archetype. ArchetypeId={archetypeId}", archetypeId);
+                    _logger.LogError(ex, "Error while selecting leveling class archetype. ArchetypeId={ArchetypeId}", archetypeId);
                     throw;
                 }
             });
@@ -1691,7 +1691,7 @@ namespace WOTRMultiplayer.GameInteraction
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error while selecting leveling class. ClassId={classId}", classId);
+                    _logger.LogError(ex, "Error while selecting leveling class. ClassId={ClassId}", classId);
                     throw;
                 }
             });
@@ -1721,17 +1721,17 @@ namespace WOTRMultiplayer.GameInteraction
                          && string.Equals(featureItem.Feature.Feature.AssetGuid.ToString(), feature.Id, StringComparison.OrdinalIgnoreCase));
                     if (featureToSelect == null)
                     {
-                        _logger.LogError("Unable to find requested feature in the list. Name={name}, Id={id}", feature.Name, feature.Id);
+                        _logger.LogError("Unable to find requested feature in the list. FeatureName={FeatureName}, FeatureId={FeatureId}", feature.Name, feature.Id);
                         return;
                     }
 
                     var requestedFeatureVM = (featureToSelect.Data as CharGenFeatureSelectorItemVM);
                     requestedFeatureVM.SetSelected(true);
-                    _logger.LogInformation("Selected leveling feature. Name={name}, Id={id}", requestedFeatureVM.Feature.NameForAcronym, requestedFeatureVM.Feature.Feature.AssetGuid.ToString());
+                    _logger.LogInformation("Selected leveling feature. FeatureName={FeatureName}, FeatureId={FeatureId}", requestedFeatureVM.Feature.NameForAcronym, requestedFeatureVM.Feature.Feature.AssetGuid.ToString());
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error while selecting leveling feature. Name={name}, Id={id}", feature.Name, feature.Id);
+                    _logger.LogError(ex, "Error while selecting leveling feature. FeatureName={FeatureName}, FeatureId={FeatureId}", feature.Name, feature.Id);
                     throw;
                 }
             });
@@ -1749,7 +1749,7 @@ namespace WOTRMultiplayer.GameInteraction
                         return;
                     }
 
-                    _logger.LogInformation("Updating generic part of leveling screen. IsEnabled={isEnabled}", isEnabled);
+                    _logger.LogInformation("Updating generic part of leveling screen. IsEnabled={IsEnabled}", isEnabled);
                     CharGenView.m_CloseButton.Interactable = isEnabled;
                     CharGenView.SetActiveNextPhaseButton(isEnabled);
 
@@ -1792,7 +1792,7 @@ namespace WOTRMultiplayer.GameInteraction
                 var roadmapVM = CharGenView.RoadmapMenuView.GetViewModel() as SelectionGroupRadioVM<CharGenPhaseBaseVM>;
                 if (phase.Index >= roadmapVM.EntitiesCollection.Count)
                 {
-                    _logger.LogError("Leveling phase is out of range. Index={index}, TotalCount={totalCount}", phase.Index, roadmapVM.EntitiesCollection.Count);
+                    _logger.LogError("Leveling phase is out of range. Index={Index}, TotalCount={TotalCount}", phase.Index, roadmapVM.EntitiesCollection.Count);
                     return;
                 }
 
@@ -1816,7 +1816,7 @@ namespace WOTRMultiplayer.GameInteraction
                     var spellToAdd = spellsPhaseVM.SpellsSelector.Value.EntitiesCollection.FirstOrDefault(x => string.Equals(x.Spell.AssetGuid.ToString(), spell.Id, StringComparison.OrdinalIgnoreCase));
                     if (spellToAdd == null)
                     {
-                        _logger.LogError("Unable to add missing leveling spell. SpellName={spellName}, SpellId={spellId}", spell.Name, spell.Id);
+                        _logger.LogError("Unable to add missing leveling spell. SpellName={SpellName}, SpellId={SpellId}", spell.Name, spell.Id);
                         return;
                     }
 
@@ -1824,7 +1824,7 @@ namespace WOTRMultiplayer.GameInteraction
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error while selecting leveling spell. SpellName={spellName}, SpellId={spellId}", spell.Name, spell.Id);
+                    _logger.LogError(ex, "Error while selecting leveling spell. SpellName={SpellName}, SpellId={SpellId}", spell.Name, spell.Id);
                     throw;
                 }
             });
@@ -1845,7 +1845,7 @@ namespace WOTRMultiplayer.GameInteraction
                     var spellToRemove = spellsPhaseVM.SpellsSelector.Value.SelectedEntitiesCollection.FirstOrDefault(x => string.Equals(x.Spell.AssetGuid.ToString(), spell.Id, StringComparison.OrdinalIgnoreCase));
                     if (spellToRemove == null)
                     {
-                        _logger.LogError("Unable to remove missing leveling spell. SpellName={spellName}, SpellId={spellId}", spell.Name, spell.Id);
+                        _logger.LogError("Unable to remove missing leveling spell. SpellName={SpellName}, SpellId={SpellId}", spell.Name, spell.Id);
                         return;
                     }
 
@@ -1853,7 +1853,7 @@ namespace WOTRMultiplayer.GameInteraction
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error while removing selected leveling spell. SpellName={spellName}, SpellId={spellId}", spell.Name, spell.Id);
+                    _logger.LogError(ex, "Error while removing selected leveling spell. SpellName={SpellName}, SpellId={SpellId}", spell.Name, spell.Id);
                     throw;
                 }
             });
@@ -1873,11 +1873,11 @@ namespace WOTRMultiplayer.GameInteraction
 
                     skillView.ViewModel.m_LevelUpController.SpendSkillPoint(skillView.ViewModel.StatType);
                     skillView.OnChangedValue();
-                    _logger.LogInformation("Leveling skillpoint has been increased. StatType={statType}", skillPoint.StatType);
+                    _logger.LogInformation("Leveling skillpoint has been increased. StatType={StatType}", skillPoint.StatType);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error while increasing leveling skill point. StatType={statType}", skillPoint.StatType);
+                    _logger.LogError(ex, "Error while increasing leveling skill point. StatType={StatType}", skillPoint.StatType);
                     throw;
                 }
             });
@@ -1896,11 +1896,11 @@ namespace WOTRMultiplayer.GameInteraction
                     }
                     skillView.ViewModel.m_LevelUpController.UnspendSkillPoint(skillView.ViewModel.StatType);
                     skillView.OnChangedValue();
-                    _logger.LogInformation("Leveling skillpoint has been decreased. StatType={statType}", skillPoint.StatType);
+                    _logger.LogInformation("Leveling skillpoint has been decreased. StatType={StatType}", skillPoint.StatType);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error while decreasing leveling skill point. StatType={statType}", skillPoint.StatType);
+                    _logger.LogError(ex, "Error while decreasing leveling skill point. StatType={StatType}", skillPoint.StatType);
                     throw;
                 }
             });
@@ -1920,11 +1920,11 @@ namespace WOTRMultiplayer.GameInteraction
 
                     abilityScoreView.ViewModel.m_LevelUpController.SpendSkillPoint(abilityScoreView.ViewModel.StatType);
                     abilityScoreView.OnChangedValue();
-                    _logger.LogInformation("Leveling ability score has been increased. StatType={statType}", abilityScore.StatType);
+                    _logger.LogInformation("Leveling ability score has been increased. StatType={StatType}", abilityScore.StatType);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error while increasing leveling ability score. StatType={statType}", abilityScore.StatType);
+                    _logger.LogError(ex, "Error while increasing leveling ability score. StatType={StatType}", abilityScore.StatType);
                     throw;
                 }
             });
@@ -1943,11 +1943,11 @@ namespace WOTRMultiplayer.GameInteraction
                     }
                     abilityScoreView.ViewModel.m_LevelUpController.UnspendSkillPoint(abilityScoreView.ViewModel.StatType);
                     abilityScoreView.OnChangedValue();
-                    _logger.LogInformation("Leveling ability score has been decreased. StatType={statType}", abilityScore.StatType);
+                    _logger.LogInformation("Leveling ability score has been decreased. StatType={StatType}", abilityScore.StatType);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error while decreasing leveling ability score. StatType={statType}", abilityScore.StatType);
+                    _logger.LogError(ex, "Error while decreasing leveling ability score. StatType={StatType}", abilityScore.StatType);
                     throw;
                 }
             });
@@ -2002,7 +2002,7 @@ namespace WOTRMultiplayer.GameInteraction
             var skillView = skillAllocator.m_StatAllocators.FirstOrDefault(x => x.ViewModel.StatType == statType);
             if (skillView == null)
             {
-                _logger.LogWarning("Unable to find leveling view for stat. StatType={statType}", statType);
+                _logger.LogWarning("Unable to find leveling view for stat. StatType={StatType}", statType);
                 return null;
             }
 
@@ -2026,7 +2026,7 @@ namespace WOTRMultiplayer.GameInteraction
             var abilityScoreView = abilityScoresDetailedPCView.m_StatAllocators.FirstOrDefault(x => x.ViewModel.StatType == statType);
             if (abilityScoreView == null)
             {
-                _logger.LogWarning("Unable to find ability score leveling view for stat. StatType={statType}", statType);
+                _logger.LogWarning("Unable to find ability score leveling view for stat. StatType={StatType}", statType);
                 return null;
             }
 
@@ -2108,7 +2108,7 @@ namespace WOTRMultiplayer.GameInteraction
                 {
                     using var context = _networkExecutionContext.Value = RemoteExecutionContext.CreateVendorItemTransfer(item.UniqueId);
                     lastAddedItem = Game.Instance.Vendor.AddForSell(item, item.Count);
-                    _logger.LogInformation("Vendor item has been transferred. ItemId={itemId}, Count={count}, ActionTarget={actionTarget}, ActionType={actionType}", item.UniqueId, item.Count, transfer.ItemActionTarget, transfer.ItemAction);
+                    _logger.LogInformation("Vendor item has been transferred. ItemId={ItemId}, Count={Count}, ActionTarget={ActionTarget}, ActionType={ActionType}", item.UniqueId, item.Count, transfer.ItemActionTarget, transfer.ItemAction);
                 });
 
             return lastAddedItem;
@@ -2126,7 +2126,7 @@ namespace WOTRMultiplayer.GameInteraction
 
             if (source == null)
             {
-                _logger.LogError("Unable to find correct vendor item source. Target={target}, ItemAction={itemAction}", target, itemAction);
+                _logger.LogError("Unable to find correct vendor item source. Target={Target}, ItemAction={ItemAction}", target, itemAction);
                 return (null, null);
             }
 
@@ -2157,7 +2157,7 @@ namespace WOTRMultiplayer.GameInteraction
 
             if (campingState.SelectedScroll != null && string.Equals(campingState.SelectedScroll.Item.AssetGuid.ToString(), scrollItemBlueprintId))
             {
-                _logger.LogInformation("Same camping scroll scribing recipe is already selected, skipping updates. BlueprintId={id}", scrollItemBlueprintId);
+                _logger.LogInformation("Same camping scroll scribing recipe is already selected, skipping updates. BlueprintId={BlueprintId}", scrollItemBlueprintId);
                 return;
             }
 
@@ -2171,7 +2171,7 @@ namespace WOTRMultiplayer.GameInteraction
             var recipe = GetCampingCraftItemInfo(crafter, UsableItemType.Scroll, scrollItemBlueprintId);
             if (recipe == null)
             {
-                _logger.LogError("Unable update camping scroll scribing recipe due to missing blueprint id. BlueprintId={id}", scrollItemBlueprintId);
+                _logger.LogError("Unable update camping scroll scribing recipe due to missing blueprint id. BlueprintId={BlueprintId}", scrollItemBlueprintId);
                 return;
             }
 
@@ -2190,7 +2190,7 @@ namespace WOTRMultiplayer.GameInteraction
 
             if (campingState.SelectedPotion != null && string.Equals(campingState.SelectedPotion.Item.AssetGuid.ToString(), potionBlueprintRecipeId))
             {
-                _logger.LogInformation("Same camping alchemist potion recipe is already selected, skipping updates. BlueprintId={id}", potionBlueprintRecipeId);
+                _logger.LogInformation("Same camping alchemist potion recipe is already selected, skipping updates. BlueprintId={BlueprintId}", potionBlueprintRecipeId);
                 return;
             }
 
@@ -2204,7 +2204,7 @@ namespace WOTRMultiplayer.GameInteraction
             var recipe = GetCampingCraftItemInfo(crafter, UsableItemType.Potion, potionBlueprintRecipeId);
             if (recipe == null)
             {
-                _logger.LogError("Unable update camping alchemist potion recipe due to missing blueprint id. BlueprintId={id}", potionBlueprintRecipeId);
+                _logger.LogError("Unable update camping alchemist potion recipe due to missing blueprint id. BlueprintId={BlueprintId}", potionBlueprintRecipeId);
                 return;
             }
 
@@ -2238,7 +2238,7 @@ namespace WOTRMultiplayer.GameInteraction
         {
             var allNearest = GetNeareastLootableMapObjects(position);
             var lootbag = allNearest.FirstOrDefault(o => o is DroppedLoot.EntityData);
-            _logger.LogInformation("Using nearest lootbag as a map object. MapObjectId={mapObjectId}, Position={bagIndex}", lootbag?.UniqueId, lootbag?.Position);
+            _logger.LogInformation("Using nearest lootbag as a map object. MapObjectId={MapObjectId}, Position={Position}", lootbag?.UniqueId, lootbag?.Position);
             return lootbag;
         }
 
@@ -2274,7 +2274,7 @@ namespace WOTRMultiplayer.GameInteraction
             {
                 if (!string.Equals(transfer.ItemEntity.UniqueId, transfer.NetworkItem.UniqueId, StringComparison.OrdinalIgnoreCase))
                 {
-                    _logger.LogWarning("Transfer item id is mismatched, updating... ItemId={itemId}, NetworkItemId, ItemName={itemName}, NetworkItemName={networkItemName}",
+                    _logger.LogWarning("Transfer item id is mismatched, updating... ItemId={ItemId}, NetworkItemId={NetworkItemId}, ItemName={ItemName}, NetworkItemName={NetworkItemName}",
                         transfer.ItemEntity.UniqueId, transfer.NetworkItem.UniqueId, transfer.ItemEntity.Name, transfer.NetworkItem.Name);
 
                     transfer.ItemEntity.UniqueId = transfer.NetworkItem.UniqueId;
@@ -2369,7 +2369,7 @@ namespace WOTRMultiplayer.GameInteraction
             var spellbook = unit.Spellbooks.FirstOrDefault(s => string.Equals(s.Blueprint.Name.Key, networkAbility.SpellbookId));
             if (spellbook == null)
             {
-                _logger.LogError("Unable to 4find ability due to missing spellbook. UnitId={unitId}, AbilityId={abilityId}, SpellbookId={spellbookId}", unit.UniqueId, networkAbility.Id, networkAbility.SpellbookId);
+                _logger.LogError("Unable to 4find ability due to missing spellbook. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookId={SpellbookId}", unit.UniqueId, networkAbility.Id, networkAbility.SpellbookId);
                 return null;
             }
 
@@ -2378,32 +2378,32 @@ namespace WOTRMultiplayer.GameInteraction
                 var spellConversionSource = GetKnownSpell(spellbook, networkAbility.ConvertedFromId, networkAbility.Name) ?? GetMemorizedSpell(spellbook, networkAbility.ConvertedFromId, networkAbility.Name);
                 if (spellConversionSource == null)
                 {
-                    _logger.LogError("Can't find spell conversion source for converted ability. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}, ConvertedAbilityId={convertedId}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name, networkAbility.ConvertedFromId);
+                    _logger.LogError("Can't find spell conversion source for converted ability. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookName={SpellbookName}, ConvertedAbilityId={ConvertedAbilityId}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name, networkAbility.ConvertedFromId);
                     return null;
                 }
 
                 var convertedSpell = GetConvertedAbility(spellConversionSource, networkAbility);
                 if (convertedSpell == null)
                 {
-                    _logger.LogError("Can't find target ability in spell conversion list. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}, ConvertedAbilityId={convertedId}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name, networkAbility.ConvertedFromId);
+                    _logger.LogError("Can't find target ability in spell conversion list. UnitId={UnitId}, AbilityId={abilityId}, SpellbookName={SpellbookName}, ConvertedAbilityId={ConvertedAbilityId}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name, networkAbility.ConvertedFromId);
                     return null;
                 }
 
-                _logger.LogInformation("Converted spell has been found. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name);
+                _logger.LogInformation("Converted spell has been found. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookName={SpellbookName}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name);
                 return convertedSpell;
             }
 
             var knownSpell = GetKnownSpell(spellbook, networkAbility.Id, networkAbility.Name);
             if (knownSpell != null)
             {
-                _logger.LogInformation("Spell has been found in known spells. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name);
+                _logger.LogInformation("Spell has been found in known spells. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookName={SpellbookName}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name);
                 return knownSpell;
             }
 
             var memorizedSpell = GetMemorizedSpell(spellbook, networkAbility.Id, networkAbility.Name);
             if (memorizedSpell != null)
             {
-                _logger.LogInformation("Spell has been found in memorized spells. UnitId={unitId}, AbilityId={abilityId}, SpellbookName={spellbookName}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name);
+                _logger.LogInformation("Spell has been found in memorized spells. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookName={SpellbookName}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name);
                 return memorizedSpell;
             }
 
@@ -2437,13 +2437,13 @@ namespace WOTRMultiplayer.GameInteraction
                 var conversionAbility = unit.Abilities.Enumerable.FirstOrDefault(a => string.Equals(a.Data.UniqueId, abilityUse.ConvertedFromId, StringComparison.OrdinalIgnoreCase));
                 if (conversionAbility == null)
                 {
-                    _logger.LogInformation("Unable to find ability for conversion. UnitId={unitId}, AbilityId={abilityId}", unit.UniqueId, abilityUse.ConvertedFromId);
+                    _logger.LogInformation("Unable to find ability for conversion. UnitId={UnitId}, AbilityId={AbilityId}", unit.UniqueId, abilityUse.ConvertedFromId);
                     return null;
                 }
                 var convertedAbility = GetConvertedAbility(conversionAbility.Data, abilityUse);
                 if (convertedAbility == null)
                 {
-                    _logger.LogInformation("Unable to find ability in conversion list. UnitId={unitId}, AbilityId={abilityId}", unit.UniqueId, abilityUse.ConvertedFromId);
+                    _logger.LogInformation("Unable to find ability in conversion list. UnitId={UnitId}, AbilityId={AbilityId}", unit.UniqueId, abilityUse.ConvertedFromId);
                 }
 
                 return convertedAbility;
@@ -2454,7 +2454,7 @@ namespace WOTRMultiplayer.GameInteraction
 
             if (byAbilityId != null)
             {
-                _logger.LogInformation("Ability has been found by abilityId. UnitId={unitId}, AbilityId={abilityId}", unit.UniqueId, abilityUse.Id);
+                _logger.LogInformation("Ability has been found by abilityId. UnitId={UnitId}, AbilityId={AbilityId}", unit.UniqueId, abilityUse.Id);
                 return byAbilityId.Data;
             }
 
@@ -2483,7 +2483,7 @@ namespace WOTRMultiplayer.GameInteraction
             {
                 try
                 {
-                    _logger.LogInformation("Executing click handler. Type={handlerType}, WorldPosition={worldPosition}, TargetUnitId={targetUnitId}, SelectedUnit={selectedUnitId}, VectorPathCount={pathCount}",
+                    _logger.LogInformation("Executing click handler. HandlerType={HandlerType}, WorldPosition={WorldPosition}, TargetUnitId={TargetUnitId}, SelectedUnit={SelectedUnit}, VectorPathCount={VectorPathCount}",
                                clickEventHandler.GetType().Name, click.WorldPosition, targetUnit?.UniqueId, selectedUnit?.UniqueId, click.VectorPath.Count);
 
                     using var context = _networkExecutionContext.Value = RemoteExecutionContext.Create(selectedUnits);
@@ -2505,20 +2505,20 @@ namespace WOTRMultiplayer.GameInteraction
                         PathVisualizer.Instance.m_CurrentPath.Claim(PathVisualizer.Instance);
 
                         var pathForCurrentUnit = PathVisualizer.Instance.CurrentPathForUnit(Game.Instance.TurnBasedCombatController.CurrentTurn.SelectedUnit.View)?.vectorPath.Count;
-                        _logger.LogInformation("Configured unit path. Vectors={vectorsCount}", pathForCurrentUnit);
+                        _logger.LogInformation("Configured unit path. VectorsCount={VectorsCount}", pathForCurrentUnit);
                     }
 
                     if (Game.Instance.TurnBasedCombatController.CurrentTurn != null && click.AttackMode != null)
                     {
                         Game.Instance.TurnBasedCombatController.CurrentTurn.m_AttackMode = click.AttackMode.Value;
-                        _logger.LogInformation("AttackMode has been set. AttackMode={attackMode}", click.AttackMode.Value);
+                        _logger.LogInformation("AttackMode has been set. AttackMode={AttackMode}", click.AttackMode.Value);
                     }
 
                     clickEventHandler.OnClick(targetUnit?.View?.gameObject, worldPosition, click.Button, simulate: false, click.MuteEvents, IsTMBClick: false);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Unable to execute click handler. HandlerType={handlerType}", clickEventHandler?.GetType().Name);
+                    _logger.LogError(ex, "Unable to execute click handler. HandlerType={HandlerType}", clickEventHandler?.GetType().Name);
                     throw;
                 }
             });
@@ -2574,7 +2574,7 @@ namespace WOTRMultiplayer.GameInteraction
         {
             if (string.Equals(Game.Instance.DialogController.Dialog?.name, dialog.name, StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogInformation("Requested dialog already started (most likely due to scripted zone), nothing to do here. DialogName={dialogName}", dialog.name);
+                _logger.LogInformation("Requested dialog already started (most likely due to scripted zone), nothing to do here. DialogName={DialogName}", dialog.name);
                 hasStartedDialogTask.SetResult(false);
                 return;
             }

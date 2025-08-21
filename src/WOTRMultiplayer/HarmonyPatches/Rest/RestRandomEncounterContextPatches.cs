@@ -50,11 +50,11 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
             var matcher = new CodeMatcher(instructions);
             if (!ReplaceSpecialEncounterRoll(matcher, target) || !ReplaceTimePassedEncounterRoll(matcher, target))
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Failed to apply all replacements. Target={target}", target);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Failed to apply all replacements. Target={Target}", target);
                 return instructions;
             }
 
-            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
@@ -66,7 +66,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
             if (match.IsInvalid)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Invalid transpiler position. Target={target}, Pos={pos}", target, match.Pos);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Invalid transpiler position. Target={Target}, Position={Position}", target, match.Pos);
                 return false;
             }
 
@@ -88,7 +88,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
             if (match.IsInvalid)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Invalid transpiler position. Target={target}, Pos={pos}", target, match.Pos);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Invalid transpiler position. Target={Target}, Position={Position}", target, match.Pos);
                 return false;
             }
 
@@ -117,17 +117,17 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 {
                     var roll = UnityEngine.Random.Range(randomMin, randomMax);
                     context.Recording.SpecialEncounters.Add(encounterKey, roll);
-                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded SpecialEncounter. Key={key}, Roll={roll}, Min={min}, Max={max}", encounterKey, roll, randomMin, randomMax);
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded SpecialEncounter. Key={Key}, Roll={Roll}, Min={Min}, Max={Max}", encounterKey, roll, randomMin, randomMax);
                     return roll;
                 }
 
                 context.PreRecorded.SpecialEncounters.TryGetValue(encounterKey, out var remoteRoll);
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded SpecialEncounter. Key={key}, Roll={roll}, Min={min}, Max={max}", encounterKey, remoteRoll, randomMin, randomMax);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded SpecialEncounter. Key={Key}, Roll={Roll}, Min={Min}, Max={Max}", encounterKey, remoteRoll, randomMin, randomMax);
                 return remoteRoll;
             }
             catch (System.Exception ex)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -147,16 +147,16 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 {
                     var roll = UnityEngine.Random.Range(randomMin, randomMax);
                     context.Recording.HoursPassedBeforeEncounter = roll;
-                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded HoursPassedBeforeEncounter. Roll={roll}, Min={min}, Max={max}", context.Recording.HoursPassedBeforeEncounter, randomMin, randomMax);
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded HoursPassedBeforeEncounter. Roll={Roll}, Min={Min}, Max={Max}", context.Recording.HoursPassedBeforeEncounter, randomMin, randomMax);
                     return context.Recording.HoursPassedBeforeEncounter;
                 }
 
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded HoursPassedBeforeEncounter. Roll={roll}, Min={min}, Max={max}", context.PreRecorded.HoursPassedBeforeEncounter, randomMin, randomMax);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded HoursPassedBeforeEncounter. Roll={Roll}, Min={Min}, Max={Max}", context.PreRecorded.HoursPassedBeforeEncounter, randomMin, randomMax);
                 return context.PreRecorded.HoursPassedBeforeEncounter;
             }
             catch (System.Exception ex)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -169,11 +169,11 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
             var matcher = new CodeMatcher(instructions);
             if (!ReplaceEncounterGuardSlotRoll(matcher, target) || !ReplaceEncounterCamouflageRoll(matcher, target))
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Failed to apply all replacements. Target={target}", target);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Failed to apply all replacements. Target={Target}", target);
                 return instructions;
             }
 
-            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
@@ -185,7 +185,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
             if (match.IsInvalid)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Invalid transpiler position. Target={target}, Pos={pos}", target, match.Pos);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Invalid transpiler position. Target={Target}, Position={Position}", target, match.Pos);
                 return false;
             }
 
@@ -206,7 +206,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
             if (match.IsInvalid)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Invalid transpiler position. Target={target}, Pos={pos}", target, match.Pos);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Invalid transpiler position. Target={Target}, Position={Position}", target, match.Pos);
                 return false;
             }
 
@@ -234,16 +234,16 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 {
                     var roll = UnityEngine.Random.Range(randomMin, randomMax);
                     context.Recording.GuardSlotRoll = roll;
-                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded GuardSlotRoll. Roll={roll}, Min={min}, Max={max}", context.Recording.GuardSlotRoll, randomMin, randomMax);
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded GuardSlotRoll. Roll={Roll}, Min={Min}, Max={Max}", context.Recording.GuardSlotRoll, randomMin, randomMax);
                     return context.Recording.GuardSlotRoll;
                 }
 
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded GuardSlotRoll. Roll={roll}, Min={min}, Max={max}", context.PreRecorded.GuardSlotRoll, randomMin, randomMax);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded GuardSlotRoll. Roll={Roll}, Min={Min}, Max={Max}", context.PreRecorded.GuardSlotRoll, randomMin, randomMax);
                 return context.PreRecorded.GuardSlotRoll;
             }
             catch (System.Exception ex)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -263,16 +263,16 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 {
                     var roll = UnityEngine.Random.Range(randomMin, randomMax);
                     context.Recording.CamouflageRoll = roll;
-                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded CamouflageRoll. Roll={roll}, Min={min}, Max={max}", context.Recording.CamouflageRoll, randomMin, randomMax);
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded CamouflageRoll. Roll={Roll}, Min={Min}, Max={Max}", context.Recording.CamouflageRoll, randomMin, randomMax);
                     return context.Recording.CamouflageRoll;
                 }
 
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded CamouflageRoll. Roll={roll}, Min={min}, Max={max}", context.PreRecorded.CamouflageRoll, randomMin, randomMax);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded CamouflageRoll. Roll={Roll}, Min={Min}, Max={Max}", context.PreRecorded.CamouflageRoll, randomMin, randomMax);
                 return context.PreRecorded.CamouflageRoll;
             }
             catch (System.Exception ex)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -289,7 +289,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
             if (match.IsInvalid)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Invalid transpiler position. Target={target}, Pos={pos}", target, match.Pos);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Invalid transpiler position. Target={Target}, Position={Position}", target, match.Pos);
                 return instructions;
             }
 
@@ -299,7 +299,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 new(OpCodes.Call, replaceWith),
             };
             match.Insert(newInstructions);
-            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
@@ -318,16 +318,16 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 {
                     var roll = UnityEngine.Random.Range(randomMin, randomMax);
                     context.Recording.RandomUnitSeed = roll;
-                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded RandomUnitSeed. Roll={roll}", context.Recording.RandomUnitSeed.Value);
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded RandomUnitSeed. Roll={Roll}", context.Recording.RandomUnitSeed.Value);
                     return context.Recording.RandomUnitSeed.Value;
                 }
 
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded RandomUnitSeed. Roll={roll}, Min={min}, Max={max}", context.PreRecorded.RandomUnitSeed.Value, randomMin, randomMax);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded RandomUnitSeed. Roll={Roll}, Min={Min}, Max={Max}", context.PreRecorded.RandomUnitSeed.Value, randomMin, randomMax);
                 return context.PreRecorded.RandomUnitSeed.Value;
             }
             catch (System.Exception ex)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -343,11 +343,11 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 || !ReplacePlaceUnitsInCampUnitYRoll(matcher, target)
                 || !ReplacePlaceUnitsInCampUnitEndPositionRoll(matcher, target))
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Failed to apply all replacements. Target={target}", target);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Failed to apply all replacements. Target={Target}", target);
                 return instructions;
             }
 
-            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
@@ -359,7 +359,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
             if (match.IsInvalid)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Failed {methodName}. Target={target}, Pos={pos}", MethodBase.GetCurrentMethod().Name, target, match.Pos);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Failed {MethodName}. Target={Target}, Position={Position}", MethodBase.GetCurrentMethod().Name, target, match.Pos);
                 return false;
             }
 
@@ -394,7 +394,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
             const int ExpectedReplacementCounter = 2;
             if (replacementCounter != ExpectedReplacementCounter)
             {
-                Main.GetLogger<RuleAttackRollPatches>().LogError("Instructions have not been replaced expected number of times. Target={target}, Expected={expected}, Current={current}", target, ExpectedReplacementCounter, replacementCounter);
+                Main.GetLogger<RuleAttackRollPatches>().LogError("Instructions have not been replaced expected number of times. Target={Target}, Expected={expected}, Current={current}", target, ExpectedReplacementCounter, replacementCounter);
                 return false;
             }
             return true;
@@ -408,7 +408,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
             if (match.IsInvalid)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Failed {methodName}. Target={target}, Pos={pos}", MethodBase.GetCurrentMethod().Name, target, match.Pos);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Failed {MethodName}. Target={Target}, Position={Position}", MethodBase.GetCurrentMethod().Name, target, match.Pos);
                 return false;
             }
 
@@ -429,7 +429,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
             if (match.Opcode != OpCodes.Call)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Failed {methodName}. Target={target}, Pos={pos}", MethodBase.GetCurrentMethod().Name, target, match.Instruction);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Failed {MethodName}. Target={Target}, Position={Position}", MethodBase.GetCurrentMethod().Name, target, match.Instruction);
                 return false;
             }
 
@@ -457,18 +457,18 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 {
                     var spawnAt = units.Random();
                     context.Recording.PlaceUnitsInCampRangedTargetRolls.Add(unit.UniqueId, spawnAt.UniqueId);
-                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsInCampRangedTargetRolls. Key={key}, SpawnAt={roll}", unit.UniqueId, spawnAt.UniqueId);
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsInCampRangedTargetRolls. Key={Key}, SpawnAtUnit={SpawnAtUnit}", unit.UniqueId, spawnAt.UniqueId);
                     return spawnAt;
                 }
 
                 context.PreRecorded.PlaceUnitsInCampRangedTargetRolls.TryGetValue(unit.UniqueId, out var remoteRoll);
                 var remoteSpawnAt = units.FirstOrDefault(u => string.Equals(u.UniqueId, remoteRoll, System.StringComparison.OrdinalIgnoreCase));
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsInCampRangedTargetRolls. Key={key}, Roll={roll}", unit.UniqueId, remoteSpawnAt?.UniqueId);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsInCampRangedTargetRolls. Key={Key}, SpawnAtUnit={SpawnAtUnit}", unit.UniqueId, remoteSpawnAt?.UniqueId);
                 return remoteSpawnAt;
             }
             catch (System.Exception ex)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -487,17 +487,17 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 {
                     var roll = UnityEngine.Random.value;
                     context.Recording.PlaceUnitsInCampRangedRolls.Add(unit.UniqueId, roll);
-                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsInCampRangedRolls. Key={key}, Roll={roll}", unit.UniqueId, roll);
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsInCampRangedRolls. Key={Key}, IsRangedRoll={IsRangedRoll}", unit.UniqueId, roll);
                     return roll;
                 }
 
                 context.PreRecorded.PlaceUnitsInCampRangedRolls.TryGetValue(unit.UniqueId, out var remoteRoll);
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsInCampRangedRolls. Key={key}, Roll={roll}", unit.UniqueId, remoteRoll);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsInCampRangedRolls. Key={Key}, IsRangedRoll={IsRangedRoll}", unit.UniqueId, remoteRoll);
                 return remoteRoll;
             }
             catch (System.Exception ex)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -516,17 +516,17 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 {
                     var roll = UnityEngine.Random.Range(randomMin, randomMax);
                     context.Recording.PlaceUnitsInCampUnitYRolls.Add(unit.UniqueId, roll);
-                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsInCampUnitYRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, roll, randomMin, randomMax);
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsInCampUnitYRolls. Key={Key}, Roll={Roll}, Min={Min}, Max={Max}", unit.UniqueId, roll, randomMin, randomMax);
                     return roll;
                 }
 
                 context.PreRecorded.PlaceUnitsInCampUnitYRolls.TryGetValue(unit.UniqueId, out var remoteRoll);
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsInCampUnitYRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, remoteRoll, randomMin, randomMax);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsInCampUnitYRolls. Key={Key}, Roll={Roll}, Min={Min}, Max={Max}", unit.UniqueId, remoteRoll, randomMin, randomMax);
                 return remoteRoll;
             }
             catch (System.Exception ex)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -545,17 +545,17 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 {
                     var roll = UnityEngine.Random.Range(randomMin, randomMax);
                     context.Recording.PlaceUnitsInCampUnitEndPositionRolls.Add(unit.UniqueId, roll);
-                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsInCampUnitEndPositionRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, roll, randomMin, randomMax);
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsInCampUnitEndPositionRolls. Key={Key}, Roll={Roll}, Min={Min}, Max={Max}", unit.UniqueId, roll, randomMin, randomMax);
                     return roll;
                 }
 
                 context.PreRecorded.PlaceUnitsInCampUnitEndPositionRolls.TryGetValue(unit.UniqueId, out var remoteRoll);
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsInCampUnitEndPositionRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, remoteRoll, randomMin, randomMax);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsInCampUnitEndPositionRolls. Key={Key}, Roll={Roll}, Min={Min}, Max={Max}", unit.UniqueId, remoteRoll, randomMin, randomMax);
                 return remoteRoll;
             }
             catch (System.Exception ex)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -570,11 +570,11 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 || !ReplacePlaceUnitsOutsideOfCampUnitYRoll(matcher, target)
                 || !ReplacePlaceUnitsOutsideOfCampUnitEndPositionRoll(matcher, target))
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Failed to apply all replacements. Target={target}", target);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Failed to apply all replacements. Target={Target}", target);
                 return instructions;
             }
 
-            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
@@ -586,7 +586,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
             if (match.IsInvalid)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Invalid transpiler position. Target={target}, Pos={pos}", target, match.Pos);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Invalid transpiler position. Target={Target}, Position={Position}", target, match.Pos);
                 return false;
             }
 
@@ -607,7 +607,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
             if (match.IsInvalid)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Invalid transpiler position. Target={target}, Pos={pos}", target, match.Pos);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Invalid transpiler position. Target={Target}, Position={Position}", target, match.Pos);
                 return false;
             }
 
@@ -630,7 +630,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
             if (match.IsInvalid)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Invalid transpiler position. Target={target}, Pos={pos}", target, match.Pos);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError("Invalid transpiler position. Target={Target}, Position={Position}", target, match.Pos);
                 return false;
             }
 
@@ -661,16 +661,16 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 {
                     var roll = UnityEngine.Random.Range(randomMin, randomMax);
                     context.Recording.PlaceUnitsOutsideOfCampSharedYRoll = roll;
-                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsOutsideOfCampSharedYRoll. Roll={roll}, Min={min}, Max={max}", context.Recording.PlaceUnitsOutsideOfCampSharedYRoll, randomMin, randomMax);
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsOutsideOfCampSharedYRoll. Roll={Roll}, Min={Min}, Max={Max}", context.Recording.PlaceUnitsOutsideOfCampSharedYRoll, randomMin, randomMax);
                     return context.Recording.PlaceUnitsOutsideOfCampSharedYRoll;
                 }
 
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsOutsideOfCampSharedYRoll. Roll={roll}, Min={min}, Max={max}", context.PreRecorded.PlaceUnitsOutsideOfCampSharedYRoll, randomMin, randomMax);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsOutsideOfCampSharedYRoll. Roll={Roll}, Min={Min}, Max={Max}", context.PreRecorded.PlaceUnitsOutsideOfCampSharedYRoll, randomMin, randomMax);
                 return context.PreRecorded.PlaceUnitsOutsideOfCampSharedYRoll;
             }
             catch (System.Exception ex)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -690,17 +690,17 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 {
                     var roll = UnityEngine.Random.Range(randomMin, randomMax);
                     context.Recording.PlaceUnitsOutsideOfCampUnitYRolls.Add(unit.UniqueId, roll);
-                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsOutsideOfCampUnitYRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, roll, randomMin, randomMax);
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsOutsideOfCampUnitYRolls. Key={Key}, Roll={Roll}, Min={Min}, Max={Max}", unit.UniqueId, roll, randomMin, randomMax);
                     return roll;
                 }
 
                 context.PreRecorded.PlaceUnitsOutsideOfCampUnitYRolls.TryGetValue(unit.UniqueId, out var remoteRoll);
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsOutsideOfCampUnitYRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, remoteRoll, randomMin, randomMax);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsOutsideOfCampUnitYRolls. Key={Key}, Roll={Roll}, Min={Min}, Max={Max}", unit.UniqueId, remoteRoll, randomMin, randomMax);
                 return remoteRoll;
             }
             catch (System.Exception ex)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -720,17 +720,17 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 {
                     var roll = UnityEngine.Random.Range(randomMin, randomMax);
                     context.Recording.PlaceUnitsOutsideOfCampUnitEndPositionRolls.Add(unit.UniqueId, roll);
-                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsOutsideOfCampUnitEndPositionRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, roll, randomMin, randomMax);
+                    Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Recorded PlaceUnitsOutsideOfCampUnitEndPositionRolls. Key={Key}, Roll={Roll}, Min={Min}, Max={Max}", unit.UniqueId, roll, randomMin, randomMax);
                     return roll;
                 }
 
                 context.PreRecorded.PlaceUnitsOutsideOfCampUnitEndPositionRolls.TryGetValue(unit.UniqueId, out var remoteRoll);
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsOutsideOfCampUnitEndPositionRolls. Key={key}, Roll={roll}, Min={min}, Max={max}", unit.UniqueId, remoteRoll, randomMin, randomMax);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogInformation("Using Prerecorded PlaceUnitsOutsideOfCampUnitEndPositionRolls. Key={Key}, Roll={Roll}, Min={Min}, Max={Max}", unit.UniqueId, remoteRoll, randomMin, randomMax);
                 return remoteRoll;
             }
             catch (System.Exception ex)
             {
-                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {methodName}", MethodBase.GetCurrentMethod().Name);
+                Main.GetLogger<RestRandomEncounterContextPatches>().LogError(ex, "Error during processing {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }

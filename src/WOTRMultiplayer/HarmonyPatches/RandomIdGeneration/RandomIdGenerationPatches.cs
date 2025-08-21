@@ -52,7 +52,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             var match = matcher.SearchForward(x => x.Calls(lookFor));
             if (match.IsInvalid)
             {
-                Main.GetLogger<RandomIdGenerationPatches>().LogError("Unable to find Guid.NewGuid() call. Target={target}", target);
+                Main.GetLogger<RandomIdGenerationPatches>().LogError("Unable to find Guid.NewGuid() call. Target={Target}", target);
                 return matcher.Instructions();
             }
 
@@ -67,7 +67,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             };
             match.Insert(newInstructions);
 
-            Main.GetLogger<RandomIdGenerationPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<RandomIdGenerationPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
@@ -155,7 +155,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             var match = matcher.SearchForward(x => x.Calls(lookFor)).Advance(-1);
             if (match.IsInvalid)
             {
-                Main.GetLogger<RandomIdGenerationPatches>().LogError("Unable to find Guid.NewGuid() call. Target={target}", target);
+                Main.GetLogger<RandomIdGenerationPatches>().LogError("Unable to find Guid.NewGuid() call. Target={Target}", target);
                 return matcher.Instructions();
             }
 
@@ -168,7 +168,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             };
             match.Insert(newInstructions);
 
-            Main.GetLogger<RandomIdGenerationPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<RandomIdGenerationPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
@@ -181,13 +181,13 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
 
             if (match.Instruction.opcode != OpCodes.Call)
             {
-                Main.GetLogger<RandomIdGenerationPatches>().LogError("Invalid transpiler position. Target={target}, OpCode={opCode}", target, match.Instruction.opcode);
+                Main.GetLogger<RandomIdGenerationPatches>().LogError("Invalid transpiler position. Target={Target}, OpCode={opCode}", target, match.Instruction.opcode);
                 return matcher.Instructions();
             }
 
             match.RemoveInstructions(3);
             match.Insert(newInstructions);
-            Main.GetLogger<RandomIdGenerationPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<RandomIdGenerationPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 

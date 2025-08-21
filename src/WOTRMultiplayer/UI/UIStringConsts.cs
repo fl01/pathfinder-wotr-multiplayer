@@ -72,6 +72,13 @@
             public const string LevelingCompleted = "{0}'s leveling has been completed";
             public const string LevelingTerminated = "{0}'s leveling has been terminated";
 
+            public const string PlayerLeft = "Player {0} has left the game";
+
+            public const string FailedToAcquireRemoteDamageRoll = "Failed to acquire damage roll from remote player which guarantees desync in the game";
+            public const string FailedToAcquireRemoteHealRoll = "Failed to acquire heal roll from remote player which guarantees desync in the game";
+            public const string InvalidRemoteDamageRoll = "Network damage contains an invalid number of damage values which guarantees desync in the game";
+            public const string FailedToAcquireRemoteRoll = "Failed to acquire {0} roll from remote player which guarantees desync in the game.";
+
             public class ForcedPauseReasons
             {
                 public const string AreaLoading = "Please wait for other players to finish loading the area";

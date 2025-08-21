@@ -48,11 +48,11 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             var replaceWith = AccessTools.Method(typeof(RuleSkillCheckPatches), nameof(RuleSkillCheckPatches.SkillCheckRollD20));
             if (!ReplaceRollD20(target, matcher, replaceWith) || !ReplaceFromIntUnityRange(target, matcher, replaceWith))
             {
-                Main.GetLogger<RuleSkillCheckPatches>().LogError("Transpiler has not been applied. Target={target}", target);
+                Main.GetLogger<RuleSkillCheckPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
                 return instructions;
             }
 
-            Main.GetLogger<RuleSkillCheckPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<RuleSkillCheckPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
@@ -65,11 +65,11 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             var replaceWith = AccessTools.Method(typeof(RuleSkillCheckPatches), nameof(RuleSkillCheckPatches.SkillCheckRollD20));
             if (!ReplaceRollD20(target, matcher, replaceWith))
             {
-                Main.GetLogger<RuleSkillCheckPatches>().LogError("Transpiler has not been applied. Target={target}", target);
+                Main.GetLogger<RuleSkillCheckPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
                 return instructions;
             }
 
-            Main.GetLogger<RuleSkillCheckPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<RuleSkillCheckPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
@@ -95,7 +95,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             }
             catch (Exception ex)
             {
-                Main.GetLogger<RuleSkillCheckPatches>().LogError(ex, "Unable to roll {methodName}", MethodBase.GetCurrentMethod().Name);
+                Main.GetLogger<RuleSkillCheckPatches>().LogError(ex, "Unable to roll {MethodName}", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -106,7 +106,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             var match = matcher.SearchForward(x => x.Calls(lookFor));
             if (match.IsInvalid)
             {
-                Main.GetLogger<RuleSkillCheckPatches>().LogError("{transpilerPart} - unable to find target method. MethodName={methodName}", target, lookFor.Name);
+                Main.GetLogger<RuleSkillCheckPatches>().LogError("{Target} - unable to find target method. MethodName={MethodName}", target, lookFor.Name);
                 return false;
             }
 
@@ -127,14 +127,14 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             var instructionsEnd = matcher.SearchForward(x => x.Calls(lookFor));
             if (instructionsEnd.IsInvalid)
             {
-                Main.GetLogger<RuleSkillCheckPatches>().LogError("{transpilerPart} - unable to find target method. MethodName={methodName}", target, lookFor.Name);
+                Main.GetLogger<RuleSkillCheckPatches>().LogError("{Target} - unable to find target method. MethodName={MethodName}", target, lookFor.Name);
                 return false;
             }
 
             var instructionsStart = instructionsEnd.SearchBackwards(x => x.opcode == OpCodes.Ldfld);
             if (instructionsStart.IsInvalid)
             {
-                Main.GetLogger<RuleSkillCheckPatches>().LogError("{transpilerPart} - unable to find first instruction to remove", target);
+                Main.GetLogger<RuleSkillCheckPatches>().LogError("{Target} - unable to find first instruction to remove", target);
                 return false;
             }
 

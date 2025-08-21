@@ -100,7 +100,7 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         bool OnSpawnCampPlace(NetworkVector3 position);
 
-        bool OnCampingUseHealingSpellsChanged(bool isOn);
+        bool OnCampingUseHealingSpellsChanged(bool isActive);
 
         void OnCampingUnitsRoleChanged(List<NetworkCampingRole> roles);
 

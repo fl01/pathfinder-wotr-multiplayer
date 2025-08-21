@@ -62,7 +62,7 @@ namespace WOTRMultiplayer.PubSub
                 return;
             }
 
-            Logger.LogInformation("Combat state changed. InCombat={inCombat}", inCombat);
+            Logger.LogInformation("Combat state changed. InCombat={InCombat}", inCombat);
             if (inCombat)
             {
                 ActorAccessor.Current.CombatStarted();

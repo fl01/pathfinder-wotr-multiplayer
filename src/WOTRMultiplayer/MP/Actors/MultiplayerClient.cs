@@ -86,7 +86,7 @@ namespace WOTRMultiplayer.MP.Actors
         {
             if (_networkServerClient.IsActive)
             {
-                Dispose();
+                Reset();
             }
 
             if (!_ipEndPointParser.TryParse(address, out IPEndPoint endpoint))
@@ -116,13 +116,13 @@ namespace WOTRMultiplayer.MP.Actors
             return readyChanged.IsReady;
         }
 
-        public void Dispose()
+        public void Reset()
         {
-            Logger.LogInformation("Disposing");
+            Logger.LogInformation("Resetting");
 
             Game?.Reset();
 
-            _networkServerClient?.Dispose();
+            _networkServerClient?.Reset();
         }
 
         public override void OnAreaScenesLoaded()
@@ -213,32 +213,6 @@ namespace WOTRMultiplayer.MP.Actors
             }
 
             return Game.Combat.IsInitialized;
-        }
-
-        public bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound)
-        {
-            try
-            {
-                return OnTurnStart(unitId, actingInSurpriseRound);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Unable to process {nameof(OnBeforeStartTurn)}. UnitId={unitId}, ActingInSurpriseRound={actingInSurpriseRound}", unitId, actingInSurpriseRound);
-                throw;
-            }
-        }
-
-        public bool OnBeforeEndTurn(string unitId)
-        {
-            try
-            {
-                return OnTurnEnd();
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Unable to process {nameof(OnBeforeEndTurn)}. UnitId={unitId},", unitId);
-                throw;
-            }
         }
 
         public bool IsDiceRollOwner()
@@ -426,71 +400,71 @@ namespace WOTRMultiplayer.MP.Actors
         {
             _networkServerClient
                 // this is kinda special because requester is blocking the thread (most likely game main loop) until <see cref="DiceRollValueResponse"/> is received
-                .Register<DiceRollValueRequest>(OnDiceRollValueRequest)
+                .On<DiceRollValueRequest>(OnDiceRollValueRequest)
 
-                .Register<NotifyPlayerDisconnected>(OnNotifyPlayerDisconnected)
-                .Register<GameServerConnectionSucceeded>(OnGameServerConnectionSucceeded)
-                .Register<PlayerReadyStatusChanged>(OnPlayerReadyStatusChanged)
-                .Register<NotifyPlayersChanged>(OnNotifyPlayersChanged)
-                .Register<NotifyGameCharactersChanged>(OnNotifyGameCharactersChanged)
-                .Register<NotifySaveGameAssigned>(OnNotifySaveGameAssigned)
-                .Register<NotifyGameStageChanged>(OnNotifyGameStageChanged)
-                .Register<NotifyCharactersOwnerChanged>(OnNotifyCharactersOwnerChanged)
-                .Register<NotifyGameStarted>(OnNotifyGameStarted)
-                .Register<NotifyCharacterMove>(OnNotifyCharacterMove)
-                .Register<NotifyForcedPauseEnded>(OnNotifyForcedPauseEnded)
-                .Register<NotifyPartyLeaveArea>(OnNotifyPartyLeaveArea)
-                .Register<NotifyDialogCueAnswerSuggested>(OnNotifyDialogCueAnswerSuggested)
-                .Register<NotifyDialogCueAnswerSelected>(OnNotifyDialogCueAnswerSelected)
-                .Register<NotifyDialogStarted>(OnNotifyDialogStarted)
-                .Register<NotifyUnitClicked>(OnNotifyUnitClicked)
-                .Register<NotifyGroundClicked>(OnNotifyGroundClicked)
-                .Register<NotifyMapObjectClicked>(OnNotifyMapObjectClicked)
-                .Register<NotifyAbilityUse>(OnNotifyAbilityUsed)
-                .Register<NotifyToggleActivatableAbility>(OnNotifyToggleActivatableAbility)
+                .On<NotifyPlayerDisconnected>(OnNotifyPlayerDisconnected)
+                .On<GameServerConnectionSucceeded>(OnGameServerConnectionSucceeded)
+                .On<PlayerReadyStatusChanged>(OnPlayerReadyStatusChanged)
+                .On<NotifyPlayersChanged>(OnNotifyPlayersChanged)
+                .On<NotifyGameCharactersChanged>(OnNotifyGameCharactersChanged)
+                .On<NotifySaveGameAssigned>(OnNotifySaveGameAssigned)
+                .On<NotifyGameStageChanged>(OnNotifyGameStageChanged)
+                .On<NotifyCharactersOwnerChanged>(OnNotifyCharactersOwnerChanged)
+                .On<NotifyGameStarted>(OnNotifyGameStarted)
+                .On<NotifyCharacterMove>(OnNotifyCharacterMove)
+                .On<NotifyForcedPauseEnded>(OnNotifyForcedPauseEnded)
+                .On<NotifyPartyLeaveArea>(OnNotifyPartyLeaveArea)
+                .On<NotifyDialogCueAnswerSuggested>(OnNotifyDialogCueAnswerSuggested)
+                .On<NotifyDialogCueAnswerSelected>(OnNotifyDialogCueAnswerSelected)
+                .On<NotifyDialogStarted>(OnNotifyDialogStarted)
+                .On<NotifyUnitClicked>(OnNotifyUnitClicked)
+                .On<NotifyGroundClicked>(OnNotifyGroundClicked)
+                .On<NotifyMapObjectClicked>(OnNotifyMapObjectClicked)
+                .On<NotifyAbilityUse>(OnNotifyAbilityUsed)
+                .On<NotifyToggleActivatableAbility>(OnNotifyToggleActivatableAbility)
                 // combat
-                .Register<PlayerCombatTurnEnded>(OnPlayerCombatTurnEnded)
-                .Register<NotifyCombatInitialized>(OnNotifyCombatInitialized)
-                .Register<NotifyCombatTurnStarted>(OnNotifyCombatTurnStarted)
-                .Register<NotifyCombatTurnSynchronizationRequired>(OnNotifyCombatTurnSynchronizationRequired)
+                .On<PlayerCombatTurnEnded>(OnPlayerCombatTurnEnded)
+                .On<NotifyCombatInitialized>(OnNotifyCombatInitialized)
+                .On<NotifyCombatTurnStarted>(OnNotifyCombatTurnStarted)
+                .On<NotifyCombatTurnSynchronizationRequired>(OnNotifyCombatTurnSynchronizationRequired)
 
-                .Register<NotifyContainerLooted>(OnNotifyContainerLooted)
-                .Register<NotifyDropItem>(OnNotifyDropItem)
-                .Register<NotifyEquipmentSlotChanged>(OnNotifyEquipmentSlotChanged)
-                .Register<NotifyActiveHandEquipmentSetChanged>(OnNotifyActiveHandEquipmentSetChanged)
+                .On<NotifyContainerLooted>(OnNotifyContainerLooted)
+                .On<NotifyDropItem>(OnNotifyDropItem)
+                .On<NotifyEquipmentSlotChanged>(OnNotifyEquipmentSlotChanged)
+                .On<NotifyActiveHandEquipmentSetChanged>(OnNotifyActiveHandEquipmentSetChanged)
 
-                .Register<NotifyOvertipInteracted>(OnNotifyOvertipInteracted)
-                .Register<NotifyUnitJoinedMidCombat>(OnNotifyUnitJoinedMidCombat)
-                .Register<NotifyPerceptionCheckRolled>(OnNotifyPerceptionCheckRolled)
-                .Register<NotifyInspectionKnowledgeCheckRolled>(OnNotifyInspectionKnowledgeCheckRolled)
-                .Register<NotifySpawnCampPlace>(OnNotifySpawnCampPlace)
-                .Register<NotifyCampingUseHealingSpellsChanged>(OnNotifyCampingUseHealingSpellsChanged)
-                .Register<NotifyCampingStateChanged>(OnNotifyCampingStateChanged)
-                .Register<NotifyCampingUnitsRoleChanged>(OnNotifyCampingUnitsRoleChanged)
-                .Register<NotifyRestStarted>(OnNotifyRestStarted)
-                .Register<NotifyRestBanterInterrupted>(OnNotifyRestBanterInterrupted)
-                .Register<NotifyInvalidCombatTurnStarted>(OnNotifyInvalidCombatTurnStarted)
-                .Register<NotifyVendorItemTransferred>(OnNotifyVendorItemTransferred)
-                .Register<NotifyVendorDealMade>(OnNotifyVendorDealMade)
-                .Register<NotifyVendorWindowClosed>(OnNotifyVendorWindowClosed)
-                .Register<NotifySpellMemorized>(OnNotifySpellMemorized)
-                .Register<NotifySpellForgotten>(OnNotifySpellForgotten)
+                .On<NotifyOvertipInteracted>(OnNotifyOvertipInteracted)
+                .On<NotifyUnitJoinedMidCombat>(OnNotifyUnitJoinedMidCombat)
+                .On<NotifyPerceptionCheckRolled>(OnNotifyPerceptionCheckRolled)
+                .On<NotifyInspectionKnowledgeCheckRolled>(OnNotifyInspectionKnowledgeCheckRolled)
+                .On<NotifySpawnCampPlace>(OnNotifySpawnCampPlace)
+                .On<NotifyCampingUseHealingSpellsChanged>(OnNotifyCampingUseHealingSpellsChanged)
+                .On<NotifyCampingStateChanged>(OnNotifyCampingStateChanged)
+                .On<NotifyCampingUnitsRoleChanged>(OnNotifyCampingUnitsRoleChanged)
+                .On<NotifyRestStarted>(OnNotifyRestStarted)
+                .On<NotifyRestBanterInterrupted>(OnNotifyRestBanterInterrupted)
+                .On<NotifyInvalidCombatTurnStarted>(OnNotifyInvalidCombatTurnStarted)
+                .On<NotifyVendorItemTransferred>(OnNotifyVendorItemTransferred)
+                .On<NotifyVendorDealMade>(OnNotifyVendorDealMade)
+                .On<NotifyVendorWindowClosed>(OnNotifyVendorWindowClosed)
+                .On<NotifySpellMemorized>(OnNotifySpellMemorized)
+                .On<NotifySpellForgotten>(OnNotifySpellForgotten)
 
                 // leveling
-                .Register<NotifyCharacterLevelingStarted>(OnNotifyCharacterLevelingStarted)
-                .Register<NotifyLevelingClassSelected>(OnNotifyLevelingClassSelected)
-                .Register<NotifyLevelingClassArchetypeSelected>(OnNotifyLevelingClassArchetypeSelected)
-                .Register<NotifyLevelingPhaseWitnessed>(OnNotifyLevelingPhaseWitnessed)
-                .Register<NotifyLevelingPhaseChanged>(OnNotifyLevelingPhaseChanged)
-                .Register<NotifyLevelingSkillPointIncreased>(OnNotifyLevelingSkillPointIncreased)
-                .Register<NotifyLevelingSkillPointDecreased>(OnNotifyLevelingSkillPointDecreased)
-                .Register<NotifyLevelingAbilityScoreIncreased>(OnNotifyLevelingAbilityScoreIncreased)
-                .Register<NotifyLevelingAbilityScoreDecreased>(OnNotifyLevelingAbilityScoreDecreased)
-                .Register<NotifyLevelingFeatureSelected>(OnNotifyLevelingFeatureSelected)
-                .Register<NotifyLevelingSpellChosen>(OnNotifyLevelingSpellChosen)
-                .Register<NotifyLevelingSpellRemoved>(OnNotifyLevelingSpellRemoved)
-                .Register<NotifyLevelingCompleted>(OnNotifyLevelingCompleted)
-                .Register<NotifyLevelingTerminated>(OnNotifyLevelingTerminated)
+                .On<NotifyCharacterLevelingStarted>(OnNotifyCharacterLevelingStarted)
+                .On<NotifyLevelingClassSelected>(OnNotifyLevelingClassSelected)
+                .On<NotifyLevelingClassArchetypeSelected>(OnNotifyLevelingClassArchetypeSelected)
+                .On<NotifyLevelingPhaseWitnessed>(OnNotifyLevelingPhaseWitnessed)
+                .On<NotifyLevelingPhaseChanged>(OnNotifyLevelingPhaseChanged)
+                .On<NotifyLevelingSkillPointIncreased>(OnNotifyLevelingSkillPointIncreased)
+                .On<NotifyLevelingSkillPointDecreased>(OnNotifyLevelingSkillPointDecreased)
+                .On<NotifyLevelingAbilityScoreIncreased>(OnNotifyLevelingAbilityScoreIncreased)
+                .On<NotifyLevelingAbilityScoreDecreased>(OnNotifyLevelingAbilityScoreDecreased)
+                .On<NotifyLevelingFeatureSelected>(OnNotifyLevelingFeatureSelected)
+                .On<NotifyLevelingSpellChosen>(OnNotifyLevelingSpellChosen)
+                .On<NotifyLevelingSpellRemoved>(OnNotifyLevelingSpellRemoved)
+                .On<NotifyLevelingCompleted>(OnNotifyLevelingCompleted)
+                .On<NotifyLevelingTerminated>(OnNotifyLevelingTerminated)
                 ;
 
             _networkServerClient.OnError = OnNetworkClientError;

@@ -22,7 +22,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             var match = matcher.SearchForward(x => x.Calls(lookFor));
             if (match.IsInvalid)
             {
-                Main.GetLogger<RuleSpellResistancePatches>().LogError("Transpiler has not been applied. Target={target}", target);
+                Main.GetLogger<RuleSpellResistancePatches>().LogError("Transpiler has not been applied. Target={Target}", target);
                 matcher.Instructions();
             }
 
@@ -34,7 +34,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             };
 
             match.Insert(newInstructions);
-            Main.GetLogger<RuleSpellResistancePatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<RuleSpellResistancePatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
 
             return matcher.Instructions();
         }

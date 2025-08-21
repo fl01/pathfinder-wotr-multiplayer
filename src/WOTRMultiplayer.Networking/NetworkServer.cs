@@ -32,10 +32,10 @@ namespace WOTRMultiplayer.Networking
             _logger = logger;
         }
 
-        public INetworkServer Register<TMessage>(Action<long, TMessage> messageHandler)
+        public INetworkServer On<TMessage>(Action<long, TMessage> messageHandler)
             where TMessage : class
         {
-            _logger.LogDebug("Register message handler. Type={type}", typeof(TMessage).Name);
+            _logger.LogDebug("Adding message handler. Type={Type}", typeof(TMessage).Name);
             Server.OnMessageReceive<TMessage>(args => OnHandleMessage(args, messageHandler));
             return this;
         }
@@ -57,7 +57,7 @@ namespace WOTRMultiplayer.Networking
             var session = Server.AppServer.GetSession(clientId);
             if (session == null)
             {
-                _logger.LogWarning("Client doesn't exist. ClientId={clientId}", clientId);
+                _logger.LogWarning("Client doesn't exist. ClientId={ClientId}", clientId);
                 return;
             }
 
@@ -84,7 +84,7 @@ namespace WOTRMultiplayer.Networking
             if (!taskCompletion.Task.IsCompleted)
             {
                 RemoveAwaiter(clientId, awaiterKey);
-                _logger.LogWarning("Awaiter has been failed due to timeout. PlayerId={playerId}, AwaiterKey={awaiterKey}, Timeout={timeout}", clientId, awaiterKey, _defaultAwaiterTimeout);
+                _logger.LogWarning("Awaiter has been failed due to timeout. PlayerId={PlayerId}, AwaiterKey={AwaiterKey}, Timeout={Timeout}", clientId, awaiterKey, _defaultAwaiterTimeout);
                 return null;
             }
 
@@ -132,14 +132,14 @@ namespace WOTRMultiplayer.Networking
                 && _awaiters.TryGetValue(clientId, out var clientAwaiters)
                 && clientAwaiters.TryRemove(awaitable.GetKey(), out var awaiter))
             {
-                _logger.LogDebug("Awaiter has been found, other handlers will be skipped. ClientId={clientId}, AwaiterKey={awaiterKey}", clientId, awaitable.GetKey());
+                _logger.LogDebug("Awaiter has been found, other handlers will be skipped. ClientId={ClientId}, AwaiterKey={AwaiterKey}", clientId, awaitable.GetKey());
                 awaiter.SetResult(args.Message);
                 return;
             }
 
             if (handler == null)
             {
-                _logger.LogWarning("Skipping null handler. MessageType={messageType}", typeof(TMessage).Name);
+                _logger.LogWarning("Skipping null handler. MessageType={MessageType}", typeof(TMessage).Name);
                 return;
             }
 
@@ -149,7 +149,7 @@ namespace WOTRMultiplayer.Networking
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle message. MessageType={messageType}", typeof(TMessage).Name);
+                _logger.LogError(ex, "Unable to handle message. MessageType={MessageType}", typeof(TMessage).Name);
                 throw;
             }
         }
@@ -163,7 +163,7 @@ namespace WOTRMultiplayer.Networking
                 return;
             }
 
-            _logger.LogInformation("Server started. Endpoint={endpoint}", endpoint);
+            _logger.LogInformation("Server started. Endpoint={Endpoint}", endpoint);
 
             try
             {
@@ -181,7 +181,7 @@ namespace WOTRMultiplayer.Networking
 
         private void OnDisconnected(ISession session, NetworkClientToken clientToken)
         {
-            _logger.LogInformation("Client disconnected. ClientId={clientId}", session.ID);
+            _logger.LogInformation("Client disconnected. ClientId={ClientId}", session.ID);
             try
             {
                 OnClientDisconnected?.Invoke(session.ID);
@@ -194,7 +194,7 @@ namespace WOTRMultiplayer.Networking
 
         private void OnConnected(ISession session, NetworkClientToken clientToken)
         {
-            _logger.LogInformation("Client connected. ClientId={clientId}", session.ID);
+            _logger.LogInformation("Client connected. ClientId={ClientId}", session.ID);
             try
             {
                 OnClientConnected?.Invoke(session.ID);
@@ -205,9 +205,9 @@ namespace WOTRMultiplayer.Networking
             }
         }
 
-        public void Dispose()
+        public void Reset()
         {
-            _logger.LogInformation("Dispose. IsActive={isActive}, ClientsCount={clientsCount}", IsActive, _server?.AppServer?.GetOnlines()?.Length ?? 0);
+            _logger.LogInformation("Reset. IsActive={IsActive}, ClientsCount={ClientsCount}", IsActive, _server?.AppServer?.GetOnlines()?.Length ?? 0);
             _server?.Dispose();
         }
     }

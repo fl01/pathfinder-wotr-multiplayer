@@ -142,7 +142,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
             if (_multiplayerHost.IsInLobby)
             {
-                _multiplayerHost.Dispose();
+                _multiplayerHost.Reset();
             }
 
             SetupHandlers(false);
@@ -305,7 +305,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private void OnLobbyCharacterOwnerChanged(int characterIndex, int playerIndex)
         {
-            _logger.LogInformation("OnLobbyCharacterOwnerChanged. CharacterIndex={charIndex}, PlayerIndex={playerIndex}", characterIndex, playerIndex);
+            _logger.LogInformation("OnLobbyCharacterOwnerChanged. CharacterIndex={CharacterIndex}, PlayerIndex={PlayerIndex}", characterIndex, playerIndex);
             _multiplayerHost.ChangeCharacterOwner(characterIndex, playerIndex);
         }
 
@@ -322,7 +322,7 @@ namespace WOTRMultiplayer.UI.Controllers
             {
                 StartButton.Interactable = canStart;
             });
-            _logger.LogInformation("Players changed. Can start={canStart}", canStart);
+            _logger.LogInformation("Players changed. CanStart={CanStart}", canStart);
         }
 
         private void SetupLoadSaveGamesLayout()

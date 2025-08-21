@@ -188,7 +188,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             var match = matcher.SearchForward(x => x.Calls(lookFor));
             if (match.IsInvalid)
             {
-                Main.GetLogger<TurnBasedCombatPatches>().LogError("Transpiler has not been applied. Target={target}", target);
+                Main.GetLogger<TurnBasedCombatPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
                 return matcher.Instructions();
             }
 
@@ -201,7 +201,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 new(OpCodes.Call, AccessTools.Method(typeof(TurnBasedCombatPatches), nameof(TurnBasedCombatPatches.CompareUnitsByUniqueId)))
             };
             actualValidPosition.Insert(newInstructions);
-            Main.GetLogger<TurnBasedCombatPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<TurnBasedCombatPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
 
             return matcher.Instructions();
         }
@@ -235,11 +235,11 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             const int ExpectedReplacementCounter = 2;
             if (replacementCounter != ExpectedReplacementCounter)
             {
-                Main.GetLogger<TurnBasedCombatPatches>().LogError("Instructions have not been replaced expected number of times. Target={target}, Expected={expected}, Current={current}", target, ExpectedReplacementCounter, replacementCounter);
+                Main.GetLogger<TurnBasedCombatPatches>().LogError("Instructions have not been replaced expected number of times. Target={Target}, Expected={expected}, Current={current}", target, ExpectedReplacementCounter, replacementCounter);
                 return instructions;
             }
 
-            Main.GetLogger<TurnBasedCombatPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<TurnBasedCombatPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
@@ -323,11 +323,11 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             var matcher = new CodeMatcher(instructions);
             if (!SetCallUpdateActionPredictionsIfControlled(matcher))
             {
-                Main.GetLogger<TurnBasedCombatPatches>().LogError("Transpiler has not been applied. Target={target}", target);
+                Main.GetLogger<TurnBasedCombatPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
                 return instructions;
             }
 
-            Main.GetLogger<TurnBasedCombatPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<TurnBasedCombatPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
@@ -344,11 +344,11 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             var matcher = new CodeMatcher(instructions);
             if (!SetCallUpdateActionPredictionsIfControlled(matcher))
             {
-                Main.GetLogger<HarmonyTranspiler>().LogError("Transpiler has not been applied. Target={target}", target);
+                Main.GetLogger<HarmonyTranspiler>().LogError("Transpiler has not been applied. Target={Target}", target);
                 return instructions;
             }
 
-            Main.GetLogger<TurnBasedCombatPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<TurnBasedCombatPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
@@ -520,7 +520,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             var match = matcher.SearchForward(x => x.Calls(lookFor));
             if (match.IsInvalid)
             {
-                Main.GetLogger<TurnBasedCombatPatches>().LogError("Transpiler has not been applied. Target={target}", target);
+                Main.GetLogger<TurnBasedCombatPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
                 return matcher.Instructions();
             }
 

@@ -22,7 +22,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             var match = matcher.SearchForward(x => x.Calls(lookFor));
             if (match.IsInvalid)
             {
-                Main.GetLogger<ParryDataPatches>().LogError("Transpiler has not been applied. Target={target}, Pos={pos}", target, match.Pos);
+                Main.GetLogger<ParryDataPatches>().LogError("Transpiler has not been applied. Target={Target}, Position={Position}", target, match.Pos);
                 matcher.Instructions();
             }
 
@@ -34,7 +34,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             };
 
             match.Insert(newInstructions);
-            Main.GetLogger<ParryDataPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<ParryDataPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
 
             return matcher.Instructions();
         }

@@ -110,7 +110,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
             if (_multiplayerClient.IsInLobby)
             {
-                _multiplayerClient.Dispose();
+                _multiplayerClient.Reset();
             }
 
             SetupHandlers(false);
@@ -224,7 +224,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private void OnMultiplayerCharacterOwnerChanged(int characterIndex, int playerIndex)
         {
-            _logger.LogInformation("Updating character owner. CharacterIndex={characterIndex}, PlayerIndex={playerIndex}", characterIndex, playerIndex);
+            _logger.LogInformation("Updating character owner. CharacterIndex={CharacterIndex}, PlayerIndex={PlayerIndex}", characterIndex, playerIndex);
             Lobby.UpdateCharacterOwnerDropdown(characterIndex, playerIndex);
         }
 
@@ -269,7 +269,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private void OnMultiplayerError(string errorMessage)
         {
-            _logger.LogError("Multiplayer client error. ErrorText={errorMessage}", errorMessage);
+            _logger.LogError("Multiplayer client error. Error={Error}", errorMessage);
             ActivateJoinLobbyControls();
         }
 
@@ -283,7 +283,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private void OnLeaveButtonClicked()
         {
-            _multiplayerClient.Dispose();
+            _multiplayerClient.Reset();
 
             ActivateJoinLobbyControls();
         }

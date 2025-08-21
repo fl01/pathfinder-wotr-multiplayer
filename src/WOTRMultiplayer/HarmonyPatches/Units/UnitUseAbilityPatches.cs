@@ -28,7 +28,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Units
 
             if (command.Ability.StickyTouch != null)
             {
-                Main.GetLogger<UnitUseAbilityPatches>().LogWarning("Skipping ability use as it's a part of another usage. UnitId={unitId}, AbilityName={abilityName}, AbilityId={abilityId}", command.Executor.UniqueId, command.Ability.Name, command.Ability.UniqueId);
+                Main.GetLogger<UnitUseAbilityPatches>().LogWarning("Skipping ability use as it's a part of another usage. UnitId={UnitId}, AbilityName={AbilityName}, AbilityId={AbilityId}", command.Executor.UniqueId, command.Ability.Name, command.Ability.UniqueId);
                 return;
             }
 

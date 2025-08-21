@@ -31,7 +31,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
             if (match.IsInvalid)
             {
-                Main.GetLogger<PlaceRestMarkerHandlerPatches>().LogError("Invalid transpiler position. Target={target}, Pos={pos}", target, match.Pos);
+                Main.GetLogger<PlaceRestMarkerHandlerPatches>().LogError("Invalid transpiler position. Target={Target}, Position={Position}", target, match.Pos);
                 return instructions;
             }
 
@@ -41,7 +41,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 new(OpCodes.Call, replaceWith),
             };
             match.Advance(-1).Insert(newInstructions);
-            Main.GetLogger<PlaceRestMarkerHandlerPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<PlaceRestMarkerHandlerPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 

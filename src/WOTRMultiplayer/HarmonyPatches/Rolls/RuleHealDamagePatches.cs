@@ -21,7 +21,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             var matcher = new CodeMatcher(instructions);
             if (!ReplaceNonTacticalCombat(matcher, target) || !ReplaceTacticalCombat(matcher, target))
             {
-                Main.GetLogger<RuleHealDamagePatches>().LogError("Transpiler has not been applied. Target={target}", target);
+                Main.GetLogger<RuleHealDamagePatches>().LogError("Transpiler has not been applied. Target={Target}", target);
                 matcher.Instructions();
             }
 
@@ -36,7 +36,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             var match = matcher.SearchForward(x => x.Calls(lookFor));
             if (match.IsInvalid)
             {
-                Main.GetLogger<RuleHealDamagePatches>().LogError("Transpiler has not been applied. Target={target}", target);
+                Main.GetLogger<RuleHealDamagePatches>().LogError("Transpiler has not been applied. Target={Target}", target);
                 return false;
             }
             match.RemoveInstruction();
@@ -48,7 +48,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 new(OpCodes.Call, replaceWith)
             };
             match.Insert(newInstructions);
-            Main.GetLogger<RuleHealDamagePatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<RuleHealDamagePatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return true;
         }
 
@@ -59,7 +59,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             var match = matcher.SearchForward(x => x.Calls(lookFor));
             if (match.IsInvalid)
             {
-                Main.GetLogger<RuleHealDamagePatches>().LogError("Transpiler has not been applied. Target={target}", target);
+                Main.GetLogger<RuleHealDamagePatches>().LogError("Transpiler has not been applied. Target={Target}", target);
                 return false;
             }
 
@@ -72,7 +72,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 new(OpCodes.Call, replaceWith)
             };
             match.Insert(newInstructions);
-            Main.GetLogger<RuleHealDamagePatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<RuleHealDamagePatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return true;
         }
 

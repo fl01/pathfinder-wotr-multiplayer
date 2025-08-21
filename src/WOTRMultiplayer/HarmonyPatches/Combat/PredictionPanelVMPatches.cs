@@ -24,7 +24,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             var match = matcher.End().Advance(-7);
             if (match.Opcode != OpCodes.Ldarg_0)
             {
-                Main.GetLogger<PredictionPanelVMPatches>().LogError("Transpiler has not been applied. Target={target}", target);
+                Main.GetLogger<PredictionPanelVMPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
                 return instructions;
             }
 
@@ -36,7 +36,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 new (OpCodes.Call, replaceWith),
             };
             match.Insert(newInstructions);
-            Main.GetLogger<PredictionPanelVMPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<PredictionPanelVMPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 

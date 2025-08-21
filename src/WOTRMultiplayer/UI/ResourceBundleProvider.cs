@@ -24,7 +24,7 @@ namespace WOTRMultiplayer.UI
             _resources.TryGetValue(PortraitsBundleName, out var portraits);
             if (!portraits.TryGetValue(name, out var sprite))
             {
-                _logger.LogWarning("Unable to find requested portrait. Name={portraitName}", name);
+                _logger.LogWarning("Unable to find requested portrait. PortraitName={PortraitName}", name);
                 portraits.TryGetValue(PlaceholderPortrait, out sprite);
             }
 
@@ -36,7 +36,7 @@ namespace WOTRMultiplayer.UI
             _resources.TryGetValue(UIBundleName, out var uiSprites);
             if (!uiSprites.TryGetValue(name, out var sprite))
             {
-                _logger.LogWarning("Unable to find requested sprite. Name={spriteName}", name);
+                _logger.LogWarning("Unable to find requested sprite. SpriteName={SpriteName}", name);
             }
 
             return sprite;

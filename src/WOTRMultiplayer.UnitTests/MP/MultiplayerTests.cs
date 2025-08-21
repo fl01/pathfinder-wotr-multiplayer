@@ -79,8 +79,8 @@ namespace WOTRMultiplayer.UnitTests.MP
 
             // Assert
             A.CallTo(() => _uiFactory.InitializeMultiplayerWindow(context, An<Action>.Ignored)).MustHaveHappenedOnceExactly();
-            A.CallTo(() => _multiplayerHost.Dispose()).MustNotHaveHappened();
-            A.CallTo(() => _multiplayerClient.Dispose()).MustNotHaveHappened();
+            A.CallTo(() => _multiplayerHost.Reset()).MustNotHaveHappened();
+            A.CallTo(() => _multiplayerClient.Reset()).MustNotHaveHappened();
         }
 
         [Test]
@@ -96,7 +96,7 @@ namespace WOTRMultiplayer.UnitTests.MP
             _multiplayer.InitializeMultiplayer(context);
 
             // Assert
-            A.CallTo(() => _multiplayerHost.Dispose()).MustHaveHappenedOnceExactly();
+            A.CallTo(() => _multiplayerHost.Reset()).MustHaveHappenedOnceExactly();
         }
 
         [Test]
@@ -110,8 +110,8 @@ namespace WOTRMultiplayer.UnitTests.MP
             _multiplayer.TerminateMultiplayer();
 
             // Assert
-            A.CallTo(() => _multiplayerClient.Dispose()).MustHaveHappenedOnceExactly();
-            A.CallTo(() => _multiplayerHost.Dispose()).MustHaveHappenedOnceExactly();
+            A.CallTo(() => _multiplayerClient.Reset()).MustHaveHappenedOnceExactly();
+            A.CallTo(() => _multiplayerHost.Reset()).MustHaveHappenedOnceExactly();
             A.CallTo(() => _lobbyWindowController.ResetOwnerContent(LobbyWindowOwner.EscMenu)).MustHaveHappenedOnceExactly();
             A.CallTo(() => _uiFactory.DestroyLobbyWindow(An<ILobbyWindow>.Ignored)).MustHaveHappenedOnceExactly();
         }
@@ -253,7 +253,7 @@ namespace WOTRMultiplayer.UnitTests.MP
             _multiplayer.InitializeMultiplayer(context);
 
             // Assert
-            A.CallTo(() => _multiplayerClient.Dispose()).MustHaveHappenedOnceExactly();
+            A.CallTo(() => _multiplayerClient.Reset()).MustHaveHappenedOnceExactly();
         }
     }
 }

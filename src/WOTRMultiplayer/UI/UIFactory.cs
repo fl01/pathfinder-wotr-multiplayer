@@ -65,7 +65,7 @@ namespace WOTRMultiplayer.UI
                 {
                     if (_dropdownPrefab == null)
                     {
-                        _logger.LogInformation("Storing {prefabTypeName} prefab", nameof(SettingsEntityDropdownPCView));
+                        _logger.LogInformation("Storing {PrefabTypeName} prefab", nameof(SettingsEntityDropdownPCView));
 
                         _dropdownPrefab = UnityEngine.Object.Instantiate(view.gameObject);
                         UnityEngine.Object.DestroyImmediate(_dropdownPrefab.GetComponent<SettingsEntityDropdownPCView>());
@@ -92,7 +92,7 @@ namespace WOTRMultiplayer.UI
                 {
                     if (_saveLoadPCView == null)
                     {
-                        _logger.LogInformation("Storing {prefabTypeName} prefab", nameof(SaveLoadPCView));
+                        _logger.LogInformation("Storing {PrefabTypeName} prefab", nameof(SaveLoadPCView));
                         _saveLoadPCView = UnityEngine.Object.Instantiate(view);
                         UnityEngine.Object.DontDestroyOnLoad(_saveLoadPCView);
                     }
@@ -292,7 +292,7 @@ namespace WOTRMultiplayer.UI
             var windowContainerRect = windowContainer.GetComponent<RectTransform>();
             var windowHeight = Math.Min(Screen.height * 0.65f, 1000);
             var windowWidth = Math.Min(Screen.width * 0.45f, 1444);
-            _logger.LogInformation("Settings lobby window size. ScreenWidth={screenWidth}, ScreenHeight={screenHeight}, WindowWidth={windowWidth}, WindowHeight={windowHeight}", Screen.width, Screen.height, windowWidth, windowHeight);
+            _logger.LogInformation("Settings lobby window size. ScreenWidth={ScreenWidth}, ScreenHeight={ScreenHeight}, WindowWidth={WindowWidth}, WindowHeight={WindowHeight}", Screen.width, Screen.height, windowWidth, windowHeight);
             windowContainerRect.sizeDelta = new Vector2(windowWidth, windowHeight);
             windowContainerRect.anchorMin = new Vector2(0.5f, 0.5f);
             windowContainerRect.anchorMax = new Vector2(0.5f, 0.5f);

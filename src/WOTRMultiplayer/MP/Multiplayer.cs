@@ -24,7 +24,6 @@ using WOTRMultiplayer.MP.Entities.Spells;
 using WOTRMultiplayer.MP.Entities.Vendor;
 using WOTRMultiplayer.UI;
 using WOTRMultiplayer.UI.Menu;
-using static Kingmaker.Armies.TacticalCombat.Grid.TacticalCombatGrid;
 
 namespace WOTRMultiplayer.MP
 {
@@ -69,13 +68,13 @@ namespace WOTRMultiplayer.MP
             if (_multiplayerActorAccessor.Host.IsActive)
             {
                 _logger.LogWarning("Multiplayer host has not been properly disposed. Verify exit game/main menu handles");
-                _multiplayerActorAccessor.Host.Dispose();
+                _multiplayerActorAccessor.Host.Reset();
             }
 
             if (_multiplayerActorAccessor.Client.IsActive)
             {
                 _logger.LogWarning("Multiplayer client has not been properly disposed. Verify exit game/main menu handlers");
-                _multiplayerActorAccessor.Client.Dispose();
+                _multiplayerActorAccessor.Client.Reset();
             }
 
             _multiplayerWindow = Factory.InitializeMultiplayerWindow(context, ShowMultiplayerWindow);
@@ -86,8 +85,8 @@ namespace WOTRMultiplayer.MP
         public void TerminateMultiplayer()
         {
             _logger.LogInformation("Disposing both multiplayer host/client");
-            _multiplayerActorAccessor.Host.Dispose();
-            _multiplayerActorAccessor.Client.Dispose();
+            _multiplayerActorAccessor.Host.Reset();
+            _multiplayerActorAccessor.Client.Reset();
             _lobbyWindowController.ResetOwnerContent(LobbyWindowOwner.EscMenu);
             _lobbyWindowController.OnCharacterOwnerChanged = null;
             _logger.LogInformation("Disposing Esc menu window game objects");
@@ -165,7 +164,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while checking if controlled by local player. UnitId={unitId}", unitId);
+                _logger.LogError(ex, "Error while checking if controlled by local player. UnitId={UnitId}", unitId);
                 throw;
             }
         }
@@ -278,14 +277,11 @@ namespace WOTRMultiplayer.MP
                     return true;
                 }
 
-                _logger.LogInformation("Start dialog. DialogueName={dialogName},  TargetUnitId={targetUnitId}, InitiatorUnitId={initiatorUnitId}, MapObjectId={mapObjectId}, SpeakerKey={speakerKey}",
-                    dialogName, targetUnitId, initiatorUnitId, mapObjectId, speakerKey);
-
                 return _multiplayerActorAccessor.Current.StartDialog(dialogName, targetUnitId, initiatorUnitId, mapObjectId, speakerKey);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while starting dialog. DialogName={DialogName}", dialogName);
                 throw;
             }
         }
@@ -339,7 +335,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while starting turn");
                 throw;
             }
         }
@@ -357,7 +353,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while ending turn");
                 throw;
             }
         }
@@ -373,12 +369,12 @@ namespace WOTRMultiplayer.MP
 
                 // extra validation is not required since everything is already validated by the game
                 var savePath = saveInfo.FolderName;
-                _logger.LogInformation("Force load game. Save={saveLocation}, GameId={gameId}", savePath, saveInfo.GameId);
+                _logger.LogInformation("Force load game. SaveLocation={SaveLocation}, GameId={GameId}", savePath, saveInfo.GameId);
                 _multiplayerActorAccessor.Current.ForceLoadGame(savePath, saveInfo.GameId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while force loading the game");
                 throw;
             }
         }
@@ -397,7 +393,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while checking if unit is controlled by players");
                 throw;
             }
         }
@@ -415,7 +411,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while clicking on unit. TargetUnitId={TargetUnitId}", click?.TargetUnitId);
                 throw;
             }
         }
@@ -433,7 +429,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while clicking on ground. WorldPosition={WorldPosition}", click?.WorldPosition);
                 throw;
             }
         }
@@ -451,7 +447,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while clicking map object. MapObjectId={MapObjectId}", click?.MapObjectId);
                 throw;
             }
         }
@@ -469,7 +465,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while using ability. AbilityName={AbilityName}", ability?.Name);
                 throw;
             }
         }
@@ -487,7 +483,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while toggling activatable ability. AbilityId={AbilityId}", activatableAbilityUse?.Id);
                 throw;
             }
         }
@@ -506,7 +502,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while getting combat actions state");
                 throw;
             }
         }
@@ -525,7 +521,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while checking if unit is allowed to be looted. InitiatorUnitId={InitiatorUnitId}", initiatorUnitId);
                 throw;
             }
         }
@@ -543,7 +539,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while looting container. ContainerId={ContainerId}", container?.Id);
                 throw;
             }
         }
@@ -568,7 +564,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while dropping item. ItemId={ItemId}", dropItem?.Item?.UniqueId);
                 throw;
             }
         }
@@ -594,7 +590,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while changing active hand equipment set. UnitId={UnitId}", set?.UnitId);
                 throw;
             }
         }
@@ -623,7 +619,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while interacting with map object overtip. MapObjectId={MapObjectId}", networkOvertip?.MapObject?.Id);
                 throw;
             }
         }
@@ -662,7 +658,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while checking if unit can join combat. UnitId={UnitId}", unitId);
                 throw;
             }
         }
@@ -680,7 +676,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while processing perception check. UnitId={UnitId}", check?.UnitId);
                 throw;
             }
         }
@@ -722,7 +718,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while processing inspection knowledge check. InitiatorUnitId={InitiatorUnitId}", check?.InitiatorUnitId);
                 throw;
             }
         }
@@ -757,13 +753,13 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while spawning camp place. Position={Position}", position);
                 throw;
             }
         }
 
 
-        public bool OnCampingUseHealingSpellsChanged(bool isOn)
+        public bool OnCampingUseHealingSpellsChanged(bool isActive)
         {
             try
             {
@@ -777,12 +773,12 @@ namespace WOTRMultiplayer.MP
                     return false;
                 }
 
-                _multiplayerActorAccessor.Host.OnCampingUseHealingSpellsChanged(isOn);
+                _multiplayerActorAccessor.Host.OnCampingUseHealingSpellsChanged(isActive);
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while processing healing spell usage change. IsActive={IsActive}", isActive);
                 throw;
             }
         }
@@ -805,7 +801,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while processing camping units role change");
                 throw;
             }
         }
@@ -828,7 +824,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while starting camp rest");
                 throw;
             }
         }
@@ -857,7 +853,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error before rolling random encounter");
                 throw;
             }
         }
@@ -885,7 +881,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error after rolling random encounter", MethodBase.GetCurrentMethod().Name);
                 throw;
             }
         }
@@ -901,12 +897,12 @@ namespace WOTRMultiplayer.MP
 
                 var banterSeed = _multiplayerActorAccessor.Current.RestBanterSeed;
                 var nextBanter = ValueGenerator.Range(banterSeed, minInclusive, maxExclusive);
-                _logger.LogInformation("Next rest banter has been selected. Seed={seed}, Index={index}", banterSeed, nextBanter);
+                _logger.LogInformation("Next rest banter has been selected. Seed={Seed}, Index={Index}", banterSeed, nextBanter);
                 return nextBanter;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while getting next rest banter");
                 throw;
             }
         }
@@ -924,7 +920,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while interrupting rest banter bark. BanterKey={BanterKey}", networkBanter.Key);
                 throw;
             }
         }
@@ -943,7 +939,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error after AI selected action. AIUnitId={AIUnitId}", action?.UnitId);
                 throw;
             }
         }
@@ -967,7 +963,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while transferring vendor item. ItemId={ItemId}", transfer?.Item?.UniqueId);
                 throw;
             }
         }
@@ -990,7 +986,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while making vendor deal");
                 throw;
             }
         }
@@ -1013,7 +1009,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while closing vendor window");
                 throw;
             }
         }
@@ -1036,7 +1032,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while memorizing spell. UnitId={UnitId}", slot?.UnitId);
                 throw;
             }
         }
@@ -1054,7 +1050,7 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{methodName}", MethodBase.GetCurrentMethod().Name);
+                _logger.LogError(ex, "Error while forgetting spell. UnitId={UnitId}", slot?.UnitId);
                 throw;
             }
         }
@@ -1221,7 +1217,7 @@ namespace WOTRMultiplayer.MP
 
         private void OnLobbyCharacterOwnerChanged(int characterIndex, int playerIndex)
         {
-            _logger.LogInformation("OnLobbyCharacterOwnerChanged. CharacterIndex={charIndex}, PlayerIndex={playerIndex}", characterIndex, playerIndex);
+            _logger.LogInformation("OnLobbyCharacterOwnerChanged. CharacterIndex={CharacterIndex}, PlayerIndex={PlayerIndex}", characterIndex, playerIndex);
             _multiplayerActorAccessor.Host.ChangeCharacterOwner(characterIndex, playerIndex);
         }
     }

@@ -36,7 +36,7 @@ namespace WOTRMultiplayer.Random
         public void Reset(string gameId)
         {
             _entityCounters.TryRemove(gameId, out _);
-            _logger.LogInformation("Counters have been cleared. GameId={gameId}", gameId);
+            _logger.LogInformation("Counters have been cleared. GameId={GameId}", gameId);
         }
 
         public string GenerateUniqueId(UniqueIdType uniqueIdType, string gameId, string identifier)
@@ -65,7 +65,7 @@ namespace WOTRMultiplayer.Random
             }
             catch (System.Exception ex)
             {
-                _logger.LogError(ex, "Unable to generate unique id. Type={type}, Identifier={identifier}", uniqueIdType, identifier);
+                _logger.LogError(ex, "Unable to generate unique id. UniqueIdType={UniqueIdType}, Identifier={Identifier}", uniqueIdType, identifier);
                 throw;
             }
         }

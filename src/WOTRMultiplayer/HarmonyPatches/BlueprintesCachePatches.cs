@@ -12,7 +12,7 @@ namespace WOTRMultiplayer.HarmonyPatches
         [HarmonyPostfix]
         public static void BlueprintesCachePatches_Init_Postfix()
         {
-            Main.GetLogger<BlueprintesCachePatches>().LogInformation("Applying patch [{patchName}]", MethodBase.GetCurrentMethod().Name);
+            Main.GetLogger<BlueprintesCachePatches>().LogInformation("Applying patch. MethodName={MethodName}", MethodBase.GetCurrentMethod().Name);
 
             Main.InitializePortraits();
         }

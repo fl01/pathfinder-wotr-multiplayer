@@ -41,7 +41,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return instructions;
             }
 
-            Main.GetLogger<RuleAttackRollPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<RuleAttackRollPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
@@ -68,7 +68,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             CodeMatcher match = matcher.SearchForward(x => x.Calls(lookFor));
             if (match.IsInvalid)
             {
-                Main.GetLogger<RuleAttackRollPatches>().LogError("Transpiler has no been applied. Target={target}", target);
+                Main.GetLogger<RuleAttackRollPatches>().LogError("Transpiler has no been applied. Target={Target}", target);
                 return instructions;
             }
 
@@ -89,7 +89,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             CodeMatcher match = matcher.Start().SearchForward(x => x.Calls(lookFor));
             if (match.IsInvalid)
             {
-                Main.GetLogger<RuleAttackRollPatches>().LogError("Transpiler has no been applied. Target={target}, Pos={pos}", target, match.Pos);
+                Main.GetLogger<RuleAttackRollPatches>().LogError("Transpiler has no been applied. Target={Target}, Position={Position}", target, match.Pos);
                 return false;
             }
 
@@ -126,7 +126,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             const int ExpectedReplacementCounter = 2;
             if (replacementCounter != ExpectedReplacementCounter)
             {
-                Main.GetLogger<RuleAttackRollPatches>().LogError("Instructions have not been replaced expected number of times. Target={target}, Expected={expected}, Current={current}", target, ExpectedReplacementCounter, replacementCounter);
+                Main.GetLogger<RuleAttackRollPatches>().LogError("Instructions have not been replaced expected number of times. Target={Target}, Expected={Expected}, Current={Current}", target, ExpectedReplacementCounter, replacementCounter);
                 return false;
             }
 

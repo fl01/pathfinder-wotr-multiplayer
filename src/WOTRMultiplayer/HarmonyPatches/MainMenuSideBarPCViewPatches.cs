@@ -16,12 +16,8 @@ namespace WOTRMultiplayer.HarmonyPatches
         [HarmonyPrefix]
         public static void MainMenuSideBarPCView_BindViewImplementation_Prefix(MainMenuSideBarPCView __instance)
         {
-            var logger = Main.GetLogger<MainMenuSideBarPCViewPatches>();
-            logger.LogInformation("Applying patch [{patchName}]", nameof(MainMenuSideBarPCView_BindViewImplementation_Prefix));
-
             try
             {
-
                 var commonPCView = (Game.Instance.RootUiContext.m_CommonView as CommonPCView)?.m_SaveLoadPCView;
                 Main.Multiplayer.Factory.StoreSaveLoadPCViewPrefab(commonPCView);
                 var creditsSearchPanel = Game.Instance.UI.CreditsUI.transform.Find("CreditsScreen").Find("SearchPanel");
@@ -50,7 +46,7 @@ namespace WOTRMultiplayer.HarmonyPatches
                         var isOk = Main.Multiplayer.InitializeMultiplayer(context);
                         if (!isOk)
                         {
-                            logger.LogError("Unable to inject multiplayer menu");
+                            Main.GetLogger<MainMenuSideBarPCViewPatches>().LogError("Unable to inject multiplayer menu");
                         }
                         break;
                     }
@@ -58,7 +54,7 @@ namespace WOTRMultiplayer.HarmonyPatches
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Unable to apply MainMenuSideBarPCView patch");
+                Main.GetLogger<MainMenuSideBarPCViewPatches>().LogError(ex, "Unable to apply MainMenuSideBarPCView patch");
                 throw;
             }
         }

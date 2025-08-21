@@ -24,11 +24,11 @@ namespace WOTRMultiplayer.HarmonyPatches.Vendor
             var matcher = new CodeMatcher(instructions);
             if (!ReplaceEscManagerSubscription(matcher, target) || !ReplaceDealButtonSubscription(matcher, target))
             {
-                Main.GetLogger<TurnBasedCombatPatches>().LogError("Transpiler has not been applied. Target={target}", target);
+                Main.GetLogger<TurnBasedCombatPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
                 return matcher.Instructions();
             }
 
-            Main.GetLogger<TurnBasedCombatPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<TurnBasedCombatPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
@@ -55,7 +55,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Vendor
             var match = matcher.SearchForward(x => x.LoadsField(lookFor));
             if (match.IsInvalid)
             {
-                Main.GetLogger<TurnBasedCombatPatches>().LogError("ReplaceEscManagerSubscription - Transpiler has not been applied. Target={target}", target);
+                Main.GetLogger<TurnBasedCombatPatches>().LogError("ReplaceEscManagerSubscription - Transpiler has not been applied. Target={Target}", target);
                 return false;
             }
 
@@ -77,7 +77,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Vendor
             var match = matcher.Advance(4);
             if (match.Instruction.opcode != OpCodes.Ldarg_0)
             {
-                Main.GetLogger<TurnBasedCombatPatches>().LogError("ReplaceDealButtonSubscription - Transpiler has not been applied. Target={target}, Instruction={instruction}", target, match.Instruction);
+                Main.GetLogger<TurnBasedCombatPatches>().LogError("ReplaceDealButtonSubscription - Transpiler has not been applied. Target={Target}, Instruction={Instruction}", target, match.Instruction);
                 return false;
             }
 

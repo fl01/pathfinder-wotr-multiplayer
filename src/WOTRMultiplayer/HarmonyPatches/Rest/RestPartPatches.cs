@@ -23,7 +23,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
             if (match.IsInvalid)
             {
-                Main.GetLogger<RestPartPatches>().LogError("Invalid transpiler position. Target={target}, Pos={pos}", target, match.Pos);
+                Main.GetLogger<RestPartPatches>().LogError("Invalid transpiler position. Target={Target}, Position={Position}", target, match.Pos);
                 return instructions;
             }
 
@@ -33,7 +33,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 new(OpCodes.Call, replaceWith),
             };
             match.Insert(newInstructions);
-            Main.GetLogger<RestPartPatches>().LogInformation("Transpiler has been applied. Target={target}", target);
+            Main.GetLogger<RestPartPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
     }
