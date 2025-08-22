@@ -15,6 +15,8 @@ jobs:
     timeout-minutes: 10
     env:
       WOTR_PATH: ../../libs
+      BUILD_PATH: ${{ github.workspace }}/src/WOTRMultiplayer/bin/Release/net481/
+      RELEASE_OUTPUT_PATH: ${{ github.workspace }}/releases/WOTRMultiplayer
     runs-on: windows-latest
 
     steps:
@@ -25,6 +27,15 @@ jobs:
           dotnet-version: 8.x
       - name: Build/Test
         run: dotnet test ./src --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage"
+      - name: Prepare MOD Release
+        run: |
+          mkdir -p ${{ RELEASE_OUTPUT_PATH }}
+          xcopy /q /y "${{ BUILD_PATH }}/Info.json" "${{ RELEASE_OUTPUT_PATH }}/*"
+      - name: Upload Mod
+        uses: actions/upload-artifact@v4
+        with:
+          name: wotr-multiplayer
+          path: "${{ github.workspace }}/releases/"
       - name: Combine Coverage Reports
         if: always()
         uses: danielpalme/ReportGenerator-GitHub-Action@v5.4.10
@@ -51,3 +62,56 @@ jobs:
           name: coverage
           path: ${{ github.workspace }}/Cobertura.xml
           retention-days: 5
+
+  test-reporter:
+    needs: [build]
+    if: always()
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      checks: write
+      contents: read
+      issues: read
+      actions: read
+
+    steps:
+      - name: Download Combined Coverage XML
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage
+      - name: Download Test Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results
+      - name: Publish Code Coverage Report
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: "Cobertura.xml"
+          badge: true
+          fail_below_min: false # just informative for now
+          format: markdown
+          hide_branch_rate: true
+          hide_complexity: true
+          indicators: true
+          output: both
+          thresholds: "10 30"
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          recreate: true
+          path: code-coverage-results.md
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2.16.1
+        with:
+          trx_files: "${{ github.workspace }}/**/*.trx"
+          job_summary: false
+          check_run: false
+      - uses: dorny/test-reporter@v2
+        with:
+          name: Test Results
+          path: "**/*.trx"
+          artifact: test-results
+          reporter: dotnet-trx
+          fail-on-error: false
