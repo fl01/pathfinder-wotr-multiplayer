@@ -29,8 +29,8 @@ jobs:
         run: dotnet test ./src --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage"
       - name: Prepare MOD Release
         run: |
-          mkdir -p ${{ RELEASE_OUTPUT_PATH }}
-          xcopy /q /y "${{ BUILD_PATH }}/Info.json" "${{ RELEASE_OUTPUT_PATH }}/*"
+          mkdir -p "${{ env.RELEASE_OUTPUT_PATH }}"
+          xcopy /q /y "${{ env.BUILD_PATH }}/Info.json" "${{ env.RELEASE_OUTPUT_PATH }}/*"
       - name: Upload Mod
         uses: actions/upload-artifact@v4
         with:
