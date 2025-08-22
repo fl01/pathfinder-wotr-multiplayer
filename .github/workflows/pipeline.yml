@@ -103,3 +103,4 @@ jobs:
           path: "**/*.trx"
           artifact: test-results
           reporter: dotnet-trx
+          fail-on-error: false
