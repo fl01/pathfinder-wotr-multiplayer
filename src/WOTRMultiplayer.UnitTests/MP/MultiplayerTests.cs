@@ -255,5 +255,11 @@ namespace WOTRMultiplayer.UnitTests.MP
             // Assert
             A.CallTo(() => _multiplayerClient.Reset()).MustHaveHappenedOnceExactly();
         }
+
+        [Test]
+        public void Dummy_Fail()
+        {
+            Assert.Fail();
+        }
     }
 }

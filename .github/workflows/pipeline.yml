@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.x
-      - name: build/test
+      - name: Build/Test
         run: dotnet test ./src --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage"
       - name: Combine Coverage Reports
         uses: danielpalme/ReportGenerator-GitHub-Action@v5.4.10
@@ -72,7 +72,7 @@ jobs:
           badge: true
           fail_below_min: false # just informative for now
           format: markdown
-          hide_branch_rate: false
+          hide_branch_rate: true
           hide_complexity: false
           indicators: true
           output: both
@@ -83,8 +83,3 @@ jobs:
         with:
           recreate: true
           path: code-coverage-results.md
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2.20.0
-        if: always()
-        with:
-          files: "${{ github.workspace }}/**/*.trx"
