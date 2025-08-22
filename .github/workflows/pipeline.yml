@@ -2,8 +2,8 @@ name: build
 
 on:
   workflow_dispatch:
-  #  push:
-  #    branches: [ "main" ]
+  push:
+    branches: ["main"]
   pull_request:
     branches: ["main"]
 concurrency:
@@ -37,12 +37,14 @@ jobs:
           customSettings: "" # https://github.com/danielpalme/ReportGenerator/wiki/Settings.
           toolpath: "reportgeneratortool"
       - name: Upload Test Reports
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: "${{ github.workspace }}/**/*.trx"
           retention-days: 5
       - name: Upload Combined Coverage XML
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage
@@ -51,10 +53,14 @@ jobs:
 
   test-reporter:
     needs: [build]
+    if: always()
     timeout-minutes: 10
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
+      checks: write
+      contents: read
+      issues: read
 
     steps:
       - name: Download Combined Coverage XML
@@ -83,3 +89,8 @@ jobs:
         with:
           recreate: true
           path: code-coverage-results.md
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2.16.1
+        if: always()
+        with:
+          trx_files: "${{ github.workspace }}/**/*.trx"
