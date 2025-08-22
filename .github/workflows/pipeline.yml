@@ -15,8 +15,8 @@ jobs:
     timeout-minutes: 10
     env:
       WOTR_PATH: ../../libs
-      BUILD_PATH: ".//src//WOTRMultiplayer//bin/Release//net481"
-      RELEASE_OUTPUT_PATH: ".//__releases//WOTRMultiplayer"
+      BUILD_PATH: ".\\src\\WOTRMultiplayer\\bin\\Release\\net481"
+      RELEASE_OUTPUT_PATH: ".\\__releases\\WOTRMultiplayer"
     runs-on: windows-latest
 
     steps:
@@ -29,8 +29,8 @@ jobs:
         run: dotnet test ./src --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage"
       - name: Prepare Release
         run: |
-          xcopy "${{ env.BUILD_PATH }}//Info.json" "${{ env.RELEASE_OUTPUT_PATH }}\*" /q /y
-          xcopy "${{ env.BUILD_PATH }}//WOTRMultiplayer*.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*" /q /y
+          xcopy "${{ env.BUILD_PATH }}\Info.json" "${{ env.RELEASE_OUTPUT_PATH }}\*" /q /y
+          xcopy "${{ env.BUILD_PATH }}\WOTRMultiplayer*.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*" /q /y
       - name: Upload Release
         uses: actions/upload-artifact@v4
         with:
