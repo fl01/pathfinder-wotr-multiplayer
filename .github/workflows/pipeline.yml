@@ -26,6 +26,7 @@ jobs:
       - name: Build/Test
         run: dotnet test ./src --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage"
       - name: Combine Coverage Reports
+        if: always()
         uses: danielpalme/ReportGenerator-GitHub-Action@v5.4.10
         with:
           reports: "**/*.cobertura.xml"
@@ -91,6 +92,12 @@ jobs:
           path: code-coverage-results.md
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2.16.1
-        if: always()
         with:
           trx_files: "${{ github.workspace }}/**/*.trx"
+          job_summary: false
+          check_run: false
+      - uses: dorny/test-reporter@v1
+        with:
+          name: Test Results
+          path: "*.trx"
+          reporter: dotnet-trx
