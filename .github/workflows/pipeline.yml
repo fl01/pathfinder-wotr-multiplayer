@@ -36,12 +36,18 @@ jobs:
           tag: "${{ github.run_number }}_${{ github.run_id }}"
           customSettings: "" # https://github.com/danielpalme/ReportGenerator/wiki/Settings.
           toolpath: "reportgeneratortool"
+      - name: Upload Test Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: "${{ github.workspace }}/**/*.trx"
+          retention-days: 5
       - name: Upload Combined Coverage XML
         uses: actions/upload-artifact@v4
         with:
           name: coverage
           path: ${{ github.workspace }}/Cobertura.xml
-          retention-days: 5
+          retention-days: 5          
 
   test-reporter:
     needs: [build]
@@ -52,6 +58,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: coverage
+      - name: Download Test Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results
       - name: Publish Code Coverage Report
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
@@ -80,5 +90,4 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2.20.0
         if: always()
         with:
-          # NOTE: https://github.com/EnricoMi/publish-unit-test-result-action/issues/424
-          trx_files: "${{ github.workspace }}/**/*.trx"
+          files: "${{ github.workspace }}/**/*.trx"
