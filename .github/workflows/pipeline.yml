@@ -1,4 +1,4 @@
-name: CI
+name: 'CI'
 
 on:
   workflow_dispatch:
@@ -15,8 +15,8 @@ jobs:
     timeout-minutes: 10
     env:
       WOTR_PATH: ../../libs
-      BUILD_PATH: ${{ github.workspace }}/src/WOTRMultiplayer/bin/Release/net481/
-      RELEASE_OUTPUT_PATH: ${{ github.workspace }}/releases/WOTRMultiplayer
+      BUILD_PATH: "${{ github.workspace }}/src/WOTRMultiplayer/bin/Release/net481/"
+      RELEASE_OUTPUT_PATH: "${{ github.workspace }}/releases/WOTRMultiplayer"
     runs-on: windows-latest
 
     steps:
@@ -36,6 +36,7 @@ jobs:
         with:
           name: wotr-multiplayer
           path: "${{ github.workspace }}/releases/"
+          retention-days: 3
       - name: Combine Coverage Reports
         if: always()
         uses: danielpalme/ReportGenerator-GitHub-Action@v5.4.10
