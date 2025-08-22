@@ -140,6 +140,8 @@ jobs:
         with:
           recreate: true
           path: code-coverage-results.md
+      - name: Add Coverage Summary
+        run: echo code-coverage-results.md >> $GITHUB_STEP_SUMMARY
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2.16.1
         with:
