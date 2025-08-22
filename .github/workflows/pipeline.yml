@@ -99,5 +99,5 @@ jobs:
       - uses: dorny/test-reporter@v2
         with:
           name: Test Results
-          path: "*.trx"
+          path: "${{ github.workspace }}/**/*.trx"
           reporter: dotnet-trx
