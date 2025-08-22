@@ -15,8 +15,8 @@ jobs:
     timeout-minutes: 10
     env:
       WOTR_PATH: ../../libs
-      BUILD_PATH: "${{ github.workspace }}/src/WOTRMultiplayer/bin/Release/net481"
-      RELEASE_OUTPUT_PATH: "${{ github.workspace }}/releases/WOTRMultiplayer"
+      BUILD_PATH: "./src/WOTRMultiplayer/bin/Release/net481"
+      RELEASE_OUTPUT_PATH: "./__releases/WOTRMultiplayer"
     runs-on: windows-latest
 
     steps:
@@ -34,7 +34,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wotr-multiplayer
-          path: "${{ github.workspace }}/releases/"
+          path: "${{ github.workspace }}/__releases/"
           retention-days: 3
       - name: Combine Coverage Reports
         if: always()
