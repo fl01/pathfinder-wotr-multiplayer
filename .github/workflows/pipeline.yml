@@ -62,6 +62,7 @@ jobs:
       checks: write
       contents: read
       issues: read
+      actions: read
 
     steps:
       - name: Download Combined Coverage XML
@@ -80,7 +81,7 @@ jobs:
           fail_below_min: false # just informative for now
           format: markdown
           hide_branch_rate: true
-          hide_complexity: false
+          hide_complexity: true
           indicators: true
           output: both
           thresholds: "10 30"
