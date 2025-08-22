@@ -8,14 +8,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\WOTR.Multiplayer.Playground.Core\WOTR.Multiplayer.Playground.Core.csproj" />
-	  <ProjectReference Include="..\WOTRMultiplayer\WOTRMultiplayer.csproj" />
+		<ProjectReference Include="..\WOTR.Multiplayer.Playground.Core\WOTR.Multiplayer.Playground.Core.csproj" />
+		<ProjectReference Include="..\WOTRMultiplayer\WOTRMultiplayer.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Reference Include="Assembly-CSharp">
-	    <HintPath>$(WOTR_PATH)\Wrath_Data\Managed\Assembly-CSharp.dll</HintPath>
-	  </Reference>
+		<Reference Include="Assembly-CSharp">
+			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\Assembly-CSharp.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 
 </Project>

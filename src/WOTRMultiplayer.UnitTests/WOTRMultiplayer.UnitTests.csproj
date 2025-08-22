@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net481</TargetFramework>
@@ -6,23 +6,27 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="FakeItEasy" Version="8.3.0" />
-	  <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.0" />
-	  <PackageReference Include="NUnit" Version="4.3.2" />
-	  <PackageReference Include="NUnit3TestAdapter" Version="5.0.0" />
+		<PackageReference Include="FakeItEasy" Version="8.3.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.0" />
+		<PackageReference Include="NUnit" Version="4.3.2" />
+		<PackageReference Include="NUnit3TestAdapter" Version="5.0.0" />
+		<PackageReference Include="coverlet.collector" Version="6.0.4">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\WOTRMultiplayer\WOTRMultiplayer.csproj" />
+		<ProjectReference Include="..\WOTRMultiplayer\WOTRMultiplayer.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Reference Include="Assembly-CSharp">
-	    <HintPath>$(WOTR_PATH)\Wrath_Data\Managed\Assembly-CSharp.dll</HintPath>
-	  </Reference>
-	  <Reference Include="UnityEngine.CoreModule">
-	    <HintPath>$(WOTR_PATH)\Wrath_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
-	  </Reference>
+		<Reference Include="Assembly-CSharp">
+			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\Assembly-CSharp.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.CoreModule">
+			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 
 </Project>

@@ -68,19 +68,19 @@
 			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
 		</Reference>
 		<Reference Include="AstarPathfindingProject">
-		  <HintPath>$(WOTR_PATH)\Wrath_Data\Managed\AstarPathfindingProject.dll</HintPath>
+			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\AstarPathfindingProject.dll</HintPath>
 		</Reference>
 		<Reference Include="DOTweenPro">
 			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\DOTweenPro.dll</HintPath>
 		</Reference>
 		<Reference Include="Newtonsoft.Json">
-		  <HintPath>$(WOTR_PATH)\Wrath_Data\Managed\Newtonsoft.Json.dll</HintPath>
+			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\Newtonsoft.Json.dll</HintPath>
 		</Reference>
 		<Reference Include="Owlcat.Runtime.Core">
-		  <HintPath>$(WOTR_PATH)\Wrath_Data\Managed\Owlcat.Runtime.Core.dll</HintPath>
+			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\Owlcat.Runtime.Core.dll</HintPath>
 		</Reference>
 		<Reference Include="Owlcat.Runtime.Validation">
-		  <HintPath>$(WOTR_PATH)\Wrath_Data\Managed\Owlcat.Runtime.Validation.dll</HintPath>
+			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\Owlcat.Runtime.Validation.dll</HintPath>
 		</Reference>
 		<Reference Include="UniRx">
 			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\UniRx.dll</HintPath>

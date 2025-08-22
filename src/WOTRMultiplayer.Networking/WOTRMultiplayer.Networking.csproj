@@ -6,12 +6,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="BeetleX" Version="1.8.24.435" />
-	  <PackageReference Include="protobuf-net" Version="3.2.52" />
+		<PackageReference Include="BeetleX" Version="1.8.24.435" />
+		<PackageReference Include="protobuf-net" Version="3.2.52" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\WOTRMultiplayer.Logging\WOTRMultiplayer.Logging.csproj" />
+		<ProjectReference Include="..\WOTRMultiplayer.Logging\WOTRMultiplayer.Logging.csproj" />
 	</ItemGroup>
 
 </Project>
