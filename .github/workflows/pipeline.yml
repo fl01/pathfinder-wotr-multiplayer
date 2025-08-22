@@ -1,4 +1,4 @@
-name: 'CI'
+name: "CI"
 
 on:
   workflow_dispatch:
@@ -29,8 +29,45 @@ jobs:
         run: dotnet test ./src --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage"
       - name: Prepare Release
         run: |
-          xcopy "${{ env.BUILD_PATH }}\Info.json" "${{ env.RELEASE_OUTPUT_PATH }}\*" /q /y
-          xcopy "${{ env.BUILD_PATH }}\WOTRMultiplayer*.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*" /q /y
+          xcopy /q /y "${{ env.BUILD_PATH }}\Info.json" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\WOTRMultiplayer*.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+
+          xcopy /q /y "${{ env.BUILD_PATH }}\BeetleX.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\protobuf-net.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\protobuf-net.Core.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\System.Memory.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\System.Numerics.Vectors.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\System.Runtime.CompilerServices.Unsafe.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\System.Threading.Tasks.Extensions.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\System.Collections.Immutable.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+
+          xcopy /q /y "${{ env.BUILD_PATH }}\Serilog.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\Serilog.Sinks.Console.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\Serilog.Sinks.File.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\Serilog.Extensions.Logging.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\System.Buffers.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\System.Diagnostics.DiagnosticSource.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\System.Memory.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\System.Numerics.Vectors.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\System.Runtime.CompilerServices.Unsafe.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\System.Threading.Channels.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\System.Threading.Tasks.Extensions.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+
+          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Bcl.AsyncInterfaces.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.DependencyInjection.Abstractions.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.DependencyInjection.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+
+          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.Logging.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.Logging.Abstractions.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.Options.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.Primitives.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\System.ValueTuple.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+
+          xcopy /q /y "${{ env.BUILD_PATH }}\MurmurHash.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+
+          xcopy /q /y "${{ env.BUILD_PATH }}\AutoMapper.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\AutoMapper.Extensions.Microsoft.DependencyInjection.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+
       - name: Upload Release
         uses: actions/upload-artifact@v4
         with:
