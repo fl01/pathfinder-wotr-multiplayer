@@ -96,7 +96,7 @@ jobs:
           trx_files: "${{ github.workspace }}/**/*.trx"
           job_summary: false
           check_run: false
-      - uses: dorny/test-reporter@v1
+      - uses: dorny/test-reporter@v2
         with:
           name: Test Results
           path: "*.trx"
