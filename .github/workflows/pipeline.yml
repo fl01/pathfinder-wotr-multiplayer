@@ -27,11 +27,10 @@ jobs:
           dotnet-version: 8.x
       - name: Build/Test
         run: dotnet test ./src --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage"
-      - name: Prepare MOD Release
+      - name: Prepare Release
         run: |
-          mkdir -p "${{ env.RELEASE_OUTPUT_PATH }}"
           xcopy /q /y "${{ env.BUILD_PATH }}/Info.json" "${{ env.RELEASE_OUTPUT_PATH }}/*"
-      - name: Upload Mod
+      - name: Upload Release
         uses: actions/upload-artifact@v4
         with:
           name: wotr-multiplayer
