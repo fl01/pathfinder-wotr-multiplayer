@@ -17,8 +17,8 @@ namespace WOTRMultiplayer.Networking
     {
         private readonly TimeSpan _defaultAwaiterTimeout = TimeSpan.FromMinutes(1);
 
-        private ServerBuilder<NetworkServerApp, NetworkClientToken, ProtobufPacket> _server;
-        private ServerBuilder<NetworkServerApp, NetworkClientToken, ProtobufPacket> Server => _server ??= new ServerBuilder<NetworkServerApp, NetworkClientToken, ProtobufPacket>();
+        private ServerBuilder<NetworkServerApp, NetworkConnectionToken, ProtobufPacket> _server;
+        private ServerBuilder<NetworkServerApp, NetworkConnectionToken, ProtobufPacket> Server => _server ??= new ServerBuilder<NetworkServerApp, NetworkConnectionToken, ProtobufPacket>();
         private readonly ILogger<NetworkServer> _logger;
         private readonly ConcurrentDictionary<long, ConcurrentDictionary<string, TaskCompletionSource<object>>> _awaiters = new();
 
@@ -32,7 +32,7 @@ namespace WOTRMultiplayer.Networking
             _logger = logger;
         }
 
-        public INetworkServer On<TMessage>(Action<long, TMessage> messageHandler)
+        public INetworkReceiver On<TMessage>(Action<long, TMessage> messageHandler)
             where TMessage : class
         {
             _logger.LogDebug("Adding message handler. Type={Type}", typeof(TMessage).Name);
@@ -44,6 +44,7 @@ namespace WOTRMultiplayer.Networking
         {
             Server.ServerOptions.DefaultListen.StartRegionPort = hostPortRangeStart;
             Server.ServerOptions.DefaultListen.EndRegionPort = hostPortRangeEnd;
+            Server.OnMessageReceive(OnMissingMessageHandler);
             Server.OnOpened(OnOpened);
             Server.OnLog(OnServerLog)
                 .OnConnected(OnConnected)
@@ -125,7 +126,12 @@ namespace WOTRMultiplayer.Networking
             Server.AppServer.Send(message, sessions);
         }
 
-        private void OnHandleMessage<TMessage>(EventMessageReceiveArgs<NetworkServerApp, NetworkClientToken, TMessage> args, Action<long, TMessage> handler)
+        private void OnMissingMessageHandler(EventMessageReceiveArgs<NetworkServerApp, NetworkConnectionToken, object> args)
+        {
+            _logger.LogError("Missing message handler. PlayerId={PlayerId}, MessageType={MessageType}", args.Session.Id, args.Message.GetType().Name);
+        }
+
+        private void OnHandleMessage<TMessage>(EventMessageReceiveArgs<NetworkServerApp, NetworkConnectionToken, TMessage> args, Action<long, TMessage> handler)
         {
             var clientId = args.NetSession.ID;
             if (args.Message is IAwaitableMessage awaitable
@@ -179,7 +185,7 @@ namespace WOTRMultiplayer.Networking
         {
         }
 
-        private void OnDisconnected(ISession session, NetworkClientToken clientToken)
+        private void OnDisconnected(ISession session, NetworkConnectionToken clientToken)
         {
             _logger.LogInformation("Client disconnected. ClientId={ClientId}", session.ID);
             try
@@ -192,7 +198,7 @@ namespace WOTRMultiplayer.Networking
             }
         }
 
-        private void OnConnected(ISession session, NetworkClientToken clientToken)
+        private void OnConnected(ISession session, NetworkConnectionToken clientToken)
         {
             _logger.LogInformation("Client connected. ClientId={ClientId}", session.ID);
             try

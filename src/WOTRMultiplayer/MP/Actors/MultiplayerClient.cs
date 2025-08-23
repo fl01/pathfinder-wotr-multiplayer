@@ -15,19 +15,12 @@ using WOTRMultiplayer.Abstractions.MP.Actors;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.GameInteraction.Contexts;
 using WOTRMultiplayer.MP.Entities;
-using WOTRMultiplayer.MP.Entities.Abilities;
 using WOTRMultiplayer.MP.Entities.Combat;
 using WOTRMultiplayer.MP.Entities.Dialogs;
-using WOTRMultiplayer.MP.Entities.Equipment;
 using WOTRMultiplayer.MP.Entities.Inspect;
 using WOTRMultiplayer.MP.Entities.Leveling;
-using WOTRMultiplayer.MP.Entities.Loot;
-using WOTRMultiplayer.MP.Entities.MapObjects;
-using WOTRMultiplayer.MP.Entities.Movement;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Settings;
-using WOTRMultiplayer.MP.Entities.Spells;
-using WOTRMultiplayer.MP.Entities.Vendor;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
@@ -77,7 +70,8 @@ namespace WOTRMultiplayer.MP.Actors
                   gameInteractionService,
                   diceRollStorage,
                   fileSystemService,
-                  valueGenerator)
+                  valueGenerator,
+                  networkClient)
         {
             _ipEndPointParser = ipEndPointParser;
             _networkClient = networkClient;
@@ -101,7 +95,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return ConnectLobbyResult.Error(UIStringConsts.MultiplayerClient.Errors.InvalidPort);
             }
 
-            RegisterHandlers();
+            SetupNetworkMessageHandlers();
 
             _networkClient.ConnectAsync(endpoint.Address.ToString(), endpoint.Port);
 
@@ -382,12 +376,6 @@ namespace WOTRMultiplayer.MP.Actors
             Send(message);
         }
 
-        protected override void OnLocalPlayerTurnEnded()
-        {
-            var message = new PlayerCombatTurnEnded { UnitId = Game.Combat.Turn.UnitId };
-            Send(message);
-        }
-
         protected override void OnLocalPlayerTurnStart()
         {
             var message = new ClientCombatTurnStarted
@@ -398,218 +386,86 @@ namespace WOTRMultiplayer.MP.Actors
 
             Send(message);
         }
-        private void RegisterHandlers()
+
+        protected override void SetupNetworkMessageHandlers()
         {
-            _networkClient
-                // this is kinda special because requester is blocking the thread (most likely game main loop) until <see cref="DiceRollValueResponse"/> is received
-                .On<DiceRollValueRequest>(OnDiceRollValueRequest)
-
-                .On<NotifyPlayerDisconnected>(OnNotifyPlayerDisconnected)
-                .On<GameServerConnectionSucceeded>(OnGameServerConnectionSucceeded)
-                .On<PlayerReadyStatusChanged>(OnPlayerReadyStatusChanged)
-                .On<NotifyPlayersChanged>(OnNotifyPlayersChanged)
-                .On<NotifyGameCharactersChanged>(OnNotifyGameCharactersChanged)
-                .On<NotifySaveGameAssigned>(OnNotifySaveGameAssigned)
-                .On<NotifyGameStageChanged>(OnNotifyGameStageChanged)
-                .On<NotifyCharactersOwnerChanged>(OnNotifyCharactersOwnerChanged)
-                .On<NotifyGameStarted>(OnNotifyGameStarted)
-                .On<NotifyCharacterMove>(OnNotifyCharacterMove)
-                .On<NotifyForcedPauseEnded>(OnNotifyForcedPauseEnded)
-                .On<NotifyPartyLeaveArea>(OnNotifyPartyLeaveArea)
-                .On<NotifyDialogCueAnswerSuggested>(OnNotifyDialogCueAnswerSuggested)
-                .On<NotifyDialogCueAnswerSelected>(OnNotifyDialogCueAnswerSelected)
-                .On<NotifyDialogStarted>(OnNotifyDialogStarted)
-                .On<NotifyUnitClicked>(OnNotifyUnitClicked)
-                .On<NotifyGroundClicked>(OnNotifyGroundClicked)
-                .On<NotifyMapObjectClicked>(OnNotifyMapObjectClicked)
-                .On<NotifyAbilityUse>(OnNotifyAbilityUsed)
-                .On<NotifyToggleActivatableAbility>(OnNotifyToggleActivatableAbility)
-                // combat
-                .On<PlayerCombatTurnEnded>(OnPlayerCombatTurnEnded)
-                .On<NotifyCombatInitialized>(OnNotifyCombatInitialized)
-                .On<NotifyCombatTurnStarted>(OnNotifyCombatTurnStarted)
-                .On<NotifyCombatTurnSynchronizationRequired>(OnNotifyCombatTurnSynchronizationRequired)
-
-                .On<NotifyContainerLooted>(OnNotifyContainerLooted)
-                .On<NotifyDropItem>(OnNotifyDropItem)
-                .On<NotifyEquipmentSlotChanged>(OnNotifyEquipmentSlotChanged)
-                .On<NotifyActiveHandEquipmentSetChanged>(OnNotifyActiveHandEquipmentSetChanged)
-
-                .On<NotifyOvertipInteracted>(OnNotifyOvertipInteracted)
-                .On<NotifyUnitJoinedMidCombat>(OnNotifyUnitJoinedMidCombat)
-                .On<NotifyPerceptionCheckRolled>(OnNotifyPerceptionCheckRolled)
-                .On<NotifyInspectionKnowledgeCheckRolled>(OnNotifyInspectionKnowledgeCheckRolled)
-                .On<NotifySpawnCampPlace>(OnNotifySpawnCampPlace)
-                .On<NotifyCampingUseHealingSpellsChanged>(OnNotifyCampingUseHealingSpellsChanged)
-                .On<NotifyCampingStateChanged>(OnNotifyCampingStateChanged)
-                .On<NotifyCampingUnitsRoleChanged>(OnNotifyCampingUnitsRoleChanged)
-                .On<NotifyRestStarted>(OnNotifyRestStarted)
-                .On<NotifyRestBanterInterrupted>(OnNotifyRestBanterInterrupted)
-                .On<NotifyInvalidCombatTurnStarted>(OnNotifyInvalidCombatTurnStarted)
-                .On<NotifyVendorItemTransferred>(OnNotifyVendorItemTransferred)
-                .On<NotifyVendorDealMade>(OnNotifyVendorDealMade)
-                .On<NotifyVendorWindowClosed>(OnNotifyVendorWindowClosed)
-                .On<NotifySpellMemorized>(OnNotifySpellMemorized)
-                .On<NotifySpellForgotten>(OnNotifySpellForgotten)
-
-                // leveling
-                .On<NotifyCharacterLevelingStarted>(OnNotifyCharacterLevelingStarted)
-                .On<NotifyLevelingClassSelected>(OnNotifyLevelingClassSelected)
-                .On<NotifyLevelingClassArchetypeSelected>(OnNotifyLevelingClassArchetypeSelected)
-                .On<NotifyLevelingPhaseWitnessed>(OnNotifyLevelingPhaseWitnessed)
-                .On<NotifyLevelingPhaseChanged>(OnNotifyLevelingPhaseChanged)
-                .On<NotifyLevelingSkillPointIncreased>(OnNotifyLevelingSkillPointIncreased)
-                .On<NotifyLevelingSkillPointDecreased>(OnNotifyLevelingSkillPointDecreased)
-                .On<NotifyLevelingAbilityScoreIncreased>(OnNotifyLevelingAbilityScoreIncreased)
-                .On<NotifyLevelingAbilityScoreDecreased>(OnNotifyLevelingAbilityScoreDecreased)
-                .On<NotifyLevelingFeatureSelected>(OnNotifyLevelingFeatureSelected)
-                .On<NotifyLevelingSpellChosen>(OnNotifyLevelingSpellChosen)
-                .On<NotifyLevelingSpellRemoved>(OnNotifyLevelingSpellRemoved)
-                .On<NotifyLevelingCompleted>(OnNotifyLevelingCompleted)
-                .On<NotifyLevelingTerminated>(OnNotifyLevelingTerminated)
-                ;
-
             _networkClient.OnError = OnNetworkClientError;
             _networkClient.OnConnected = OnNetworkClientConnected;
+
+            base.SetupNetworkMessageHandlers();
+
+            _networkClient
+               // this is kinda special because requester is blocking the thread (most likely game main loop) until <see cref="DiceRollValueResponse"/> is received
+               .On<DiceRollValueRequest>(OnDiceRollValueRequest)
+
+               // lobby
+               .On<NotifySaveGameAssigned>(OnNotifySaveGameAssigned)
+               .On<NotifyPlayerDisconnected>(OnNotifyPlayerDisconnected)
+               .On<GameServerConnectionSucceeded>(OnGameServerConnectionSucceeded)
+               .On<PlayerReadyStatusChanged>(OnPlayerReadyStatusChanged)
+               .On<NotifyPlayersChanged>(OnNotifyPlayersChanged)
+               .On<NotifyGameCharactersChanged>(OnNotifyGameCharactersChanged)
+               .On<NotifyGameStageChanged>(OnNotifyGameStageChanged)
+               .On<NotifyCharactersOwnerChanged>(OnNotifyCharactersOwnerChanged)
+               .On<NotifyGameStarted>(OnNotifyGameStarted)
+
+               // pausing
+               .On<NotifyForcedPauseEnded>(OnNotifyForcedPauseEnded)
+
+               // area transitioning
+               .On<NotifyPartyLeaveArea>(OnNotifyPartyLeaveArea)
+
+               // leveling
+               .On<NotifyCharacterLevelingStarted>(OnNotifyCharacterLevelingStarted)
+
+               // rest
+               .On<NotifyRestStarted>(OnNotifyRestStarted)
+               .On<NotifySpawnCampPlace>(OnNotifySpawnCampPlace)
+               .On<NotifyCampingUseHealingSpellsChanged>(OnNotifyCampingUseHealingSpellsChanged)
+               .On<NotifyCampingStateChanged>(OnNotifyCampingStateChanged)
+               .On<NotifyCampingUnitsRoleChanged>(OnNotifyCampingUnitsRoleChanged)
+
+               // combat
+               .On<NotifyInvalidCombatTurnStarted>(OnNotifyInvalidCombatTurnStarted)
+               .On<NotifyCombatInitialized>(OnNotifyCombatInitialized)
+               .On<NotifyCombatTurnStarted>(OnNotifyCombatTurnStarted)
+               .On<NotifyCombatTurnSynchronizationRequired>(OnNotifyCombatTurnSynchronizationRequired)
+
+               // dialogs
+               .On<NotifyDialogStarted>(OnNotifyDialogStarted)
+               .On<NotifyDialogCueAnswerSuggested>(OnNotifyDialogCueAnswerSuggested)
+               .On<NotifyDialogCueAnswerSelected>(OnNotifyDialogCueAnswerSelected)
+
+               // vendor interaction
+               .On<NotifyVendorDealMade>(OnNotifyVendorDealMade)
+               .On<NotifyVendorWindowClosed>(OnNotifyVendorWindowClosed)
+
+               // inspection
+               .On<NotifyPerceptionCheckRolled>(OnNotifyPerceptionCheckRolled)
+               .On<NotifyInspectionKnowledgeCheckRolled>(OnNotifyInspectionKnowledgeCheckRolled)
+               ;
         }
 
-        private void OnNotifyLevelingAbilityScoreDecreased(NotifyLevelingAbilityScoreDecreased decreased)
-        {
-            Logger.LogInformation("Received {MessageType}. StatType={statType}", nameof(NotifyLevelingAbilityScoreDecreased), decreased.AbilityScore.StatType);
-
-            var abilityScore = Mapper.Map<NetworkLevelingAbilityScore>(decreased.AbilityScore);
-            GameInteraction.DecreaseLevelingAbilityScore(abilityScore);
-        }
-
-        private void OnNotifyLevelingAbilityScoreIncreased(NotifyLevelingAbilityScoreIncreased increased)
-        {
-            Logger.LogInformation("Received {MessageType}. StatType={statType}", nameof(NotifyLevelingAbilityScoreIncreased), increased.AbilityScore.StatType);
-
-            var abilityScore = Mapper.Map<NetworkLevelingAbilityScore>(increased.AbilityScore);
-            GameInteraction.IncreaseLevelingAbilityScore(abilityScore);
-        }
-
-        private void OnNotifyLevelingCompleted(NotifyLevelingCompleted completed)
-        {
-            Logger.LogInformation("Received {MessageType}", nameof(NotifyLevelingCompleted));
-            GameInteraction.CompleteLeveling();
-        }
-
-        private void OnNotifyLevelingTerminated(NotifyLevelingTerminated terminated)
-        {
-            Logger.LogInformation("Received {MessageType}", nameof(NotifyLevelingTerminated));
-            GameInteraction.TerminateLeveling();
-        }
-
-        private void OnNotifyLevelingSpellRemoved(NotifyLevelingSpellRemoved removed)
-        {
-            Logger.LogInformation("Received {MessageType}. SpellName={name}, SpellId={id}", nameof(NotifyLevelingSpellRemoved), removed.Spell.Name, removed.Spell.Id);
-            var spell = Mapper.Map<NetworkLevelingSpell>(removed.Spell);
-            GameInteraction.RemoveLevelingSpell(spell);
-        }
-
-        private void OnNotifyLevelingSpellChosen(NotifyLevelingSpellChosen chosen)
-        {
-            Logger.LogInformation("Received {MessageType}. SpellName={name}, SpellId={id}", nameof(NotifyLevelingSpellChosen), chosen.Spell.Name, chosen.Spell.Id);
-            var spell = Mapper.Map<NetworkLevelingSpell>(chosen.Spell);
-            GameInteraction.SelectLevelingSpell(spell);
-        }
-
-        private void OnNotifyLevelingFeatureSelected(NotifyLevelingFeatureSelected selected)
-        {
-            Logger.LogInformation("Received {MessageType}. Name={name}, Id={id}", nameof(NotifyLevelingFeatureSelected), selected.Feature.Name, selected.Feature.Id);
-            var feature = Mapper.Map<NetworkLevelingFeature>(selected.Feature);
-            GameInteraction.SelectLevelingFeature(feature);
-        }
-
-        private void OnNotifyLevelingSkillPointDecreased(NotifyLevelingSkillPointDecreased decreased)
-        {
-            Logger.LogInformation("Received {MessageType}. PhaseType={phaseType}", nameof(NotifyLevelingSkillPointDecreased), decreased.Skill.StatType);
-            var skillPoint = Mapper.Map<NetworkLevelingSkillPoint>(decreased.Skill);
-            GameInteraction.DecreaseLevelingSkillPoint(skillPoint);
-        }
-
-        private void OnNotifyLevelingSkillPointIncreased(NotifyLevelingSkillPointIncreased increased)
-        {
-            Logger.LogInformation("Received {MessageType}.PhaseType={phaseType}", nameof(NotifyLevelingSkillPointIncreased), increased.Skill.StatType);
-            var skillPoint = Mapper.Map<NetworkLevelingSkillPoint>(increased.Skill);
-            GameInteraction.IncreaseLevelingSkillPoint(skillPoint);
-        }
-
-        private void OnNotifyLevelingPhaseChanged(NotifyLevelingPhaseChanged changed)
-        {
-            Logger.LogInformation("Received {MessageType}. Index={index}", nameof(NotifyLevelingPhaseChanged), changed.Phase.Index);
-            var phase = Mapper.Map<NetworkLevelingPhase>(changed.Phase);
-            Game.Leveling.PlayerReadiness.Clear();
-            GameInteraction.SwitchLevelingPhase(phase);
-        }
-
-        private void OnNotifyLevelingPhaseWitnessed(NotifyLevelingPhaseWitnessed witnessed)
-        {
-            Logger.LogInformation("Received {MessageType}. PlayerId={playerId}, Index={index}", nameof(NotifyLevelingPhaseWitnessed), witnessed.PlayerId, witnessed.Phase.Index);
-            WitnessLevelingPhase(witnessed.PlayerId);
-        }
-
-        private void OnNotifyLevelingClassArchetypeSelected(NotifyLevelingClassArchetypeSelected selected)
-        {
-            Logger.LogInformation("Received {MessageType}. ArchetypeId={archetypeId}", nameof(NotifyLevelingClassArchetypeSelected), selected.ArchetypeId);
-            GameInteraction.SelectLevelingClassArchetype(selected.ArchetypeId);
-        }
-
-        private void OnNotifyLevelingClassSelected(NotifyLevelingClassSelected selected)
-        {
-            Logger.LogInformation("Received {MessageType}. ClassId={unitId}", nameof(NotifyCharacterLevelingStarted), selected.ClassId);
-            GameInteraction.SelectLevelingClass(selected.ClassId);
-        }
-
-        private void OnNotifyCharacterLevelingStarted(NotifyCharacterLevelingStarted started)
+        private void OnNotifyCharacterLevelingStarted(long playerId, NotifyCharacterLevelingStarted started)
         {
             Logger.LogInformation("Received {MessageType}. UnitId={unitId}", nameof(NotifyCharacterLevelingStarted), started.UnitId);
             Game.Leveling = new NetworkLeveling(started.UnitId);
             GameInteraction.StartLeveling(started.UnitId);
         }
 
-        private void OnNotifySpellForgotten(NotifySpellForgotten spellForgotten)
-        {
-            Logger.LogInformation("Received {MessageType}. UnitId={unitId}, SpellbookId={spellbookId}, SpellSlotIndex={spellSlotIndex}, SpellSlotType={spellSlotType}",
-                nameof(NotifySpellForgotten), spellForgotten.Slot.UnitId, spellForgotten.Slot.SpellbookId, spellForgotten.Slot.Index, spellForgotten.Slot.Type);
-
-            var slot = Mapper.Map<NetworkSpellSlot>(spellForgotten.Slot);
-
-            GameInteraction.ForgetSpell(slot);
-        }
-
-        private void OnNotifySpellMemorized(NotifySpellMemorized memorized)
-        {
-            Logger.LogInformation("Received {MessageType}. UnitId={unitId}, SpellbookId={spellbookId}, SpellId={spellId}, SpellLevel={spellLevel}, SpellName={spellName}, SpellSlotIndex={spellSlotIndex}, SpellSlotType={spellSlotType}",
-                nameof(NotifySpellMemorized), memorized.Slot.UnitId, memorized.Slot.SpellbookId, memorized.Slot.SpellId, memorized.Slot.SpellLevel, memorized.Slot.SpellName, memorized.Slot.Index, memorized.Slot.Type);
-
-            var slot = Mapper.Map<NetworkSpellSlot>(memorized.Slot);
-
-            GameInteraction.MemorizeSpell(slot);
-        }
-
-        private void OnNotifyVendorWindowClosed(NotifyVendorWindowClosed closed)
+        private void OnNotifyVendorWindowClosed(long playerId, NotifyVendorWindowClosed closed)
         {
             Logger.LogInformation("Received {MessageType}", nameof(NotifyVendorWindowClosed));
             GameInteraction.CloseVendorWindow();
         }
 
-        private void OnNotifyVendorDealMade(NotifyVendorDealMade made)
+        private void OnNotifyVendorDealMade(long playerId, NotifyVendorDealMade made)
         {
             Logger.LogInformation("Received {MessageType}", nameof(NotifyVendorDealMade));
             GameInteraction.MakeVendorDeal();
         }
 
-        private void OnNotifyVendorItemTransferred(NotifyVendorItemTransferred message)
-        {
-            Logger.LogInformation("Received {MessageType}. ItemId={itemId}, Count={count}, Action={action}, ActionTarget={actionTarget}", nameof(NotifyVendorItemTransferred), message.ItemTransfer.Item.UniqueId, message.ItemTransfer.Count, message.ItemTransfer.ItemAction, message.ItemTransfer.ItemActionTarget);
-
-            var transfer = Mapper.Map<NetworkVendorItemTransfer>(message.ItemTransfer);
-            GameInteraction.TransferVendorItem(transfer);
-        }
-
-        private void OnNotifyInvalidCombatTurnStarted(NotifyInvalidCombatTurnStarted started)
+        private void OnNotifyInvalidCombatTurnStarted(long playerId, NotifyInvalidCombatTurnStarted started)
         {
             Logger.LogInformation("Received {MessageType}. UnitId={unitId}", nameof(NotifyInvalidCombatTurnStarted), started.UnitId);
             GameInteraction.AddCombatText(UIStringConsts.GameNotifications.CombatLog.ClientIsFixingCombaTurnOrderDesync);
@@ -617,20 +473,13 @@ namespace WOTRMultiplayer.MP.Actors
             GameInteraction.StartTurnBasedCombatTurn(started.UnitId);
         }
 
-        private void OnNotifyRestBanterInterrupted(NotifyRestBanterInterrupted interrupted)
-        {
-            Logger.LogInformation("Received {MessageType}. SpeakerUnitId={speakerUnitId}, Key={key}", nameof(NotifyRestBanterInterrupted), interrupted.Banter.SpeakerUnitId, interrupted.Banter.Key);
-            var banter = Mapper.Map<NetworkRestBanter>(interrupted.Banter);
-            GameInteraction.TryInterruptRestBanter(banter);
-        }
-
-        private void OnNotifyRestStarted(NotifyRestStarted started)
+        private void OnNotifyRestStarted(long playerId, NotifyRestStarted started)
         {
             Logger.LogInformation("Received {MessageType}", nameof(NotifyRestStarted));
             GameInteraction.StartRest();
         }
 
-        private void OnNotifyCampingUnitsRoleChanged(NotifyCampingUnitsRoleChanged changed)
+        private void OnNotifyCampingUnitsRoleChanged(long playerId, NotifyCampingUnitsRoleChanged changed)
         {
             var rolesData = string.Join(" ,", changed.Roles.Select(r => $"[RoleType={r.RoleType} PrimaryUnit={r.PrimaryUnitId} SecondaryUnit={r.SecondaryUnitId}]"));
             Logger.LogInformation("Received {MessageType}. RolesCount={rolesCount}, RolesData={rolesData}", nameof(NotifyCampingUnitsRoleChanged), changed.Roles.Count, rolesData);
@@ -639,7 +488,7 @@ namespace WOTRMultiplayer.MP.Actors
             GameInteraction.SetCampingRoles(roles);
         }
 
-        private void OnNotifyCampingStateChanged(NotifyCampingStateChanged changed)
+        private void OnNotifyCampingStateChanged(long playerId, NotifyCampingStateChanged changed)
         {
             Logger.LogInformation("Received {MessageType}. CookingBlueprintRecipeId={cookingId}, PotionBlueprintRecipeId={potionId}, ScrollBlueprintRecipeId={ScrollId}, IterationsCount={iterations}, AutotuneIterations={autotuneIterations}", nameof(NotifyCampingStateChanged),
                 changed.State.CookingBlueprintRecipeId, changed.State.PotionBlueprintRecipeId, changed.State.ScrollBlueprintRecipeId, changed.State.IterationsCount, changed.State.AutotuneIterationsStatus);
@@ -648,34 +497,34 @@ namespace WOTRMultiplayer.MP.Actors
             GameInteraction.SetCampingState(state);
         }
 
-        private void OnNotifyCampingUseHealingSpellsChanged(NotifyCampingUseHealingSpellsChanged changed)
+        private void OnNotifyCampingUseHealingSpellsChanged(long playerId, NotifyCampingUseHealingSpellsChanged changed)
         {
             Logger.LogInformation("Received {MessageType}. IsOn={isOn}", nameof(NotifyCampingUseHealingSpellsChanged), changed.IsOn);
             GameInteraction.SetCampingUseHealingSpells(changed.IsOn);
         }
 
-        private void OnNotifySpawnCampPlace(NotifySpawnCampPlace place)
+        private void OnNotifySpawnCampPlace(long playerId, NotifySpawnCampPlace place)
         {
             Logger.LogInformation("Received {MessageType}. Position={position}", nameof(NotifySpawnCampPlace), place.Position);
             var position = Mapper.Map<NetworkVector3>(place.Position);
             GameInteraction.SpawnCampPlace(position);
         }
 
-        private void OnNotifyPlayerDisconnected(NotifyPlayerDisconnected disconnected)
+        private void OnNotifyPlayerDisconnected(long playerId, NotifyPlayerDisconnected disconnected)
         {
             Logger.LogInformation("Received {MessageType}. UnitId={unitID}, MapObjectId={round}", nameof(NotifyPlayerDisconnected), disconnected.PlayerId);
             var player = CleanupPlayer(disconnected.PlayerId);
             ShowPlayerDisconnectedMessage(player);
         }
 
-        private void OnNotifyInspectionKnowledgeCheckRolled(NotifyInspectionKnowledgeCheckRolled rolled)
+        private void OnNotifyInspectionKnowledgeCheckRolled(long playerId, NotifyInspectionKnowledgeCheckRolled rolled)
         {
             Logger.LogInformation("Received {MessageType}. TargetUnitId={targetUnitId}, InitiatorUnitId={initiatorId}, StatType={statType}, DC={dc}", nameof(NotifyInspectionKnowledgeCheckRolled), rolled.Check.TargetUnitId, rolled.Check.InitiatorUnitId, rolled.Check.StatType, rolled.Check.DC);
             var check = Mapper.Map<NetworkInspectionKnowledgeCheck>(rolled.Check);
             GameInteraction.ApplyInspectionKnowledgeCheck(check);
         }
 
-        private void OnNotifyPerceptionCheckRolled(NotifyPerceptionCheckRolled rolled)
+        private void OnNotifyPerceptionCheckRolled(long playerId, NotifyPerceptionCheckRolled rolled)
         {
             Logger.LogInformation("Received {MessageType}. UnitId={unitID}, MapObjectId={round}", nameof(NotifyPerceptionCheckRolled), rolled.Check.UnitId, rolled.Check.MapObject.Id);
 
@@ -683,65 +532,7 @@ namespace WOTRMultiplayer.MP.Actors
             GameInteraction.ApplyPerceptionCheck(check);
         }
 
-        private void OnNotifyUnitJoinedMidCombat(NotifyUnitJoinedMidCombat combat)
-        {
-            Logger.LogInformation("Received {MessageType}. PlayerId={playerId}, UnitId={unitId}", nameof(NotifyUnitJoinedMidCombat), combat.UnitId);
-            AddPlayerReadyStatus(PlayerTurnReadinessType.UnitJoinedMidCombat, combat.PlayerId, combat.UnitId);
-        }
-
-        private void OnNotifyOvertipInteracted(NotifyOvertipInteracted interacted)
-        {
-            Logger.LogInformation("Received {MessageType}. MapObjectId={mapObjectId}, UnitsCount={unitsCount}", nameof(NotifyOvertipInteracted), interacted.Overtip.MapObject.Id, interacted.Overtip.Units);
-            var overtip = Mapper.Map<NetworkOvertip>(interacted.Overtip);
-            GameInteraction.InteractWithOvertip(overtip);
-        }
-
-        private void OnNotifyActiveHandEquipmentSetChanged(NotifyActiveHandEquipmentSetChanged changed)
-        {
-            Logger.LogInformation("Received {MessageType}. UnitId={unitId}, SetIndex={setIndex}", nameof(NotifyEquipmentSlotChanged), changed.Set.UnitId, changed.Set.Index);
-            var set = Mapper.Map<NetworkActiveHandEquipmentSet>(changed.Set);
-            GameInteraction.SetActiveHandEquipmentSet(set);
-        }
-
-        private void OnNotifyEquipmentSlotChanged(NotifyEquipmentSlotChanged slotChanged)
-        {
-            Logger.LogInformation("Received {MessageType}. SlotType={slotType}, SlotIndex={slotIndex}, ItemId={itemId}, OwnerId={ownerId}", nameof(NotifyEquipmentSlotChanged), slotChanged.Slot.Position.Type, slotChanged.Slot.Position.Index, slotChanged.Slot.Item?.UniqueId, slotChanged.Slot.OwnerId);
-            var slot = Mapper.Map<NetworkEquipmentSlot>(slotChanged.Slot);
-            GameInteraction.UpdateEquipmentSlot(slot);
-        }
-
-        private void OnNotifyDropItem(NotifyDropItem item)
-        {
-            Logger.LogInformation("Received {MessageType}. OwnerId={OwnerId}, ItemId={ItemId}, ItemName={ItemName}", nameof(NotifyDropItem), item.Drop.OwnerEntityId, item.Drop.Item.UniqueId, item.Drop.Item.Name);
-
-            var dropItem = Mapper.Map<NetworkDropItem>(item.Drop);
-            GameInteraction.DropItem(dropItem);
-        }
-
-        private void OnNotifyContainerLooted(NotifyContainerLooted looted)
-        {
-            Logger.LogInformation("Received {MessageType}. ContainerId={ContainerId}, ContainerPosition={ContainerPosition}, ItemsCount={ItemsCount}, Items={Items}",
-               nameof(NotifyContainerLooted), looted.Container.Id, looted.Container.Position, looted.Container.Items.Count, looted.Container.Items.Select(i => i.UniqueId));
-
-            var container = Mapper.Map<NetworkLootContainer>(looted.Container);
-            GameInteraction.CollectContainerLoot(container);
-        }
-
-        private void OnNotifyToggleActivatableAbility(NotifyToggleActivatableAbility toggle)
-        {
-            Logger.LogInformation("Received {MessageType}. AbilityId={AbilityId}, IsActive={IsActive}", nameof(NotifyToggleActivatableAbility), toggle.Ability.Id, toggle.Ability.IsActive);
-            var ability = Mapper.Map<NetworkActivatableAbility>(toggle.Ability);
-            GameInteraction.ToggleActivatableAbility(ability);
-        }
-
-        private void OnNotifyAbilityUsed(NotifyAbilityUse used)
-        {
-            Logger.LogInformation("Received {MessageType}. AbilityId={AbilityId}", nameof(NotifyAbilityUse), used.Ability.Id);
-            var ability = Mapper.Map<NetworkAbility>(used.Ability);
-            GameInteraction.UseAbility(ability);
-        }
-
-        private async void OnNotifyCombatTurnSynchronizationRequired(NotifyCombatTurnSynchronizationRequired required)
+        private async void OnNotifyCombatTurnSynchronizationRequired(long playerId, NotifyCombatTurnSynchronizationRequired required)
         {
             try
             {
@@ -767,55 +558,15 @@ namespace WOTRMultiplayer.MP.Actors
             }
         }
 
-        private void OnPlayerCombatTurnEnded(PlayerCombatTurnEnded ended)
-        {
-            Logger.LogInformation("Received {MessageType}. UnitId={unitId}", nameof(PlayerCombatTurnEnded), ended.UnitId);
-            if (!string.Equals(Game.Combat.Turn?.UnitId, ended.UnitId, StringComparison.OrdinalIgnoreCase))
-            {
-                Logger.LogWarning("Another player ended different turn. LocalUnitId={LocalUnitId}, RemoteUnitId={RemoteUnitId}", Game.Combat.Turn?.UnitId, ended.UnitId);
-                return;
-            }
 
-            EndLocalTurn();
-        }
-
-        private void OnNotifyGroundClicked(NotifyGroundClicked clicked)
-        {
-            Logger.LogInformation("Received {MessageType}. SelectedUnitId={SelectedUnitId}, WorldPosition={WorldPosition}", nameof(NotifyGroundClicked), clicked.Click.SelectedUnits.Count, clicked.Click.WorldPosition);
-            if (Game.Combat == null)
-            {
-                Logger.LogWarning("{MessageType} is ignored out of combat", nameof(NotifyGroundClicked));
-                return;
-            }
-
-            var click = Mapper.Map<NetworkClick>(clicked.Click);
-            GameInteraction.ClickGroundInCombat(click);
-        }
-
-        private void OnNotifyUnitClicked(NotifyUnitClicked clicked)
-        {
-            Logger.LogInformation("Received {MessageType}. TargetUnitId={TargetUnitId}, SelectedUnits={SelectedUnits}", nameof(NotifyUnitClicked), clicked.Click.TargetUnitId, clicked.Click.SelectedUnits.Count);
-
-            var click = Mapper.Map<NetworkClick>(clicked.Click);
-            GameInteraction.ClickUnit(click);
-        }
-
-        private void OnNotifyMapObjectClicked(NotifyMapObjectClicked clicked)
-        {
-            Logger.LogInformation("Received {MessageType}.TargetUnitId={TargetUnitId}, SelectedUnits={SelectedUnits}", nameof(NotifyMapObjectClicked), clicked.Click.TargetUnitId, clicked.Click.SelectedUnits.Count);
-
-            var click = Mapper.Map<NetworkClick>(clicked.Click);
-            GameInteraction.ClickMapObject(click);
-        }
-
-        private async void OnDiceRollValueRequest(DiceRollValueRequest request)
+        private async void OnDiceRollValueRequest(long playerId, DiceRollValueRequest request)
         {
             Logger.LogInformation("Received {MessageType}. RollId={RollId}", nameof(DiceRollValueRequest), request.RollId);
             // either proxied request for another player or host
             await SendLocalRollAsync(request.PlayerId ?? LocalHostPlayerId, request);
         }
 
-        private void OnNotifyCombatTurnStarted(NotifyCombatTurnStarted started)
+        private void OnNotifyCombatTurnStarted(long playerId, NotifyCombatTurnStarted started)
         {
             Logger.LogInformation("Received {MessageType}. Round={Round}, UnitId={UnitId}", nameof(NotifyCombatTurnStarted), started.Round, started.UnitId);
             if (Game.Combat?.Turn == null)
@@ -838,7 +589,7 @@ namespace WOTRMultiplayer.MP.Actors
             GameInteraction.StartTurnBasedCombatTurn(Game.Combat.Turn.UnitId);
         }
 
-        private async void OnNotifyCombatInitialized(NotifyCombatInitialized combatInitialized)
+        private async void OnNotifyCombatInitialized(long playerId, NotifyCombatInitialized combatInitialized)
         {
             Logger.LogInformation("Received {MessageType}. Units={Units}", nameof(NotifyCombatInitialized), combatInitialized.Units.Count);
 
@@ -867,7 +618,7 @@ namespace WOTRMultiplayer.MP.Actors
             return GameInteraction.UpdateUnitsAsync(unitsToSync);
         }
 
-        private async void OnNotifyDialogStarted(NotifyDialogStarted started)
+        private async void OnNotifyDialogStarted(long playerId, NotifyDialogStarted started)
         {
             Logger.LogInformation("Received {MessageType}. DialogueName={DialogueName}, TargetUnitId={TargetUnitId}, InitiatorUnitId={InitiatorUnitId}", nameof(NotifyDialogStarted), started.DialogName, started.TargetUnitId, started.InitiatorUnitId);
 
@@ -893,7 +644,7 @@ namespace WOTRMultiplayer.MP.Actors
             }
         }
 
-        private void OnNotifyDialogCueAnswerSelected(NotifyDialogCueAnswerSelected selected)
+        private void OnNotifyDialogCueAnswerSelected(long playerId, NotifyDialogCueAnswerSelected selected)
         {
             Logger.LogInformation("Received {MessageType}. DialogName={DialogName}, CueName={CueName}, AnswerName={AnswerName}", nameof(NotifyDialogCueAnswerSelected), selected.DialogName, selected.CueName, selected.AnswerName);
             if (Game.Dialog == null)
@@ -925,7 +676,7 @@ namespace WOTRMultiplayer.MP.Actors
             GameInteraction.SelectDialogAnswer(selected.DialogName, selected.CueName, selected.AnswerName, selected.ManualUnitSelectionId);
         }
 
-        private void OnNotifyDialogCueAnswerSuggested(NotifyDialogCueAnswerSuggested suggested)
+        private void OnNotifyDialogCueAnswerSuggested(long playerId, NotifyDialogCueAnswerSuggested suggested)
         {
             Logger.LogInformation("Received {MessageType}. DialogName={DialogName}, CueName={CueName}, Suggestions={Suggestions}", nameof(NotifyDialogCueAnswerSuggested), suggested.DialogName, suggested.CueName, suggested.Suggestions.Count);
 
@@ -951,28 +702,20 @@ namespace WOTRMultiplayer.MP.Actors
             GameInteraction.MarkSuggestedDialogAnswers(suggestions);
         }
 
-        private void OnNotifyPartyLeaveArea(NotifyPartyLeaveArea area)
+        private void OnNotifyPartyLeaveArea(long playerId, NotifyPartyLeaveArea area)
         {
             Logger.LogInformation("Received {MessageType}. AreaExitId={AreaExitId}", nameof(NotifyPartyLeaveArea), area.AreaExitId);
             GameInteraction.LeaveArea(area.AreaExitId);
         }
 
-        private void OnNotifyForcedPauseEnded(NotifyForcedPauseEnded changed)
+        private void OnNotifyForcedPauseEnded(long playerId, NotifyForcedPauseEnded changed)
         {
             Logger.LogInformation("Received {MessageType}", nameof(NotifyForcedPauseEnded));
             Game.ForcedPause = null;
             GameInteraction.Pause(false);
         }
 
-        private void OnNotifyCharacterMove(NotifyCharacterMove characterMove)
-        {
-            Logger.LogInformation("Received {MessageType}. UnitId={UnitId}, Destination={Destination}, Delay={Delay}, Orientation={Orientation}", nameof(NotifyCharacterMove), characterMove.Move.UnitId, characterMove.Move.Destination, characterMove.Move.Delay, characterMove.Move.Orientation);
-
-            var move = Mapper.Map<NetworkCharacterMove>(characterMove.Move);
-            GameInteraction.MoveNonCombatCharacter(move);
-        }
-
-        private void OnNotifyGameStarted(NotifyGameStarted started)
+        private void OnNotifyGameStarted(long playerId, NotifyGameStarted started)
         {
             Logger.LogInformation("Received {MessageType}", nameof(NotifyGameStarted));
             if (string.IsNullOrEmpty(Game.SaveFilePath))
@@ -984,7 +727,7 @@ namespace WOTRMultiplayer.MP.Actors
             InvokeOnStartGame();
         }
 
-        private void OnNotifyCharactersOwnerChanged(NotifyCharactersOwnerChanged changed)
+        private void OnNotifyCharactersOwnerChanged(long playerId, NotifyCharactersOwnerChanged changed)
         {
             Logger.LogInformation("Received {MessageType}. OwnersCount={OwnersCount}", nameof(NotifyCharactersOwnerChanged), changed.Owners.Count);
             try
@@ -1010,13 +753,13 @@ namespace WOTRMultiplayer.MP.Actors
             }
         }
 
-        private void OnNotifyGameStageChanged(NotifyGameStageChanged changed)
+        private void OnNotifyGameStageChanged(long playerId, NotifyGameStageChanged changed)
         {
             Logger.LogInformation("Received {MessageType}. Status={Status}", nameof(NotifyGameStarted), changed.Stage);
             Game.Stage = (NetworkGameStage)Enum.Parse(typeof(NetworkGameStage), changed.Stage, true);
         }
 
-        private void OnNotifySaveGameAssigned(NotifySaveGameAssigned assigned)
+        private void OnNotifySaveGameAssigned(long playerId, NotifySaveGameAssigned assigned)
         {
             Logger.LogInformation("Received {MessageType}. GameStatus={GameStatus}, Size={Size}, IsForceLoad={IsForceLoad}", nameof(NotifySaveGameAssigned), Game.Stage, assigned.Content.Length, assigned.IsForceLoad);
 
@@ -1033,7 +776,7 @@ namespace WOTRMultiplayer.MP.Actors
             Send(new PlayerSaveGameSyncChanged { IsSynced = true });
         }
 
-        private void OnPlayerReadyStatusChanged(PlayerReadyStatusChanged readyStatusChanged)
+        private void OnPlayerReadyStatusChanged(long playerId, PlayerReadyStatusChanged readyStatusChanged)
         {
             Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, IsReady={IsReady}", nameof(PlayerReadyStatusChanged), readyStatusChanged.PlayerId, readyStatusChanged.IsReady);
 
@@ -1051,7 +794,7 @@ namespace WOTRMultiplayer.MP.Actors
             }
         }
 
-        private void OnNotifyGameCharactersChanged(NotifyGameCharactersChanged changed)
+        private void OnNotifyGameCharactersChanged(long playerId, NotifyGameCharactersChanged changed)
         {
             Logger.LogInformation("Received {MessageType}. Portraits={Portraits}", nameof(NotifyGameCharactersChanged), string.Join(";", changed.Characters.Select(c => c.Portrait)));
             Game.Characters.Clear();
@@ -1059,7 +802,7 @@ namespace WOTRMultiplayer.MP.Actors
             OnGameCharactersChanged?.Invoke(Game.Characters);
         }
 
-        private void OnNotifyPlayersChanged(NotifyPlayersChanged changed)
+        private void OnNotifyPlayersChanged(long playerId, NotifyPlayersChanged changed)
         {
             Logger.LogInformation("Received {MessageType}. PlayersCount={PlayersCount}", nameof(NotifyPlayersChanged), changed.Players.Count);
             Game.Players.Clear();
@@ -1126,7 +869,7 @@ namespace WOTRMultiplayer.MP.Actors
             GameInteraction.ShowModalMessage(error);
         }
 
-        private void OnGameServerConnectionSucceeded(GameServerConnectionSucceeded succeeded)
+        private void OnGameServerConnectionSucceeded(long playerId, GameServerConnectionSucceeded succeeded)
         {
             Logger.LogInformation("Received {MessageType}. ClientPlayerId={ClientPlayerId}, RestBanterSeed={RestBanterSeed}", nameof(GameServerConnectionSucceeded), succeeded.ClientPlayerId, succeeded.RestBanterSeed);
 

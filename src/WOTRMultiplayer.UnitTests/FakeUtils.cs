@@ -7,17 +7,9 @@ namespace WOTRMultiplayer.UnitTests
 {
     public static class FakeUtils
     {
-        public static Action<T> GetRegisteredHandler<T>(INetworkClient networkClientFake)
+        public static Action<long, T> GetNetworkReceiverHandler<T>(INetworkReceiver networkReceiverFake)
         {
-            var calls = Fake.GetCalls(networkClientFake).ToList();
-            var setupHandlerCalls = calls.Where(x => x.Method.IsGenericMethod).ToList();
-            var targetHandler = setupHandlerCalls.FirstOrDefault(x => x.Method.GetGenericArguments().Any(x => x == typeof(T)))?.Arguments.First() as Action<T>;
-            return targetHandler;
-        }
-
-        public static Action<long, T> GetRegisteredHandler<T>(INetworkServer networkServerFake)
-        {
-            var calls = Fake.GetCalls(networkServerFake).ToList();
+            var calls = Fake.GetCalls(networkReceiverFake).ToList();
             var setupHandlerCalls = calls.Where(x => x.Method.IsGenericMethod).ToList();
             var targetHandler = setupHandlerCalls.FirstOrDefault(x => x.Method.GetGenericArguments().Any(x => x == typeof(T)))?.Arguments.First() as Action<long, T>;
             return targetHandler;

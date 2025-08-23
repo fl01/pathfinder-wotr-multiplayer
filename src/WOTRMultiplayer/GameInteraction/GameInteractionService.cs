@@ -1208,6 +1208,12 @@ namespace WOTRMultiplayer.GameInteraction
 
         public void ApplyGameSettings(NetworkGameSettings networkGameSettings)
         {
+            if (networkGameSettings == null)
+            {
+                _logger.LogWarning("Game settings are null");
+                return;
+            }
+
             _mainThreadAccessor.Post(() =>
             {
                 _logger.LogInformation("Applying settings. Settings={Settings}", networkGameSettings);

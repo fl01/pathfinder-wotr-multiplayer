@@ -47,7 +47,7 @@ namespace WOTRMultiplayer.UnitTests.MP
             _fileSystemService = A.Fake<IFileSystemService>();
 
             _networkServer = A.Fake<INetworkServer>();
-            Fake.GetFakeManager(_networkServer).AddRuleFirst(new NetworkServerFakeRule());
+            Fake.GetFakeManager(_networkServer).AddRuleFirst(new NetworkReceiverFakeRule());
 
             _diceRollStorage = A.Fake<IDiceRollStorage>();
             _valueGenerator = A.Fake<IValueGenerator>();
@@ -88,7 +88,7 @@ namespace WOTRMultiplayer.UnitTests.MP
             var settings = new MultiplayerSettings() { HostPortRangeStart = 123, HostPortRangeEnd = 1234 };
             A.CallTo(() => _multiplayerSettingsProvider.Settings).Returns(settings);
             _multiplayerHost.Create(savePath, gameId, []);
-            var handler = FakeUtils.GetRegisteredHandler<NotifyDropItem>(_networkServer);
+            var handler = FakeUtils.GetNetworkReceiverHandler<NotifyDropItem>(_networkServer);
             var request = new NotifyDropItem { Drop = new Networking.Messages.Contracts.NetworkDropItem { Item = new Networking.Messages.Contracts.NetworkItem() } };
             var playerId = 123;
 

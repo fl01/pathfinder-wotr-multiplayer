@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using BeetleX.Clients;
 using FakeItEasy;
@@ -127,9 +126,10 @@ namespace WOTRMultiplayer.Networking.UnitTests
             A.CallTo(() => _tcpClientFactory.Create(host, port)).Returns(fakeTcpClient);
             await _client.ConnectAsync(host, port);
             var fakeClient = A.Fake<IClient>();
+            fakeClient.Token = new NetworkConnectionToken { Id = 1234 };
             var message = new object();
             var isHandlerCalled = false;
-            _client.On<object>(_ => isHandlerCalled = true);
+            _client.On<object>((_, _) => isHandlerCalled = true);
 
             // Act
             fakeTcpClient.PacketReceive.Invoke(fakeClient, message);

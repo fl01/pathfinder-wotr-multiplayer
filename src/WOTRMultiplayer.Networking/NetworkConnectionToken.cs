@@ -2,9 +2,9 @@
 
 namespace WOTRMultiplayer.Networking
 {
-    public class NetworkClientToken : ISessionToken
+    public class NetworkConnectionToken : ISessionToken
     {
-        public long Id { get; private set; }
+        public long Id { get; set; }
 
         public void Dispose()
         {

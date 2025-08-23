@@ -3,7 +3,7 @@ using WOTRMultiplayer.Networking.Abstractions;
 
 namespace WOTRMultiplayer.UnitTests.FakeRules
 {
-    public class NetworkClientFakeRule : IFakeObjectCallRule
+    public class NetworkReceiverFakeRule : IFakeObjectCallRule
     {
         public int? NumberOfTimesToCall => null;
 
@@ -14,8 +14,8 @@ namespace WOTRMultiplayer.UnitTests.FakeRules
 
         public bool IsApplicableTo(IFakeObjectCall fakeObjectCall)
         {
-            return fakeObjectCall.Method.DeclaringType == typeof(INetworkClient)
-                    && fakeObjectCall.Method.Name == "On";
+            var isApplicable = fakeObjectCall.Method.DeclaringType == typeof(INetworkReceiver) && fakeObjectCall.Method.Name == "On";
+            return isApplicable;
         }
     }
 }

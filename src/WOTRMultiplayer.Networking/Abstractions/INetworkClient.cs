@@ -4,16 +4,13 @@ using System.Threading.Tasks;
 
 namespace WOTRMultiplayer.Networking.Abstractions
 {
-    public interface INetworkClient
+    public interface INetworkClient : INetworkReceiver
     {
         bool IsActive { get; }
 
         bool IsConnecting { get; }
 
         Task ConnectAsync(string host, int port);
-
-        INetworkClient On<T>(Action<T> handler)
-            where T : class;
 
         void Send(object message);
 

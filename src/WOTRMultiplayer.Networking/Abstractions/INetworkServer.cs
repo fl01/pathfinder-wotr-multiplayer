@@ -3,7 +3,7 @@ using System.Net;
 
 namespace WOTRMultiplayer.Networking.Abstractions
 {
-    public interface INetworkServer
+    public interface INetworkServer : INetworkReceiver
     {
         bool IsActive { get; }
 
@@ -12,9 +12,6 @@ namespace WOTRMultiplayer.Networking.Abstractions
         Action<long> OnClientDisconnected { get; set; }
 
         Action<EndPoint> OnServerStarted { get; set; }
-
-        INetworkServer On<TMessage>(Action<long, TMessage> messageHandler)
-            where TMessage : class;
 
         void Send(long clientId, object message);
 

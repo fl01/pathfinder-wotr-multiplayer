@@ -51,7 +51,7 @@ namespace WOTRMultiplayer.UnitTests.MP
             _fileSystemService = A.Fake<IFileSystemService>();
 
             _networkClient = A.Fake<INetworkClient>();
-            Fake.GetFakeManager(_networkClient).AddRuleFirst(new NetworkClientFakeRule());
+            Fake.GetFakeManager(_networkClient).AddRuleFirst(new NetworkReceiverFakeRule());
 
             _diceRollStorage = A.Fake<IDiceRollStorage>();
             _valueGenerator = A.Fake<IValueGenerator>();
@@ -114,7 +114,7 @@ namespace WOTRMultiplayer.UnitTests.MP
 
             // Assert
             Assert.That(result.IsOk, Is.True);
-            A.CallTo(() => _networkClient.On(A<Action<DiceRollValueRequest>>.Ignored)).MustHaveHappenedOnceExactly();
+            A.CallTo(() => _networkClient.On(A<Action<long, DiceRollValueRequest>>.Ignored)).MustHaveHappenedOnceExactly();
             A.CallTo(() => _networkClient.ConnectAsync(parsedHost, parsedPort)).MustHaveHappenedOnceExactly();
         }
 
@@ -129,13 +129,13 @@ namespace WOTRMultiplayer.UnitTests.MP
             var address = Guid.NewGuid().ToString();
             A.CallTo(() => _endpointParser.Parse(address)).Returns(endpoint);
             _multiplayerClient.Connect(address);
-            var handler = FakeUtils.GetRegisteredHandler<DiceRollValueRequest>(_networkClient);
+            var handler = FakeUtils.GetNetworkReceiverHandler<DiceRollValueRequest>(_networkClient);
             var request = new DiceRollValueRequest { RollId = 1, Timeout = TimeSpan.FromDays(1), UnitId = Guid.NewGuid().ToString(), PlayerId = 1 };
             var getRollTask = Task.FromResult<RollValueBase>(new NetworkIntRollValue());
             A.CallTo(() => _diceRollStorage.GetAsync<RollValueBase>(request.RollId, request.PlayerId.Value, request.Timeout)).Returns(getRollTask);
 
             // Act
-            handler.Invoke(request);
+            handler.Invoke(1, request);
             await getRollTask;
 
             // Assert
@@ -154,13 +154,13 @@ namespace WOTRMultiplayer.UnitTests.MP
             var address = Guid.NewGuid().ToString();
             A.CallTo(() => _endpointParser.Parse(address)).Returns(endpoint);
             _multiplayerClient.Connect(address);
-            var handler = FakeUtils.GetRegisteredHandler<DiceRollValueRequest>(_networkClient);
+            var handler = FakeUtils.GetNetworkReceiverHandler<DiceRollValueRequest>(_networkClient);
             var request = new DiceRollValueRequest { RollId = 1, Timeout = TimeSpan.FromDays(1), UnitId = Guid.NewGuid().ToString(), PlayerId = null };
             var getRollTask = Task.FromResult<RollValueBase>(new NetworkIntRollValue());
             A.CallTo(() => _diceRollStorage.GetAsync<RollValueBase>(request.RollId, MultiplayerActorBase.LocalHostPlayerId, request.Timeout)).Returns(getRollTask);
 
             // Act
-            handler.Invoke(request);
+            handler.Invoke(1, request);
             await getRollTask;
 
             // Assert
@@ -179,11 +179,11 @@ namespace WOTRMultiplayer.UnitTests.MP
             var address = Guid.NewGuid().ToString();
             A.CallTo(() => _endpointParser.Parse(address)).Returns(endpoint);
             _multiplayerClient.Connect(address);
-            var handler = FakeUtils.GetRegisteredHandler<NotifyUnitClicked>(_networkClient);
+            var handler = FakeUtils.GetNetworkReceiverHandler<NotifyUnitClicked>(_networkClient);
             var request = new NotifyUnitClicked { Click = new Networking.Messages.Contracts.NetworkClick { } };
 
             // Act
-            handler.Invoke(request);
+            handler.Invoke(1, request);
 
             // Assert
             A.CallTo(() => _gameInteractionService.ClickUnit(A<NetworkClick>.Ignored)).MustHaveHappened();

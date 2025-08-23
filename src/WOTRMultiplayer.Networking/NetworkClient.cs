@@ -12,7 +12,7 @@ namespace WOTRMultiplayer.Networking
     public class NetworkClient : INetworkClient
     {
         private ITcpClient _client;
-        private readonly ConcurrentDictionary<Type, Action<object>> _handlers = new();
+        private readonly ConcurrentDictionary<Type, Action<long, object>> _handlers = new();
         private readonly ConcurrentDictionary<string, TaskCompletionSource<object>> _awaiters = new(StringComparer.OrdinalIgnoreCase);
         private readonly ILogger<NetworkClient> _logger;
         private readonly ITcpClientFactory _tcpClientFactory;
@@ -61,11 +61,15 @@ namespace WOTRMultiplayer.Networking
             OnError?.Invoke(args.Error);
         }
 
-        public INetworkClient On<TMessage>(Action<TMessage> handler)
+        public INetworkReceiver On<TMessage>(Action<long, TMessage> handler)
             where TMessage : class
         {
-            _logger.LogDebug("Adding message handler. Type={Type}", typeof(TMessage));
-            _handlers.TryAdd(typeof(TMessage), message => handler((TMessage)message));
+            var messageType = typeof(TMessage);
+            _logger.LogDebug("Adding message handler. Type={Type}", messageType);
+            if (!_handlers.TryAdd(messageType, (playerId, message) => handler(playerId, (TMessage)message)))
+            {
+                _logger.LogError("Duplicate message handler detected. MessageType={MessageType}", messageType);
+            }
 
             return this;
         }
@@ -127,7 +131,7 @@ namespace WOTRMultiplayer.Networking
 
             try
             {
-                handler(message);
+                handler(0, message);
             }
             catch (Exception ex)
             {
