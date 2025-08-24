@@ -25,7 +25,7 @@ jobs:
       - name: Read current version
         id: version-parser
         run: |
-          baseFullVersion=$(jq '.version' ${{ env.INFO_PATH }}) | tr -d '"'
+          baseFullVersion=$(jq '.version' ${{ env.INFO_PATH }} | tr -d '"')
           echo $baseFullVersion
           majorMinor=$(echo "${baseFullVersion%.*}")
           echo $majorMinor
@@ -33,154 +33,154 @@ jobs:
           echo $releaseVersion
           echo "version=$releaseVersion" >> $GITHUB_OUTPUT
 
-  build:
-    needs: [get-version]
-    timeout-minutes: 10
-    env:
-      WOTR_PATH: ../../libs
-      BUILD_PATH: ".\\src\\WOTRMultiplayer\\bin\\Release\\net481"
-      RELEASE_OUTPUT_PATH: ".\\__releases\\WOTRMultiplayer"
-      CURRENT_VERSION: ${{needs.get-version.outputs.version}}
-    runs-on: windows-latest
+  # build:
+  #   needs: [get-version]
+  #   timeout-minutes: 10
+  #   env:
+  #     WOTR_PATH: ../../libs
+  #     BUILD_PATH: ".\\src\\WOTRMultiplayer\\bin\\Release\\net481"
+  #     RELEASE_OUTPUT_PATH: ".\\__releases\\WOTRMultiplayer"
+  #     CURRENT_VERSION: ${{needs.get-version.outputs.version}}
+  #   runs-on: windows-latest
 
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 8.x
-      - name: Build
-        run: dotnet build ./src /p:AssemblyVersion=${{ env.CURRENT_VERSION }} --configuration Release
-      - name: Run unit tests
-        run: dotnet test ./src --configuration Release --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage"
-      - name: Update Info.json
-        run: |
-          echo $(jq '.version=${{ env.CURRENT_VERSION }}' "${{ env.BUILD_PATH }}\Info.json") > "${{ env.BUILD_PATH }}\Info.json"
-      - name: Prepare Release
-        run: |
-          xcopy /q /y "${{ env.BUILD_PATH }}\Info.json" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\WOTRMultiplayer*.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Setup .NET
+  #       uses: actions/setup-dotnet@v4
+  #       with:
+  #         dotnet-version: 8.x
+  #     - name: Build
+  #       run: dotnet build ./src /p:AssemblyVersion=${{ env.CURRENT_VERSION }} --configuration Release
+  #     - name: Run unit tests
+  #       run: dotnet test ./src --configuration Release --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage"
+  #     - name: Update Info.json
+  #       run: |
+  #         echo $(jq '.version=${{ env.CURRENT_VERSION }}' "${{ env.BUILD_PATH }}\Info.json") > "${{ env.BUILD_PATH }}\Info.json"
+  #     - name: Prepare Release
+  #       run: |
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\Info.json" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\WOTRMultiplayer*.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
 
-          xcopy /q /y "${{ env.BUILD_PATH }}\BeetleX.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\protobuf-net.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\protobuf-net.Core.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\System.Memory.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\System.Numerics.Vectors.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\System.Runtime.CompilerServices.Unsafe.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\System.Threading.Tasks.Extensions.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\System.Collections.Immutable.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\BeetleX.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\protobuf-net.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\protobuf-net.Core.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\System.Memory.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\System.Numerics.Vectors.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\System.Runtime.CompilerServices.Unsafe.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\System.Threading.Tasks.Extensions.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\System.Collections.Immutable.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
 
-          xcopy /q /y "${{ env.BUILD_PATH }}\Serilog.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\Serilog.Sinks.Console.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\Serilog.Sinks.File.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\Serilog.Extensions.Logging.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\System.Buffers.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\System.Diagnostics.DiagnosticSource.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\System.Memory.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\System.Numerics.Vectors.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\System.Runtime.CompilerServices.Unsafe.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\System.Threading.Channels.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\System.Threading.Tasks.Extensions.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\Serilog.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\Serilog.Sinks.Console.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\Serilog.Sinks.File.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\Serilog.Extensions.Logging.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\System.Buffers.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\System.Diagnostics.DiagnosticSource.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\System.Memory.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\System.Numerics.Vectors.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\System.Runtime.CompilerServices.Unsafe.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\System.Threading.Channels.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\System.Threading.Tasks.Extensions.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
 
-          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Bcl.AsyncInterfaces.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.DependencyInjection.Abstractions.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.DependencyInjection.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Bcl.AsyncInterfaces.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.DependencyInjection.Abstractions.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.DependencyInjection.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
 
-          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.Logging.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.Logging.Abstractions.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.Options.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.Primitives.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\System.ValueTuple.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.Logging.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.Logging.Abstractions.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.Options.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.Primitives.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\System.ValueTuple.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
 
-          xcopy /q /y "${{ env.BUILD_PATH }}\MurmurHash.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\MurmurHash.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
 
-          xcopy /q /y "${{ env.BUILD_PATH }}\AutoMapper.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
-          xcopy /q /y "${{ env.BUILD_PATH }}\AutoMapper.Extensions.Microsoft.DependencyInjection.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\AutoMapper.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+  #         xcopy /q /y "${{ env.BUILD_PATH }}\AutoMapper.Extensions.Microsoft.DependencyInjection.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
 
-      - name: Upload Release
-        uses: actions/upload-artifact@v4
-        with:
-          name: wotr-multiplayer-${{ env.CURRENT_VERSION }}
-          path: "${{ github.workspace }}/__releases/"
-          retention-days: 3
-      - name: Combine Coverage Reports
-        if: always()
-        uses: danielpalme/ReportGenerator-GitHub-Action@v5.4.10
-        with:
-          reports: "**/*.cobertura.xml"
-          targetdir: "${{ github.workspace }}"
-          reporttypes: "Cobertura"
-          verbosity: "Info"
-          title: "Code Coverage"
-          tag: "${{ github.run_number }}_${{ github.run_id }}"
-          customSettings: "" # https://github.com/danielpalme/ReportGenerator/wiki/Settings.
-          toolpath: "reportgeneratortool"
-      - name: Upload Test Reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: "${{ github.workspace }}/**/*.trx"
-          retention-days: 5
-      - name: Upload Combined Coverage XML
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage
-          path: ${{ github.workspace }}/Cobertura.xml
-          retention-days: 5
+  #     - name: Upload Release
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: wotr-multiplayer-${{ env.CURRENT_VERSION }}
+  #         path: "${{ github.workspace }}/__releases/"
+  #         retention-days: 3
+  #     - name: Combine Coverage Reports
+  #       if: always()
+  #       uses: danielpalme/ReportGenerator-GitHub-Action@v5.4.10
+  #       with:
+  #         reports: "**/*.cobertura.xml"
+  #         targetdir: "${{ github.workspace }}"
+  #         reporttypes: "Cobertura"
+  #         verbosity: "Info"
+  #         title: "Code Coverage"
+  #         tag: "${{ github.run_number }}_${{ github.run_id }}"
+  #         customSettings: "" # https://github.com/danielpalme/ReportGenerator/wiki/Settings.
+  #         toolpath: "reportgeneratortool"
+  #     - name: Upload Test Reports
+  #       if: always()
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: test-results
+  #         path: "${{ github.workspace }}/**/*.trx"
+  #         retention-days: 5
+  #     - name: Upload Combined Coverage XML
+  #       if: always()
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: coverage
+  #         path: ${{ github.workspace }}/Cobertura.xml
+  #         retention-days: 5
 
-  test-reporter:
-    needs: [build]
-    if: always()
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-      checks: write
-      contents: read
-      issues: read
-      actions: read
+  # test-reporter:
+  #   needs: [build]
+  #   if: always()
+  #   timeout-minutes: 10
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     pull-requests: write
+  #     checks: write
+  #     contents: read
+  #     issues: read
+  #     actions: read
 
-    steps:
-      - name: Download Combined Coverage XML
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage
-      - name: Download Test Results
-        uses: actions/download-artifact@v4
-        with:
-          name: test-results
-      - name: Publish Code Coverage Report
-        uses: irongut/CodeCoverageSummary@v1.3.0
-        with:
-          filename: "Cobertura.xml"
-          badge: true
-          fail_below_min: false # just informative for now
-          format: markdown
-          hide_branch_rate: false
-          hide_complexity: true
-          indicators: true
-          output: both
-          thresholds: "10 30"
-      - name: Add Coverage PR Comment
-        uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request'
-        with:
-          recreate: true
-          path: code-coverage-results.md
-      - name: Add Coverage Summary
-        run: cat "code-coverage-results.md" >> $GITHUB_STEP_SUMMARY
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2.16.1
-        with:
-          trx_files: "${{ github.workspace }}/**/*.trx"
-          job_summary: false
-          check_run: false
-      - uses: dorny/test-reporter@v2
-        with:
-          name: Test Results
-          path: "**/*.trx"
-          artifact: test-results
-          reporter: dotnet-trx
-          fail-on-error: false
+  #   steps:
+  #     - name: Download Combined Coverage XML
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: coverage
+  #     - name: Download Test Results
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: test-results
+  #     - name: Publish Code Coverage Report
+  #       uses: irongut/CodeCoverageSummary@v1.3.0
+  #       with:
+  #         filename: "Cobertura.xml"
+  #         badge: true
+  #         fail_below_min: false # just informative for now
+  #         format: markdown
+  #         hide_branch_rate: false
+  #         hide_complexity: true
+  #         indicators: true
+  #         output: both
+  #         thresholds: "10 30"
+  #     - name: Add Coverage PR Comment
+  #       uses: marocchino/sticky-pull-request-comment@v2
+  #       if: github.event_name == 'pull_request'
+  #       with:
+  #         recreate: true
+  #         path: code-coverage-results.md
+  #     - name: Add Coverage Summary
+  #       run: cat "code-coverage-results.md" >> $GITHUB_STEP_SUMMARY
+  #     - name: Publish Test Results
+  #       uses: EnricoMi/publish-unit-test-result-action@v2.16.1
+  #       with:
+  #         trx_files: "${{ github.workspace }}/**/*.trx"
+  #         job_summary: false
+  #         check_run: false
+  #     - uses: dorny/test-reporter@v2
+  #       with:
+  #         name: Test Results
+  #         path: "**/*.trx"
+  #         artifact: test-results
+  #         reporter: dotnet-trx
+  #         fail-on-error: false
