@@ -49,7 +49,6 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.x
-      - run: echo $CURRENT_VERSION
       - name: Build
         run: dotnet build ./src /p:AssemblyVersion=${{ env.CURRENT_VERSION }} --configuration Release
       - name: Run unit tests
@@ -101,7 +100,7 @@ jobs:
       - name: Upload Release
         uses: actions/upload-artifact@v4
         with:
-          name: wotr-multiplayer
+          name: wotr-multiplayer-${{ env.CURRENT_VERSION }}
           path: "${{ github.workspace }}/__releases/"
           retention-days: 3
       - name: Combine Coverage Reports
