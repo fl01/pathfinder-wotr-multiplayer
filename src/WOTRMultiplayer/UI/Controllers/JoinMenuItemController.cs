@@ -283,8 +283,6 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private void OnLeaveButtonClicked()
         {
-            _multiplayerClient.Reset();
-
             ActivateJoinLobbyControls();
         }
 
@@ -302,6 +300,8 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private void ActivateJoinLobbyControls()
         {
+            _multiplayerClient.Reset();
+
             MainThreadAccessor.Post(() =>
             {
                 Lobby.ResetData();

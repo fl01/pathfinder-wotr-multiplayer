@@ -99,5 +99,27 @@ namespace WOTRMultiplayer.UnitTests.MP
             A.CallTo(() => _gameInteractionService.DropItem(A<NetworkDropItem>.Ignored)).MustHaveHappenedOnceExactly();
             A.CallTo(() => _networkServer.SendAllExcept(playerId, request)).MustHaveHappenedOnceExactly();
         }
+
+        [Test]
+        public void OnClientRestEnded__AddsToReadyListAndCallsGameInteractionService()
+        {
+            // Arrange
+            var savePath = Guid.NewGuid().ToString();
+            var gameId = Guid.NewGuid().ToString();
+            var settings = new MultiplayerSettings() { HostPortRangeStart = 123, HostPortRangeEnd = 1234 };
+            A.CallTo(() => _multiplayerSettingsProvider.Settings).Returns(settings);
+            _multiplayerHost.Create(savePath, gameId, []);
+            _multiplayerHost.Game = new WOTRMultiplayer.MP.Entities.NetworkGame("whatever");
+            var handler = FakeUtils.GetNetworkReceiverHandler<ClientRestEnded>(_networkServer);
+            var request = new ClientRestEnded();
+            var playerId = 123;
+
+            // Act
+            handler.Invoke(playerId, request);
+
+            // Assert
+            A.CallTo(() => _gameInteractionService.SetStartRestButtonState(true, 1, 0)).MustHaveHappenedOnceExactly();
+            Assert.That(_multiplayerHost.Game.PlayersFinishedRest, Contains.Item(playerId));
+        }
     }
 }

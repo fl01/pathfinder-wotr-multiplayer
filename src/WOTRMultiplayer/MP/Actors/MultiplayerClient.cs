@@ -80,11 +80,6 @@ namespace WOTRMultiplayer.MP.Actors
 
         public ConnectLobbyResult Connect(string address)
         {
-            if (_networkClient.IsActive)
-            {
-                Reset();
-            }
-
             var endpoint = _ipEndPointParser.Parse(address);
             if (endpoint == null)
             {
@@ -125,7 +120,8 @@ namespace WOTRMultiplayer.MP.Actors
         public override void OnAreaScenesLoaded()
         {
             base.OnAreaScenesLoaded();
-            Send(new ClientAreaLoaded());
+            var message = new ClientAreaLoaded();
+            Send(message);
         }
 
         public void OnAfterCueShow(string dialogName, string cueName, bool hasSystemAnswer)
