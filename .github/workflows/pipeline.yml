@@ -173,7 +173,7 @@ jobs:
         echo $baseFullVersion
         majorMinor=$(echo "${baseFullVersion%.*}")
         echo $majorMinor
-        releaseVersion=$(echo $majorMinor.{{ github.run_number }})
+        releaseVersion=$(echo $majorMinor.${{ github.run_number }})
         echo $releaseVersion
         echo "CURRENT_VERSION=$releaseVersion" >> $GITHUB_ENV
     - name: Create Release
