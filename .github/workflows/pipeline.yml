@@ -26,11 +26,11 @@ jobs:
         id: version-parser
         run: |
           baseFullVersion=$(jq '.version' ${{ env.INFO_PATH }} | tr -d '"')
-          echo $baseFullVersion
+          echo 'Info Json Version: ' $baseFullVersion
           majorMinor=$(echo "${baseFullVersion%.*}")
-          echo $majorMinor
+          echo 'MajorMinorVersion: ' $majorMinor
           releaseVersion=$(echo $majorMinor.${{ github.run_number }})
-          echo $releaseVersion
+          echo 'Release Version: ' $releaseVersion
           echo "version=$releaseVersion" >> $GITHUB_OUTPUT
 
   build:
@@ -55,7 +55,7 @@ jobs:
         run: dotnet test ./src --configuration Release --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage"
       - name: Update Info.json
         run: |
-          echo $(jq '.version=${{ env.CURRENT_VERSION }}' "${{ env.BUILD_PATH }}\Info.json") > "${{ env.BUILD_PATH }}\Info.json"
+          echo $(jq '.version="\""${{ env.CURRENT_VERSION }}"\""' "${{ env.BUILD_PATH }}\Info.json") > "${{ env.BUILD_PATH }}\Info.json"
       - name: Prepare Release
         run: |
           xcopy /q /y "${{ env.BUILD_PATH }}\Info.json" "${{ env.RELEASE_OUTPUT_PATH }}\*"
