@@ -169,7 +169,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Read current version
       run: |
-        echo "CURRENT_VERSION=$(jq '.version' ${{ env.INFO_PATH }} | grep '^\d\.\d.')" >> "$GITHUB_ENV"
+        echo "CURRENT_VERSION=$(jq '.version' ${{ env.INFO_PATH }} | grep '^\d\.\d.')" >> $GITHUB_ENV
     - name: Create Release
       run: |
         echo ${{ env.CURRENT_VERSION }}
