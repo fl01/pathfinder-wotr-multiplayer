@@ -25,11 +25,11 @@ jobs:
       - name: Read current version
         id: version-parser
         run: |
-          baseFullVersion=$(jq '.version' ${{ env.INFO_PATH }})
+          baseFullVersion=$(jq '.version' ${{ env.INFO_PATH }}) | tr -d '"'
           echo $baseFullVersion
           majorMinor=$(echo "${baseFullVersion%.*}")
           echo $majorMinor
-          releaseVersion=$(echo $majorMinor.${{ github.run_number }})"\""
+          releaseVersion=$(echo $majorMinor.${{ github.run_number }})
           echo $releaseVersion
           echo "version=$releaseVersion" >> $GITHUB_OUTPUT
 
