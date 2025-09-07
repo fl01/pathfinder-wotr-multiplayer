@@ -69,7 +69,7 @@ namespace WOTRMultiplayer.Networking.UnitTests.Messages
             var notUsedValues = allEnumValues.Except(allMessageIds);
 
             // Assert
-            Assert.That(notUsedValues.Count, Is.EqualTo(0), "Not Used EnumValues: " + string.Join(", ", notUsedValues.Select(x => Enum.GetName(type, x))));
+            Assert.That(notUsedValues.Count, Is.EqualTo(0), "Not used Enum Values: " + string.Join(", ", notUsedValues.Select(x => Enum.GetName(type, x))));
         }
 
         [Test]
