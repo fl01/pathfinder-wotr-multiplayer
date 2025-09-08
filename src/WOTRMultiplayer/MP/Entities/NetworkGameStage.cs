@@ -5,7 +5,6 @@
         None,
         Lobby,
         SyncingSaveGame,
-        Loading,
         Playing
     }
 }

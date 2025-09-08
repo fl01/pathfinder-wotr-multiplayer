@@ -729,7 +729,7 @@ namespace WOTRMultiplayer.MP.Actors
                // lobby
                .On<ClientSaveGameSyncChanged>(OnClientSaveGameSyncChanged)
                .On<PlayerReadyStatusChanged>(OnPlayerReadyStatusChanged)
-               .On<ClientGameServerConnectionConfirmed>(OnPlayerNameResponse)
+               .On<ClientGameServerConnectionConfirmed>(OnClientGameServerConnectionConfirmed)
                // quick load by another player
                .On<NotifyLobbySaveGameChanged>(OnNotifyLobbySaveGameChanged)
 
@@ -1076,7 +1076,7 @@ namespace WOTRMultiplayer.MP.Actors
             _networkServer.SendAll(readyStatusChanged);
         }
 
-        private void OnPlayerNameResponse(long playerId, ClientGameServerConnectionConfirmed connectionConfirmed)
+        private void OnClientGameServerConnectionConfirmed(long playerId, ClientGameServerConnectionConfirmed connectionConfirmed)
         {
             try
             {
@@ -1112,6 +1112,11 @@ namespace WOTRMultiplayer.MP.Actors
                     var charactersOwnerChanged = CreateNotifyCharactersOwnerChanged();
                     Logger.LogInformation("Sending {MessageType} to new player. PlayerId={PlayerId}", nameof(NotifyCharactersOwnerChanged), playerId);
                     _networkServer.Send(playerId, charactersOwnerChanged);
+
+                    if (Game.Stage == NetworkGameStage.Playing)
+                    {
+                        GameInteraction.ShowWarningNotification(string.Format(UIStringConsts.GameNotifications.PlayerJoined, existingPlayer.Name));
+                    }
                 }
             }
             catch (Exception ex)

@@ -808,7 +808,7 @@ namespace WOTRMultiplayer.MP.Actors
         {
             Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, IsReady={IsReady}", nameof(PlayerReadyStatusChanged), readyStatusChanged.PlayerId, readyStatusChanged.IsReady);
 
-            UpdatePlayerReadyStatus(playerId, readyStatusChanged.IsReady);
+            UpdatePlayerReadyStatus(readyStatusChanged.PlayerId, readyStatusChanged.IsReady);
         }
 
         private void OnNotifyGameCharactersChanged(long playerId, NotifyGameCharactersChanged changed)

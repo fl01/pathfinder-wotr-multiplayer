@@ -970,8 +970,6 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 Game.Id = GameInteraction.LoadGameFromMainMenu(Game.SaveFilePath);
             }
-
-            Game.Stage = NetworkGameStage.Loading;
         }
 
         protected void ForceLoadGame()

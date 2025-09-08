@@ -36,11 +36,12 @@ Some options can't be changed mid-game - you will see those grayed out in the se
 
 - You need an existing save file to host a multiplayer game. That save gets shared with everyone in the lobby automatically.
 - The most recent multiplayer save is stored at `%APP_DATA%\LocalLow\Owlcat Games\Pathfinder Wrath Of The Righteous\Saved Multiplayer Games`
+- Mod logs are located in `Mods/WOTRMultiplayer/logs` folder
 - Once the game actually starts, a save copy is also stored in your normal save folder.
 - If you load or quickload during a session, it forces everyone in the lobby to load the same save (transferred over the network).
 - A stable 60+ FPS is strongly recommended. If you drop below that, you'll probably run into various desync issues (like AI picking different targets, units not attacking after moving, etc.).
 - There's no hard player limit. Extra players can even join as spectators with 0 units, though the player list UI might look a bit weird. That said, most testing was done with 2 players (sometimes 3), so the more people you add, the more likely things are to break.
-- The mod saves logs in `Mods/WOTRMultiplayer/logs` folder
+- It's possible to join when the game is already started (host ip address or game code can be found in Multiplayer Lobby window), you just need to ask host to load save game and it will load for you as well
 
 ## Pausing
 

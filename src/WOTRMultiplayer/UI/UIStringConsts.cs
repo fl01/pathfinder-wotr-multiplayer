@@ -72,6 +72,7 @@
             public const string LevelingCompleted = "{0}'s leveling has been completed";
             public const string LevelingTerminated = "{0}'s leveling has been terminated";
 
+            public const string PlayerJoined = "Player {0} has joined the game";
             public const string PlayerLeft = "Player {0} has left the game";
 
             public const string FailedToAcquireRemoteDamageRoll = "Failed to acquire damage roll from remote player which guarantees desync in the game";
