@@ -41,7 +41,7 @@ Some options can't be changed mid-game - you will see those grayed out in the se
 - If you load or quickload during a session, it forces everyone in the lobby to load the same save (transferred over the network).
 - A stable 60+ FPS is strongly recommended. If you drop below that, you'll probably run into various desync issues (like AI picking different targets, units not attacking after moving, etc.).
 - There's no hard player limit. Extra players can even join as spectators with 0 units, though the player list UI might look a bit weird. That said, most testing was done with 2 players (sometimes 3), so the more people you add, the more likely things are to break.
-- It's possible to join when the game is already started (host ip address or game code can be found in Multiplayer Lobby window), you just need to ask host to load save game and it will load for you as well
+- It's possible to join when the game has already started (host IP address or game code can be found in the Multiplayer Lobby window), you need to ask host to load save game and it will load for you as well
 
 ## Pausing
 
