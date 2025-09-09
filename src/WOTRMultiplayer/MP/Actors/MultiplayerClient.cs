@@ -755,9 +755,8 @@ namespace WOTRMultiplayer.MP.Actors
             Logger.LogInformation("Received {MessageType}. OwnersCount={OwnersCount}", nameof(NotifyCharactersOwnerChanged), changed.Owners.Count);
             try
             {
-                for (int i = 0; i < changed.Owners.Count; i++)
+                foreach (var owner in changed.Owners)
                 {
-                    var owner = changed.Owners[i];
                     var player = Game.Players.FirstOrDefault(p => p.Id == owner.PlayerId);
                     if (player == null)
                     {
