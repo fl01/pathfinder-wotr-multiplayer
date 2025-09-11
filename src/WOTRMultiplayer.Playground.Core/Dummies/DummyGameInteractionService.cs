@@ -11,6 +11,7 @@ using WOTRMultiplayer.GameInteraction.Contexts;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
 using WOTRMultiplayer.MP.Entities.ActionBar;
+using WOTRMultiplayer.MP.Entities.Combat;
 using WOTRMultiplayer.MP.Entities.Dialogs;
 using WOTRMultiplayer.MP.Entities.Equipment;
 using WOTRMultiplayer.MP.Entities.Inspect;
@@ -151,9 +152,9 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
             return fullPath;
         }
 
-        public List<NetworkUnit> GetUnitsInCombat()
+        public NetworkCombatState GetCombatState()
         {
-            return [];
+            return null;
         }
 
         public void IncreaseLevelingAbilityScore(NetworkLevelingAbilityScore networkLevelingAbilityScore)
@@ -350,13 +351,13 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public Task UpdateUnitsAsync(List<NetworkUnit> networkUnits)
-        {
-            return Task.CompletedTask;
-        }
-
         public void UseAbility(NetworkAbility networkAbility)
         {
+        }
+
+        public Task UpdateCombatStateAsync(NetworkCombatState networkCombatState, bool requiresFullUpdate)
+        {
+            return Task.CompletedTask;
         }
     }
 }

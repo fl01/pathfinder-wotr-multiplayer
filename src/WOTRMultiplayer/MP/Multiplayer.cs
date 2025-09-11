@@ -351,7 +351,8 @@ namespace WOTRMultiplayer.MP
                     return true;
                 }
 
-                return _multiplayerActorAccessor.Current.OnBeforeEndTurn(unitId);
+                var canEnd = _multiplayerActorAccessor.Current.OnBeforeEndTurn(unitId);
+                return canEnd;
             }
             catch (Exception ex)
             {

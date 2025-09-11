@@ -433,6 +433,11 @@ namespace WOTRMultiplayer.MP.Actors
         {
             if (Game.Combat.Turn != null && Game.Combat.Turn.IsInProgress)
             {
+                if (!string.Equals(Game.Combat.Turn.UnitId, unitId, StringComparison.OrdinalIgnoreCase))
+                {
+                    Logger.LogError("Invalid unit turn start detected. ExpectedUnitId={ExpectedUnitId}, ActualUnitId={ActualUnitId}", Game.Combat.Turn.UnitId, unitId);
+                }
+
                 UpdateConfirmedMidCombatUnits();
                 Game.Combat.AIActions.Clear();
                 Logger.LogInformation("Turn start is allowed. UnitId={UnitId}, IsActingInSurpiseRound={IsActingInSurpiseRound}, TurnUnitId={TurnUnitId}", unitId, actingInSurpriseRound, Game.Combat.Turn.UnitId);
@@ -448,7 +453,7 @@ namespace WOTRMultiplayer.MP.Actors
                 IsAI = GameInteraction.IsUnitAI(unitId),
             };
 
-            Logger.LogInformation("OnTurnStart. UnitId={UnitId}, IsLocalPlayer={IsLocalPlayer}, IsAI={IsAI}, IsActingInSurpriseRound={IsActingInSurpriseRound}, IsInProgress={IsInProgress}",
+            Logger.LogWarning("OnTurnStart. UnitId={UnitId}, IsLocalPlayer={IsLocalPlayer}, IsAI={IsAI}, IsActingInSurpriseRound={IsActingInSurpriseRound}, IsInProgress={IsInProgress}",
                 unitId, Game.Combat.Turn.IsLocalPlayer, Game.Combat.Turn.IsAI, Game.Combat.Turn.IsActingInSurpriseRound, Game.Combat.Turn.IsInProgress);
 
             OnLocalPlayerTurnStart();

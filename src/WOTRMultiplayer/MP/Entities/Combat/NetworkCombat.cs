@@ -5,18 +5,11 @@ namespace WOTRMultiplayer.MP.Entities.Combat
 {
     public class NetworkCombat
     {
-        private int _round = 0;
-
         public bool IsInitialized { get; set; }
 
         public int CombatPreparedFrames { get; set; }
 
-        public int Round
-        {
-            // sometimes combat is being paused (on client) before round started event, but we need to initialize everything as first round
-            get { return _round == 0 ? 1 : _round; }
-            set { _round = value; }
-        }
+        public int Round { get; set; }
 
         public NetworkCombatTurn Turn { get; set; }
 

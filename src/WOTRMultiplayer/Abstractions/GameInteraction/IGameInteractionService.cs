@@ -8,6 +8,7 @@ using WOTRMultiplayer.GameInteraction.Contexts;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Abilities;
 using WOTRMultiplayer.MP.Entities.ActionBar;
+using WOTRMultiplayer.MP.Entities.Combat;
 using WOTRMultiplayer.MP.Entities.Dialogs;
 using WOTRMultiplayer.MP.Entities.Equipment;
 using WOTRMultiplayer.MP.Entities.Inspect;
@@ -70,7 +71,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         bool IsUnitAI(string unitId);
 
-        List<NetworkUnit> GetUnitsInCombat();
+        NetworkCombatState GetCombatState();
 
         string QuickLoadGame(string savePath);
 
@@ -84,7 +85,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void EndTurnBasedCombatTurn();
 
-        Task UpdateUnitsAsync(List<NetworkUnit> networkUnits);
+        Task UpdateCombatStateAsync(NetworkCombatState networkCombatState, bool requiresFullUpdate);
 
         void ClickUnit(NetworkClick networkClick);
 

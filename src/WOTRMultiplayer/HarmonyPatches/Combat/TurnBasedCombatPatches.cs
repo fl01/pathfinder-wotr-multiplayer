@@ -189,7 +189,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 return true;
             }
 
-            var canContinue = Main.Multiplayer.OnBeforeEndTurn(__instance.Rider.UniqueId);
+            var canContinue = Main.Multiplayer.OnBeforeEndTurn(__instance.Rider?.UniqueId);
             return canContinue;
         }
 

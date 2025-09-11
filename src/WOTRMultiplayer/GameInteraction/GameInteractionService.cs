@@ -551,83 +551,55 @@ namespace WOTRMultiplayer.GameInteraction
             return unit == null;
         }
 
-        public List<NetworkUnit> GetUnitsInCombat()
+        public NetworkCombatState GetCombatState()
         {
-            var unitsToSync = Game.Instance.State.Units.InCombat().ToList();
-
-            switch (Game.Instance.CurrentlyLoadedArea.name)
+            var state = new NetworkCombatState
             {
-                case "Prologue_Caves_1":
-                    var anevia = Game.Instance.State.Units.FirstOrDefault(u => u.CharacterName == "Anevia");
-                    if (anevia != null)
-                    {
-                        // Anevia, constantly joins midfight
-                        unitsToSync.Add(anevia);
-                    }
-                    break;
-                default:
-                    break;
-            }
+                RoundNumber = Game.Instance.TurnBasedCombatController.RoundNumber,
+                HasSurpriseRound = Game.Instance.TurnBasedCombatController.m_HasSurpriseRound,
+                Units = GetUnitsInCombat()
+            };
 
-            var units = unitsToSync
-                .Select(c => new NetworkUnit
-                {
-                    Id = c.UniqueId,
-                    Position = new NetworkVector3(c.Position.x, c.Position.y, c.Position.z),
-                    Orientation = c.Orientation,
-                })
-                .ToList();
-
-            return units;
+            return state;
         }
 
-        public Task UpdateUnitsAsync(List<NetworkUnit> networkUnits)
+        public Task UpdateCombatStateAsync(NetworkCombatState networkCombatState, bool requiresFullUpdate)
         {
             var taskCompletion = new TaskCompletionSource<bool>();
             _mainThreadAccessor.Post(() =>
             {
-                foreach (var networkUnit in networkUnits)
+                try
                 {
-                    try
+                    _logger.LogInformation("Updating combat state");
+                    var requiresExtraLog = false;
+                    if (requiresFullUpdate && Game.Instance.TurnBasedCombatController.m_HasSurpriseRound != networkCombatState.HasSurpriseRound)
                     {
-                        var unit = Game.Instance.State.Units.FirstOrDefault(u => string.Equals(u.UniqueId, networkUnit.Id, StringComparison.OrdinalIgnoreCase));
-                        if (unit == null)
-                        {
-                            _logger.LogError("Unable to find specified unit. UnitId={UnitId}", networkUnit.Id);
-                            continue;
-                        }
-
-                        if (!unit.IsInCombat)
-                        {
-                            _logger.LogWarning("Updating unit outside of the combat. UnitId={UnitId}", networkUnit.Id);
-                        }
-
-                        if (unit.Orientation != networkUnit.Orientation)
-                        {
-                            var previousOrientation = unit.Orientation;
-                            _logger.LogInformation("Orientation has been updated. UnitId={UnitId}, PreviousOrientation={PreviousOrientation}, NewOrientation={NewOrientation}", unit.UniqueId, previousOrientation.ToString("F4"), unit.Orientation.ToString("F4"));
-                            unit.Orientation = networkUnit.Orientation;
-                        }
-
-                        if (unit.Position.x != networkUnit.Position.X
-                            || unit.Position.y != networkUnit.Position.Y
-                            || unit.Position.z != networkUnit.Position.Z)
-                        {
-                            var newPosition = new UnityEngine.Vector3(networkUnit.Position.X, networkUnit.Position.Y, networkUnit.Position.Z);
-                            var oldPosition = unit.Position;
-                            unit.Translocate(newPosition, unit.Orientation);
-                            _logger.LogInformation("Unit position has been updated. UnitId={UnitId}, PreviousPosition={PreviousPosition}, NewPosition={NewPosition}", unit.UniqueId, oldPosition.ToString("F4"), newPosition.ToString("F4"));
-                        }
+                        _logger.LogWarning("Surprise round difference synced. PreviousSurpriseState={PreviousSurpriseState}, NewSurpriseState={NewSurpriseState}", Game.Instance.TurnBasedCombatController.m_HasSurpriseRound, networkCombatState.HasSurpriseRound);
+                        Game.Instance.TurnBasedCombatController.m_HasSurpriseRound = networkCombatState.HasSurpriseRound;
+                        requiresExtraLog = true;
                     }
-                    catch (Exception ex)
+
+                    if (requiresFullUpdate && Game.Instance.TurnBasedCombatController.RoundNumber != networkCombatState.RoundNumber)
                     {
-                        _logger.LogError(ex, "Unable to update unit position. UnitId={UnitId}", networkUnit.Id);
+                        _logger.LogWarning("RoundNumber difference synced. PreviousRoundNumber={PreviousRoundNumber}, NewRoundNumber={NewRoundNumber}", Game.Instance.TurnBasedCombatController.RoundNumber, networkCombatState.RoundNumber);
+                        Game.Instance.TurnBasedCombatController.RoundNumber = networkCombatState.RoundNumber;
+                        requiresExtraLog = true;
                     }
+
+                    UpdateUnitsInCombat(networkCombatState, requiresFullUpdate);
+
+                    if (requiresExtraLog)
+                    {
+                        Game.Instance.TurnBasedCombatController.LogRound();
+                    }
+
+                    taskCompletion.SetResult(true);
                 }
-
-                _logger.LogInformation("Finished updating units. UnitsCount={UnitsCount}", networkUnits.Count);
-
-                taskCompletion.SetResult(true);
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error while updating combat state");
+                    throw;
+                }
             });
 
             return taskCompletion.Task;
@@ -2096,6 +2068,96 @@ namespace WOTRMultiplayer.GameInteraction
             });
         }
 
+        private List<NetworkUnit> GetUnitsInCombat()
+        {
+            var unitsInCombat = Game.Instance.State.Units.InCombat().ToList();
+
+            switch (Game.Instance.CurrentlyLoadedArea.name)
+            {
+                case "Prologue_Caves_1":
+                    var anevia = Game.Instance.State.Units.FirstOrDefault(u => u.CharacterName == "Anevia");
+                    if (anevia != null)
+                    {
+                        // Anevia, constantly joins midfight
+                        unitsInCombat.Add(anevia);
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            var units = new List<NetworkUnit>();
+
+            foreach (var combatUnit in unitsInCombat)
+            {
+                var unitInfo = Game.Instance.TurnBasedCombatController.FindUnitInfo(combatUnit);
+                var unit = new NetworkUnit
+                {
+                    Id = combatUnit.UniqueId,
+                    Position = new NetworkVector3(combatUnit.Position.x, combatUnit.Position.y, combatUnit.Position.z),
+                    Orientation = combatUnit.Orientation,
+                    ActingInSurpriseRound = unitInfo?.ActingInSurpriseRound,
+                    Surprising = unitInfo?.Surprising,
+                    Surprised = unitInfo?.Surprised
+                };
+                units.Add(unit);
+            }
+
+            return units;
+        }
+
+        private void UpdateUnitsInCombat(NetworkCombatState networkCombatState, bool requiresFullUpdate)
+        {
+            foreach (var networkUnit in networkCombatState.Units)
+            {
+                try
+                {
+                    var unit = GetUnitEntity(networkUnit.Id);
+                    if (unit == null)
+                    {
+                        _logger.LogError("Unable to find specified unit. UnitId={UnitId}", networkUnit.Id);
+                        continue;
+                    }
+
+                    if (!unit.IsInCombat)
+                    {
+                        _logger.LogWarning("Updating unit outside of the combat. UnitId={UnitId}", networkUnit.Id);
+                    }
+
+                    if (unit.Orientation != networkUnit.Orientation)
+                    {
+                        var previousOrientation = unit.Orientation;
+                        _logger.LogInformation("Orientation has been updated. UnitId={UnitId}, PreviousOrientation={PreviousOrientation}, NewOrientation={NewOrientation}", unit.UniqueId, previousOrientation.ToString("F4"), unit.Orientation.ToString("F4"));
+                        unit.Orientation = networkUnit.Orientation;
+                    }
+
+                    if (unit.Position.x != networkUnit.Position.X
+                        || unit.Position.y != networkUnit.Position.Y
+                        || unit.Position.z != networkUnit.Position.Z)
+                    {
+                        var newPosition = new Vector3(networkUnit.Position.X, networkUnit.Position.Y, networkUnit.Position.Z);
+                        var oldPosition = unit.Position;
+                        unit.Translocate(newPosition, unit.Orientation);
+                        _logger.LogInformation("Unit position has been updated. UnitId={UnitId}, PreviousPosition={PreviousPosition}, NewPosition={NewPosition}", unit.UniqueId, oldPosition.ToString("F4"), newPosition.ToString("F4"));
+                    }
+
+                    var combatInfo = Game.Instance.TurnBasedCombatController.FindUnitInfo(unit);
+                    if (combatInfo != null && requiresFullUpdate)
+                    {
+                        combatInfo.Surprising = networkUnit?.Surprising ?? combatInfo.Surprising;
+                        combatInfo.Surprised = networkUnit?.Surprised ?? combatInfo.Surprised;
+                        combatInfo.ActingInSurpriseRound = networkUnit?.ActingInSurpriseRound ?? combatInfo.ActingInSurpriseRound;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Unable to update unit position. UnitId={UnitId}", networkUnit.Id);
+                }
+            }
+
+            _logger.LogInformation("Finished updating units. UnitsCount={UnitsCount}", networkCombatState.Units.Count);
+        }
+
         private IEnumerable<ItemsCollection> GetLootContainers(NetworkLootContainer networkLootContainer)
         {
             if (networkLootContainer.IsUnit)
@@ -2678,9 +2740,13 @@ namespace WOTRMultiplayer.GameInteraction
                     using var context = _networkExecutionContext.Value = RemoteExecutionContext.Create(selectedUnits);
                     Game.Instance.SelectionCharacter.SelectedUnit.Value = selectedUnit;
 
+                    var rider = Game.Instance.TurnBasedCombatController.CurrentTurn?.Rider;
+                    var attackCount = rider == null ? -1 : UnitAttack.EstimateFullAttacks(rider);
+                    _logger.LogWarning("TBD Unit={Unit}, Rider={Rider}, Attacks={Attacks}", Game.Instance.TurnBasedCombatController.CurrentTurn?.SelectedUnit?.UniqueId, rider?.UniqueId, attackCount);
+
                     if (click.ActionsState != null)
                     {
-                        //UpdateActionsState(click.ActionsState);
+                        UpdateActionsState(click.ActionsState);
                     }
 
                     if (click.VectorPath != null && click.VectorPath.Count > 0)
@@ -2703,7 +2769,6 @@ namespace WOTRMultiplayer.GameInteraction
                         _logger.LogInformation("AttackMode has been set. AttackMode={AttackMode}", click.AttackMode.Value);
                     }
 
-                    clickEventHandler.OnClick(targetUnit?.View?.gameObject, worldPosition, click.Button, simulate: true, click.MuteEvents, IsTMBClick: false);
                     clickEventHandler.OnClick(targetUnit?.View?.gameObject, worldPosition, click.Button, simulate: false, click.MuteEvents, IsTMBClick: false);
                 }
                 catch (Exception ex)

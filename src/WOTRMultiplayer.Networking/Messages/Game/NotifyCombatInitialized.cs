@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using ProtoBuf;
+﻿using ProtoBuf;
 using WOTRMultiplayer.Networking.Messages.Contracts;
 
 namespace WOTRMultiplayer.Networking.Messages.Game
@@ -9,6 +8,6 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     public class NotifyCombatInitialized
     {
         [ProtoMember(1)]
-        public List<NetworkUnit> Units { get; set; } = [];
+        public NetworkCombatState CombatState { get; set; }
     }
 }

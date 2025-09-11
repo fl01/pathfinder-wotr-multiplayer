@@ -26,5 +26,8 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
+**List of other mods**
+if any
+
 **Save File**
 Add a save file to help reproduce the issue

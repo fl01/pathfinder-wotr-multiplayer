@@ -1,6 +1,11 @@
 # Multiplayer changes
 
-#### Disclaimer: All of the changes below only kick in when you’re playing in Multiplayer (started or joined through the Multiplayer Window). Single-player isn’t affected at all, so you can keep playing normally. But if you’re curious about what the mod adds, you can always host a solo game to check it out.
+#### Disclaimer: All of the changes below only kick in when you’re playing in Multiplayer (started or joined through the Multiplayer Window). Single-player isn't affected at all, so you can keep playing normally. But if you are curious about what the mod adds, you can always host a solo game to check it out.
+
+## Other Mods Compatibility
+Most of the syncing relies on the blueprint asset ID, so in **THEORY** things should work fine as long as those IDs line up for abilities, spells, etc. That said, compatibility with other mods hasn't really been tested and there are no plans to support it just yet.
+
+However, this might be revised later on once multiplayer is stable enough to start focusing on making things play nicely with popular mods.
 
 ## UnityModManager settings
 - Checkbox to show the debug console (for anyone curious about the behind-the-scenes stuff).
@@ -176,4 +181,6 @@ This might be available later, but it has very low priority
 Right now, everything past the prologue isn't supported/implemented. The Tavern is the last safe location - you can't leave it without causing a full desync
 
 ## Long term plans
-- Roll syncing will get a rework once the rest of multiplayer is stable enough. The plan is to move to 'predictable rolls' for both host and clients, which should reduce stutters by not blocking the main loop as much. This needs proper isolation of the random generation process though, so it might not work for every single roll
+
+### Rolls
+Roll syncing will get a rework once the rest of multiplayer is stable enough. The plan is to move to 'predictable rolls' for both host and clients, which should reduce stutters by not blocking the main loop as much. This needs proper isolation of the random generation process though, so it might not work for every single roll

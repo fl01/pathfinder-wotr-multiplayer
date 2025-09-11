@@ -194,17 +194,14 @@ namespace WOTRMultiplayer.MP.Actors
 
         public bool CanInitializeCombat()
         {
-            return Game.Combat != null && Game.Combat.IsInitialized;
+            var canInitializeCombat = Game.Combat != null && Game.Combat.IsInitialized;
+            return canInitializeCombat;
         }
 
         public bool CanContinueCombat()
         {
-            if (Game.Combat == null)
-            {
-                return false;
-            }
-
-            return Game.Combat.IsInitialized;
+            var canContinueCombat = Game.Combat != null && Game.Combat.IsInitialized;
+            return canContinueCombat;
         }
 
         public bool IsDiceRollOwner()
@@ -556,20 +553,21 @@ namespace WOTRMultiplayer.MP.Actors
             GameInteraction.ApplyPerceptionCheck(check);
         }
 
-        private async void OnNotifyCombatTurnSynchronizationRequired(long playerId, NotifyCombatTurnSynchronizationRequired required)
+        private async void OnNotifyCombatTurnSynchronizationRequired(long playerId, NotifyCombatTurnSynchronizationRequired combatTurnSynchronization)
         {
             try
             {
-                Logger.LogInformation("Received {MessageType}. Units={Units}, UnitTurn={UnitTurn}", nameof(NotifyCombatTurnSynchronizationRequired), required.Units.Count, required.UnitId);
+                Logger.LogInformation("Received {MessageType}. Units={Units}, UnitTurn={UnitTurn}", nameof(NotifyCombatTurnSynchronizationRequired), combatTurnSynchronization.CombatState.Units.Count, combatTurnSynchronization.UnitId);
 
                 var unitId = Game.Combat.Turn.UnitId;
-                if (!string.Equals(unitId, required.UnitId, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(unitId, combatTurnSynchronization.UnitId, StringComparison.OrdinalIgnoreCase))
                 {
-                    Logger.LogWarning("Synchronization request contains mismatched unit. LocalUnitId={LocalUnitId}, RemoteRound={RemoteRound}, RemoteUnitId={RemoteUnitId}", unitId, required.UnitId);
+                    Logger.LogWarning("Synchronization request contains mismatched unit. LocalUnitId={LocalUnitId}, RemoteRound={RemoteRound}, RemoteUnitId={RemoteUnitId}", unitId, combatTurnSynchronization.UnitId);
                     return;
                 }
 
-                await SynchronizeUnitsAsync(required.Units);
+                var combatState = Mapper.Map<NetworkCombatState>(combatTurnSynchronization.CombatState);
+                await GameInteraction.UpdateCombatStateAsync(combatState, false);
 
                 var message = new ClientCombatTurnSynchronized { UnitId = unitId };
                 Logger.LogInformation("Units have been synchronized. Sending {MessageType} confirmation. UnitId={UnitId}", nameof(NotifyCombatTurnSynchronizationRequired), unitId);
@@ -615,7 +613,7 @@ namespace WOTRMultiplayer.MP.Actors
 
         private async void OnNotifyCombatInitialized(long playerId, NotifyCombatInitialized combatInitialized)
         {
-            Logger.LogInformation("Received {MessageType}. Units={Units}", nameof(NotifyCombatInitialized), combatInitialized.Units.Count);
+            Logger.LogInformation("Received {MessageType}. Units={Units}", nameof(NotifyCombatInitialized), combatInitialized.CombatState.Units.Count);
 
             if (Game.Combat == null)
             {
@@ -626,20 +624,14 @@ namespace WOTRMultiplayer.MP.Actors
                 }
             }
 
-            await SynchronizeUnitsAsync(combatInitialized.Units);
+            var combatState = Mapper.Map<NetworkCombatState>(combatInitialized.CombatState);
+            await GameInteraction.UpdateCombatStateAsync(combatState, true);
 
             Logger.LogInformation("Sending {MessageType}", nameof(ClientCombatInitialized));
             var message = new ClientCombatInitialized();
             Send(message);
 
             Game.Combat.IsInitialized = true;
-        }
-
-        private Task SynchronizeUnitsAsync(List<Networking.Messages.Contracts.NetworkUnit> units)
-        {
-            var unitsToSync = Mapper.Map<List<NetworkUnit>>(units);
-
-            return GameInteraction.UpdateUnitsAsync(unitsToSync);
         }
 
         private async void OnNotifyDialogStarted(long playerId, NotifyDialogStarted started)

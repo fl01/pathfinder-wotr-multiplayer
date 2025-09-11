@@ -602,6 +602,8 @@ namespace WOTRMultiplayer.MP
 
                 var roll = CreateConcealmentRoll(NetworkDiceRollType.Hit, ruleConcealmentCheck);
                 SaveIntRollValue(roll, ruleConcealmentCheck.Roll);
+
+                _logger.LogWarning("Concealment roll. StackTrace={StackTrace}", Environment.StackTrace);
             }
             catch (Exception ex)
             {
