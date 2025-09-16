@@ -586,7 +586,7 @@ namespace WOTRMultiplayer.GameInteraction
                         requiresExtraLog = true;
                     }
 
-                    UpdateUnitsInCombat(networkCombatState, requiresFullUpdate);
+                    UpdateCombatState(networkCombatState, requiresFullUpdate);
 
                     if (requiresExtraLog)
                     {
@@ -2068,7 +2068,7 @@ namespace WOTRMultiplayer.GameInteraction
             });
         }
 
-        public bool IsUnitAlive(string unitId)
+        public bool IsUnitDead(string unitId)
         {
             var unit = GetUnitEntity(unitId);
             return unit != null && unit.Descriptor.State.IsFinallyDead;
@@ -2104,7 +2104,7 @@ namespace WOTRMultiplayer.GameInteraction
                     Orientation = combatUnit.Orientation,
                     ActingInSurpriseRound = unitInfo?.ActingInSurpriseRound,
                     Surprising = unitInfo?.Surprising,
-                    Surprised = unitInfo?.Surprised
+                    Surprised = unitInfo?.Surprised,
                 };
                 units.Add(unit);
             }
@@ -2112,7 +2112,7 @@ namespace WOTRMultiplayer.GameInteraction
             return units;
         }
 
-        private void UpdateUnitsInCombat(NetworkCombatState networkCombatState, bool requiresFullUpdate)
+        private void UpdateCombatState(NetworkCombatState networkCombatState, bool requiresFullUpdate)
         {
             foreach (var networkUnit in networkCombatState.Units)
             {

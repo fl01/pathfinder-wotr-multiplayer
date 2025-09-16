@@ -287,7 +287,7 @@ namespace WOTRMultiplayer.MP
 
                 // this could happen in case of multiple attacks (e.g. full round attack 2+) where client kills unit with the first attack and there are no other units in range,
                 // for some reason client attacks dead target extra time which triggers an attempt to retrieve roll from another player (that roll doesn't usually exist which leads to stutter for no reason)
-                if (!_gameInteractionService.IsUnitAlive(ruleAttackRoll.Target.UniqueId))
+                if (_gameInteractionService.IsUnitDead(ruleAttackRoll.Target.UniqueId))
                 {
                     _logger.LogWarning("Trying to attack dead target, using locally rolled roll since it's not guaranteed that the same 'bug' happened at roll source (host/other client). UnitId={UnitId}", ruleAttackRoll.Target.UniqueId);
                     return true;
@@ -603,15 +603,13 @@ namespace WOTRMultiplayer.MP
         {
             try
             {
-                if (!ShouldStoreRoll(ruleConcealmentCheck))
+                if (!ShouldStoreRoll(ruleConcealmentCheck) || ruleConcealmentCheck.ConcealmentValue <= 0)
                 {
                     return;
                 }
 
                 var roll = CreateConcealmentRoll(NetworkDiceRollType.Hit, ruleConcealmentCheck);
                 SaveIntRollValue(roll, ruleConcealmentCheck.Roll);
-
-                _logger.LogWarning("Concealment roll. StackTrace={StackTrace}", Environment.StackTrace);
             }
             catch (Exception ex)
             {

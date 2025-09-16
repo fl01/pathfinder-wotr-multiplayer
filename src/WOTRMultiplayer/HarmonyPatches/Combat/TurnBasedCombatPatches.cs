@@ -8,6 +8,7 @@ using Kingmaker;
 using Kingmaker.Controllers.Combat;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.EntitySystem.Persistence.JsonUtility;
+using Kingmaker.TurnBasedMode;
 using Microsoft.Extensions.Logging;
 using TurnBased.Controllers;
 
@@ -481,6 +482,29 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
         //    return matcher.Instructions();
         //}
+
+        [HarmonyPatch(typeof(PathVisualizer), nameof(PathVisualizer.Update))]
+        [HarmonyPrefix]
+        public static bool PathVisualizer_Update_Prefix()
+        {
+            var currentUnit = Game.Instance.TurnBasedCombatController.CurrentTurn?.Rider;
+            if (!Main.Multiplayer.IsActive || currentUnit == null)
+            {
+                return true;
+            }
+
+
+
+
+            var isControlled = Main.Multiplayer.IsControlledByLocalPlayer(currentUnit.UniqueId);
+            if (!isControlled)
+            {
+                PathVisualizer.Instance.Clear();
+                return false;
+            }
+
+            return true;
+        }
 
         /// <summary>
         /// Resets path each frame if !IsDirectlyControllable which breaks Multi Command sticky touch abilities, e.g. Cure Wounds

@@ -191,6 +191,6 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void LockpickMapObject(NetworkLockpickInteraction lockpickInteraction);
 
-        bool IsUnitAlive(string unitId);
+        bool IsUnitDead(string unitId);
     }
 }
