@@ -2068,12 +2068,6 @@ namespace WOTRMultiplayer.GameInteraction
             });
         }
 
-        public bool IsUnitDead(string unitId)
-        {
-            var unit = GetUnitEntity(unitId);
-            return unit != null && unit.Descriptor.State.IsFinallyDead;
-        }
-
         private List<NetworkUnit> GetUnitsInCombat()
         {
             var unitsInCombat = Game.Instance.State.Units.InCombat().ToList();

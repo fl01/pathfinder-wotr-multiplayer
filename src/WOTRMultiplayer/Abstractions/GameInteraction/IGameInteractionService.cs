@@ -190,7 +190,5 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void ClearActionBarSlot(NetworkActionBarSlot actionBarSlot);
 
         void LockpickMapObject(NetworkLockpickInteraction lockpickInteraction);
-
-        bool IsUnitDead(string unitId);
     }
 }
