@@ -193,5 +193,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void AttackUnit(NetworkUnitAttack attack);
 
         void DelayCombatTurn(string unitId, string targetUnitId);
+
+        void ChangeUnitStealth(string unitId, bool isEnabled, bool isForced);
     }
 }

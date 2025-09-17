@@ -2121,6 +2121,25 @@ namespace WOTRMultiplayer.GameInteraction
             });
         }
 
+        public void ChangeUnitStealth(string unitId, bool isEnabled, bool isForced)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var unit = GetUnitEntity(unitId);
+                if (unit == null)
+                {
+                    _logger.LogError("Unable to change stealth due to missing unit. UnitId={UnitId}", unitId);
+                    return;
+                }
+
+                unit.Stealth.WantEnterStealth = isEnabled;
+                unit.Stealth.ForceEnterStealth = isForced;
+                Game.Instance.StealthController.TickUnit(unit);
+
+                _logger.LogInformation("Unit stealth has been changed. UnitId={UnitId}, IsEnabled={IsEnabled}, IsForced={IsForced}", unitId, isEnabled, isForced);
+            });
+        }
+
         private List<NetworkUnit> GetUnitsInCombat()
         {
             var unitsInCombat = Game.Instance.State.Units.InCombat().ToList();

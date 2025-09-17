@@ -1473,6 +1473,24 @@ namespace WOTRMultiplayer.MP
             }
         }
 
+        public void OnSetUnitStealthEnabled(string unitId, bool isEnabled, bool isForced)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnSetUnitStealthEnabled(unitId, isEnabled, isForced);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing unit stealth. UnitId={UnitId}, IsEnabled={IsEnabled}", unitId, isEnabled);
+                throw;
+            }
+        }
+
         private void ShowEscMenuMultiplayerLobby()
         {
             _logger.LogInformation("Show lobby window");

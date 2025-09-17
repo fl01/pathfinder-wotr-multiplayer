@@ -178,5 +178,7 @@ namespace WOTRMultiplayer.Abstractions.MP
         void OnUnitAttack(NetworkUnitAttack networkUnitAttack);
 
         void OnHandleDelayCombatTurn(string unitId, string targetUnitId);
+
+        void OnSetUnitStealthEnabled(string unitId, bool isEnabled, bool isForced);
     }
 }

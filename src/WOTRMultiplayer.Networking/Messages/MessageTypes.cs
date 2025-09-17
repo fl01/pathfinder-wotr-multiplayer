@@ -93,6 +93,7 @@
             NotifyMapObjectLockpicked,
             NotifyUnitAttacked,
             NotifyCombatTurnDelayed,
+            NotifyUnitStealthChanged,
         }
 
         public enum Request

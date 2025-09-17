@@ -458,12 +458,12 @@ namespace WOTRMultiplayer.MP.Actors
                 return;
             }
 
-            Logger.LogInformation("Sending {MessageType}. UnitId={Round}, TargetUnitId={TargetUnitId}", nameof(NotifyCombatTurnDelayed), unitId, targetUnitId);
             var message = new NotifyCombatTurnDelayed
             {
                 UnitId = unitId,
                 TargetUnitId = targetUnitId
             };
+            Logger.LogInformation("Sending {MessageType}. UnitId={Round}, TargetUnitId={TargetUnitId}", nameof(NotifyCombatTurnDelayed), message.UnitId, message.TargetUnitId);
 
             Send(message);
         }
@@ -866,6 +866,18 @@ namespace WOTRMultiplayer.MP.Actors
                 LockpickInteraction = Mapper.Map<Networking.Messages.Contracts.NetworkLockpickInteraction>(lockpickInteraction)
             };
             Logger.LogInformation("Sending {MessageType}. MapObjectId={MapObjectId}, MapObjectPosition={MapObjectPosition}, Units={Units}", nameof(NotifyMapObjectLockpicked), message.LockpickInteraction.MapObject.Id, message.LockpickInteraction.MapObject.Position, message.LockpickInteraction.Units);
+            Send(message);
+        }
+
+        public void OnSetUnitStealthEnabled(string unitId, bool isEnabled, bool isForced)
+        {
+            var message = new NotifyUnitStealthChanged
+            {
+                UnitId = unitId,
+                IsEnabled = isEnabled,
+                IsForced = isForced
+            };
+            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, IsEnabled={IsEnabled}, IsForced={IsForced}", nameof(NotifyUnitStealthChanged), message.UnitId, message.IsEnabled, message.IsForced);
             Send(message);
         }
 
@@ -1305,12 +1317,23 @@ namespace WOTRMultiplayer.MP.Actors
                 // action bar
                 .On<NotifyActionBarSlotCleared>(OnNotifyActionBarSlotCleared)
                 .On<NotifyActionBarSlotMoved>(OnNotifyActionBarSlotMoved)
+                // stealth
+                .On<NotifyUnitStealthChanged>(OnNotifyUnitStealthChanged)
                 ;
+        }
+
+        private void OnNotifyUnitStealthChanged(long playerId, NotifyUnitStealthChanged unitStealthChanged)
+        {
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, UnitId={Round}, IsEnabled={IsEnabled}, IsForced={IsForced}", nameof(NotifyUnitStealthChanged), playerId, unitStealthChanged.UnitId, unitStealthChanged.IsEnabled, unitStealthChanged.IsForced);
+
+            GameInteraction.ChangeUnitStealth(unitStealthChanged.UnitId, unitStealthChanged.IsEnabled, unitStealthChanged.IsForced);
+
+            OnAfterNetworkMessageHandled(playerId, unitStealthChanged);
         }
 
         private void OnNotifyCombatTurnDelayed(long playerId, NotifyCombatTurnDelayed combatTurnDelayed)
         {
-            Logger.LogInformation("Sending {MessageType}. UnitId={Round}, TargetUnitId={TargetUnitId}", nameof(NotifyCombatTurnDelayed), combatTurnDelayed.UnitId, combatTurnDelayed.TargetUnitId);
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, UnitId={Round}, TargetUnitId={TargetUnitId}", nameof(NotifyCombatTurnDelayed), playerId, combatTurnDelayed.UnitId, combatTurnDelayed.TargetUnitId);
 
             Game.Combat.Turn.IsInProgress = false;
             GameInteraction.DelayCombatTurn(combatTurnDelayed.UnitId, combatTurnDelayed.TargetUnitId);

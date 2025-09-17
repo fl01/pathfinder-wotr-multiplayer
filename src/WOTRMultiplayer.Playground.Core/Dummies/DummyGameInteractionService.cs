@@ -366,5 +366,9 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void DelayCombatTurn(string unitId, string targetUnitId)
         {
         }
+
+        public void ChangeUnitStealth(string unitId, bool isEnabled, bool isForced)
+        {
+        }
     }
 }
