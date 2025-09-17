@@ -2099,6 +2099,28 @@ namespace WOTRMultiplayer.GameInteraction
             });
         }
 
+        public void DelayCombatTurn(string unitId, string targetUnitId)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var unit = GetUnitEntity(unitId);
+                if (unit == null)
+                {
+                    _logger.LogError("Unable to delay combat turn due to missing unit. UnitId={UnitId}", unitId);
+                    return;
+                }
+
+                var targetUnit = GetUnitEntity(targetUnitId);
+                if (targetUnit == null)
+                {
+                    _logger.LogError("Unable to delay combat turn due to missing target unit. TargetUnitId={TargetUnitId}", targetUnit);
+                    return;
+                }
+
+                Game.Instance.TurnBasedCombatController.HandleDelayTurn(unit, targetUnit);
+            });
+        }
+
         private List<NetworkUnit> GetUnitsInCombat()
         {
             var unitsInCombat = Game.Instance.State.Units.InCombat().ToList();

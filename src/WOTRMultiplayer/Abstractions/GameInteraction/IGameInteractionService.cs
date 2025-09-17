@@ -191,5 +191,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void LockpickMapObject(NetworkLockpickInteraction lockpickInteraction);
 
         void AttackUnit(NetworkUnitAttack attack);
+
+        void DelayCombatTurn(string unitId, string targetUnitId);
     }
 }

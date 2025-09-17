@@ -163,5 +163,7 @@ namespace WOTRMultiplayer.Abstractions.MP.Actors
         void OnLockpickInteraction(NetworkLockpickInteraction lockpickInteraction);
 
         bool OnRequestLevelingUI(string unitId);
+
+        void OnHandleDelayCombatTurn(string unitId, string targetUnitId);
     }
 }

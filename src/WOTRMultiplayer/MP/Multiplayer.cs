@@ -1455,6 +1455,24 @@ namespace WOTRMultiplayer.MP
             }
         }
 
+        public void OnHandleDelayCombatTurn(string unitId, string targetUnitId)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnHandleDelayCombatTurn(unitId, targetUnitId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while delaying combat turn. UnitId={UnitId}, TargetUnitId={TargetUnitId}", unitId, targetUnitId);
+                throw;
+            }
+        }
+
         private void ShowEscMenuMultiplayerLobby()
         {
             _logger.LogInformation("Show lobby window");

@@ -92,6 +92,7 @@
             NotifyContainerSkinned,
             NotifyMapObjectLockpicked,
             NotifyUnitAttacked,
+            NotifyCombatTurnDelayed,
         }
 
         public enum Request

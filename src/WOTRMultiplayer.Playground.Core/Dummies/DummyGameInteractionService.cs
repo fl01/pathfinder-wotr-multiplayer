@@ -362,5 +362,9 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void AttackUnit(NetworkUnitAttack attack)
         {
         }
+
+        public void DelayCombatTurn(string unitId, string targetUnitId)
+        {
+        }
     }
 }

@@ -451,6 +451,22 @@ namespace WOTRMultiplayer.MP.Actors
 
             Game.Combat = null;
         }
+        public void OnHandleDelayCombatTurn(string unitId, string targetUnitId)
+        {
+            if (!IsControlledByLocalPlayer(unitId))
+            {
+                return;
+            }
+
+            Logger.LogInformation("Sending {MessageType}. UnitId={Round}, TargetUnitId={TargetUnitId}", nameof(NotifyCombatTurnDelayed), unitId, targetUnitId);
+            var message = new NotifyCombatTurnDelayed
+            {
+                UnitId = unitId,
+                TargetUnitId = targetUnitId
+            };
+
+            Send(message);
+        }
 
         public bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound)
         {
@@ -1266,6 +1282,7 @@ namespace WOTRMultiplayer.MP.Actors
                 .On<NotifyUnitJoinedMidCombat>(OnNotifyUnitJoinedMidCombat)
                 .On<NotifyPlayerCombatTurnEnded>(OnNotifyPlayerCombatTurnEnded)
                 .On<NotifyUnitAttacked>(OnNotifyUnitAttacked)
+                .On<NotifyCombatTurnDelayed>(OnNotifyCombatTurnDelayed)
                 // overtips
                 .On<NotifyOvertipInteracted>(OnNotifyOvertipInteracted)
                 // items&inventory
@@ -1289,6 +1306,16 @@ namespace WOTRMultiplayer.MP.Actors
                 .On<NotifyActionBarSlotCleared>(OnNotifyActionBarSlotCleared)
                 .On<NotifyActionBarSlotMoved>(OnNotifyActionBarSlotMoved)
                 ;
+        }
+
+        private void OnNotifyCombatTurnDelayed(long playerId, NotifyCombatTurnDelayed combatTurnDelayed)
+        {
+            Logger.LogInformation("Sending {MessageType}. UnitId={Round}, TargetUnitId={TargetUnitId}", nameof(NotifyCombatTurnDelayed), combatTurnDelayed.UnitId, combatTurnDelayed.TargetUnitId);
+
+            Game.Combat.Turn.IsInProgress = false;
+            GameInteraction.DelayCombatTurn(combatTurnDelayed.UnitId, combatTurnDelayed.TargetUnitId);
+
+            OnAfterNetworkMessageHandled(playerId, combatTurnDelayed);
         }
 
         private void OnNotifyMapObjectLockpicked(long playerId, NotifyMapObjectLockpicked mapObjectLockpicked)

@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using Kingmaker.EntitySystem.Entities;
 
-namespace WOTRMultiplayer.HarmonyPatches.TurnBasedCombat
+namespace WOTRMultiplayer.HarmonyPatches.Combat
 {
     [HarmonyPatch]
     public class UnitEntityDataPatches
