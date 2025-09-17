@@ -9,7 +9,7 @@ using WOTRMultiplayer.MP.Entities.Combat;
 namespace WOTRMultiplayer.HarmonyPatches.Combat
 {
     [HarmonyPatch]
-    public class UnitUseAbilityPatches
+    public class UnitUseAbilityCommandPatches
     {
         [HarmonyPatch(typeof(UnitUseAbility), nameof(UnitUseAbility.OnStart))]
         [HarmonyPostfix]
@@ -27,7 +27,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
         {
             if (command.Ability.StickyTouch != null)
             {
-                Main.GetLogger<UnitUseAbilityPatches>().LogWarning("Skipping ability use as it's a part of another usage. UnitId={UnitId}, AbilityName={AbilityName}, AbilityId={AbilityId}", command.Executor.UniqueId, command.Ability.Name, command.Ability.UniqueId);
+                Main.GetLogger<UnitUseAbilityCommandPatches>().LogWarning("Skipping ability use as it's a part of another usage. UnitId={UnitId}, AbilityName={AbilityName}, AbilityId={AbilityId}", command.Executor.UniqueId, command.Ability.Name, command.Ability.UniqueId);
                 return;
             }
 

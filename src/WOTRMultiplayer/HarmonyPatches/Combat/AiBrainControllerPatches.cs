@@ -4,7 +4,9 @@ using HarmonyLib;
 using Kingmaker;
 using Kingmaker.AI;
 using Kingmaker.EntitySystem.Entities;
+using Kingmaker.Pathfinding;
 using Microsoft.Extensions.Logging;
+using UnityEngine;
 using WOTRMultiplayer.MP.Entities.Combat;
 
 namespace WOTRMultiplayer.HarmonyPatches.Combat
@@ -47,12 +49,13 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
             var action = new NetworkAIAction
             {
-                CurrentScore = context.CurrentScore,
                 UnitId = unit.UniqueId,
                 TargetId = bestTargetResult?.UniqueId,
                 ActionBlueprintId = bestActionResult?.Blueprint.AssetGuid.ToString(),
                 ActionType = bestActionResult?.GetType().Name,
-                IsAutoUseAbility = isAutoUseAbility
+                IsAutoUseAbility = isAutoUseAbility,
+                BestPath = [.. context.BestPath.vectorPath.Select(v => new MP.Entities.NetworkVector3(v.x, v.y, v.z))],
+                BestEnableFiveFootStep = context.BestEnableFiveFootStep
             };
 
             var possibleOverride = Main.Multiplayer.OnAfterAISelectedAction(action);
@@ -61,19 +64,28 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 return;
             }
 
+            var requiresContextUpdate = false;
             if (!string.Equals(bestActionResult.Blueprint.AssetGuid.ToString(), possibleOverride.ActionBlueprintId, StringComparison.OrdinalIgnoreCase))
             {
                 Main.GetLogger<AiBrainControllerPatches>().LogWarning("Replacing best action result. PreviousActionBlueprintId={PreviousActionBlueprintId}, NewActionBlueprintId={NewActionBlueprintId}", bestActionResult.Blueprint.AssetGuid.ToString(), possibleOverride.ActionBlueprintId);
                 bestActionResult = FindAIAction(unit, isAutoUseAbility, possibleOverride);
+                requiresContextUpdate = true;
             }
 
             if (!string.Equals(bestTargetResult?.UniqueId, possibleOverride.TargetId, StringComparison.OrdinalIgnoreCase))
             {
                 Main.GetLogger<AiBrainControllerPatches>().LogWarning("Replacing best target result. PreviousTargetUnitId={PreviousTargetUnitId}, NewTargetUnitId={NewTargetUnitId}", bestTargetResult?.UniqueId, possibleOverride.TargetId);
                 bestTargetResult = FindActionTarget(possibleOverride.TargetId);
+                requiresContextUpdate = true;
             }
 
-            context.CurrentScore = possibleOverride.CurrentScore;
+            if (requiresContextUpdate)
+            {
+                context.BestEnableFiveFootStep = possibleOverride.BestEnableFiveFootStep;
+
+                var bestPath = possibleOverride.BestPath.Select(v => new Vector3(v.X, v.Y, v.Z)).ToList();
+                context.BestPath = new ForcedPath(bestPath);
+            }
         }
 
         private static UnitEntityData FindActionTarget(string targetUniqueId)

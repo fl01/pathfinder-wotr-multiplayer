@@ -2858,13 +2858,9 @@ namespace WOTRMultiplayer.GameInteraction
                     using var context = _networkExecutionContext.Value = RemoteExecutionContext.Create(selectedUnits);
                     Game.Instance.SelectionCharacter.SelectedUnit.Value = selectedUnit;
 
-                    var rider = Game.Instance.TurnBasedCombatController.CurrentTurn?.Rider;
-                    var attackCount = rider == null ? -1 : UnitAttack.EstimateFullAttacks(rider);
-                    _logger.LogWarning("TBD Unit={Unit}, Rider={Rider}, Attacks={Attacks}", Game.Instance.TurnBasedCombatController.CurrentTurn?.SelectedUnit?.UniqueId, rider?.UniqueId, attackCount);
-
                     if (click.ActionsState != null)
                     {
-                        UpdateActionsState(click.ActionsState);
+                        //UpdateActionsState(click.ActionsState);
                     }
 
                     if (click.VectorPath != null && click.VectorPath.Count > 0)

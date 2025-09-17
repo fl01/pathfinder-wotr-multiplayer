@@ -23,14 +23,14 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
         [HarmonyPatch(typeof(UnitCommand), nameof(UnitCommand.Interrupt))]
         [HarmonyPrefix]
-        public static void UnitAttack_OnStart_Prefix(UnitCommand __instance)
+        public static void UnitCommand_Interrupt_Prefix(UnitCommand __instance)
         {
             if (!Main.Multiplayer.IsActive || __instance is not UnitAttack attack || !attack.CreatedByPlayer)
             {
                 return;
             }
 
-            Main.GetLogger<UnitAttackPatches>().LogWarning("Interrupting attack command. AttackIndex={AttackIndex}, AttackCount={AttackCount}, StackTrace={StackTrace}", attack.m_AttackIndex, attack.m_AllAttacks.Count, Environment.StackTrace);
+            Main.GetLogger<UnitAttackCommandPatches>().LogWarning("Interrupting attack command. AttackIndex={AttackIndex}, AttackCount={AttackCount}, StackTrace={StackTrace}", attack.m_AttackIndex, attack.m_AllAttacks?.Count, Environment.StackTrace);
         }
     }
 }
