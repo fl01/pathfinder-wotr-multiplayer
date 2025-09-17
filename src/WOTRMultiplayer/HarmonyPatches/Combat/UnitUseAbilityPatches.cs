@@ -4,9 +4,9 @@ using Kingmaker.TurnBasedMode;
 using Kingmaker.UnitLogic.Commands;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.MP.Entities;
-using WOTRMultiplayer.MP.Entities.Abilities;
+using WOTRMultiplayer.MP.Entities.Combat;
 
-namespace WOTRMultiplayer.HarmonyPatches.Units
+namespace WOTRMultiplayer.HarmonyPatches.Combat
 {
     [HarmonyPatch]
     public class UnitUseAbilityPatches
@@ -25,7 +25,6 @@ namespace WOTRMultiplayer.HarmonyPatches.Units
 
         private static void OnAbilityUse(UnitUseAbility command)
         {
-
             if (command.Ability.StickyTouch != null)
             {
                 Main.GetLogger<UnitUseAbilityPatches>().LogWarning("Skipping ability use as it's a part of another usage. UnitId={UnitId}, AbilityName={AbilityName}, AbilityId={AbilityId}", command.Executor.UniqueId, command.Ability.Name, command.Ability.UniqueId);

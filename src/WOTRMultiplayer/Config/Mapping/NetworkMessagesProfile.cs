@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using WOTRMultiplayer.MP.Entities;
-using WOTRMultiplayer.MP.Entities.Abilities;
 using WOTRMultiplayer.MP.Entities.ActionBar;
 using WOTRMultiplayer.MP.Entities.Combat;
 using WOTRMultiplayer.MP.Entities.Dialogs;
@@ -14,6 +13,7 @@ using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
 using WOTRMultiplayer.MP.Entities.Settings;
 using WOTRMultiplayer.MP.Entities.Spells;
+using WOTRMultiplayer.MP.Entities.Units;
 using WOTRMultiplayer.MP.Entities.Vendor;
 
 namespace WOTRMultiplayer.Config.Mapping
@@ -161,6 +161,12 @@ namespace WOTRMultiplayer.Config.Mapping
                 .ReverseMap();
 
             CreateMap<NetworkUnitAttack, Networking.Messages.Contracts.NetworkUnitAttack>()
+                .ReverseMap();
+
+            CreateMap<NetworkUnitTurnBasedInfo, Networking.Messages.Contracts.NetworkUnitTurnBasedInfo>()
+                .ReverseMap();
+
+            CreateMap<NetworkUnitCombatState, Networking.Messages.Contracts.NetworkUnitCombatState>()
                 .ReverseMap();
         }
     }

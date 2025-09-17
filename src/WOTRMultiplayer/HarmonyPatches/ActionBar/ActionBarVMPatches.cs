@@ -64,7 +64,7 @@ namespace WOTRMultiplayer.HarmonyPatches.ActionBar
             switch (actionBarSlotVM.MechanicActionBarSlot)
             {
                 case MechanicActionBarSlotActivableAbility activatableAbility:
-                    slot.ActivatableAbility = new MP.Entities.Abilities.NetworkActivatableAbility
+                    slot.ActivatableAbility = new MP.Entities.Combat.NetworkActivatableAbility
                     {
                         Id = activatableAbility.ActivatableAbility.UniqueId,
                         Name = activatableAbility.ActivatableAbility.NameForAcronym,
@@ -74,7 +74,7 @@ namespace WOTRMultiplayer.HarmonyPatches.ActionBar
                     slot.UnitId = slot.ActivatableAbility.CasterId;
                     break;
                 case MechanicActionBarSlotAbility ability:
-                    slot.Ability = new MP.Entities.Abilities.NetworkAbility
+                    slot.Ability = new MP.Entities.Combat.NetworkAbility
                     {
                         Id = ability.Ability.UniqueId,
                         Name = ability.Ability.NameForAcronym,
@@ -85,7 +85,7 @@ namespace WOTRMultiplayer.HarmonyPatches.ActionBar
                     slot.UnitId = slot.Ability.CasterId;
                     break;
                 case MechanicActionBarSlotSpell spell:
-                    slot.Ability = new MP.Entities.Abilities.NetworkAbility
+                    slot.Ability = new MP.Entities.Combat.NetworkAbility
                     {
                         Id = spell.Spell.UniqueId,
                         Name = spell.Spell.NameForAcronym,

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Kingmaker.Controllers.Rest;
 using Kingmaker.GameModes;
 using WOTRMultiplayer.MP.Entities;
-using WOTRMultiplayer.MP.Entities.Abilities;
 using WOTRMultiplayer.MP.Entities.ActionBar;
 using WOTRMultiplayer.MP.Entities.Combat;
 using WOTRMultiplayer.MP.Entities.Equipment;

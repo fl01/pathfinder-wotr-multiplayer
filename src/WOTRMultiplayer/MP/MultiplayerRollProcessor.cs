@@ -731,7 +731,7 @@ namespace WOTRMultiplayer.MP
         {
             try
             {
-                if (!ShouldStoreRoll(ruleCheckCastingDefensively))
+                if (!ShouldStoreRoll(ruleCheckCastingDefensively) || ruleCheckCastingDefensively.AutoFail)
                 {
                     return;
                 }
@@ -882,6 +882,7 @@ namespace WOTRMultiplayer.MP
 
                 _logger.LogInformation("Roll has been acquired from another player. DiceType={DiceType}, RollId={RollId}, Result={Result}, RollType={RollType}, InitiatorId={InitiatorId}",
                     diceType, rollId.Value, dice.Result, rollType, initiator.UniqueId);
+
                 return dice;
             }
             catch (Exception ex)

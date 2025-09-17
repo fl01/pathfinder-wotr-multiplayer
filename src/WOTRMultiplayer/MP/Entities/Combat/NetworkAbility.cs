@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace WOTRMultiplayer.MP.Entities.Abilities
+namespace WOTRMultiplayer.MP.Entities.Combat
 {
     public class NetworkAbility
     {

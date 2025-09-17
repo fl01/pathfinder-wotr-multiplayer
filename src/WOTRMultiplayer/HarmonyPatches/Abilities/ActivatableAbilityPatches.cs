@@ -4,7 +4,7 @@ using Kingmaker.EntitySystem.Entities;
 using Kingmaker.UnitLogic.Abilities.Components.TargetCheckers;
 using Kingmaker.UnitLogic.ActivatableAbilities;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.MP.Entities.Abilities;
+using WOTRMultiplayer.MP.Entities.Combat;
 
 namespace WOTRMultiplayer.HarmonyPatches.Abilities
 {

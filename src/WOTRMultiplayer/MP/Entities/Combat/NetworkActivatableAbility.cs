@@ -1,4 +1,4 @@
-﻿namespace WOTRMultiplayer.MP.Entities.Abilities
+﻿namespace WOTRMultiplayer.MP.Entities.Combat
 {
     public class NetworkActivatableAbility
     {

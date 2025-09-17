@@ -1,4 +1,4 @@
-﻿using WOTRMultiplayer.MP.Entities.Abilities;
+﻿using WOTRMultiplayer.MP.Entities.Combat;
 using WOTRMultiplayer.MP.Entities.Equipment;
 
 namespace WOTRMultiplayer.MP.Entities.ActionBar

@@ -75,7 +75,6 @@ using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.GameInteraction.Contexts;
 using WOTRMultiplayer.MP.Entities;
-using WOTRMultiplayer.MP.Entities.Abilities;
 using WOTRMultiplayer.MP.Entities.ActionBar;
 using WOTRMultiplayer.MP.Entities.Combat;
 using WOTRMultiplayer.MP.Entities.Dialogs;
@@ -88,6 +87,7 @@ using WOTRMultiplayer.MP.Entities.Movement;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Settings;
 using WOTRMultiplayer.MP.Entities.Spells;
+using WOTRMultiplayer.MP.Entities.Units;
 using WOTRMultiplayer.MP.Entities.Vendor;
 using WOTRMultiplayer.UI;
 
@@ -2121,15 +2121,13 @@ namespace WOTRMultiplayer.GameInteraction
 
             foreach (var combatUnit in unitsInCombat)
             {
-                var unitInfo = Game.Instance.TurnBasedCombatController.FindUnitInfo(combatUnit);
                 var unit = new NetworkUnit
                 {
                     Id = combatUnit.UniqueId,
                     Position = new NetworkVector3(combatUnit.Position.x, combatUnit.Position.y, combatUnit.Position.z),
                     Orientation = combatUnit.Orientation,
-                    ActingInSurpriseRound = unitInfo?.ActingInSurpriseRound,
-                    Surprising = unitInfo?.Surprising,
-                    Surprised = unitInfo?.Surprised,
+                    TurnBasedInfo = GetUnitTurnBasedInfo(combatUnit),
+                    CombatState = GetUnitCombatState(combatUnit),
                 };
                 units.Add(unit);
             }
@@ -2137,56 +2135,145 @@ namespace WOTRMultiplayer.GameInteraction
             return units;
         }
 
+        private NetworkUnitTurnBasedInfo GetUnitTurnBasedInfo(UnitEntityData combatUnit)
+        {
+            var unitInfo = Game.Instance.TurnBasedCombatController.FindUnitInfo(combatUnit);
+            if (unitInfo == null)
+            {
+                return null;
+            }
+
+            var info = new NetworkUnitTurnBasedInfo
+            {
+                ActingInSurpriseRound = unitInfo.ActingInSurpriseRound,
+                Surprising = unitInfo.Surprising,
+                Surprised = unitInfo.Surprised,
+            };
+
+            return info;
+        }
+
+        private NetworkUnitCombatState GetUnitCombatState(UnitEntityData combatUnit)
+        {
+            if (combatUnit.CombatState == null)
+            {
+                return null;
+            }
+
+            var state = new NetworkUnitCombatState
+            {
+                EngagedUnits = [.. combatUnit.CombatState.EngagedUnits.Select(x => x.UniqueId)],
+                EngagedBy = [.. combatUnit.CombatState.EngagedBy.Select(x => x.UniqueId)],
+            };
+
+            return state;
+        }
+
         private void UpdateCombatState(NetworkCombatState networkCombatState, bool requiresFullUpdate)
         {
-            foreach (var networkUnit in networkCombatState.Units)
+            try
             {
-                try
+                var unitsToUpdate = networkCombatState.Units.ToDictionary(x => x, x => GetUnitEntity(x.Id));
+                foreach (var (networkUnit, unit) in unitsToUpdate)
                 {
-                    var unit = GetUnitEntity(networkUnit.Id);
                     if (unit == null)
                     {
-                        _logger.LogError("Unable to find specified unit. UnitId={UnitId}", networkUnit.Id);
+                        _logger.LogError("Unable to update combat state for missing unit. UnitId={UnitId}", networkUnit.Id);
                         continue;
                     }
 
-                    if (!unit.IsInCombat)
-                    {
-                        _logger.LogWarning("Updating unit outside of the combat. UnitId={UnitId}", networkUnit.Id);
-                    }
+                    UpdateUnitPosition(unit, networkUnit);
 
-                    if (unit.Orientation != networkUnit.Orientation)
+                    if (requiresFullUpdate)
                     {
-                        var previousOrientation = unit.Orientation;
-                        _logger.LogInformation("Orientation has been updated. UnitId={UnitId}, PreviousOrientation={PreviousOrientation}, NewOrientation={NewOrientation}", unit.UniqueId, previousOrientation.ToString("F4"), unit.Orientation.ToString("F4"));
-                        unit.Orientation = networkUnit.Orientation;
-                    }
-
-                    if (unit.Position.x != networkUnit.Position.X
-                        || unit.Position.y != networkUnit.Position.Y
-                        || unit.Position.z != networkUnit.Position.Z)
-                    {
-                        var newPosition = new Vector3(networkUnit.Position.X, networkUnit.Position.Y, networkUnit.Position.Z);
-                        var oldPosition = unit.Position;
-                        unit.Translocate(newPosition, unit.Orientation);
-                        _logger.LogInformation("Unit position has been updated. UnitId={UnitId}, PreviousPosition={PreviousPosition}, NewPosition={NewPosition}", unit.UniqueId, oldPosition.ToString("F4"), newPosition.ToString("F4"));
-                    }
-
-                    var combatInfo = Game.Instance.TurnBasedCombatController.FindUnitInfo(unit);
-                    if (combatInfo != null && requiresFullUpdate)
-                    {
-                        combatInfo.Surprising = networkUnit?.Surprising ?? combatInfo.Surprising;
-                        combatInfo.Surprised = networkUnit?.Surprised ?? combatInfo.Surprised;
-                        combatInfo.ActingInSurpriseRound = networkUnit?.ActingInSurpriseRound ?? combatInfo.ActingInSurpriseRound;
+                        UpdateUnitTurnBasedInfo(unit, networkUnit.TurnBasedInfo);
                     }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Unable to update unit position. UnitId={UnitId}", networkUnit.Id);
-                }
+
+                UpdateCombatUnitState(unitsToUpdate);
+
+                _logger.LogInformation("Finished updating combat state. RoundNumber={RoundNumber}, UnitsCount={UnitsCount}, IsFullUpdate={IsFullUpdate}", networkCombatState.RoundNumber, networkCombatState.Units.Count, requiresFullUpdate);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to update combat state. RoundNumber={RoundNumber}, UnitsCount={UnitsCount}, IsFullUpdate={IsFullUpdate}", networkCombatState.RoundNumber, networkCombatState.Units.Count, requiresFullUpdate);
+                throw;
+            }
+        }
+
+        private void UpdateUnitTurnBasedInfo(UnitEntityData unit, NetworkUnitTurnBasedInfo networkUnitTurnBasedInfo)
+        {
+            var turnBasedInfo = Game.Instance.TurnBasedCombatController.FindUnitInfo(unit);
+
+            if (turnBasedInfo == null || networkUnitTurnBasedInfo == null)
+            {
+                _logger.LogWarning("Unable to update missing turn based combat info. UnitId={UnitId}", unit.UniqueId);
+                return;
             }
 
-            _logger.LogInformation("Finished updating units. UnitsCount={UnitsCount}", networkCombatState.Units.Count);
+            turnBasedInfo.Surprising = networkUnitTurnBasedInfo.Surprising;
+            turnBasedInfo.Surprised = networkUnitTurnBasedInfo.Surprised;
+            turnBasedInfo.ActingInSurpriseRound = networkUnitTurnBasedInfo.ActingInSurpriseRound;
+        }
+
+        private void UpdateCombatUnitState(Dictionary<NetworkUnit, UnitEntityData> unitsToUpdate)
+        {
+            // engagement is configured for units pair so we need to clear existing lists before syncing
+            foreach (var (_, unit) in unitsToUpdate)
+            {
+                if (unit?.CombatState == null)
+                {
+                    continue;
+                }
+
+                unit.CombatState.m_EngagedBy.Clear();
+                unit.CombatState.m_EngagedUnits.Clear();
+            }
+
+            foreach (var (networkUnit, unit) in unitsToUpdate)
+            {
+                if (unit?.CombatState == null || networkUnit.CombatState == null)
+                {
+                    _logger.LogInformation("Unable to update missing combat unit state. UnitId={UnitId}", networkUnit.Id);
+                    continue;
+                }
+
+                foreach (var engageTargetId in networkUnit.CombatState.EngagedUnits)
+                {
+                    var engageTarget = GetUnitEntity(engageTargetId);
+                    if (engageTarget == null)
+                    {
+                        _logger.LogInformation("Unable to engage missing unit. UnitId={UnitId}, EngageTargetId={EngageTargetId}", unit.UniqueId, engageTargetId);
+                        continue;
+                    }
+
+                    unit.CombatState.Engage(engageTarget);
+                }
+            }
+        }
+
+        private void UpdateUnitPosition(UnitEntityData unit, NetworkUnit networkUnit)
+        {
+            if (!unit.IsInCombat)
+            {
+                _logger.LogWarning("Updating unit outside of the combat. UnitId={UnitId}", networkUnit.Id);
+            }
+
+            if (unit.Orientation != networkUnit.Orientation)
+            {
+                var previousOrientation = unit.Orientation;
+                _logger.LogInformation("Orientation has been updated. UnitId={UnitId}, PreviousOrientation={PreviousOrientation}, NewOrientation={NewOrientation}", unit.UniqueId, previousOrientation.ToString("F4"), unit.Orientation.ToString("F4"));
+                unit.Orientation = networkUnit.Orientation;
+            }
+
+            if (unit.Position.x != networkUnit.Position.X
+                || unit.Position.y != networkUnit.Position.Y
+                || unit.Position.z != networkUnit.Position.Z)
+            {
+                var newPosition = new Vector3(networkUnit.Position.X, networkUnit.Position.Y, networkUnit.Position.Z);
+                _logger.LogInformation("Updating unit position. UnitId={UnitId}, PreviousPosition={PreviousPosition}, NewPosition={NewPosition}", unit.UniqueId, unit.Position.ToString("F4"), newPosition.ToString("F4"));
+                unit.Translocate(newPosition, unit.Orientation);
+            }
         }
 
         private IEnumerable<ItemsCollection> GetLootContainers(NetworkLootContainer networkLootContainer)
