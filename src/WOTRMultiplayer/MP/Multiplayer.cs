@@ -925,7 +925,7 @@ namespace WOTRMultiplayer.MP
                 }
 
                 var banterSeed = _multiplayerActorAccessor.Current.RestBanterSeed;
-                var nextBanter = ValueGenerator.Range(banterSeed, minInclusive, maxExclusive);
+                var nextBanter = ValueGenerator.Range(Random.SeedLifetime.Persistent, banterSeed, minInclusive, maxExclusive);
                 _logger.LogInformation("Next rest banter has been selected. Seed={Seed}, Index={Index}", banterSeed, nextBanter);
                 return nextBanter;
             }

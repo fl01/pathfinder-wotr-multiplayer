@@ -6,8 +6,14 @@ namespace WOTRMultiplayer.Abstractions.Random
     {
         string GenerateUniqueId(UniqueIdType uniqueIdType, string gameId, string identifier);
 
-        int Range(int seed, int minInclusive, int maxExclusive);
+        int Range(SeedLifetime seedLifetime, int seed, int minInclusive, int maxExclusive);
 
-        void Reset(string gameId);
+        int Range(SeedLifetime seedLifetime, string seed, int minInclusive, int maxExclusive);
+
+        float Range(SeedLifetime seedLifetime, string seed, float minInclusive, float maxExclusive);
+
+        void ResetUniqueIdCounters(string gameId);
+
+        void ResetSeedGenerators(params SeedLifetime[] lifetimes);
     }
 }

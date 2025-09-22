@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.ComponentModel;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.Hashing;
@@ -11,7 +12,7 @@ namespace WOTRMultiplayer.Random
     public class PredictableValueGenerator : IValueGenerator
     {
         private readonly ConcurrentDictionary<string, UniqueIdCounters> _entityCounters = new();
-        private readonly ConcurrentDictionary<int, System.Random> _seedGenerators = new();
+        private readonly ConcurrentDictionary<int, Seed> _seedGenerators = new();
         private readonly ILogger<PredictableValueGenerator> _logger;
         private readonly IGameInteractionService _gameInteractionService;
         private readonly IHashService _hashService;
@@ -26,17 +27,49 @@ namespace WOTRMultiplayer.Random
             _hashService = hashService;
         }
 
-        public int Range(int seed, int minInclusive, int maxExclusive)
+        public int Range(SeedLifetime seedLifetime, int seed, int minInclusive, int maxExclusive)
         {
-            var generator = _seedGenerators.GetOrAdd(seed, k => new System.Random(k));
-            var result = generator.Next(minInclusive, maxExclusive);
+            var generator = GetSeed(seedLifetime, seed);
+            var result = generator.Random.Next(minInclusive, maxExclusive);
             return result;
         }
 
-        public void Reset(string gameId)
+        public int Range(SeedLifetime seedLifetime, string seed, int minInclusive, int maxExclusive)
+        {
+            var actualSeed = _hashService.Murmur3(seed);
+            return Range(seedLifetime, actualSeed, minInclusive, maxExclusive);
+        }
+
+        public float Range(SeedLifetime seedLifetime, string seed, float minInclusive, float maxExclusive)
+        {
+            var actualSeed = _hashService.Murmur3(seed);
+            var generator = GetSeed(seedLifetime, actualSeed);
+            var result = minInclusive + (float)generator.Random.NextDouble() * (maxExclusive - minInclusive);
+            return result;
+        }
+
+        private Seed GetSeed(SeedLifetime seedLifetime, int seed)
+        {
+            var seedGenerator = _seedGenerators.GetOrAdd(seed, k => new Seed { Lifetime = seedLifetime, Random = new System.Random(k) });
+            return seedGenerator;
+        }
+
+        public void ResetUniqueIdCounters(string gameId)
         {
             _entityCounters.TryRemove(gameId, out _);
-            _logger.LogInformation("Counters have been cleared. GameId={GameId}", gameId);
+        }
+
+        public void ResetSeedGenerators(params SeedLifetime[] lifetimes)
+        {
+            var lifetimesToRemove = lifetimes.ToHashSet();
+
+            var seedsToRemove = _seedGenerators.Where(x => lifetimesToRemove.Contains(x.Value.Lifetime)).ToList();
+            foreach (var seed in seedsToRemove)
+            {
+                _seedGenerators.TryRemove(seed.Key, out _);
+            }
+
+            _logger.LogInformation("Seeds generators have been cleared. LifetimeTypes={LifetimeTypes}", lifetimesToRemove);
         }
 
         public string GenerateUniqueId(UniqueIdType uniqueIdType, string gameId, string identifier)

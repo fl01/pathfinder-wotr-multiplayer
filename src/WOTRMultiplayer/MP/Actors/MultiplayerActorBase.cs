@@ -1059,7 +1059,7 @@ namespace WOTRMultiplayer.MP.Actors
         protected void ResetGameIdGenerator()
         {
             Logger.LogInformation("Resetting id counters. GameId={GameId}", Game.Id);
-            _valueGenerator.Reset(Game.Id);
+            _valueGenerator.ResetUniqueIdCounters(Game.Id);
         }
 
         protected void SoftReset()
@@ -1069,6 +1069,7 @@ namespace WOTRMultiplayer.MP.Actors
             Game.Combat = null;
             Game.Leveling = null;
             DiceRollStorage.Reset();
+            _valueGenerator.ResetSeedGenerators(Random.SeedLifetime.Area);
         }
 
         protected string StoreSaveFile(byte[] content)
