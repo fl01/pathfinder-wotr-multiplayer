@@ -362,7 +362,7 @@ namespace WOTRMultiplayer.MP.Actors
 
         public void OnShowGroupChangerUI()
         {
-            OnShowGroupManager();
+            OnShowGroupChanger();
 
             UpdateGroupManagerUIState(hasControlOverUI: false);
         }
@@ -491,8 +491,8 @@ namespace WOTRMultiplayer.MP.Actors
         private void OnNotifyGroupChangerPartyAccepted(long playerId, NotifyGroupChangerPartyAccepted groupChangerPartyAccepted)
         {
             Logger.LogInformation("Received {MessageType}", nameof(NotifyGroupChangerPartyAccepted));
-            Game.PlayersInGroupChanger.Clear();
             GameInteraction.AcceptGroupChangerParty();
+            ResetGroupChangerTracker();
         }
 
         private void OnNotifyGroupChangerUnitClicked(long playerId, NotifyGroupChangerUnitClicked groupChangerUnitClicked)
@@ -505,14 +505,14 @@ namespace WOTRMultiplayer.MP.Actors
         {
             Logger.LogInformation("Received {MessageType}", nameof(NotifyGroupChangerClosed));
 
-            Game.PlayersInGroupChanger.Clear();
             GameInteraction.CloseGroupChangerUI();
+            ResetGroupChangerTracker();
         }
 
         private void OnNotifyGroupChangerOpened(long playerId, NotifyGroupChangerOpened groupChangerOpened)
         {
             Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}", nameof(NotifyGroupChangerOpened), groupChangerOpened.PlayerId);
-            AddPlayersInGroupManager(groupChangerOpened.PlayerId);
+            AddPlayersInGroupChanger(groupChangerOpened.PlayerId);
             UpdateGroupManagerUIState(hasControlOverUI: false);
         }
 

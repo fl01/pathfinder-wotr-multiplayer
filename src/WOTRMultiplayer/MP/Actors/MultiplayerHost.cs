@@ -579,7 +579,7 @@ namespace WOTRMultiplayer.MP.Actors
 
         public void OnShowGroupChangerUI()
         {
-            OnShowGroupManager();
+            OnShowGroupChanger();
 
             UpdateGroupManagerUIState(hasControlOverUI: true);
         }
@@ -599,10 +599,15 @@ namespace WOTRMultiplayer.MP.Actors
 
         public bool OnClickGroupChangerUnit(string unitId)
         {
-            var canUse = Game.PlayersInGroupChanger.Count >= Game.Players.Count;
-            if (!canUse)
+            var everyoneIsReady = false;
+            lock (ActionLock)
             {
-                return canUse;
+                everyoneIsReady = Game.PlayersInGroupChanger.Count >= Game.Players.Count;
+            }
+
+            if (!everyoneIsReady)
+            {
+                return everyoneIsReady;
             }
 
             var message = new NotifyGroupChangerUnitClicked
@@ -622,6 +627,7 @@ namespace WOTRMultiplayer.MP.Actors
 
             Logger.LogInformation("Sending {MessageType}", nameof(NotifyGroupChangerPartyAccepted));
             Send(message);
+            ResetGroupChangerTracker();
         }
 
         public void OnGlobalMapRestMenuOpened()
@@ -836,7 +842,7 @@ namespace WOTRMultiplayer.MP.Actors
         private void OnNotifyGroupChangerVisible(long playerId, NotifyGroupChangerOpened groupChangerVisible)
         {
             Logger.LogInformation("Received {MessageType}. SenderPlayerId={SenderPlayerId} PlayerId={PlayerId}", nameof(NotifyGroupChangerOpened), playerId, groupChangerVisible.PlayerId);
-            AddPlayersInGroupManager(groupChangerVisible.PlayerId);
+            AddPlayersInGroupChanger(groupChangerVisible.PlayerId);
             UpdateGroupManagerUIState(hasControlOverUI: true);
 
             OnAfterNetworkMessageHandled(playerId, groupChangerVisible);

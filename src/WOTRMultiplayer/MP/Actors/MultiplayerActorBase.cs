@@ -891,10 +891,10 @@ namespace WOTRMultiplayer.MP.Actors
 
         protected abstract void Send(long playerId, object message);
 
-        protected void OnShowGroupManager()
+        protected void OnShowGroupChanger()
         {
             var localPlayer = GetLocalPlayerId();
-            AddPlayersInGroupManager(localPlayer);
+            AddPlayersInGroupChanger(localPlayer);
 
             var message = new NotifyGroupChangerOpened
             {
@@ -915,11 +915,19 @@ namespace WOTRMultiplayer.MP.Actors
             }
         }
 
-        protected void AddPlayersInGroupManager(long playerId)
+        protected void AddPlayersInGroupChanger(long playerId)
         {
             lock (ActionLock)
             {
                 Game.PlayersInGroupChanger.Add(playerId);
+            }
+        }
+
+        protected void ResetGroupChangerTracker()
+        {
+            lock (ActionLock)
+            {
+                Game.PlayersInGroupChanger.Clear();
             }
         }
 
