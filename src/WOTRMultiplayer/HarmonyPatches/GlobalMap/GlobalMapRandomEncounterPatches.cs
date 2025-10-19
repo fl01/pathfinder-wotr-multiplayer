@@ -52,7 +52,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
                 return;
             }
 
-            // not sure if location is always available during act2+ travels
+            // not sure if location is always available during act2+ travels due to navigation arrows
             var destination = new NetworkGlobalMapLocation
             {
                 Id = travelData.To.Location.AssetGuid.ToString(),
