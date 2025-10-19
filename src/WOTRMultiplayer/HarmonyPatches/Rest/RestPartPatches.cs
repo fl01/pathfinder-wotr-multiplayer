@@ -13,7 +13,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
     {
         [HarmonyPatch(typeof(RestPart), nameof(RestPart.OnInteract))]
         [HarmonyTranspiler]
-        public static IEnumerable<CodeInstruction> PlaceRestMarkerHandler_OnClick_Transpiler(IEnumerable<CodeInstruction> instructions)
+        public static IEnumerable<CodeInstruction> RestPart_OnInteract_Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
             var replaceWith = AccessTools.Method(typeof(CommonTranspilerReplacements), nameof(CommonTranspilerReplacements.GetPartyCharactersForGroupCommand));
