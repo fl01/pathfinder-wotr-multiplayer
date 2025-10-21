@@ -1,12 +1,12 @@
 ﻿using HarmonyLib;
 using Kingmaker;
-using Kingmaker.Blueprints.Classes;
 using Kingmaker.UI.MVVM._CommonView.CharGen.Phases.Skills;
 using Kingmaker.UI.MVVM._PCView.CharGen.Phases;
+using Kingmaker.UI.MVVM._PCView.GlobalMap;
 using Kingmaker.UI.MVVM._PCView.InGame;
 using Kingmaker.UI.MVVM._VM.CharGen.Phases;
-using Kingmaker.UI.MVVM._VM.CharGen.Phases.Class;
 using Kingmaker.UI.MVVM._VM.CharGen.Phases.Skills;
+using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.SelectionGroup;
 using WOTRMultiplayer.MP.Entities.Leveling;
 
@@ -24,7 +24,20 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
                 return;
             }
 
-            var charGenView = (Game.Instance.RootUiContext.m_UIView as InGamePCView).m_StaticPartPCView.m_CharGenContextPCView.m_CharGenPCView;
+            var charGenContext = Game.Instance.RootUiContext.m_UIView switch
+            {
+                InGamePCView inGamePCView => inGamePCView.m_StaticPartPCView.m_CharGenContextPCView,
+                GlobalMapPCView globalMapPCView => globalMapPCView.m_CharGenContextPCView,
+                _ => null
+            };
+
+            var charGenView = charGenContext?.m_CharGenPCView;
+            if (charGenView == null)
+            {
+                Main.GetLogger<CharGenPhaseDetailedBaseViewPatches>().LogError("Unable to find char gen pc view");
+                return;
+            }
+
             var roadMapVM = charGenView.RoadmapMenuView.GetViewModel() as SelectionGroupRadioVM<CharGenPhaseBaseVM>;
             var phaseVM = __instance.GetViewModel() as CharGenPhaseBaseVM;
             var phaseIndex = roadMapVM.EntitiesCollection.IndexOf(phaseVM);

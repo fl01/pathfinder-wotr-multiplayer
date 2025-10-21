@@ -104,6 +104,8 @@
             NotifySkipTimeClosed,
             NotifySkipTimeHoursChanged,
             NotifySkipTimeStarted,
+            NotifyGlobalMapTravelContinued,
+            NotifyGlobalMapTravelStopped,
         }
 
         public enum Request

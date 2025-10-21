@@ -20,6 +20,7 @@ using Kingmaker.EntitySystem.Entities;
 using Kingmaker.EntitySystem.Persistence;
 using Kingmaker.EntitySystem.Stats;
 using Kingmaker.GameModes;
+using Kingmaker.Globalmap;
 using Kingmaker.Globalmap.Blueprints;
 using Kingmaker.Globalmap.State;
 using Kingmaker.Globalmap.View;
@@ -111,8 +112,6 @@ namespace WOTRMultiplayer.GameInteraction
 
         public RemoteExecutionContext RemoteContext => _networkExecutionContext.Value;
 
-        public bool IsPaused => Game.Instance.IsPaused;
-
         public GameModeType CurrentGameMode => Game.Instance.CurrentMode;
 
         public string CampingPotionBlueprintRecipeId => Game.Instance.Player.Camping.SelectedPotion?.Item.AssetGuid.ToString();
@@ -131,10 +130,8 @@ namespace WOTRMultiplayer.GameInteraction
         private RestPCView RestView => InGamePCView?.m_StaticPartPCView?.m_RestContextPCView?.m_RestPCView ?? GlobalMapPCView?.m_RestPCView;
         private GroupChangerPCView GroupChangerView => (InGamePCView?.m_StaticPartPCView?.m_GroupChangerContextPCView ?? GlobalMapPCView?.m_GroupChangerContextPCView)?.m_GroupChangerPCView;
         private VendorVM VendorViewVM => InGamePCView?.m_StaticPartPCView?.m_VendorPCView?.GetViewModel() as VendorVM;
-        private SpellbookMemorizingPanelVM SpellbookMemorizingVM => InGamePCView.m_StaticPartPCView?.m_ServiceWindowsPCView?.m_SpellbookPCView?.m_MemorizingPanelView?.GetViewModel() as SpellbookMemorizingPanelVM;
-        private CharGenPCView CharGenView => InGamePCView.m_StaticPartPCView?.m_CharGenContextPCView?.m_CharGenPCView;
-
-        public bool IsRandomEncounter => (Game.Instance.RestController.Status?.NightRandomEncounter ?? false) || (Game.Instance.RestController.Status?.WasNightRandomEncounter ?? false);
+        private SpellbookMemorizingPanelVM SpellbookMemorizingVM => (InGamePCView?.m_StaticPartPCView?.m_ServiceWindowsPCView ?? GlobalMapPCView.m_ServiceWindowsPCView)?.m_SpellbookPCView?.m_MemorizingPanelView?.GetViewModel() as SpellbookMemorizingPanelVM;
+        private CharGenPCView CharGenView => (InGamePCView?.m_StaticPartPCView?.m_CharGenContextPCView ?? GlobalMapPCView?.m_CharGenContextPCView)?.m_CharGenPCView;
 
         public GameInteractionService(
             ILogger<GameInteractionService> logger,
@@ -2388,7 +2385,7 @@ namespace WOTRMultiplayer.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                var point = GlobalMapView.Instance.Points.FirstOrDefault(p => string.Equals(p.Blueprint.AssetGuid.ToString(), destination.Id, StringComparison.OrdinalIgnoreCase));
+                var point = GetGlobalMapPoint(destination.Id);
                 if (point == null)
                 {
                     _logger.LogError("Unable to find global map point. PointId={PointId}, PointName={PointName}", destination.Id, destination.Name);
@@ -2400,6 +2397,47 @@ namespace WOTRMultiplayer.GameInteraction
                 traveler.StartTravel(globalMapTravelData, true);
                 _logger.LogInformation("Global map traveler has been started. Destination={DestinationId}, DestinationName={DestinationName}", point.Blueprint.AssetGuid.ToString(), point.name);
             });
+        }
+
+        public bool IsAtGlobalMapLocation(string locationId)
+        {
+            var targetPoint = GetGlobalMapPoint(locationId);
+            return targetPoint != null && GlobalMapView.Instance.State.Player.Location == targetPoint.Blueprint;
+        }
+
+        public void ContinueGlobalMapTravel(NetworkGlobalMapState globalMapState)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                UpdateGlobalMapState(globalMapState);
+
+                GlobalMapUI.Instance.OnContinue();
+            });
+        }
+
+        public void StopGlobalMapTravel(NetworkGlobalMapState globalMapState)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                UpdateGlobalMapState(globalMapState);
+
+                GlobalMapUI.Instance.OnStop();
+            });
+        }
+
+        private void UpdateGlobalMapState(NetworkGlobalMapState globalMapState)
+        {
+            // not sure if player position is unavailable while army is selected (act2+), need to check later
+            if (globalMapState.Player?.Position != null)
+            {
+                GlobalMapView.Instance.State.Player.TravelData.EdgePosition = globalMapState.Player.Position.Edge;
+            }
+        }
+
+        private GlobalMapPointView GetGlobalMapPoint(string pointId)
+        {
+            var point = GlobalMapView.Instance.Points.FirstOrDefault(p => string.Equals(p.Blueprint.AssetGuid.ToString(), pointId, StringComparison.OrdinalIgnoreCase));
+            return point;
         }
 
         private void UpdateButtonTextCounter(TextMeshProUGUI buttonText, int readyPlayersCount, int totalPlayersCount)

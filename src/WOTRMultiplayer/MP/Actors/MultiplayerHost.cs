@@ -673,6 +673,31 @@ namespace WOTRMultiplayer.MP.Actors
             Send(message);
         }
 
+        public bool OnGlobalMapSelectLocation(string locationId)
+        {
+            return true;
+        }
+
+        public void OnGlobalMapContinueTravel(NetworkGlobalMapState globalMapState)
+        {
+            var message = new NotifyGlobalMapTravelContinued
+            {
+                State = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapState>(globalMapState)
+            };
+            Logger.LogInformation("Sending {MessageType}. PlayerEdge={PlayerEdge}", nameof(NotifyGlobalMapTravelContinued), message.State.Player.Position?.Edge);
+            Send(message);
+        }
+
+        public void OnGlobalMapStopTravel(NetworkGlobalMapState globalMapState)
+        {
+            var message = new NotifyGlobalMapTravelStopped
+            {
+                State = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapState>(globalMapState)
+            };
+            Logger.LogInformation("Sending {MessageType}. PlayerEdge={PlayerEdge}", nameof(NotifyGlobalMapTravelStopped), message.State.Player.Position?.Edge);
+            Send(message);
+        }
+
         protected override bool OnStartGameModeInternal(GameModeType type)
         {
             var playerId = GetLocalPlayerId();

@@ -372,6 +372,12 @@ namespace WOTRMultiplayer.MP.Actors
             return false;
         }
 
+        public bool OnGlobalMapSelectLocation(string locationId)
+        {
+            var canSelectLocation = GameInteraction.IsAtGlobalMapLocation(locationId);
+            return canSelectLocation;
+        }
+
         public void OnSkipTimeOpened()
         {
             OnSkipTimeOpened(hasControlOverUI: false);
@@ -489,7 +495,24 @@ namespace WOTRMultiplayer.MP.Actors
                // global map
                .On<NotifyGlobalMapRestMenuOpened>(OnNotifyGlobalMapRestMenuOpened)
                .On<NotifyGlobalMapTravelStarted>(OnNotifyGlobalMapTravelStarted)
+               .On<NotifyGlobalMapTravelStopped>(OnNotifyGlobalMapTravelStopped)
+               .On<NotifyGlobalMapTravelContinued>(OnNotifyGlobalMapTravelContinued)
                ;
+        }
+
+        private void OnNotifyGlobalMapTravelContinued(long playerId, NotifyGlobalMapTravelContinued globalMapTravelContinued)
+        {
+            Logger.LogInformation("Received {MessageType}. PlayerEdge={PlayerEdge}", nameof(NotifyGlobalMapTravelContinued), globalMapTravelContinued.State.Player.Position?.Edge);
+            var globalMapState = Mapper.Map<NetworkGlobalMapState>(globalMapTravelContinued.State);
+            GameInteraction.ContinueGlobalMapTravel(globalMapState);
+        }
+
+        private void OnNotifyGlobalMapTravelStopped(long playerId, NotifyGlobalMapTravelStopped globalMapTravelStopped)
+        {
+            Logger.LogInformation("Received {MessageType}. PlayerEdge={PlayerEdge}", nameof(NotifyGlobalMapTravelStopped), globalMapTravelStopped.State.Player.Position?.Edge);
+
+            var globalMapState = Mapper.Map<NetworkGlobalMapState>(globalMapTravelStopped.State);
+            GameInteraction.StopGlobalMapTravel(globalMapState);
         }
 
         private void OnNotifySkipTimeStarted(long playerId, NotifySkipTimeStarted skipTimeStarted)

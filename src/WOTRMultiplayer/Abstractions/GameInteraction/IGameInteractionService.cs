@@ -27,8 +27,6 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
     {
         RemoteExecutionContext RemoteContext { get; }
 
-        bool IsPaused { get; }
-
         GameModeType CurrentGameMode { get; }
 
         string CampingPotionBlueprintRecipeId { get; }
@@ -40,8 +38,6 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         bool CampingAutotuneIterationsStatus { get; }
 
         int CampingIterationsCount { get; }
-
-        bool IsRandomEncounter { get; }
 
         void LeaveArea(string areaExitId);
 
@@ -218,5 +214,11 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void UpdateSkipTimeHours(float hours);
 
         void StartSkipTime();
+
+        bool IsAtGlobalMapLocation(string locationId);
+
+        void ContinueGlobalMapTravel(NetworkGlobalMapState globalMapState);
+
+        void StopGlobalMapTravel(NetworkGlobalMapState globalMapState);
     }
 }

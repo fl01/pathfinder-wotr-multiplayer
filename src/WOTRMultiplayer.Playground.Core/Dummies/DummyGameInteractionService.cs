@@ -30,8 +30,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
     {
         public RemoteExecutionContext RemoteContext => null;
 
-        public bool IsPaused => false;
-
         public GameModeType CurrentGameMode => GameModeType.None;
 
         public string CampingPotionBlueprintRecipeId => null;
@@ -43,8 +41,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public bool CampingAutotuneIterationsStatus => false;
 
         public int CampingIterationsCount => -1;
-
-        public bool IsRandomEncounter => false;
 
         public void AddCombatText(string text)
         {
@@ -413,6 +409,19 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         }
 
         public void StartSkipTime()
+        {
+        }
+
+        public bool IsAtGlobalMapLocation(string locationId)
+        {
+            return true;
+        }
+
+        public void ContinueGlobalMapTravel(NetworkGlobalMapState globalMapState)
+        {
+        }
+
+        public void StopGlobalMapTravel(NetworkGlobalMapState globalMapState)
         {
         }
     }

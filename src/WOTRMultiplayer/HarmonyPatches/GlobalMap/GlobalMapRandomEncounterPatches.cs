@@ -1,7 +1,13 @@
 ﻿using HarmonyLib;
+using Kingmaker;
 using Kingmaker.Assets.Controllers.GlobalMap;
+using Kingmaker.Globalmap;
 using Kingmaker.Globalmap.State;
+using Kingmaker.Globalmap.View;
 using Kingmaker.UI.GlobalMap;
+using Kingmaker.UI.MVVM._PCView.Common;
+using Kingmaker.UI.MVVM._PCView.GlobalMap.Message;
+using Kingmaker.UI.MVVM._VM.GlobalMap.Message;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.MP.Entities.GlobalMap;
 
@@ -34,13 +40,6 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
         public static void GlobalMapRandomEncounterController_OnRandomEncounterStarted_Prefix()
         {
             Main.GetLogger<GlobalMapRandomEncounterPatches>().LogWarning("On Random Encounter");
-        }
-
-        [HarmonyPatch(typeof(GlobalMapMessageBox), nameof(GlobalMapMessageBox.OnLocationSelect))]
-        [HarmonyPrefix]
-        public static void GlobalMapMessageBox_OnLocationSelect_Prefix()
-        {
-            Main.GetLogger<GlobalMapRandomEncounterPatches>().LogWarning("GlobalMapMessageBox_OnLocationSelect_Prefix");
         }
 
         [HarmonyPatch(typeof(GlobalMapPlayerState), nameof(GlobalMapPlayerState.StartTravel))]
@@ -83,9 +82,102 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
                 return;
             }
 
+            var modalMessage = (Game.Instance.RootUiContext.m_CommonView as CommonPCView).m_MessageModalPCView;
+            modalMessage.m_AcceptButton.Interactable = false;
             var locationId = traveler.Location.AssetGuid.ToString();
-            //Main.Multiplayer.OnGlobalMapAfterShowCollectIngredient(locationId);
-            Main.GetLogger<GlobalMapRandomEncounterPatches>().LogWarning("OnGlobalMapAfterShowCollectIngredient. LocationId={LocationId}", locationId);
+            Main.GetLogger<GlobalMapRandomEncounterPatches>().LogWarning("Show ingridients confirmation. LocationId={LocationId}", locationId);
+        }
+
+        [HarmonyPatch(typeof(GlobalMapEnterMessagePCView), nameof(GlobalMapEnterMessagePCView.BindViewImplementation))]
+        [HarmonyPostfix]
+        public static void GlobalMapEnterMessagePCView_BindViewImplementation_Postfix(GlobalMapEnterMessagePCView __instance)
+        {
+            if (!Main.Multiplayer.IsActive || __instance.GetViewModel() is not GlobalMapEnterMessageVM messageVM || !messageVM.IsCurrentLocation)
+            {
+                __instance.m_AcceptButton.Interactable = true;
+                return;
+            }
+
+            __instance.m_AcceptButton.Interactable = false;
+            Main.GetLogger<GlobalMapRandomEncounterPatches>().LogWarning("Enter target location message box confirmation");
+        }
+
+        [HarmonyPatch(typeof(GlobalMapEnterMessageVM), nameof(GlobalMapEnterMessageVM.Close))]
+        [HarmonyPrefix]
+        public static void GlobalMapEnterMessageVM_Close_Prefix()
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            Main.GetLogger<GlobalMapRandomEncounterPatches>().LogWarning("Close 'Enter location' message box");
+        }
+
+        [HarmonyPatch(typeof(GlobalMapEnterMessageVM), nameof(GlobalMapEnterMessageVM.CanLocationSelect))]
+        [HarmonyPostfix]
+        public static void GlobalMapEnterMessageVM_CanLocationSelect_Prefix(GlobalMapPointView locationView, ref bool __result)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            var locationId = locationView.Blueprint.AssetGuid.ToString();
+            var canSelectLocation = Main.Multiplayer.OnGlobalMapSelectLocation(locationId);
+            __result = __result && canSelectLocation;
+        }
+
+        [HarmonyPatch(typeof(GlobalMapUI), nameof(GlobalMapUI.OnContinue))]
+        [HarmonyPrefix]
+        public static void GlobalMapUI_OnContinue_Prefix()
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            var globalMapState = GetGlobalMapState();
+            Main.Multiplayer.OnGlobalMapContinueTravel(globalMapState);
+        }
+
+        [HarmonyPatch(typeof(GlobalMapUI), nameof(GlobalMapUI.OnStop))]
+        [HarmonyPrefix]
+        public static void GlobalMapUI_OnStop_Prefix()
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            var globalMapState = GetGlobalMapState();
+            Main.Multiplayer.OnGlobalMapStopTravel(globalMapState);
+        }
+
+        private static NetworkGlobalMapState GetGlobalMapState()
+        {
+            var state = new NetworkGlobalMapState
+            {
+                Player = new NetworkGlobalMapTraveler
+                {
+                    Position = GetGlobalMapPosition(GlobalMapView.Instance.State.Player?.Position),
+                },
+            };
+            return state;
+        }
+
+        private static NetworkGlobalMapPosition GetGlobalMapPosition(GlobalMapPosition globalMapPosition)
+        {
+            if (globalMapPosition == null)
+            {
+                return null;
+            }
+
+            var position = new NetworkGlobalMapPosition
+            {
+                Edge = globalMapPosition.EdgePosition
+            };
+            return position;
         }
     }
 }

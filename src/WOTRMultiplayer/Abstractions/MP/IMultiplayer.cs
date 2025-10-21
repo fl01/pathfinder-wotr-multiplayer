@@ -200,5 +200,11 @@ namespace WOTRMultiplayer.Abstractions.MP
         void OnSkipTimeHoursChanged(float hours);
 
         void OnSkipTimeStarted();
+
+        bool OnGlobalMapSelectLocation(string locationId);
+
+        void OnGlobalMapContinueTravel(NetworkGlobalMapState globalMapState);
+
+        void OnGlobalMapStopTravel(NetworkGlobalMapState globalMapState);
     }
 }

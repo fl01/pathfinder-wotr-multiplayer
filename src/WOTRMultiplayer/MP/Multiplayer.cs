@@ -1650,6 +1650,61 @@ namespace WOTRMultiplayer.MP
             }
         }
 
+        public bool OnGlobalMapSelectLocation(string locationId)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return true;
+                }
+
+                var canSelect = _multiplayerActorAccessor.Current.OnGlobalMapSelectLocation(locationId);
+                return canSelect;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while selecting global map location. LocationId={LocationId}", locationId);
+                throw;
+            }
+        }
+
+        public void OnGlobalMapContinueTravel(NetworkGlobalMapState globalMapState)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnGlobalMapContinueTravel(globalMapState);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while trying to continue global map travel");
+                throw;
+            }
+        }
+
+        public void OnGlobalMapStopTravel(NetworkGlobalMapState globalMapState)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnGlobalMapStopTravel(globalMapState);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while trying to stop global map travel");
+                throw;
+            }
+        }
+
         private void ShowEscMenuMultiplayerLobby()
         {
             _logger.LogInformation("Show lobby window");
