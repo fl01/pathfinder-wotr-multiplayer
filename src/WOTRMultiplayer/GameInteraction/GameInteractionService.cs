@@ -2608,6 +2608,7 @@ namespace WOTRMultiplayer.GameInteraction
                     combatRandomEncounterData.RandomCombat = CombatRandomEncountersGenerator.GenerateRandomEncounter(globalMapEncounter.Seed, GlobalMapView.Instance.CurrentZone, component, null);
                     RandomEncountersController.State.Player.StartEncounter(combatRandomEncounterData);
                     Game.Instance.RandomEncountersController.m_LastStartedEncounter = RandomEncountersController.State.Player.CurrentEncounterData;
+                    Game.Instance.Player.REManager.OnGlobalMapEncounterStarted(encounter, false);
                     _logger.LogInformation("Global map encounter has been rolled. BlueprintId={BlueprintId}, Seed={Seed}, AvoidanceResult={AvoidanceResult}", globalMapEncounter.BlueprintId, globalMapEncounter.Seed, globalMapEncounter.AvoidanceResult);
                 }
                 catch (Exception ex)
