@@ -38,7 +38,7 @@ jobs:
     timeout-minutes: 10
     env:
       WOTR_PATH: ../../libs
-      LOCALIZATION_PATH: ..\..\localization
+      LOCALIZATION_PATH: .\\localization
       BUILD_PATH: ".\\src\\WOTRMultiplayer\\bin\\Release\\net481"
       RELEASE_OUTPUT_PATH: ".\\__releases\\WOTRMultiplayer"
       CURRENT_VERSION: ${{needs.get-version.outputs.version}}
