@@ -15,11 +15,7 @@ namespace WOTRMultiplayer.UI.Settings
         public override void OnValueChanged(string value)
         {
             _settingEntity.SetTempValue(value);
-            if (_settingEntity.Validator != null)
-            {
-                var validation = _settingEntity.Validator.Validate(value);
-                IsValid.Value = validation.IsValid;
-            }
+            IsValid.Value = _settingEntity.Validator?.Validate(value).IsValid ?? true;
         }
     }
 }

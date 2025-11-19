@@ -14,16 +14,14 @@ namespace WOTRMultiplayer.UI.Settings
 
         public override void OnValueChanged(string value)
         {
-            if (int.TryParse(value?.Trim(), out var intValue))
+            if (!int.TryParse(value?.Trim(), out var intValue))
             {
-                _settingEntity.SetTempValue(intValue);
+                IsValid.Value = false;
+                return;
             }
 
-            if (_settingEntity.Validator != null)
-            {
-                var validation = _settingEntity.Validator.Validate(intValue);
-                IsValid.Value = validation.IsValid;
-            }
+            _settingEntity.SetTempValue(intValue);
+            IsValid.Value = _settingEntity.Validator?.Validate(intValue).IsValid ?? true;
         }
     }
 }
