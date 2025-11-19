@@ -118,6 +118,16 @@ namespace WOTRMultiplayer.Localization
                 {
                     public static string Key { get; set; }
                 }
+
+                [Description("deactivation")]
+                public static class Deactivation
+                {
+                    [Description("hosting")]
+                    public static class Hosting
+                    {
+                        public static string Key { get; set; }
+                    }
+                }
             }
 
             [Description("joinMenu")]
@@ -162,6 +172,22 @@ namespace WOTRMultiplayer.Localization
                 {
                     [Description("placeholder")]
                     public static class Placeholder
+                    {
+                        public static string Key { get; set; }
+                    }
+                }
+
+                [Description("deactivation")]
+                public static class Deactivation
+                {
+                    [Description("connected")]
+                    public static class Connected
+                    {
+                        public static string Key { get; set; }
+                    }
+
+                    [Description("connecting")]
+                    public static class Connecting
                     {
                         public static string Key { get; set; }
                     }
@@ -345,6 +371,196 @@ namespace WOTRMultiplayer.Localization
                     {
                         public static string Key { get; set; }
                     }
+                }
+            }
+        }
+
+        [Description("multiplayerClient")]
+        public static class MultiplayerClient
+        {
+            [Description("errors")]
+            public static class Errors
+            {
+                [Description("invalidAddress")]
+                public static class InvalidAddress
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("invalidPort")]
+                public static class InvalidPort
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("disconnected")]
+                public static class Disconnected
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("genericError")]
+                public static class GenericError
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("networkError")]
+                public static class NetworkError
+                {
+                    public static string Key { get; set; }
+                }
+            }
+        }
+
+        [Description("gameNotifications")]
+        public static class GameNotifications
+        {
+            [Description("rolls")]
+            public static class Rolls
+            {
+                [Description("failedToAcquireRemoteDamageRoll")]
+                public static class FailedToAcquireRemoteDamageRoll
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("failedToAcquireRemoteHealRoll")]
+                public static class FailedToAcquireRemoteHealRoll
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("failedToAcquireRemoteRoll")]
+                public static class FailedToAcquireRemoteRoll
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("invalidRemoteDamageRoll")]
+                public static class InvalidRemoteDamageRoll
+                {
+                    public static string Key { get; set; }
+                }
+            }
+
+            [Description("rest")]
+            public static class Rest
+            {
+                [Description("noCampingPermission")]
+                public static class NoCampingPermission
+                {
+                    public static string Key { get; set; }
+                }
+            }
+
+            [Description("leveling")]
+            public static class Leveling
+            {
+                [Description("completed")]
+                public static class Completed
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("terminated")]
+                public static class Terminated
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("ArchetypeContentMismatch")]
+                public static class ArchetypeContentMismatch
+                {
+                    public static string Key { get; set; }
+                }
+            }
+
+            [Description("session")]
+            public static class Session
+            {
+                [Description("playerJoined")]
+                public static class PlayerJoined
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("playerLeft")]
+                public static class PlayerLeft
+                {
+                    public static string Key { get; set; }
+                }
+            }
+
+            [Description("spellBook")]
+            public static class SpellBook
+            {
+                [Description("noSpellSlotPermission")]
+                public static class NoSpellSlotPermission
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("memorizedSpell")]
+                public static class MemorizedSpell
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("forgottenSpell")]
+                public static class ForgottenSpell
+                {
+                    public static string Key { get; set; }
+                }
+            }
+
+            [Description("forcedPause")]
+            public static class ForcedPause
+            {
+                [Description("noPermission")]
+                public static class NoPermission
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("areaLoading")]
+                public static class AreaLoading
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("restRandomEncounterLoading")]
+                public static class RestRandomEncounterLoading
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("notSyncedPauseYet")]
+                public static class NotSyncedPauseYet
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("noTrapDetectedYet")]
+                public static class NoTrapDetectedYet
+                {
+                    public static string Key { get; set; }
+                }
+            }
+
+            [Description("combat")]
+            public static class Combat
+            {
+                [Description("clientTurnOrderDesync")]
+                public static class ClientTurnOrderDesync
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("hostTurnOrderDesync")]
+                public static class HostTurnOrderDesync
+                {
+                    public static string Key { get; set; }
                 }
             }
         }

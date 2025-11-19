@@ -15,6 +15,7 @@ using WOTRMultiplayer.Abstractions.MP.Actors;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.GameInteraction.Contexts;
+using WOTRMultiplayer.Localization;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Combat;
 using WOTRMultiplayer.MP.Entities.Dialogs;
@@ -28,7 +29,6 @@ using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
 using WOTRMultiplayer.Networking.Messages.Requests;
-using WOTRMultiplayer.UI;
 
 namespace WOTRMultiplayer.MP.Actors
 {
@@ -37,7 +37,7 @@ namespace WOTRMultiplayer.MP.Actors
         private readonly IIPEndPointParser _ipEndPointParser;
         private readonly INetworkClient _networkClient;
 
-        public Action<string> OnNetworkError { get; set; }
+        public Action OnNetworkError { get; set; }
 
         public Action<NetworkGameConnectivity> OnConnected { get; set; }
 
@@ -84,12 +84,12 @@ namespace WOTRMultiplayer.MP.Actors
             var endpoint = _ipEndPointParser.Parse(address);
             if (endpoint == null)
             {
-                return AddressParseResult.Error(UIStringConsts.MultiplayerClient.Errors.InvalidIP);
+                return AddressParseResult.Error(WellKnownKeys.MultiplayerClient.Errors.InvalidAddress.Key);
             }
 
             if (endpoint.Port == 0)
             {
-                return AddressParseResult.Error(UIStringConsts.MultiplayerClient.Errors.InvalidPort);
+                return AddressParseResult.Error(WellKnownKeys.MultiplayerClient.Errors.InvalidPort.Key);
             }
 
             SetupNetworkMessageHandlers();
@@ -250,7 +250,7 @@ namespace WOTRMultiplayer.MP.Actors
 
                 if (context.PreRecorded.RandomUnitSeed.HasValue)
                 {
-                    EnsureForcePaused(UIStringConsts.GameNotifications.ForcedPauseReasons.RandomEncounterLoading);
+                    EnsureForcePaused(WellKnownKeys.GameNotifications.ForcedPause.RestRandomEncounterLoading.Key);
                     GameInteraction.Pause(true);
                 }
             }
@@ -327,7 +327,7 @@ namespace WOTRMultiplayer.MP.Actors
         {
             if (Game.ForcedPause != null && isPaused)
             {
-                var warningText = string.IsNullOrEmpty(Game.ForcedPause.Reason) ? UIStringConsts.GameNotifications.TryingToUnpauseAsAClient : Game.ForcedPause.Reason;
+                var warningText = string.IsNullOrEmpty(Game.ForcedPause.Reason) ? WellKnownKeys.GameNotifications.ForcedPause.NoPermission.Key : Game.ForcedPause.Reason;
                 GameInteraction.ShowWarningNotification(warningText);
             }
 
@@ -372,6 +372,12 @@ namespace WOTRMultiplayer.MP.Actors
         {
             var canSelectLocation = GameInteraction.IsAtGlobalMapLocation(globalMapLocation);
             return canSelectLocation;
+        }
+
+        public bool OnSpawnCampPlace(NetworkVector3 position)
+        {
+            GameInteraction.ShowWarningNotification(WellKnownKeys.GameNotifications.Rest.NoCampingPermission.Key);
+            return false;
         }
 
         protected override bool OnStartGameModeInternal(GameModeType type)
@@ -647,7 +653,7 @@ namespace WOTRMultiplayer.MP.Actors
         private void OnNotifyInvalidCombatTurnStarted(long playerId, NotifyInvalidCombatTurnStarted started)
         {
             Logger.LogInformation("Received {MessageType}. UnitId={UnitId}", nameof(NotifyInvalidCombatTurnStarted), started.UnitId);
-            GameInteraction.AddCombatText(UIStringConsts.GameNotifications.CombatLog.ClientIsFixingCombaTurnOrderDesync);
+            GameInteraction.AddCombatText(WellKnownKeys.GameNotifications.Combat.ClientTurnOrderDesync.Key);
             Game.Combat.Turn = null;
             GameInteraction.StartTurnBasedCombatTurn(started.UnitId);
         }
@@ -988,41 +994,38 @@ namespace WOTRMultiplayer.MP.Actors
 
         private void OnNetworkClientError(Exception exception)
         {
-            if (exception is SocketException socketException)
+            // should never happen?
+            if (exception is not SocketException socketException)
             {
-                string error = string.Empty;
-                switch (socketException.SocketErrorCode)
-                {
-                    case SocketError.OperationAborted: // client disconnected by a user
-                        Logger.LogWarning("Skipping notification. SocketCode={SocketCode}", socketException.SocketErrorCode);
-                        break;
-                    case SocketError.ConnectionReset:
-                    case SocketError.Success:
-                        error = "You have been disconnected.";
-                        break;
-                    default:
-                        error = $"Network error occurred. Error code: {socketException.SocketErrorCode}";
-                        break;
-                }
-
-                InvokeOnNetworkError(error);
+                Logger.LogError(exception, "Generic error occurred");
+                InvokeOnNetworkError(WellKnownKeys.MultiplayerClient.Errors.GenericError.Key);
                 return;
             }
 
-            // should never happen?
-            Logger.LogError(exception, "Generic network error occurred");
-            InvokeOnNetworkError("Generic network error occurred.");
+            string error = string.Empty;
+            SocketError? socketError = null;
+            switch (socketException.SocketErrorCode)
+            {
+                case SocketError.OperationAborted: // client disconnected by a user
+                    Logger.LogWarning("Skipping notification. SocketCode={SocketCode}", socketException.SocketErrorCode);
+                    break;
+                case SocketError.ConnectionReset:
+                case SocketError.Success:
+                    error = WellKnownKeys.MultiplayerClient.Errors.Disconnected.Key;
+                    break;
+                default:
+                    socketError = socketException.SocketErrorCode;
+                    error = WellKnownKeys.MultiplayerClient.Errors.NetworkError.Key;
+                    break;
+            }
+
+            InvokeOnNetworkError(error, socketError);
         }
 
-        private void InvokeOnNetworkError(string error)
+        private void InvokeOnNetworkError(string error, SocketError? socketError = null)
         {
-            if (string.IsNullOrEmpty(error))
-            {
-                return;
-            }
-
-            OnNetworkError?.Invoke(error);
-            GameInteraction.ShowModalMessage(error);
+            OnNetworkError?.Invoke();
+            GameInteraction.ShowModalMessage(error, socketError);
         }
 
         private void OnGameServerConnectionSucceeded(long playerId, GameServerConnectionSucceeded succeeded)

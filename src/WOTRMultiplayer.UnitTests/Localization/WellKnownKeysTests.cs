@@ -20,6 +20,10 @@ namespace WOTRMultiplayer.UnitTests.Localization
             Assert.That(key, Contains.Substring(WellKnownKeys.KeyPathSeparator), "Atleast one key path separator is expected");
         }
 
+        /// <summary>
+        /// no reason to fully cover each key as it's essentially the same method that does key path building
+        /// </summary>
+        /// <returns></returns>
         private static IEnumerable<WellKnownKeyTestCase> GetWellKnownKeysTestCases()
         {
             yield return new WellKnownKeyTestCase { Name = "settings->title", Key = () => WellKnownKeys.Settings.Title.Key };
@@ -53,6 +57,7 @@ namespace WOTRMultiplayer.UnitTests.Localization
             yield return new WellKnownKeyTestCase { Name = "multiplayerWindow->hostMenu->readyButton->readyText", Key = () => WellKnownKeys.MultiplayerWindow.HostMenu.ReadyButton.ReadyText.Key };
             yield return new WellKnownKeyTestCase { Name = "multiplayerWindow->hostMenu->readyButton->notReadyText", Key = () => WellKnownKeys.MultiplayerWindow.HostMenu.ReadyButton.NotReadyText.Key };
             yield return new WellKnownKeyTestCase { Name = "multiplayerWindow->hostMenu->startButton->title", Key = () => WellKnownKeys.MultiplayerWindow.HostMenu.StartButton.Key };
+            yield return new WellKnownKeyTestCase { Name = "multiplayerWindow->joinMenu->deactivation->hosting", Key = () => WellKnownKeys.MultiplayerWindow.HostMenu.Deactivation.Hosting.Key };
 
             yield return new WellKnownKeyTestCase { Name = "multiplayerWindow->joinMenu->title", Key = () => WellKnownKeys.MultiplayerWindow.JoinMenu.Title.Key };
             yield return new WellKnownKeyTestCase { Name = "multiplayerWindow->joinMenu->hostButton->title", Key = () => WellKnownKeys.MultiplayerWindow.JoinMenu.JoinButton.Key };
@@ -60,10 +65,14 @@ namespace WOTRMultiplayer.UnitTests.Localization
             yield return new WellKnownKeyTestCase { Name = "multiplayerWindow->joinMenu->readyButton->notReadyText", Key = () => WellKnownKeys.MultiplayerWindow.JoinMenu.ReadyButton.NotReadyText.Key };
             yield return new WellKnownKeyTestCase { Name = "multiplayerWindow->joinMenu->leaveButton->title", Key = () => WellKnownKeys.MultiplayerWindow.JoinMenu.LeaveButton.Key };
             yield return new WellKnownKeyTestCase { Name = "multiplayerWindow->joinMenu->serverAddress->placeholder", Key = () => WellKnownKeys.MultiplayerWindow.JoinMenu.ServerAddress.Placeholder.Key };
+            yield return new WellKnownKeyTestCase { Name = "multiplayerWindow->joinMenu->deactivation->connecting", Key = () => WellKnownKeys.MultiplayerWindow.JoinMenu.Deactivation.Connecting.Key };
+            yield return new WellKnownKeyTestCase { Name = "multiplayerWindow->joinMenu->deactivation->connected", Key = () => WellKnownKeys.MultiplayerWindow.JoinMenu.Deactivation.Connected.Key };
 
             yield return new WellKnownKeyTestCase { Name = "lobbyWindow->server->title", Key = () => WellKnownKeys.LobbyWindow.Server.Title.Key };
             yield return new WellKnownKeyTestCase { Name = "lobbyWindow->players->title", Key = () => WellKnownKeys.LobbyWindow.Players.Title.Key };
             yield return new WellKnownKeyTestCase { Name = "lobbyWindow->characters->title", Key = () => WellKnownKeys.LobbyWindow.Characters.Title.Key };
+
+            yield return new WellKnownKeyTestCase { Name = "gameNotifications->rolls->failedToAcquireRemoteDamageRoll", Key = () => WellKnownKeys.GameNotifications.Rolls.FailedToAcquireRemoteDamageRoll.Key };
         }
     }
 }

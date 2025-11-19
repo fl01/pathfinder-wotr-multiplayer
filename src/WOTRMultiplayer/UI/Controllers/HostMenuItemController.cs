@@ -338,7 +338,7 @@ namespace WOTRMultiplayer.UI.Controllers
             {
                 return new ModalActionConfirmation
                 {
-                    Text = UIStringConsts.MultiplayerWindow.HostMenu.TerminateServerMessage
+                    MessageKey = WellKnownKeys.MultiplayerWindow.HostMenu.Deactivation.Hosting.Key
                 };
             }
 

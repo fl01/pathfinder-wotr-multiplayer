@@ -23,7 +23,6 @@ using WOTRMultiplayer.MP.Entities.Movement;
 using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Spells;
 using WOTRMultiplayer.MP.Entities.Vendor;
-using WOTRMultiplayer.UI;
 using WOTRMultiplayer.UI.Menu;
 
 namespace WOTRMultiplayer.MP
@@ -744,13 +743,7 @@ namespace WOTRMultiplayer.MP
                     return true;
                 }
 
-                if (_multiplayerActorAccessor.Client.IsActive)
-                {
-                    _gameInteractionService.ShowWarningNotification(UIStringConsts.GameNotifications.TryingToSetUpCampAsAClient);
-                    return false;
-                }
-
-                var canContinue = _multiplayerActorAccessor.Host.OnSpawnCampPlace(position);
+                var canContinue = _multiplayerActorAccessor.Current.OnSpawnCampPlace(position);
                 return canContinue;
             }
             catch (Exception ex)

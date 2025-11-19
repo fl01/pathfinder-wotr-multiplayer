@@ -59,11 +59,11 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         List<NetworkCharacterOwnership> GetPartyPlayers();
 
-        void ShowModalMessage(string error);
+        void ShowModalMessage(string messageKey, params object[] args);
 
-        void ShowWarningNotification(string text);
+        void ShowWarningNotification(string messageKey, params object[] args);
 
-        void AddCombatText(string text);
+        void AddCombatText(string messageKey, params object[] args);
 
         bool IsUnitAI(string unitId);
 

@@ -23,8 +23,6 @@ namespace WOTRMultiplayer.Abstractions.MP.Actors
         void OnPerceptionCheck(NetworkPerceptionCheck check);
         void OnInspectionKnowledgeCheck(NetworkInspectionKnowledgeCheck check);
 
-        bool OnSpawnCampPlace(NetworkVector3 position);
-
         void OnCampingUseHealingSpellsChanged(bool isOn);
 
         void OnCampingStateChanged(NetworkCampingState state);

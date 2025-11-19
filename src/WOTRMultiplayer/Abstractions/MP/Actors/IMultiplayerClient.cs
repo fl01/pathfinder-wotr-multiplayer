@@ -10,7 +10,7 @@ namespace WOTRMultiplayer.Abstractions.MP.Actors
 
         bool IsConnecting { get; }
 
-        Action<string> OnNetworkError { get; set; }
+        Action OnNetworkError { get; set; }
 
         Action<List<NetworkCharacterOwnership>> OnGameCharactersChanged { get; set; }
 

@@ -21,7 +21,10 @@
                     "readyText": "Ready",
                     "notReadyText": "Not Ready"
                 },
-                "startButton": "Start"
+                "startButton": "Start",
+                "deactivation": {
+                    "hosting": "You are currently hosting a game. Proceeding with this action will result in game termination."
+                }
             },
             "joinMenu": {
                 "title": "Join",
@@ -33,6 +36,10 @@
                 "leaveButton": "Leave",
                 "serverAddress": {
                     "placeholder": "Enter ip:port"
+                },
+                "deactivation": {
+                    "connected": "You are currently in a game. Proceeding with this action will result in leaving it",
+                    "connecting": "Can't leave while connecting.\nPlease wait"
                 }
             }
         },
@@ -84,6 +91,51 @@
                     "title": "Rest Encounter 'Forced pause' timeout",
                     "tooltip": "Delay to lift forced pause once random rest encounter is synchronized for everyone.\nBasic format is 00:00:00 (but not limited to) which means Hours:Minutes:Seconds"
                 }
+            }
+        },
+        "multiplayerClient": {
+            "errors": {
+                "invalidAddress": "Unable to parse provided server address.\nPlease verify your input.",
+                "invalidPort": "Invalid port specified.\nAcceptable range is '0 > port <= 65535'.",
+                "disconnected": "You have been disconnected",
+                "genericError": "Generic error occurred",
+                "networkError": "Network error occurred. Error code: {0}"
+            }
+        },
+        "gameNotifications": {
+            "rolls": {
+                "failedToAcquireRemoteDamageRoll": "Failed to acquire damage roll from remote player which guarantees desync in the game",
+                "failedToAcquireRemoteHealRoll": "Failed to acquire heal roll from remote player which guarantees desync in the game",
+                "failedToAcquireRemoteRoll": "Failed to acquire {0} roll from remote player which guarantees desync in the game",
+                "invalidRemoteDamageRoll": "Network damage contains an invalid number of damage values which guarantees desync in the game"
+            },
+            "rest": {
+                "noCampingPermission": "Camp can be placed by the host only"
+            },
+            "leveling": {
+                "completed": "{0}'s leveling has been completed",
+                "terminated": "{0}'s leveling has been terminated",
+                "archetypeContentMismatch": "Unable to select archetype due to mismatched game content (DLCs/mods)"
+            },
+            "session": {
+                "playerJoined": "Player {0} has joined the game",
+                "playerLeft": "Player {0} has left the game"
+            },
+            "spellBook": {
+                "noSpellSlotPermission": "Changing spells is restricted to character owner only",
+                "memorizedSpell": "{0} has been memorized by {1}",
+                "forgottenSpell": "{0} has been forgotten by {1}"
+            },
+            "forcedPause": {
+                "noPermission": "Pause can be removed by host only",
+                "areaLoading": "Please wait for other players to finish loading the area",
+                "restRandomEncounterLoading": "Please wait for other players to finish loading the random encounter",
+                "notSyncedPauseYet": "Can't unpause until everyone is paused",
+                "noTrapDetectedYet": "Waiting for everyone to detect trap"
+            },
+            "combat": {
+                "clientTurnOrderDesync": "Turn order has been overriden by Host due to detected desync",
+                "hostTurnOrderDesync": "Player {0} is trying to start different character turn, forcing to start the same one"
             }
         }
     }

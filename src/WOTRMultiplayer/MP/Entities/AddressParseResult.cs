@@ -4,13 +4,13 @@
     {
         public bool IsOk { get; set; }
 
-        public string Message { get; set; }
+        public string MessageKey { get; set; }
 
-        public static AddressParseResult Error(string message)
+        public static AddressParseResult Error(string messageKey)
         {
             return new AddressParseResult
             {
-                Message = message,
+                MessageKey = messageKey,
                 IsOk = false
             };
         }

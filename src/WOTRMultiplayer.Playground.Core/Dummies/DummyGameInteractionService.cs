@@ -42,7 +42,7 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
 
         public int CampingIterationsCount => -1;
 
-        public void AddCombatText(string text)
+        public void AddCombatText(string messageKey, params object[] args)
         {
         }
 
@@ -282,11 +282,11 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void ShowModalMessage(string error)
+        public void ShowModalMessage(string messageKey, params object[] args)
         {
         }
 
-        public void ShowWarningNotification(string text)
+        public void ShowWarningNotification(string messageKey, params object[] args)
         {
         }
 

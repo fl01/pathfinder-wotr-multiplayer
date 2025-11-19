@@ -74,7 +74,7 @@ namespace WOTRMultiplayer.Playground.Client
                     break;
                 case CommandVerbs.ConnectCommandVerb connect:
                     var result = client.Connect(connect.ServerAddress);
-                    Console.WriteLine(result.Message);
+                    Console.WriteLine(result.MessageKey);
                     break;
                 case CommandVerbs.ExitCommandVerb:
                     Environment.Exit(0);

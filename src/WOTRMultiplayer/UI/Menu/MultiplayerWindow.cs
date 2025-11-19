@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using DG.Tweening;
+using Kingmaker.Localization;
 using Kingmaker.PubSubSystem;
 using Kingmaker.UI;
 using Kingmaker.UI.FullScreenUITypes;
@@ -164,7 +165,8 @@ namespace WOTRMultiplayer.UI.Menu
                 _logger.LogInformation("Deactivation confirmation required");
 
                 var onModalClosed = confirmation.ModalType == MessageModalBase.ModalType.Dialog ? onCofirmDeactivation : null;
-                EventBus.RaiseEvent<IMessageModalUIHandler>(x => x.HandleOpen(confirmation.Text, confirmation.ModalType, onModalClosed));
+                var message = new LocalizedString { Key = confirmation.MessageKey };
+                EventBus.RaiseEvent<IMessageModalUIHandler>(x => x.HandleOpen(message, confirmation.ModalType, onModalClosed));
                 return;
             }
 

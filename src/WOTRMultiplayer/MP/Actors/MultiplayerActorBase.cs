@@ -14,6 +14,7 @@ using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.Settings;
+using WOTRMultiplayer.Localization;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.ActionBar;
 using WOTRMultiplayer.MP.Entities.Combat;
@@ -31,7 +32,6 @@ using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
 using WOTRMultiplayer.Networking.Messages.Requests;
-using WOTRMultiplayer.UI;
 
 namespace WOTRMultiplayer.MP.Actors
 {
@@ -366,7 +366,7 @@ namespace WOTRMultiplayer.MP.Actors
 
             lock (ActionLock)
             {
-                EnsureForcePaused(UIStringConsts.GameNotifications.ForcedPauseReasons.AreaLoading);
+                EnsureForcePaused(WellKnownKeys.GameNotifications.ForcedPause.AreaLoading.Key);
                 var localPlayerId = GetLocalPlayerId();
                 Game.ForcedPause.ReadyPlayers.Add(localPlayerId);
                 GameInteraction.Pause(true);
@@ -789,7 +789,7 @@ namespace WOTRMultiplayer.MP.Actors
             }
 
             var character = GetCharacterOwnership(Game.Leveling.UnitId);
-            GameInteraction.ShowWarningNotification(string.Format(UIStringConsts.GameNotifications.LevelingTerminated, character?.Name));
+            GameInteraction.ShowWarningNotification(WellKnownKeys.GameNotifications.Leveling.Terminated.Key, character?.Name);
             Game.Leveling = null;
         }
 
@@ -805,7 +805,7 @@ namespace WOTRMultiplayer.MP.Actors
             }
 
             var character = GetCharacterOwnership(Game.Leveling.UnitId);
-            GameInteraction.AddCombatText(string.Format(UIStringConsts.GameNotifications.LevelingCompleted, character?.Name));
+            GameInteraction.AddCombatText(WellKnownKeys.GameNotifications.Leveling.Completed.Key, character?.Name);
             Game.Leveling = null;
         }
 
@@ -1138,7 +1138,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return;
             }
 
-            GameInteraction.ShowModalMessage(string.Format(UIStringConsts.GameNotifications.PlayerLeft, networkPlayer.Name));
+            GameInteraction.ShowModalMessage(WellKnownKeys.GameNotifications.Session.PlayerLeft.Key, networkPlayer.Name);
         }
 
         protected NetworkPlayer CleanupPlayer(long playerId)

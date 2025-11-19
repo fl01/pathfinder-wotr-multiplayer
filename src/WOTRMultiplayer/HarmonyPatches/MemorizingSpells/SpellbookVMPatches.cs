@@ -1,9 +1,11 @@
 ﻿using HarmonyLib;
+using Kingmaker.Localization;
 using Kingmaker.PubSubSystem;
 using Kingmaker.UI.MVVM._VM.ServiceWindows.Spellbook;
 using Kingmaker.UI.MVVM._VM.ServiceWindows.Spellbook.KnownSpells;
 using Kingmaker.UI.MVVM._VM.ServiceWindows.Spellbook.MemorizingPanel;
 using Kingmaker.UnitLogic;
+using WOTRMultiplayer.Localization;
 using WOTRMultiplayer.MP.Entities.Spells;
 using WOTRMultiplayer.UI;
 
@@ -24,7 +26,8 @@ namespace WOTRMultiplayer.HarmonyPatches.MemorizingSpells
             var canChangeSlot = Main.Multiplayer.IsControlledByLocalPlayer(__instance.UnitDescriptor.Value.Unit.UniqueId);
             if (!canChangeSlot)
             {
-                EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(UIStringConsts.GameNotifications.CantChangeSpellSlotsIfNoControl, true), true);
+                var message = new LocalizedString { Key = WellKnownKeys.GameNotifications.SpellBook.NoSpellSlotPermission.Key };
+                EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(message, true), true);
             }
             return canChangeSlot;
         }
@@ -65,7 +68,8 @@ namespace WOTRMultiplayer.HarmonyPatches.MemorizingSpells
             var canChangeSlot = Main.Multiplayer.IsControlledByLocalPlayer(__instance.UnitDescriptor.Value.Unit.UniqueId);
             if (!canChangeSlot)
             {
-                EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(UIStringConsts.GameNotifications.CantChangeSpellSlotsIfNoControl, true), true);
+                var message = new LocalizedString { Key = WellKnownKeys.GameNotifications.SpellBook.NoSpellSlotPermission.Key };
+                EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(message, true), true);
             }
             return canChangeSlot;
         }

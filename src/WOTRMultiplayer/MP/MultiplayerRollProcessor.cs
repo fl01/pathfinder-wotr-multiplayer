@@ -12,9 +12,9 @@ using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.Hashing;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Extensions;
+using WOTRMultiplayer.Localization;
 using WOTRMultiplayer.MP.Entities.Rolls;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
-using WOTRMultiplayer.UI;
 
 namespace WOTRMultiplayer.MP
 {
@@ -62,14 +62,14 @@ namespace WOTRMultiplayer.MP
                 {
                     _logger.LogCritical("Failed to acquire damage roll from remote player which guarantees desync in the game. RollId={RollId}", rollId.Value);
 
-                    _gameInteractionService.ShowModalMessage(UIStringConsts.GameNotifications.FailedToAcquireRemoteDamageRoll);
+                    _gameInteractionService.ShowModalMessage(WellKnownKeys.GameNotifications.Rolls.FailedToAcquireRemoteDamageRoll.Key);
                     return true;
                 }
                 var bundles = ruleCalculateDamage.DamageBundle.ToList();
                 if (networkRoll.Value.Count != bundles.Count)
                 {
                     _logger.LogCritical("Network damage contains invalid number of damage values. RollId={RollId}, ExpectedCount={ExpectedCount}, ActualCount={ActualCount}", rollId.Value, bundles.Count, networkRoll.Value.Count);
-                    _gameInteractionService.ShowModalMessage(UIStringConsts.GameNotifications.InvalidRemoteDamageRoll);
+                    _gameInteractionService.ShowModalMessage(WellKnownKeys.GameNotifications.Rolls.InvalidRemoteDamageRoll.Key);
                     return true;
                 }
 
@@ -150,7 +150,7 @@ namespace WOTRMultiplayer.MP
                 if (networkRoll == null)
                 {
                     _logger.LogCritical("Failed to acquire heal damage roll from remote player which guarantees desync in the game. RollId={RollId}", rollId.Value);
-                    _gameInteractionService.ShowModalMessage(UIStringConsts.GameNotifications.FailedToAcquireRemoteHealRoll);
+                    _gameInteractionService.ShowModalMessage(WellKnownKeys.GameNotifications.Rolls.FailedToAcquireRemoteHealRoll.Key);
                     return true;
                 }
 
@@ -860,7 +860,7 @@ namespace WOTRMultiplayer.MP
                 if (roll == null)
                 {
                     _logger.LogCritical("Failed to acquire roll from remote player which guarantees desync in the game. RollId={RollId}, RollType={RollType}, InitiatorId={InitiatorId}", rollId.Value, rollType, initiator.UniqueId);
-                    _gameInteractionService.ShowModalMessage(string.Format(UIStringConsts.GameNotifications.FailedToAcquireRemoteRoll, networkDiceRoll.RuleName));
+                    _gameInteractionService.ShowModalMessage(WellKnownKeys.GameNotifications.Rolls.FailedToAcquireRemoteRoll.Key, networkDiceRoll.RuleName);
                     return null;
                 }
 

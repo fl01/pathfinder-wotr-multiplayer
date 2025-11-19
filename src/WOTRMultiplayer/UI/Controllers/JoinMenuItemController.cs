@@ -124,14 +124,14 @@ namespace WOTRMultiplayer.UI.Controllers
             {
                 return new ModalActionConfirmation
                 {
-                    Text = UIStringConsts.MultiplayerWindow.JoinMenu.LeaveGameMessage
+                    MessageKey = WellKnownKeys.MultiplayerWindow.JoinMenu.Deactivation.Connected.Key
                 };
             }
             else if (_multiplayerClient.IsConnecting)
             {
                 return new ModalActionConfirmation
                 {
-                    Text = UIStringConsts.MultiplayerWindow.JoinMenu.LeaveWhileConnectingMessage,
+                    MessageKey = WellKnownKeys.MultiplayerWindow.JoinMenu.Deactivation.Connecting.Key,
                     ModalType = MessageModalBase.ModalType.Message
                 };
             }
@@ -260,9 +260,8 @@ namespace WOTRMultiplayer.UI.Controllers
             Lobby.UpdateCharacters(characters, false);
         }
 
-        private void OnMultiplayerError(string errorMessage)
+        private void OnMultiplayerError()
         {
-            _logger.LogError("Multiplayer client error. Error={Error}", errorMessage);
             ActivateJoinLobbyControls();
         }
 
@@ -312,7 +311,8 @@ namespace WOTRMultiplayer.UI.Controllers
             var result = _multiplayerClient.Connect(address);
             if (!result.IsOk)
             {
-                EventBus.RaiseEvent<IMessageModalUIHandler>(x => x.HandleOpen(result.Message, MessageModalBase.ModalType.Message));
+                var message = new LocalizedString { Key = result.MessageKey };
+                EventBus.RaiseEvent<IMessageModalUIHandler>(x => x.HandleOpen(message, MessageModalBase.ModalType.Message));
                 return;
             }
 

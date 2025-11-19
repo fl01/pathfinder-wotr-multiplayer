@@ -84,6 +84,7 @@ using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.GameInteraction.Contexts;
+using WOTRMultiplayer.Localization;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.ActionBar;
 using WOTRMultiplayer.MP.Entities.Combat;
@@ -101,7 +102,6 @@ using WOTRMultiplayer.MP.Entities.Spells;
 using WOTRMultiplayer.MP.Entities.Units;
 using WOTRMultiplayer.MP.Entities.Vendor;
 using WOTRMultiplayer.Settings;
-using WOTRMultiplayer.UI;
 
 namespace WOTRMultiplayer.GameInteraction
 {
@@ -533,27 +533,30 @@ namespace WOTRMultiplayer.GameInteraction
             return partyCharacters;
         }
 
-        public void ShowModalMessage(string error)
+        public void ShowModalMessage(string messageKey, params object[] args)
         {
             _mainThreadAccessor.Post(() =>
             {
-                EventBus.RaiseEvent<IMessageModalUIHandler>(x => x.HandleOpen(error, MessageModalBase.ModalType.Message, null));
+                var message = GetLocalizedText(messageKey, args);
+                EventBus.RaiseEvent<IMessageModalUIHandler>(x => x.HandleOpen(message, MessageModalBase.ModalType.Message, null));
             });
         }
 
-        public void ShowWarningNotification(string text)
+        public void ShowWarningNotification(string messageKey, params object[] args)
         {
             _mainThreadAccessor.Post(() =>
             {
-                EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(text, true), true);
+                var message = GetLocalizedText(messageKey, args);
+                EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(message, true), true);
             });
         }
 
-        public void AddCombatText(string text)
+        public void AddCombatText(string messageKey, params object[] args)
         {
             _mainThreadAccessor.Post(() =>
             {
-                Game.Instance.GameLogController.AddReadyEvent(new GameLogEventWarningNotification(text));
+                var message = GetLocalizedText(messageKey, args);
+                Game.Instance.GameLogController.AddReadyEvent(new GameLogEventWarningNotification(message));
             });
         }
 
@@ -1790,7 +1793,7 @@ namespace WOTRMultiplayer.GameInteraction
                     return;
                 }
 
-                AddCombatText(string.Format(UIStringConsts.GameNotifications.CombatLog.SpellForgotten, spellSlot.SpellShell?.Name, unit.CharacterName));
+                AddCombatText(WellKnownKeys.GameNotifications.SpellBook.ForgottenSpell.Key, spellSlot.SpellShell?.Name, unit.CharacterName);
                 spellbook.ForgetMemorized(spellSlot);
                 RefreshSpellbookUI();
             });
@@ -1817,7 +1820,7 @@ namespace WOTRMultiplayer.GameInteraction
                 var spellSlot = GetSpellSlot(spellbook, networkSpellSlot);
                 var spell = GetKnownSpell(spellbook, networkSpellSlot.SpellId, networkSpellSlot.SpellName);
                 spellbook.Memorize(spell, spellSlot);
-                AddCombatText(string.Format(UIStringConsts.GameNotifications.CombatLog.SpellMemorized, spell.Name, unit.CharacterName));
+                AddCombatText(WellKnownKeys.GameNotifications.SpellBook.MemorizedSpell.Key, spell.Name, unit.CharacterName);
                 RefreshSpellbookUI();
             });
         }
@@ -1882,7 +1885,7 @@ namespace WOTRMultiplayer.GameInteraction
                     var archetype = archetypes.FirstOrDefault(c => string.Equals(c.Archetype.AssetGuid.ToString(), archetypeId, StringComparison.OrdinalIgnoreCase));
                     if (archetype == null)
                     {
-                        ShowWarningNotification(UIStringConsts.GameNotifications.MismatchedArchetypeSelection);
+                        ShowWarningNotification(WellKnownKeys.GameNotifications.Leveling.ArchetypeContentMismatch.Key);
                         return;
                     }
 
@@ -2628,6 +2631,13 @@ namespace WOTRMultiplayer.GameInteraction
                     throw;
                 }
             });
+        }
+
+        private string GetLocalizedText(string messageKey, params object[] args)
+        {
+            var localizedPart = new LocalizedString { Key = messageKey };
+            var message = string.Format(localizedPart, args);
+            return message;
         }
 
         private void UpdateGlobalMapState(NetworkGlobalMapState globalMapState)

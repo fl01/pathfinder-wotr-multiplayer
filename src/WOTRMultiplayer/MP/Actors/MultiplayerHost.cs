@@ -13,6 +13,7 @@ using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.MP.Actors;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.Settings;
+using WOTRMultiplayer.Localization;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Combat;
 using WOTRMultiplayer.MP.Entities.Dialogs;
@@ -26,7 +27,6 @@ using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
 using WOTRMultiplayer.Networking.Messages.Requests;
-using WOTRMultiplayer.UI;
 
 namespace WOTRMultiplayer.MP.Actors
 {
@@ -451,7 +451,7 @@ namespace WOTRMultiplayer.MP.Actors
 
                 if (Game.RandomEncounter.RandomUnitSeed.HasValue)
                 {
-                    EnsureForcePaused(UIStringConsts.GameNotifications.ForcedPauseReasons.RandomEncounterLoading, SettingsProvider.GetSettings().ForcedPauseRandomEncounterTerminationDelay);
+                    EnsureForcePaused(WellKnownKeys.GameNotifications.ForcedPause.RestRandomEncounterLoading.Key, SettingsProvider.GetSettings().ForcedPauseRandomEncounterTerminationDelay);
                     GameInteraction.UpdateIsInCombatStatus();
                     GameInteraction.Pause(true);
                 }
@@ -537,7 +537,7 @@ namespace WOTRMultiplayer.MP.Actors
                 if (Game.ForcedPause == null)
                 {
                     // removalDelay doesn't matter since returning true from this method will end pause immediately
-                    EnsureForcePaused(UIStringConsts.GameNotifications.ForcedPauseReasons.WaitingForPlayersToPause, removalDelay: null);
+                    EnsureForcePaused(WellKnownKeys.GameNotifications.ForcedPause.NotSyncedPauseYet.Key, removalDelay: null);
                     var localPlayer = GetLocalPlayerId();
                     Game.ForcedPause.ReadyPlayers.Add(localPlayer);
 
@@ -573,7 +573,7 @@ namespace WOTRMultiplayer.MP.Actors
         {
             lock (ActionLock)
             {
-                EnsureForcePaused(UIStringConsts.GameNotifications.ForcedPauseReasons.TrapDetected, removalDelay: null);
+                EnsureForcePaused(WellKnownKeys.GameNotifications.ForcedPause.NoTrapDetectedYet.Key, removalDelay: null);
                 var playerId = GetLocalPlayerId();
                 Game.ForcedPause.ReadyPlayers.Add(playerId);
             }
@@ -813,7 +813,7 @@ namespace WOTRMultiplayer.MP.Actors
                         foreach (var playerId in players)
                         {
                             var player = GetPlayer(playerId);
-                            GameInteraction.AddCombatText(string.Format(UIStringConsts.GameNotifications.CombatLog.HostDetectedDesyncInCombatTurnOrder, player?.Name));
+                            GameInteraction.AddCombatText(WellKnownKeys.GameNotifications.Combat.HostTurnOrderDesync.Key, player?.Name);
 
                             var desyncedTurnStartMessage = new NotifyInvalidCombatTurnStarted
                             {
@@ -938,7 +938,7 @@ namespace WOTRMultiplayer.MP.Actors
             lock (ActionLock)
             {
                 // single autopause case doesn't require clientGameAutoPaused.Reason for now
-                EnsureForcePaused(UIStringConsts.GameNotifications.ForcedPauseReasons.TrapDetected, removalDelay: null);
+                EnsureForcePaused(WellKnownKeys.GameNotifications.ForcedPause.NoTrapDetectedYet.Key, removalDelay: null);
                 Game.ForcedPause.ReadyPlayers.Add(playerId);
             }
         }
@@ -1285,7 +1285,7 @@ namespace WOTRMultiplayer.MP.Actors
 
                     if (Game.Stage == NetworkGameStage.Playing)
                     {
-                        GameInteraction.ShowWarningNotification(string.Format(UIStringConsts.GameNotifications.PlayerJoined, existingPlayer.Name));
+                        GameInteraction.ShowWarningNotification(WellKnownKeys.GameNotifications.Session.PlayerJoined.Key, existingPlayer.Name);
                     }
                 }
             }
@@ -1524,7 +1524,7 @@ namespace WOTRMultiplayer.MP.Actors
             Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}", nameof(ClientAreaLoaded), playerId);
             lock (ActionLock)
             {
-                EnsureForcePaused(UIStringConsts.GameNotifications.ForcedPauseReasons.AreaLoading);
+                EnsureForcePaused(WellKnownKeys.GameNotifications.ForcedPause.AreaLoading.Key);
                 Game.ForcedPause.ReadyPlayers.Add(playerId);
             }
 
