@@ -43,8 +43,8 @@ namespace WOTRMultiplayer.Settings
         [Description("combat")]
         public static class Combat
         {
-            [Description("ai-sync")]
-            public static WellKnownSettingKey<bool> AISync { get; } = new(true);
+            [Description("sync-ai")]
+            public static WellKnownSettingKey<bool> SyncAI { get; } = new(true);
         }
 
         [Description("networking")]

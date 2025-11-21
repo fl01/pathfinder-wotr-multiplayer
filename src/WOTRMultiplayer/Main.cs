@@ -58,7 +58,7 @@ namespace WOTRMultiplayer
 
             try
             {
-                WellKnownKeys.Initialize();
+                WellKnownKeysInitializer.Run();
                 WellKnownSettings.Initialize();
 
                 Multiplayer = _serviceProvider.GetService<IMultiplayer>();

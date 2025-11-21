@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WOTRMultiplayer.Localizatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WOTRMultiplayer.Localization.Generator", "WOTRMultiplayer.Localization.Generator\WOTRMultiplayer.Localization.Generator.csproj", "{0D6E3C8F-211F-487F-8DFD-946DF94D8EF3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WOTRMultiplayer.Localization.UnitTests", "WOTRMultiplayer.Localization.UnitTests\WOTRMultiplayer.Localization.UnitTests.csproj", "{F2FED02B-5BBD-4A6C-8C8E-1EA0EB756665}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +73,10 @@ Global
 		{0D6E3C8F-211F-487F-8DFD-946DF94D8EF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D6E3C8F-211F-487F-8DFD-946DF94D8EF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D6E3C8F-211F-487F-8DFD-946DF94D8EF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2FED02B-5BBD-4A6C-8C8E-1EA0EB756665}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2FED02B-5BBD-4A6C-8C8E-1EA0EB756665}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2FED02B-5BBD-4A6C-8C8E-1EA0EB756665}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2FED02B-5BBD-4A6C-8C8E-1EA0EB756665}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
