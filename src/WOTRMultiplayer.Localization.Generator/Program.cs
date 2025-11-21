@@ -11,6 +11,7 @@ using Newtonsoft.Json.Linq;
 
 namespace WOTRMultiplayer.Localization.Generator
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
     public class Program
     {
         public const string OutputProject = "WOTRMultiplayer.Localization";
@@ -177,7 +178,7 @@ namespace WOTRMultiplayer.Localization.Generator
 
             public ClassDeclarationSyntax Declaration { get; set; }
 
-            public HashSet<LocalizationEntity> Members { get; set; } = new();
+            public HashSet<LocalizationEntity> Members { get; set; } = [];
 
             public override int GetHashCode()
             {
