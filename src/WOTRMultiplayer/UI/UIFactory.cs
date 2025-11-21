@@ -602,7 +602,7 @@ namespace WOTRMultiplayer.UI
                 PlayerNameValidator.MaxLength);
 
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Combat.Title.Key });
-            yield return CreateBoolSetting(WellKnownKeys.Settings.Combat.AISync.Title.Key, WellKnownKeys.Settings.Combat.AISync.Tooltip.Key, WellKnownSettings.Combat.AISync);
+            yield return CreateBoolSetting(WellKnownKeys.Settings.Combat.SyncAI.Title.Key, WellKnownKeys.Settings.Combat.SyncAI.Tooltip.Key, WellKnownSettings.Combat.SyncAI);
 
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Networking.Title.Key });
             yield return CreateIntInputSetting(

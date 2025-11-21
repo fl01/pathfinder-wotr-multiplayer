@@ -50,6 +50,8 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.x
+      - name: Generate Localization
+        run: dotnet build ./src/WOTRMultiplayer.Localization.Generator --configuration Release
       - name: Build
         run: dotnet build ./src /p:AssemblyVersion=${{ env.CURRENT_VERSION }} --configuration Release
       - name: Run unit tests

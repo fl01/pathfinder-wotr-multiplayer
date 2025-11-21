@@ -1,23 +1,22 @@
 ﻿using System.Collections.Generic;
 using NUnit.Framework;
-using WOTRMultiplayer.Localization;
 
-namespace WOTRMultiplayer.UnitTests.Localization
+namespace WOTRMultiplayer.Localization.UnitTests
 {
     [TestFixture]
     public class WellKnownKeysTests
     {
         [TestCaseSource(nameof(GetWellKnownKeysTestCases))]
-        public void Initialize_KeyPathIsInitializedCorrectly(WellKnownKeyTestCase testCase)
+        public void Run_KeyPathIsInitializedCorrectly(WellKnownKeyTestCase testCase)
         {
             // Act
-            WellKnownKeys.Initialize();
+            WellKnownKeysInitializer.Run();
             var key = testCase.Key();
 
             // Assert
             Assert.That(key, Is.Not.Null.Or.Empty);
-            Assert.That(key, Does.StartWith(WellKnownKeys.RootKey));
-            Assert.That(key, Contains.Substring(WellKnownKeys.KeyPathSeparator), "Atleast one key path separator is expected");
+            Assert.That(key, Does.StartWith(WellKnownKeysInitializer.RootKey));
+            Assert.That(key, Contains.Substring(WellKnownKeysInitializer.KeyPathSeparator), "Atleast one key path separator is expected");
         }
 
         /// <summary>
@@ -33,8 +32,8 @@ namespace WOTRMultiplayer.UnitTests.Localization
             yield return new WellKnownKeyTestCase { Name = "settings->general->playerName->tooltip", Key = () => WellKnownKeys.Settings.General.PlayerName.Tooltip.Key };
 
             yield return new WellKnownKeyTestCase { Name = "settings->combat->title", Key = () => WellKnownKeys.Settings.Combat.Title.Key };
-            yield return new WellKnownKeyTestCase { Name = "settings->combat->aiSync->title", Key = () => WellKnownKeys.Settings.Combat.AISync.Title.Key };
-            yield return new WellKnownKeyTestCase { Name = "settings->combat->aiSync->tooltip", Key = () => WellKnownKeys.Settings.Combat.AISync.Tooltip.Key };
+            yield return new WellKnownKeyTestCase { Name = "settings->combat->aiSync->title", Key = () => WellKnownKeys.Settings.Combat.SyncAI.Title.Key };
+            yield return new WellKnownKeyTestCase { Name = "settings->combat->aiSync->tooltip", Key = () => WellKnownKeys.Settings.Combat.SyncAI.Tooltip.Key };
 
             yield return new WellKnownKeyTestCase { Name = "settings->networking->title", Key = () => WellKnownKeys.Settings.Networking.Title.Key };
             yield return new WellKnownKeyTestCase { Name = "settings->networking->hostPortStart->title", Key = () => WellKnownKeys.Settings.Networking.HostPortRangeStart.Title.Key };

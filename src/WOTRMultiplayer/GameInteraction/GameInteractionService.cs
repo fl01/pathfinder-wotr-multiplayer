@@ -1316,7 +1316,7 @@ namespace WOTRMultiplayer.GameInteraction
                 // mp settings
                 if (networkGameSettings.Multiplayer != null)
                 {
-                    SettingsController.GeneralSettingsProvider.SetValue(WellKnownSettings.Combat.AISync.Key, networkGameSettings.Multiplayer.SyncAICombatActions);
+                    SettingsController.GeneralSettingsProvider.SetValue(WellKnownSettings.Combat.SyncAI.Key, networkGameSettings.Multiplayer.SyncAICombatActions);
                 }
             });
         }

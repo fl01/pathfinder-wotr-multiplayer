@@ -21,6 +21,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WOTRMultiplayer.Playground.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Playground", "Playground", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WOTRMultiplayer.Localization", "WOTRMultiplayer.Localization\WOTRMultiplayer.Localization.csproj", "{6609AD71-223F-488E-A7D9-B51F772AF7E4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WOTRMultiplayer.Localization.Generator", "WOTRMultiplayer.Localization.Generator\WOTRMultiplayer.Localization.Generator.csproj", "{0D6E3C8F-211F-487F-8DFD-946DF94D8EF3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WOTRMultiplayer.Localization.UnitTests", "WOTRMultiplayer.Localization.UnitTests\WOTRMultiplayer.Localization.UnitTests.csproj", "{F2FED02B-5BBD-4A6C-8C8E-1EA0EB756665}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +65,18 @@ Global
 		{08BB7B1E-4775-4EC1-902E-BB38F4AF471E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{08BB7B1E-4775-4EC1-902E-BB38F4AF471E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{08BB7B1E-4775-4EC1-902E-BB38F4AF471E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6609AD71-223F-488E-A7D9-B51F772AF7E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6609AD71-223F-488E-A7D9-B51F772AF7E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6609AD71-223F-488E-A7D9-B51F772AF7E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6609AD71-223F-488E-A7D9-B51F772AF7E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D6E3C8F-211F-487F-8DFD-946DF94D8EF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D6E3C8F-211F-487F-8DFD-946DF94D8EF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D6E3C8F-211F-487F-8DFD-946DF94D8EF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D6E3C8F-211F-487F-8DFD-946DF94D8EF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2FED02B-5BBD-4A6C-8C8E-1EA0EB756665}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2FED02B-5BBD-4A6C-8C8E-1EA0EB756665}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2FED02B-5BBD-4A6C-8C8E-1EA0EB756665}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2FED02B-5BBD-4A6C-8C8E-1EA0EB756665}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

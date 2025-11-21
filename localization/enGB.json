@@ -10,7 +10,7 @@
                 "title": "Multiplayer Lobby"
             }
         },
-        "multiplaterWindow": {
+        "multiplayerWindow": {
             "hostMenu": {
                 "title": "Host",
                 "hostButton": {
@@ -65,18 +65,18 @@
             },
             "combat": {
                 "title": "Combat",
-                "aiSync": {
+                "syncAI": {
                     "title": "Synchronize AI Actions",
                     "tooltip": "AI actions don't have any randomness, so their turns play out the same for everyone in multiplayer.\nIn rare cases, AI might attack a different target or make an extra attack after moving - usually because of position desync or low FPS (it's messing up with best AI action score calculation).\nEnable this if you want to get extra synchronization(stability) at the expense of extra stuttering"
                 }
             },
             "networking": {
                 "title": "Networking",
-                "hostPortStart": {
+                "hostPortRangeStart": {
                     "title": "Host Port Start",
                     "tooltip": "The first available port within the configured range is selected to host a multiplayer game. Keep this value equal to 'Host Port End' to always host on a specific port only.\nValid values are 1024-65535"
                 },
-                "hostPortEnd": {
+                "hostPortRangeEnd": {
                     "title": "Host Port End",
                     "tooltip": "The first available port within the configured range is selected to host a multiplayer game. Keep this value equal to 'Host Port Start' to always host on a specific port only.\nValid values are 1024-65535"
                 }

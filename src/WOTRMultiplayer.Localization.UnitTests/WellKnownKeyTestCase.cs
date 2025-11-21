@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WOTRMultiplayer.UnitTests.Localization
+namespace WOTRMultiplayer.Localization.UnitTests
 {
     public class WellKnownKeyTestCase
     {

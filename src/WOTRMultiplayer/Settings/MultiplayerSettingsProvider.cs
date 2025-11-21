@@ -15,7 +15,7 @@ namespace WOTRMultiplayer.Settings
         public void Initialize()
         {
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.General.PlayerName);
-            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Combat.AISync);
+            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Combat.SyncAI);
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Networking.HostPortRangeStart);
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Networking.HostPortRangeEnd);
             _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.DefaultForcedPauseTimeout);
@@ -27,7 +27,7 @@ namespace WOTRMultiplayer.Settings
             var settings = new NetworkMultiplayerSettings
             {
                 PlayerName = _settingsControllerAccessor.GetValue(WellKnownSettings.General.PlayerName),
-                SyncAICombatActions = _settingsControllerAccessor.GetValue(WellKnownSettings.Combat.AISync),
+                SyncAICombatActions = _settingsControllerAccessor.GetValue(WellKnownSettings.Combat.SyncAI),
                 HostPortRangeStart = _settingsControllerAccessor.GetValue(WellKnownSettings.Networking.HostPortRangeStart),
                 HostPortRangeEnd = _settingsControllerAccessor.GetValue(WellKnownSettings.Networking.HostPortRangeEnd),
                 ForcedPauseDefaultTerminationDelay = _settingsControllerAccessor.GetTimeSpanValue(WellKnownSettings.DangerZone.DefaultForcedPauseTimeout),
