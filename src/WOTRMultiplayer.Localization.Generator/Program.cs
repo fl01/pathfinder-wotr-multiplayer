@@ -26,7 +26,7 @@ namespace WOTRMultiplayer.Localization.Generator
             var currentContext = Path.GetFullPath("./");
             var repositoryRoot = "..\\..\\";
 
-            // kinda lazy way to deal with multiple launch context here
+            // kinda lazy way to deal with multiple launch contexts here
             // this should work to differentiate between pre-build event and regular debug launch
             if (currentContext.Contains(Assembly.GetExecutingAssembly().GetName().Name))
             {
