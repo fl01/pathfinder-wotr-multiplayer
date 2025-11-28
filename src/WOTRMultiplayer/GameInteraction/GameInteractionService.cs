@@ -140,13 +140,14 @@ namespace WOTRMultiplayer.GameInteraction
 
         public NetworkCampingState GetCampigState()
         {
+            var camping = Game.Instance.Player.Camping;
             var state = new NetworkCampingState
             {
-                PotionBlueprintRecipeId = Game.Instance.Player.Camping.SelectedPotion?.Item.AssetGuid.ToString(),
-                CookingBlueprintRecipeId = Game.Instance.Player.Camping.CookingRecipe?.AssetGuid.ToString(),
-                ScrollBlueprintRecipeId = Game.Instance.Player.Camping.SelectedScroll?.Item.AssetGuid.ToString(),
-                AutotuneIterationsStatus = Game.Instance.Player.Camping.AutotuneRestIterations,
-                IterationsCount = Game.Instance.Player.Camping.RestIterationsCount
+                PotionBlueprintRecipeId = camping.SelectedPotion?.Item.AssetGuid.ToString(),
+                CookingBlueprintRecipeId = camping.CookingRecipe?.AssetGuid.ToString(),
+                ScrollBlueprintRecipeId = camping.SelectedScroll?.Item.AssetGuid.ToString(),
+                AutotuneIterationsStatus = camping.AutotuneRestIterations,
+                IterationsCount = camping.RestIterationsCount
             };
 
             return state;
