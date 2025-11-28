@@ -29,7 +29,6 @@ using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Abstractions.UI.Windows;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.HarmonyPatches.MenuPatches;
-using WOTRMultiplayer.Localization;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.Settings;
 using WOTRMultiplayer.Settings.Validators;
@@ -59,7 +58,6 @@ namespace WOTRMultiplayer.UI
         private GameObject _defaultGameObject;
         private GameObject _borderDecoration;
         private Mesh _defaultTextMesh;
-        private readonly object _actionLock = new();
         private readonly ILogger<UIFactory> _logger;
         private readonly IServiceProvider _serviceProvider;
 
@@ -71,93 +69,57 @@ namespace WOTRMultiplayer.UI
 
         public void StoreDropdownPrefab(SettingsEntityDropdownPCView view)
         {
-            if (view == null)
+            if (view == null || _dropdownPrefab != null)
             {
                 return;
             }
 
-            if (_dropdownPrefab == null)
-            {
-                lock (_actionLock)
-                {
-                    if (_dropdownPrefab == null)
-                    {
-                        _logger.LogInformation("Storing {PrefabTypeName} prefab", nameof(SettingsEntityDropdownPCView));
+            _logger.LogInformation("Storing {PrefabTypeName} prefab", nameof(SettingsEntityDropdownPCView));
 
-                        _dropdownPrefab = UnityEngine.Object.Instantiate(view.gameObject);
-                        UnityEngine.Object.DestroyImmediate(_dropdownPrefab.GetComponent<SettingsEntityDropdownPCView>());
-                        UnityEngine.Object.DestroyImmediate(_dropdownPrefab.GetComponent<ContentSizeFitterExtended>());
-                        UnityEngine.Object.DestroyImmediate(_dropdownPrefab.GetComponent<VerticalLayoutGroupWorkaround>());
-                        UnityEngine.Object.DestroyImmediate(_dropdownPrefab.GetComponent<LayoutElement>());
-                        UnityEngine.Object.DontDestroyOnLoad(_dropdownPrefab);
-                    }
-                }
-            }
+            _dropdownPrefab = UnityEngine.Object.Instantiate(view.gameObject);
+            UnityEngine.Object.DestroyImmediate(_dropdownPrefab.GetComponent<SettingsEntityDropdownPCView>());
+            UnityEngine.Object.DestroyImmediate(_dropdownPrefab.GetComponent<ContentSizeFitterExtended>());
+            UnityEngine.Object.DestroyImmediate(_dropdownPrefab.GetComponent<VerticalLayoutGroupWorkaround>());
+            UnityEngine.Object.DestroyImmediate(_dropdownPrefab.GetComponent<LayoutElement>());
+            UnityEngine.Object.DontDestroyOnLoad(_dropdownPrefab);
         }
 
         public void StoreSaveLoadPCViewPrefab(SaveLoadPCView view)
         {
-            if (view == null)
+            if (view == null || _saveLoadPCView != null)
             {
                 _logger.LogWarning("SaveLoadPCView is null");
                 return;
             }
 
-            if (_saveLoadPCView == null)
-            {
-                lock (_actionLock)
-                {
-                    if (_saveLoadPCView == null)
-                    {
-                        _logger.LogInformation("Storing {PrefabTypeName} prefab", nameof(SaveLoadPCView));
-                        _saveLoadPCView = UnityEngine.Object.Instantiate(view);
-                        UnityEngine.Object.DontDestroyOnLoad(_saveLoadPCView);
-                    }
-                }
-            }
+            _logger.LogInformation("Storing {PrefabTypeName} prefab", nameof(SaveLoadPCView));
+            _saveLoadPCView = UnityEngine.Object.Instantiate(view);
+            UnityEngine.Object.DontDestroyOnLoad(_saveLoadPCView);
         }
 
         public void StoreDefaultGameObject(GameObject gameObject)
         {
-            if (gameObject == null)
+            if (gameObject == null || _defaultGameObject != null)
             {
                 return;
             }
 
-            if (_defaultGameObject == null)
-            {
-                lock (_actionLock)
-                {
-                    if (_defaultGameObject == null)
-                    {
-                        _logger.LogInformation("Storing default prefab");
-                        _defaultGameObject = UnityEngine.Object.Instantiate(gameObject);
-                        UnityEngine.Object.DestroyImmediate(_defaultGameObject.GetComponent<Image>());
-                        UnityEngine.Object.DontDestroyOnLoad(_defaultGameObject);
-                    }
-                }
-            }
+            _logger.LogInformation("Storing default prefab");
+            _defaultGameObject = UnityEngine.Object.Instantiate(gameObject);
+            UnityEngine.Object.DestroyImmediate(_defaultGameObject.GetComponent<Image>());
+            UnityEngine.Object.DontDestroyOnLoad(_defaultGameObject);
         }
 
         public void StoreBorderDecoration(GameObject gameObject)
         {
-            if (gameObject == null)
+            if (gameObject == null || _borderDecoration != null)
             {
                 return;
             }
 
-            if (_borderDecoration == null)
-            {
-                lock (_actionLock)
-                {
-                    if (_borderDecoration == null)
-                    {
-                        _logger.LogInformation("Storing border decoration prefab");
-                        _borderDecoration = UnityEngine.Object.Instantiate(gameObject);
-                        UnityEngine.Object.DontDestroyOnLoad(_borderDecoration);
-                    }
-                }
-            }
+            _logger.LogInformation("Storing border decoration prefab");
+            _borderDecoration = UnityEngine.Object.Instantiate(gameObject);
+            UnityEngine.Object.DontDestroyOnLoad(_borderDecoration);
         }
 
         public GameObject CreateDefaultGameObject(Transform parent)
@@ -355,60 +317,43 @@ namespace WOTRMultiplayer.UI
 
         public void StoreInputPrefab(GameObject inputObject)
         {
-            if (inputObject == null)
+            if (inputObject == null || _inputPrefab != null)
             {
                 return;
             }
 
-            if (_inputPrefab == null)
-            {
-                lock (_actionLock)
-                {
-                    if (_inputPrefab == null)
-                    {
-                        _logger.LogInformation("Storing input prefab");
+            _logger.LogInformation("Storing input prefab");
 
-                        _inputPrefab = UnityEngine.Object.Instantiate(inputObject);
-                        var placeHolderTextObject = _inputPrefab.transform.Find(InputPlaceholderObjectName);
-                        var localizedTextComponent = placeHolderTextObject.GetComponent<LocalizedUIText>();
-                        if (localizedTextComponent != null)
-                        {
-                            UnityEngine.Object.DestroyImmediate(localizedTextComponent);
-                        }
-                        UnityEngine.Object.DontDestroyOnLoad(_inputPrefab);
-                    }
-                }
+            _inputPrefab = UnityEngine.Object.Instantiate(inputObject);
+            var placeHolderTextObject = _inputPrefab.transform.Find(InputPlaceholderObjectName);
+            var localizedTextComponent = placeHolderTextObject.GetComponent<LocalizedUIText>();
+            if (localizedTextComponent != null)
+            {
+                UnityEngine.Object.DestroyImmediate(localizedTextComponent);
             }
+
+            UnityEngine.Object.DontDestroyOnLoad(_inputPrefab);
         }
 
         public void StoreButtonPrefab(GameObject buttonObject)
         {
-            if (buttonObject == null)
+            if (buttonObject == null || _buttonPrefab != null)
             {
                 return;
             }
 
-            if (_buttonPrefab == null)
-            {
-                lock (_actionLock)
-                {
-                    if (_buttonPrefab == null)
-                    {
-                        _logger.LogInformation("Storing button prefab");
+            _logger.LogInformation("Storing button prefab");
 
-                        _buttonPrefab = UnityEngine.Object.Instantiate(buttonObject);
-                        var rectTransform = _buttonPrefab.GetComponent<RectTransform>();
-                        rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-                        rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-                        var button = _buttonPrefab.GetComponent<OwlcatButton>();
-                        for (var i = 0; i < button.OnLeftClick.GetPersistentEventCount(); i++)
-                        {
-                            button.OnLeftClick.SetPersistentListenerState(i, UnityEngine.Events.UnityEventCallState.Off);
-                        }
-                        UnityEngine.Object.DontDestroyOnLoad(_buttonPrefab);
-                    }
-                }
+            _buttonPrefab = UnityEngine.Object.Instantiate(buttonObject);
+            var rectTransform = _buttonPrefab.GetComponent<RectTransform>();
+            rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            var button = _buttonPrefab.GetComponent<OwlcatButton>();
+            for (var i = 0; i < button.OnLeftClick.GetPersistentEventCount(); i++)
+            {
+                button.OnLeftClick.SetPersistentListenerState(i, UnityEngine.Events.UnityEventCallState.Off);
             }
+            UnityEngine.Object.DontDestroyOnLoad(_buttonPrefab);
         }
 
         public GameObject CreateBackgroundArt(Transform parent)
@@ -418,25 +363,15 @@ namespace WOTRMultiplayer.UI
 
         public void StoreBackgroundArt(GameObject backgroundArt)
         {
-            if (backgroundArt == null)
+            if (backgroundArt == null || _backgroundArtPrefab != null)
             {
                 return;
             }
 
-            if (_backgroundArtPrefab == null)
-            {
-                lock (_actionLock)
-                {
-                    if (_backgroundArtPrefab == null)
-                    {
-                        _logger.LogInformation("Storing background art");
+            _logger.LogInformation("Storing background art");
 
-                        _backgroundArtPrefab = UnityEngine.Object.Instantiate(backgroundArt);
-                        //UnityEngine.Object.DestroyImmediate(_backgroundArtPrefab.GetComponent<Image>());
-                        UnityEngine.Object.DontDestroyOnLoad(_backgroundArtPrefab);
-                    }
-                }
-            }
+            _backgroundArtPrefab = UnityEngine.Object.Instantiate(backgroundArt);
+            UnityEngine.Object.DontDestroyOnLoad(_backgroundArtPrefab);
         }
 
         private void CreateLobbyServerInfoSection(Transform parent)
@@ -688,7 +623,10 @@ namespace WOTRMultiplayer.UI
         {
             uiSettingsEntityBase.m_Description = new LocalizedString { Key = titleKey };
             uiSettingsEntityBase.m_TooltipDescription = new LocalizedString { Key = tooltipKey };
-            uiSettingsEntityBase.ManualModificationLock = Main.Multiplayer.IsActive; // static call is fine as this entire class is untestable anyway due to direct dependency on Unity types
+
+            // should be replaced by _multiplayerAccessor.Current == null
+            // but static call is fine as this entire class is untestable anyway due to direct dependency on Unity types
+            uiSettingsEntityBase.ManualModificationLock = Main.Multiplayer.IsActive;
             uiSettingsEntityBase.ModificationAllowedCheck = () => true;
         }
 
