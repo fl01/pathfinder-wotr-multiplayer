@@ -63,6 +63,7 @@ namespace WOTRMultiplayer.MP.Actors
 
         protected abstract bool HasControlOverUI { get; }
 
+        // TODO: revise usages since it's not needed in many cases
         protected object ActionLock => _actionLock;
 
         protected MultiplayerActorBase(
@@ -391,30 +392,19 @@ namespace WOTRMultiplayer.MP.Actors
             var defaultOwner = GetPlayer(NetworkingConsts.HostPlayerId);
             foreach (var character in Game.Characters)
             {
+                NetworkPlayer historicOwner = null;
                 if (Game.CharactersOwnershipHistory.TryGetValue(character.UnitId, out var playerId))
                 {
-                    var player = GetPlayer(playerId) ?? defaultOwner;
-                    character.Owner = player;
-                    UpdateCharacterOwnershipHistory(character);
-                    Logger.LogInformation("Character ownership has been updated. UnitId={UnitId}, CharacterName={CharacterName}, Owner={Owner}", character.UnitId, character.Name, character.Owner.Id);
-                    continue;
+                    historicOwner = GetPlayer(playerId);
                 }
 
-                Logger.LogInformation("Processing character with no ownership history. CharacterName={CharacterName}", character.Name);
+                var owner = historicOwner
+                    ?? oldCharacters.FirstOrDefault(old => old.Name == character.Name || old.Name.Contains(character.Name))?.Owner // this one is possible only on initial multiplayer game load when we don't have history yet due to missing UnitIds
+                    ?? defaultOwner;
 
-                // either no history (new char) or first load of multiplayer game (there is no access to UnitIds so we have to match characters by Name (usually it's PortraitName)
-                var existingOwnershipConfiguration = oldCharacters.FirstOrDefault(old => old.Name == character.Name || old.Name.Contains(character.Name));
-                if (existingOwnershipConfiguration?.Owner != null)
-                {
-                    character.Owner = existingOwnershipConfiguration.Owner;
-                    UpdateCharacterOwnershipHistory(character);
-                    Logger.LogInformation("Character ownership has been preserved. UnitId={UnitId}, CharacterName={CharacterName}, Owner={Owner}", character.UnitId, character.Name, character.Owner.Id);
-                    continue;
-                }
-
-                character.Owner = defaultOwner;
+                character.Owner = owner;
                 UpdateCharacterOwnershipHistory(character);
-                Logger.LogInformation("Character ownership has been assigned to default player (host). UnitId={UnitId}, CharacterName={CharacterName}, Owner={Owner}", character.UnitId, character.Name, character.Owner.Id);
+                Logger.LogInformation("Character owner has been assigned. UnitId={UnitId}, CharacterName={CharacterName}, Owner={Owner}", character.UnitId, character.Name, character.Owner.Id);
             }
         }
 
