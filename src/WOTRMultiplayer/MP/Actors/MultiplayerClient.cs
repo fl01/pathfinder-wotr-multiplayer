@@ -229,8 +229,8 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 Logger.LogInformation("Retrieving random encounter context");
 
-                // big timeout to make sure host is finished with banter. TODO: either deny or sync skipping banters
-                var message = new RandomEncounterContextRequest { Timeout = TimeSpan.FromSeconds(45) };
+                var settings = SettingsProvider.GetSettings();
+                var message = new RandomEncounterContextRequest { Timeout = settings.RestEncounterSyncTimeout };
                 var response = _networkClient.SendAndWaitFor<RandomEncounterContextResponse>(message);
 
                 if (response?.Encounter == null)

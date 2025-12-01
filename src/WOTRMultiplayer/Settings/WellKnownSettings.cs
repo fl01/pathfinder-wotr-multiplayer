@@ -74,6 +74,9 @@ namespace WOTRMultiplayer.Settings
 
             [Description("ai-sync-timeout")]
             public static WellKnownSettingKey<TimeSpan> AISyncTimeout { get; } = new(TimeSpan.FromSeconds(5));
+
+            [Description("rest-encounter-sync-timeout")]
+            public static WellKnownSettingKey<TimeSpan> RestEncounterSyncTimeout { get; } = new(TimeSpan.FromSeconds(45));
         }
     }
 }

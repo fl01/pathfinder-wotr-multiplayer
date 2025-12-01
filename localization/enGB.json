@@ -102,6 +102,10 @@
                 "syncAITimeout": {
                     "title": "AI synchronization timeout",
                     "tooltip": "Used when AI sync is on. Sets how long we wait for the remote AI (Host) to make an action before going ahead with the one generated locally"
+                },
+                "restEncounterSyncTimeout": {
+                    "title": "Rest Encounter synchronization timeout",
+                    "tooltip": "Client must wait for host to generate random rest encounter data (if any).\nBanter skips are synchronized for everyone, so this (generation on host, retrieval on client) should happen around the same time"
                 }
             }
         },

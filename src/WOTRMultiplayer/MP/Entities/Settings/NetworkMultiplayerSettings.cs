@@ -21,5 +21,7 @@ namespace WOTRMultiplayer.MP.Entities.Settings
         public TimeSpan AISyncTimeout { get; set; }
 
         public bool SyncAICombatActions { get; set; }
+
+        public TimeSpan RestEncounterSyncTimeout { get; set; }
     }
 }

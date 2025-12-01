@@ -17,5 +17,8 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
 
         [ProtoMember(4)]
         public TimeSpan AISyncTimeout { get; set; }
+
+        [ProtoMember(5)]
+        public TimeSpan RestEncounterSyncTimeout { get; set; }
     }
 }
