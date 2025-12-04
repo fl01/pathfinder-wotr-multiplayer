@@ -3218,7 +3218,7 @@ namespace WOTRMultiplayer.GameInteraction
             {
                 if (!string.Equals(transfer.ItemEntity.UniqueId, transfer.NetworkItem.UniqueId, StringComparison.OrdinalIgnoreCase))
                 {
-                    _logger.LogWarning("Transfer item id is mismatched, updating... ItemId={ItemId}, NetworkItemId={NetworkItemId}, ItemName={ItemName}, NetworkItemName={NetworkItemName}",
+                    _logger.LogWarning("Updating mismatched transfer item id. ItemId={ItemId}, NetworkItemId={NetworkItemId}, ItemName={ItemName}, NetworkItemName={NetworkItemName}",
                         transfer.ItemEntity.UniqueId, transfer.NetworkItem.UniqueId, transfer.ItemEntity.Name, transfer.NetworkItem.Name);
 
                     transfer.ItemEntity.UniqueId = transfer.NetworkItem.UniqueId;

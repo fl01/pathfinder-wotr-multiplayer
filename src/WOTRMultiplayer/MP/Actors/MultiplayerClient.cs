@@ -93,7 +93,7 @@ namespace WOTRMultiplayer.MP.Actors
 
             SetupNetworkMessageHandlers();
 
-            var settings = SettingsProvider.GetSettings();
+            var settings = SettingsService.GetSettings();
             _networkClient.ConnectAsync(endpoint.Address.ToString(), endpoint.Port, settings.NetworkAwaiterTimeout);
 
             return AddressParseResult.Ok();
@@ -229,7 +229,7 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 Logger.LogInformation("Retrieving random encounter context");
 
-                var settings = SettingsProvider.GetSettings();
+                var settings = SettingsService.GetSettings();
                 var message = new RandomEncounterContextRequest { Timeout = settings.RestEncounterSyncTimeout };
                 var response = _networkClient.SendAndWaitFor<RandomEncounterContextResponse>(message);
 
@@ -265,7 +265,7 @@ namespace WOTRMultiplayer.MP.Actors
         {
             try
             {
-                var settings = SettingsProvider.GetSettings();
+                var settings = SettingsService.GetSettings();
                 if (!settings.SyncAICombatActions || string.IsNullOrEmpty(networkAIAction.ActionBlueprintId))
                 {
                     return null;
@@ -1041,7 +1041,7 @@ namespace WOTRMultiplayer.MP.Actors
             var settings = Mapper.Map<NetworkGameSettings>(connectionSucceeded.GameSettings);
             GameInteraction.ApplyGameSettings(settings);
 
-            var message = new ClientGameServerConnectionConfirmed() { PlayerName = SettingsProvider.GetSettings().PlayerName };
+            var message = new ClientGameServerConnectionConfirmed() { PlayerName = SettingsService.GetSettings().PlayerName };
             Logger.LogInformation("Sending {MessageType}. PlayerName={PlayerName}", nameof(ClientGameServerConnectionConfirmed), message.PlayerName);
             Send(message);
         }

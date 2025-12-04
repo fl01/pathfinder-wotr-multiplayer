@@ -83,7 +83,7 @@ namespace WOTRMultiplayer.MP.Actors
             };
 
             Game.Characters.AddRange(characters);
-            var settings = SettingsProvider.GetSettings();
+            var settings = SettingsService.GetSettings();
             _networkServer.Start(settings.HostPortRangeStart, settings.HostPortRangeEnd, settings.NetworkAwaiterTimeout);
 
             Logger.LogInformation("Host has been created. SavePath={SavePath}, Portraits={Portraits}", saveFilePath, string.Join(";", Game.Characters.Select(c => c.Portrait)));
@@ -459,7 +459,8 @@ namespace WOTRMultiplayer.MP.Actors
 
                 if (Game.RandomEncounter.RandomUnitSeed.HasValue)
                 {
-                    EnsureForcePaused(WellKnownKeys.GameNotifications.ForcedPause.RestRandomEncounterLoading.Key, SettingsProvider.GetSettings().ForcedPauseRandomEncounterTerminationDelay);
+                    var settings = SettingsService.GetSettings();
+                    EnsureForcePaused(WellKnownKeys.GameNotifications.ForcedPause.RestRandomEncounterLoading.Key, settings.ForcedPauseRandomEncounterTerminationDelay);
                     GameInteraction.UpdateIsInCombatStatus();
                     GameInteraction.Pause(true);
                 }
@@ -475,7 +476,7 @@ namespace WOTRMultiplayer.MP.Actors
         {
             try
             {
-                if (Game.Combat == null || !SettingsProvider.GetSettings().SyncAICombatActions)
+                if (Game.Combat == null || !SettingsService.GetSettings().SyncAICombatActions)
                 {
                     return null;
                 }
@@ -1319,7 +1320,7 @@ namespace WOTRMultiplayer.MP.Actors
                 Game.Players.Add(player);
 
                 var settings = GameInteraction.GetGameSettings();
-                settings.Multiplayer = SettingsProvider.GetSettings();
+                settings.Multiplayer = SettingsService.GetSettings();
 
                 var message = new GameServerConnectionSucceeded
                 {
@@ -1368,7 +1369,7 @@ namespace WOTRMultiplayer.MP.Actors
         {
             var hostPlayer = new NetworkPlayer(NetworkingConsts.HostPlayerId)
             {
-                Name = SettingsProvider.GetSettings().PlayerName
+                Name = SettingsService.GetSettings().PlayerName
             };
 
             Game.Players.Add(hostPlayer);

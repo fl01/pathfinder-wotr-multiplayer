@@ -56,7 +56,7 @@ namespace WOTRMultiplayer.MP.Actors
 
         protected IFileSystemService FileSystem { get; private set; }
 
-        protected IMultiplayerSettingsService SettingsProvider { get; private set; }
+        protected IMultiplayerSettingsService SettingsService { get; private set; }
 
         private readonly IValueGenerator _valueGenerator;
         private readonly INetworkReceiver _networkReceiver;
@@ -69,7 +69,7 @@ namespace WOTRMultiplayer.MP.Actors
         protected MultiplayerActorBase(
             ILogger logger,
             IMapper mapper,
-            IMultiplayerSettingsService multiplayerSettingsProvider,
+            IMultiplayerSettingsService multiplayerSettingsService,
             IGameInteractionService gameInteractionService,
             IDiceRollStorage diceRollStorage,
             IFileSystemService fileSystemService,
@@ -81,7 +81,7 @@ namespace WOTRMultiplayer.MP.Actors
             GameInteraction = gameInteractionService;
             DiceRollStorage = diceRollStorage;
             FileSystem = fileSystemService;
-            SettingsProvider = multiplayerSettingsProvider;
+            SettingsService = multiplayerSettingsService;
             _valueGenerator = valueGenerator;
             _networkReceiver = networkReceiver;
         }
@@ -218,7 +218,7 @@ namespace WOTRMultiplayer.MP.Actors
         {
             Logger.LogInformation("Retrieving roll over network. RollId={RollId}, UnitId={UnitId}", networkDiceRollId, unitId);
 
-            var waitForRollTimeout = SettingsProvider.GetSettings().RemoteRollRetrievalTimeout;
+            var waitForRollTimeout = SettingsService.GetSettings().RemoteRollRetrievalTimeout;
             var request = new DiceRollValueRequest { RollId = networkDiceRollId, Timeout = waitForRollTimeout, UnitId = unitId };
             // it's important to block current thread since we cannot proceed without response
             // yeah most likely it will cause the game to freeze in case of bad network
@@ -1092,7 +1092,7 @@ namespace WOTRMultiplayer.MP.Actors
 
         protected void EnsureForcePaused(string reason)
         {
-            EnsureForcePaused(reason, SettingsProvider.GetSettings().ForcedPauseDefaultTerminationDelay);
+            EnsureForcePaused(reason, SettingsService.GetSettings().ForcedPauseDefaultTerminationDelay);
         }
 
         protected void WitnessLevelingPhase(long playerId)

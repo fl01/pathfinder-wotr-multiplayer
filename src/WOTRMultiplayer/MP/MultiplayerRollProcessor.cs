@@ -12,7 +12,6 @@ using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.Hashing;
 using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Extensions;
-using WOTRMultiplayer.Localization;
 using WOTRMultiplayer.MP.Entities.Rolls;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
 
@@ -748,14 +747,12 @@ namespace WOTRMultiplayer.MP
 
         private bool ShouldRetrieveRoll(object rule)
         {
-            var gameMode = _gameInteractionService.CurrentGameMode;
-            return _multiplayerActorAccessor.Current != null && IsMeaningfulRoll(gameMode, rule) && !IsRollOwner(rule);
+            return _multiplayerActorAccessor.Current != null && IsMeaningfulRoll(rule) && !IsRollOwner(rule);
         }
 
         private bool ShouldStoreRoll(object rule)
         {
-            var gameMode = _gameInteractionService.CurrentGameMode;
-            return _multiplayerActorAccessor.Current != null && IsMeaningfulRoll(gameMode, rule) && IsRollOwner(rule);
+            return _multiplayerActorAccessor.Current != null && IsMeaningfulRoll(rule) && IsRollOwner(rule);
         }
 
         private bool IsRollOwner(object rule)
@@ -767,13 +764,15 @@ namespace WOTRMultiplayer.MP
             };
         }
 
-        private bool IsMeaningfulRoll(GameModeType gameModeType, object rule)
+        private bool IsMeaningfulRoll(object rule)
         {
-            if (gameModeType == GameModeType.Dialog)
+            var gameMode = _gameInteractionService.CurrentGameMode;
+            if (gameMode == GameModeType.Dialog)
             {
                 return rule is RuleSkillCheck or RuleSavingThrow;
             }
-            else if (gameModeType == GameModeType.Cutscene || gameModeType == GameModeType.CutsceneGlobalMap)
+
+            if (gameMode == GameModeType.Cutscene || gameMode == GameModeType.CutsceneGlobalMap)
             {
                 return false;
             }
