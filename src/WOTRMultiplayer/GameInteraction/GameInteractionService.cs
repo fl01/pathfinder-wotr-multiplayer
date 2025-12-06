@@ -1537,6 +1537,7 @@ namespace WOTRMultiplayer.GameInteraction
                 {
                     if (SkipTimeView.ViewModel == null)
                     {
+                        _logger.LogWarning("Skip time UI is already closed");
                         return;
                     }
 
@@ -1557,6 +1558,7 @@ namespace WOTRMultiplayer.GameInteraction
             {
                 if (SkipTimeView.ViewModel != null)
                 {
+                    _logger.LogWarning("Skip time UI is already opened");
                     return;
                 }
 
