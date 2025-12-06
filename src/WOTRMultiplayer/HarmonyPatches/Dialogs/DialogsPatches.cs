@@ -15,7 +15,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
     {
         [HarmonyPatch(typeof(DialogController), nameof(DialogController.StartDialog))]
         [HarmonyPrefix]
-        public static bool DialogController_StartDialog_Prefix(DialogController __instance, BlueprintDialog dialog, UnitEntityData initiator, UnitEntityData unit, MapObjectView mapObject, LocalizedString customSpeakerName)
+        public static bool DialogController_StartDialog_Prefix(BlueprintDialog dialog, UnitEntityData initiator, UnitEntityData unit, MapObjectView mapObject, LocalizedString customSpeakerName)
         {
             if (!Main.Multiplayer.IsActive)
             {

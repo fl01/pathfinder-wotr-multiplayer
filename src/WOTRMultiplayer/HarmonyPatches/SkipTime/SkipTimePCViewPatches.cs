@@ -8,7 +8,7 @@ namespace WOTRMultiplayer.HarmonyPatches.SkipTime
     {
         [HarmonyPatch(typeof(SkipTimePCView), nameof(SkipTimePCView.BindViewImplementation))]
         [HarmonyPostfix]
-        public static void SkipTimePCView_BindViewImplementation_Postfix(SkipTimePCView __instance)
+        public static void SkipTimePCView_BindViewImplementation_Postfix()
         {
             if (!Main.Multiplayer.IsActive)
             {
@@ -52,7 +52,7 @@ namespace WOTRMultiplayer.HarmonyPatches.SkipTime
 
         [HarmonyPatch(typeof(SkipTimePCView), nameof(SkipTimePCView.SkipTime))]
         [HarmonyPrefix]
-        public static void SkipTimePCView_SkipTime_Prefix(SkipTimePCView __instance)
+        public static void SkipTimePCView_SkipTime_Prefix()
         {
             if (!Main.Multiplayer.IsActive)
             {

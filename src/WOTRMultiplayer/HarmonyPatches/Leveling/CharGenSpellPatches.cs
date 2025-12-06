@@ -11,7 +11,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
     {
         [HarmonyPatch(typeof(CharGenSpellSelectorItemPCView), nameof(CharGenSpellSelectorItemPCView.OnClick))]
         [HarmonyPrefix]
-        public static bool CharGenSpellSelectorItemPCView_OnClick_Prefix(CharGenSpellSelectorItemPCView __instance)
+        public static bool CharGenSpellSelectorItemPCView_OnClick_Prefix()
         {
             if (!Main.Multiplayer.IsActive)
             {
@@ -24,7 +24,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
 
         [HarmonyPatch(typeof(CharGenSpellsPhaseVM), nameof(CharGenSpellsPhaseVM.OnSpellRemoved))]
         [HarmonyPrefix]
-        public static void CharGenSpellsPhaseVM_OnSpellRemoved_Prefix(CharGenSpellsPhaseVM __instance, CollectionRemoveEvent<CharGenSpellSelectorItemVM> spellItem)
+        public static void CharGenSpellsPhaseVM_OnSpellRemoved_Prefix(CollectionRemoveEvent<CharGenSpellSelectorItemVM> spellItem)
         {
             if (!Main.Multiplayer.IsActive)
             {
@@ -37,7 +37,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
 
         [HarmonyPatch(typeof(CharGenSpellsPhaseVM), nameof(CharGenSpellsPhaseVM.OnSpellChosen))]
         [HarmonyPrefix]
-        public static void CharGenSpellsPhaseVM_OnSpellChosen_Prefix(CharGenSpellsPhaseVM __instance, CollectionAddEvent<CharGenSpellSelectorItemVM> spellItem)
+        public static void CharGenSpellsPhaseVM_OnSpellChosen_Prefix(CollectionAddEvent<CharGenSpellSelectorItemVM> spellItem)
         {
             if (!Main.Multiplayer.IsActive)
             {

@@ -32,7 +32,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GameInstance
 
         [HarmonyPatch(typeof(Game), nameof(Game.StartMode))]
         [HarmonyPrefix]
-        public static bool Game_StartMode_Prefix(Game __instance, GameModeType type)
+        public static bool Game_StartMode_Prefix(GameModeType type)
         {
             if (!Main.Multiplayer.IsActive)
             {
@@ -45,7 +45,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GameInstance
 
         [HarmonyPatch(typeof(Game), nameof(Game.StopMode))]
         [HarmonyPrefix]
-        public static bool Game_StopMode_Prefix(Game __instance, GameModeType type)
+        public static bool Game_StopMode_Prefix(GameModeType type)
         {
             if (!Main.Multiplayer.IsActive)
             {

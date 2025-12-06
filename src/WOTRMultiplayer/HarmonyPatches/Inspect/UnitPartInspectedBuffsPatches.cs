@@ -8,7 +8,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Inspect
     {
         [HarmonyPatch(typeof(UnitPartInspectedBuffs), nameof(UnitPartInspectedBuffs.MakeCheck))]
         [HarmonyPrefix]
-        public static bool UnitPartInspectedBuffs_MakeCheck_Prefix(UnitPartInspectedBuffs __instance, ref bool __result)
+        public static bool UnitPartInspectedBuffs_MakeCheck_Prefix(ref bool __result)
         {
             if (!Main.Multiplayer.IsActive)
             {

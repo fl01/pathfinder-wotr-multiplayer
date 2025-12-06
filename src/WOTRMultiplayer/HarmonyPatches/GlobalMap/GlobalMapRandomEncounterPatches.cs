@@ -42,7 +42,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
 
         [HarmonyPatch(typeof(RandomEncountersController), nameof(RandomEncountersController.RollTravelEncounter))]
         [HarmonyPostfix]
-        public static void RandomEncountersController_RollTravelEncounter_Postfix(RandomEncountersController __instance, ref bool __result)
+        public static void RandomEncountersController_RollTravelEncounter_Postfix(ref bool __result)
         {
             if (!Main.Multiplayer.IsActive || !__result)
             {

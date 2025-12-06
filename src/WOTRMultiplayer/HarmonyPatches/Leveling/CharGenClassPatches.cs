@@ -10,7 +10,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
     {
         [HarmonyPatch(typeof(CharGenClassSelectorItemPCView), nameof(CharGenClassSelectorItemPCView.OnClick))]
         [HarmonyPrefix]
-        public static bool CharGenClassSelectorItemPCView_OnClick_Prefix(CharGenClassSelectorItemPCView __instance)
+        public static bool CharGenClassSelectorItemPCView_OnClick_Prefix()
         {
             if (!Main.Multiplayer.IsActive)
             {
@@ -23,7 +23,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
 
         [HarmonyPatch(typeof(CharGenClassPhaseVM), nameof(CharGenClassPhaseVM.TryWarnChangeRace))]
         [HarmonyPostfix]
-        public static void CharGenPhaseRoadmapBaseView_TryWarnChangeRace_Prefix(CharGenClassPhaseVM __instance, CharGenClassSelectorItemVM archetypeVM)
+        public static void CharGenPhaseRoadmapBaseView_TryWarnChangeRace_Prefix(CharGenClassSelectorItemVM archetypeVM)
         {
             if (!Main.Multiplayer.IsActive)
             {
@@ -36,7 +36,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
 
         [HarmonyPatch(typeof(CharGenClassPhaseVM), nameof(CharGenClassPhaseVM.OnMechanicClassSelected))]
         [HarmonyPostfix]
-        public static void CharGenPhaseRoadmapBaseView_TryWarnChangeRace_Prefix(CharGenClassPhaseVM __instance, BlueprintCharacterClass selectedClass)
+        public static void CharGenPhaseRoadmapBaseView_TryWarnChangeRace_Prefix(BlueprintCharacterClass selectedClass)
         {
             if (selectedClass == null)
             {

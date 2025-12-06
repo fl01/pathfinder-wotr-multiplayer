@@ -18,7 +18,7 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
     {
         [HarmonyPatch(typeof(AreaTransitionGroupCommand), nameof(AreaTransitionGroupCommand.ExecuteTransition))]
         [HarmonyPrefix]
-        public static bool AreaTransitionGroupCommand_ExecuteTransition_Prefix(AreaTransitionGroupCommand __instance, AreaTransitionPart areaTransition)
+        public static bool AreaTransitionGroupCommand_ExecuteTransition_Prefix(AreaTransitionPart areaTransition)
         {
             if (!Main.Multiplayer.IsActive)
             {

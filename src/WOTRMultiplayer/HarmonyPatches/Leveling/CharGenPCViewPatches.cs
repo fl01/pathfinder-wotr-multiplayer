@@ -9,7 +9,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
     {
         [HarmonyPatch(typeof(CharGenVM), nameof(CharGenVM.Close))]
         [HarmonyPostfix]
-        public static void CharGenVM_Close_Postfix(CharGenPCView __instance)
+        public static void CharGenVM_Close_Postfix()
         {
             if (!Main.Multiplayer.IsActive)
             {
@@ -21,7 +21,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
 
         [HarmonyPatch(typeof(CharGenVM), nameof(CharGenVM.Complete))]
         [HarmonyPostfix]
-        public static void CharGenVM_Complete_Prefix(CharGenVM __instance)
+        public static void CharGenVM_Complete_Prefix()
         {
             if (!Main.Multiplayer.IsActive)
             {

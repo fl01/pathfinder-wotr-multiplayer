@@ -50,8 +50,6 @@ namespace WOTRMultiplayer.UI
                 _sprites = new ConcurrentDictionary<string, ConcurrentDictionary<string, UnityEngine.Sprite>>();
                 _sprites.TryAdd(PortraitsBundleName, LoadSprites(PortraitsBundleName));
                 _sprites.TryAdd(UIBundleName, LoadSprites(UIBundleName));
-
-                var a = LoadSprites("mainmenupcview.res");
             }
         }
 

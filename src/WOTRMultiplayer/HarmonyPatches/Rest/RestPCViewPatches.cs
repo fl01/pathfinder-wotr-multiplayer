@@ -26,7 +26,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
         [HarmonyPatch(typeof(RestPCView), nameof(RestPCView.StartRest))]
         [HarmonyPrefix]
-        public static void RestPCView_StartRest_Prefix(RestPCView __instance)
+        public static void RestPCView_StartRest_Prefix()
         {
             if (!Main.Multiplayer.IsActive)
             {
@@ -56,7 +56,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
 
         [HarmonyPatch(typeof(RestBaseView), nameof(RestBaseView.CloseRest))]
         [HarmonyPrefix]
-        public static bool RestBaseView_CloseRest_Prefix(RestPCView __instance)
+        public static bool RestBaseView_CloseRest_Prefix()
         {
             if (!Main.Multiplayer.IsActive)
             {

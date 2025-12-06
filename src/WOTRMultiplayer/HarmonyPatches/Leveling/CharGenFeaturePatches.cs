@@ -9,7 +9,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
     {
         [HarmonyPatch(typeof(CharGenFeatureSelectorItemPCView), nameof(CharGenFeatureSelectorItemPCView.OnClick))]
         [HarmonyPrefix]
-        public static bool CharGenFeatureSelectorItemPCView_OnClick_Prefix(CharGenFeatureSelectorItemPCView __instance)
+        public static bool CharGenFeatureSelectorItemPCView_OnClick_Prefix()
         {
             if (!Main.Multiplayer.IsActive)
             {
