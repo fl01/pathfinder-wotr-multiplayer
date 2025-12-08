@@ -3,9 +3,9 @@
 #### Disclaimer: All of the changes below only kick in when you are playing in Multiplayer (started or joined through the Multiplayer Window). Single-player isn't affected at all, so you can keep playing normally. But if you are curious about what the mod adds, you can always host a solo game to check it out.
 
 ## TL/DR:
-- DLCs are not checked, so it's up to you to ensure everyone has the same game content. This includes any extra items or classes as any discrepancy in data would cause a desync.
-
 - Prologue and Act1 are mostly playable. Anything beyond that is not implemented
+
+- DLCs are not checked, so it's up to you to ensure everyone has the same game content. This includes any extra items or classes, as any discrepancy in data will cause a desync.
 
 ## Other Mods Compatibility
 Most of the syncing relies on the blueprint asset ID (or something similiar) to replicate action for other players, so in **THEORY** things should work fine as long as those IDs are the same for abilities, spells, etc. This also includes any extra rolls (e.g. Skill Check or Attack Roll) added by mods, but those roll types must be available within base game.
