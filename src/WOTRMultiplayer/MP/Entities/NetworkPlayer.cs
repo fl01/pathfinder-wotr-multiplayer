@@ -18,5 +18,9 @@ namespace WOTRMultiplayer.MP.Entities
         {
             Id = id;
         }
+
+        public NetworkPlayer()
+        {
+        }
     }
 }
