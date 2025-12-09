@@ -537,7 +537,7 @@ namespace WOTRMultiplayer.MP.Actors
             return true;
         }
 
-        public bool CanTogglePause(bool isPaused)
+        public bool TogglePause(bool isPaused)
         {
             lock (ActionLock)
             {
@@ -549,8 +549,8 @@ namespace WOTRMultiplayer.MP.Actors
                         return true;
                     }
 
-                    var messageKey = Game.ForcedPause.IsLifting ? WellKnownKeys.GameNotifications.ForcedPause.IsLifting.Key : Game.ForcedPause.Reason;
-                    GameInteraction.ShowWarningNotification(messageKey);
+                    ShowForcedPauseReason();
+
                     return false;
                 }
 
@@ -686,6 +686,12 @@ namespace WOTRMultiplayer.MP.Actors
 
         public bool OnGlobalMapSelectLocation(NetworkGlobalMapLocation globalMapLocation)
         {
+            if (Game.ForcedPause != null)
+            {
+                ShowForcedPauseReason();
+                return false;
+            }
+
             return true;
         }
 
@@ -1634,6 +1640,7 @@ namespace WOTRMultiplayer.MP.Actors
                     var delay = removalDelay.HasValue ? Task.Delay(removalDelay.Value) : Task.CompletedTask;
                     Game.ForcedPause.IsLifting = true;
                     Logger.LogInformation("Forced pause will be lifted soon. Delay={Delay}", removalDelay.GetValueOrDefault());
+                    GameInteraction.AddCombatText(WellKnownKeys.GameNotifications.ForcedPause.AreaLoading.Key);
                     delay.ContinueWith(x =>
                     {
                         Game.ForcedPause = null;
@@ -1713,6 +1720,18 @@ namespace WOTRMultiplayer.MP.Actors
             var totalPlayersCount = GetPlayersCount();
             var isInteractable = readyPlayersCount >= totalPlayersCount;
             GameInteraction.UpdateStartRestButtonState(isInteractable, readyPlayersCount, totalPlayersCount);
+        }
+
+        private void ShowForcedPauseReason()
+        {
+            var pause = Game.ForcedPause;
+            if (pause == null)
+            {
+                return;
+            }
+
+            var messageKey = pause.IsLifting ? WellKnownKeys.GameNotifications.ForcedPause.IsLifting.Key : pause.Reason;
+            GameInteraction.ShowWarningNotification(messageKey);
         }
     }
 }

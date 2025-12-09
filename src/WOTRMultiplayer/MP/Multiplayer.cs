@@ -1411,7 +1411,7 @@ namespace WOTRMultiplayer.MP
             }
         }
 
-        public bool CanTogglePause(bool isPaused)
+        public bool TogglePause(bool isPaused)
         {
             try
             {
@@ -1420,8 +1420,8 @@ namespace WOTRMultiplayer.MP
                     return true;
                 }
 
-                var canToggle = _multiplayerActorAccessor.Current.CanTogglePause(isPaused);
-                return canToggle;
+                var toggle = _multiplayerActorAccessor.Current.TogglePause(isPaused);
+                return toggle;
             }
             catch (Exception ex)
             {

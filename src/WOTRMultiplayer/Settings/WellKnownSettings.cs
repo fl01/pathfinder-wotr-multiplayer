@@ -61,7 +61,7 @@ namespace WOTRMultiplayer.Settings
         public static class DangerZone
         {
             [Description("default-forced-pause-timeout")]
-            public static WellKnownSettingKey<TimeSpan> DefaultForcedPauseTimeout { get; } = new(TimeSpan.FromSeconds(3));
+            public static WellKnownSettingKey<TimeSpan> DefaultForcedPauseTimeout { get; } = new(TimeSpan.FromSeconds(2));
 
             [Description("rest-encounter-forced-pause-timeout")]
             public static WellKnownSettingKey<TimeSpan> RestEncounterForcedPauseTimeout { get; } = new(TimeSpan.FromSeconds(8));

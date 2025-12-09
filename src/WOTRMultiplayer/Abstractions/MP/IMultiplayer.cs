@@ -165,7 +165,7 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         void OnClearActionBarSlot(NetworkActionBarSlot actionBarSlot);
 
-        bool CanTogglePause(bool isPaused);
+        bool TogglePause(bool isPaused);
 
         void OnAutoPausedByTrapDetection();
 

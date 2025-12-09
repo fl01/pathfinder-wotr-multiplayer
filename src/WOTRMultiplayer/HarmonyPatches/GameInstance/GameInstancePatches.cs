@@ -85,7 +85,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GameInstance
         private static void TogglePause(Game game)
         {
             var isPaused = game.IsPaused;
-            var canTogglePause = Main.Multiplayer.CanTogglePause(isPaused);
+            var canTogglePause = Main.Multiplayer.TogglePause(isPaused);
             if (!Main.Multiplayer.IsActive || canTogglePause)
             {
                 game.IsPaused = !game.IsPaused;

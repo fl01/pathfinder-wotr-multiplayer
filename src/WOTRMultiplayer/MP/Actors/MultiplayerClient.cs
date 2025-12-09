@@ -313,7 +313,7 @@ namespace WOTRMultiplayer.MP.Actors
             return false;
         }
 
-        public bool CanTogglePause(bool isPaused)
+        public bool TogglePause(bool isPaused)
         {
             if (Game.ForcedPause != null && isPaused)
             {
