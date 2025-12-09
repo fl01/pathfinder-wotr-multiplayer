@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using WOTRMultiplayer.Networking.Messages.Contracts;
 
 namespace WOTRMultiplayer.Networking.Messages.Lobby
 {
@@ -8,5 +9,8 @@ namespace WOTRMultiplayer.Networking.Messages.Lobby
     {
         [ProtoMember(1)]
         public string PlayerName { get; set; }
+
+        [ProtoMember(2)]
+        public NetworkContentState ContentState { get; set; }
     }
 }

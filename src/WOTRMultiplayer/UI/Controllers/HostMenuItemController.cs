@@ -222,7 +222,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
             var portraits = selectedSave.PartyPortraits.Value.Select(p => p.Portrait.name).ToList();
             var savePath = selectedSave.Reference.FolderName;
-            var characters = portraits.Select(x => new NetworkCharacterOwnership { Name = x, Portrait = x, Owner = null }).ToList();
+            var characters = portraits.Select(x => new NetworkCharacter { Name = x, Portrait = x, Owner = null }).ToList();
             characters.First().Name = selectedSave.CharacterName.Value;
             Lobby.UpdateCharacters(characters, true);
 

@@ -8,6 +8,7 @@ using WOTRMultiplayer.GameInteraction.Contexts;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.ActionBar;
 using WOTRMultiplayer.MP.Entities.Combat;
+using WOTRMultiplayer.MP.Entities.Content;
 using WOTRMultiplayer.MP.Entities.Dialogs;
 using WOTRMultiplayer.MP.Entities.Equipment;
 using WOTRMultiplayer.MP.Entities.GlobalMap;
@@ -47,7 +48,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         Task<bool> StartDialogAsync(string dialogName, string targetUnitId, string initiatorUnitId, string mapObjectId, string speakerKey);
 
-        List<NetworkCharacterOwnership> GetPartyPlayers();
+        List<NetworkCharacter> GetPartyPlayers();
 
         void ShowModalMessage(string messageKey, params object[] args);
 
@@ -234,5 +235,6 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void UpdateZoneLootRemoveToggle(bool removeLoot);
 
         void CompleteZoneLoot();
+        NetworkContentState GetInstalledContent();
     }
 }

@@ -260,7 +260,7 @@ namespace WOTRMultiplayer.UI.Controllers
             });
         }
 
-        private void OnMultiplayerGameCharactersChanged(List<NetworkCharacterOwnership> characters)
+        private void OnMultiplayerGameCharactersChanged(List<NetworkCharacter> characters)
         {
             Lobby.UpdateCharacters(characters, false);
         }

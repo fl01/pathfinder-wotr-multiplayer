@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Kingmaker.Controllers.Rest;
 using Kingmaker.GameModes;
+using Kingmaker.Utility;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.IO;
@@ -15,6 +16,7 @@ using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.Combat;
+using WOTRMultiplayer.MP.Entities.Content;
 using WOTRMultiplayer.MP.Entities.Dialogs;
 using WOTRMultiplayer.MP.Entities.GlobalMap;
 using WOTRMultiplayer.MP.Entities.Inspect;
@@ -64,7 +66,7 @@ namespace WOTRMultiplayer.MP.Actors
             _networkServer = networkServer;
         }
 
-        public void Create(string saveFilePath, string gameId, List<NetworkCharacterOwnership> characters)
+        public void Create(string saveFilePath, string gameId, List<NetworkCharacter> characters)
         {
             if (_networkServer.IsActive)
             {
@@ -89,7 +91,7 @@ namespace WOTRMultiplayer.MP.Actors
             Logger.LogInformation("Host has been created. SavePath={SavePath}, Portraits={Portraits}", saveFilePath, string.Join(";", Game.Characters.Select(c => c.Portrait)));
         }
 
-        public void UpdateSaveGame(string saveFilePath, string gameId, List<NetworkCharacterOwnership> characters)
+        public void UpdateSaveGame(string saveFilePath, string gameId, List<NetworkCharacter> characters)
         {
             Game.Id = gameId;
             Game.SaveFilePath = saveFilePath;
@@ -174,12 +176,15 @@ namespace WOTRMultiplayer.MP.Actors
                 return;
             }
 
-            var players = GetPlayers();
-            foreach (var player in players)
+            var host = GetHost();
+            UpdatePlayerSaveGameSyncStatus(host, NetworkPlayerSaveGameSyncStatus.Succeed);
+
+            var saveSyncStatusChanged = new NotifyPlayerSaveGameSyncStatusChanged
             {
-                var status = player.Id == NetworkingConsts.HostPlayerId ? NetworkPlayerSaveGameSyncStatus.Succeed : NetworkPlayerSaveGameSyncStatus.None;
-                UpdatePlayerSaveGameSyncStatus(player, status);
-            }
+                Status = host.SaveGameSyncStatus.ToString(),
+                PlayerId = host.Id,
+            };
+            _networkServer.SendAll(saveSyncStatusChanged);
 
             Game.Stage = NetworkGameStage.SyncingSaveGame;
 
@@ -781,7 +786,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return null;
             }
 
-            if (character.Owner.Id == NetworkingConsts.HostPlayerId)
+            if (character.Owner.IsHost)
             {
                 Logger.LogError("Host is character owner, but tries to retrieve network roll");
                 return null;
@@ -923,7 +928,7 @@ namespace WOTRMultiplayer.MP.Actors
                .On<AIActionRequest>(OnAIActionRequest)
 
                // lobby
-               .On<ClientSaveGameSyncChanged>(OnClientSaveGameSyncChanged)
+               .On<NotifyPlayerSaveGameSyncStatusChanged>(OnNotifyPlayerSaveGameSyncStatusChanged)
                .On<PlayerReadyStatusChanged>(OnPlayerReadyStatusChanged)
                .On<ClientGameServerConnectionConfirmed>(OnClientGameServerConnectionConfirmed)
                // quick load by another player
@@ -1230,7 +1235,7 @@ namespace WOTRMultiplayer.MP.Actors
             if (Game.Combat != null
                 && !isAI
                 && character?.Owner != null
-                && character.Owner.Id != NetworkingConsts.HostPlayerId
+                && !character.Owner.IsHost
                 && character.Owner.Id != playerId)
             {
                 Logger.LogInformation("Asking another client for a roll. PlayerId={PlayerId}, RollId={RollId}, UnitId={UnitId}", character.Owner.Id, request.RollId, request.UnitId);
@@ -1250,21 +1255,14 @@ namespace WOTRMultiplayer.MP.Actors
             await SendLocalRollAsync(playerId, request);
         }
 
-        private void OnClientSaveGameSyncChanged(long playerId, ClientSaveGameSyncChanged changed)
+        private void OnNotifyPlayerSaveGameSyncStatusChanged(long playerId, NotifyPlayerSaveGameSyncStatusChanged playerSaveGameSyncStatusChanged)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, Status={Status}", nameof(ClientSaveGameSyncChanged), playerId, changed.Status);
-            var player = GetPlayer(playerId);
-            if (player == null)
-            {
-                Logger.LogError("Received save game sync status for missing player. PlayerId={PlayerId}", playerId);
-                return;
-            }
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, Status={Status}", nameof(NotifyPlayerSaveGameSyncStatusChanged), playerId, playerSaveGameSyncStatusChanged.Status);
 
-            var status = Mapper.Map<NetworkPlayerSaveGameSyncStatus>(changed.Status);
+            var status = Mapper.Map<NetworkPlayerSaveGameSyncStatus>(playerSaveGameSyncStatusChanged.Status);
             UpdatePlayerSaveGameSyncStatus(playerId, status);
 
-            var message = new NotifyPlayerSaveGameSyncStatusChanged { PlayerId = playerId, Status = status.ToString() };
-            Send(message);
+            OnAfterNetworkMessageHandled(playerId, playerSaveGameSyncStatusChanged);
 
             TryStartGame();
         }
@@ -1287,31 +1285,37 @@ namespace WOTRMultiplayer.MP.Actors
                     var existingPlayer = GetPlayer(playerId);
                     if (existingPlayer == null)
                     {
-                        Logger.LogWarning("Can't process player name update because player doesn't exist. PlayerId={playPlayerIderId}, Name={Name}", playerId, connectionConfirmed.PlayerName);
+                        Logger.LogError("Can't process player name update because player doesn't exist. PlayerId={playPlayerIderId}, Name={Name}", playerId, connectionConfirmed.PlayerName);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(connectionConfirmed.PlayerName))
                     {
-                        Logger.LogWarning("Can't process player name update because player name is missing. PlayerId={PlayerId}, Name={Name}", playerId, connectionConfirmed.PlayerName);
+                        Logger.LogError("Can't process player name update because player name is missing. PlayerId={PlayerId}, Name={Name}", playerId, connectionConfirmed.PlayerName);
                         return;
                     }
 
                     existingPlayer.Name = connectionConfirmed.PlayerName;
 
-                    OnPlayersChanged?.Invoke(Game.Players);
+                    existingPlayer.ContentState = Mapper.Map<NetworkContentState>(connectionConfirmed.ContentState);
+                    var host = GetHost();
+                    existingPlayer.ContentState.DiscrepantDLCs = CompareDLCs(host.ContentState, existingPlayer.ContentState);
+                    existingPlayer.ContentState.DiscrepantMods = CompareMods(host.ContentState, existingPlayer.ContentState);
+                    Logger.LogInformation("Player content has been checked. PlayerId={PlayerId}, DiscrepantDLCs={DiscrepantDLCs}, DiscrepantMods={DiscrepantMods}", existingPlayer.Id, existingPlayer.ContentState.DiscrepantDLCs.Count, existingPlayer.ContentState.DiscrepantMods.Count);
 
                     var playersChanged = CreateNotifyLobbyPlayersChanged();
                     Logger.LogInformation("Sending {MessageType} to ALL players", nameof(NotifyLobbyPlayersChanged));
                     _networkServer.SendAll(playersChanged);
 
                     var notifyGameCharactersChanged = CreateNotifyGameCharactersChanged();
-                    Logger.LogInformation("Sending {MessageType} to new player. PlayerId={PlayerId}", nameof(NotifyGameCharactersChanged), playerId);
+                    Logger.LogInformation("Sending {MessageType} to new player. PlayerId={PlayerId}", nameof(NotifyCharactersChanged), playerId);
                     _networkServer.Send(playerId, notifyGameCharactersChanged);
 
                     var charactersOwnerChanged = CreateNotifyCharactersOwnerChanged();
                     Logger.LogInformation("Sending {MessageType} to new player. PlayerId={PlayerId}", nameof(NotifyCharactersOwnerChanged), playerId);
                     _networkServer.Send(playerId, charactersOwnerChanged);
+
+                    OnPlayersChanged?.Invoke(Game.Players);
 
                     ShowPlayerConnectedMessage(existingPlayer);
                 }
@@ -1321,6 +1325,89 @@ namespace WOTRMultiplayer.MP.Actors
                 Logger.LogError(ex, "Unable to handle player name response");
                 throw;
             }
+        }
+
+        private List<NetworkDiscrepantDLC> CompareDLCs(NetworkContentState hostState, NetworkContentState clientState)
+        {
+            var discrepantDLCs = new List<NetworkDiscrepantDLC>();
+            var clientDlcs = clientState.DLCs.ToList();
+            foreach (var hostDlc in hostState.DLCs)
+            {
+                var clientDlc = clientDlcs.FirstOrDefault(d => string.Equals(d.Id, hostDlc.Id, StringComparison.OrdinalIgnoreCase));
+                NetworkDiscrepancyReason? reason = null;
+                if (clientDlc == null)
+                {
+                    reason = NetworkDiscrepancyReason.Missing;
+                }
+                else if (hostDlc.IsAvailable && !clientDlc.IsAvailable)
+                {
+                    reason = NetworkDiscrepancyReason.Disabled;
+                }
+                else if (!hostDlc.IsAvailable && clientDlc.IsAvailable)
+                {
+                    reason = NetworkDiscrepancyReason.Extra;
+                }
+
+                if (reason != null)
+                {
+                    discrepantDLCs.Add(new NetworkDiscrepantDLC(hostDlc, reason.Value));
+                }
+
+                if (clientDlc != null)
+                {
+                    clientDlcs.Remove(clientDlc);
+                }
+            }
+
+            var availableLeftovers = clientDlcs.Where(x => x.IsAvailable).Select(x => new NetworkDiscrepantDLC(x, NetworkDiscrepancyReason.Extra));
+            discrepantDLCs.AddRange(availableLeftovers);
+
+            return discrepantDLCs;
+        }
+
+        private List<NetworkDiscrepantMod> CompareMods(NetworkContentState hostState, NetworkContentState clientState)
+        {
+            var discrepantMods = new List<NetworkDiscrepantMod>();
+            var clientMods = clientState.Mods.ToList();
+            foreach (var hostMod in hostState.Mods)
+            {
+                var clientMod = clientMods.FirstOrDefault(m => string.Equals(m.Id, hostMod.Id, StringComparison.OrdinalIgnoreCase));
+                NetworkDiscrepancyReason? reason = null;
+                if (clientMod == null)
+                {
+                    if (hostMod.IsEnabled)
+                    {
+                        reason = NetworkDiscrepancyReason.Missing;
+                    }
+                }
+                else if (hostMod.IsEnabled && !clientMod.IsEnabled)
+                {
+                    reason = NetworkDiscrepancyReason.Disabled;
+                }
+                else if (!hostMod.IsEnabled && clientMod.IsEnabled)
+                {
+                    reason = NetworkDiscrepancyReason.Extra;
+                }
+                else if (hostMod.IsEnabled && clientMod.IsEnabled && !string.Equals(clientMod.Version, hostMod.Version, StringComparison.OrdinalIgnoreCase))
+                {
+                    reason = NetworkDiscrepancyReason.VersionMismatch;
+                }
+
+                if (reason != null)
+                {
+                    discrepantMods.Add(new NetworkDiscrepantMod(hostMod, reason.Value));
+                }
+
+                if (clientMod != null)
+                {
+                    clientMods.Remove(clientMod);
+                }
+            }
+
+            var enabledLeftovers = clientMods.Where(x => x.IsEnabled).Select(x => new NetworkDiscrepantMod(x, NetworkDiscrepancyReason.Extra)).ToList();
+            discrepantMods.AddRange(enabledLeftovers);
+
+            return discrepantMods;
         }
 
         private void OnPlayerConnected(long playerId)
@@ -1398,7 +1485,9 @@ namespace WOTRMultiplayer.MP.Actors
         {
             var hostPlayer = new NetworkPlayer(NetworkingConsts.HostPlayerId)
             {
-                Name = SettingsService.GetSettings().PlayerName
+                Name = SettingsService.GetSettings().PlayerName,
+                ContentState = GameInteraction.GetInstalledContent(),
+                IsHost = true
             };
 
             // no need to lock yet
@@ -1414,8 +1503,8 @@ namespace WOTRMultiplayer.MP.Actors
                 character.Owner = hostPlayer;
             }
 
-            var settings = GetEnforcedGameSettings();
-            GameInteraction.ApplyGameSettings(settings);
+            var enforcedSettings = GetEnforcedGameSettings();
+            GameInteraction.ApplyGameSettings(enforcedSettings);
 
             OnConnected?.Invoke(Game.Connectivity);
             OnPlayersChanged?.Invoke(GetPlayers());
@@ -1448,11 +1537,11 @@ namespace WOTRMultiplayer.MP.Actors
             return settings;
         }
 
-        private NotifyGameCharactersChanged CreateNotifyGameCharactersChanged()
+        private NotifyCharactersChanged CreateNotifyGameCharactersChanged()
         {
-            var message = new NotifyGameCharactersChanged
+            var message = new NotifyCharactersChanged
             {
-                Characters = Mapper.Map<List<Networking.Messages.Contracts.NetworkCharacterOwnership>>(Game.Characters)
+                Characters = Mapper.Map<List<Networking.Messages.Contracts.NetworkCharacter>>(Game.Characters)
             };
             return message;
         }

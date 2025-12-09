@@ -25,7 +25,7 @@ namespace WOTRMultiplayer.MP.Entities
 
         public Dictionary<string, long> CharactersOwnershipHistory { get; set; } = [];
 
-        public List<NetworkCharacterOwnership> Characters { get; set; } = [];
+        public List<NetworkCharacter> Characters { get; set; } = [];
 
         public NetworkCombat Combat { get; set; }
 

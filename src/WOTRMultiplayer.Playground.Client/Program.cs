@@ -117,7 +117,7 @@ namespace WOTRMultiplayer.Playground.Client
                             Type = equipment.SlotType
                         }
                     };
-                    var character = new MP.Entities.NetworkCharacterOwnership { Name = equipment.UnitId, Owner = client.Game.Players.FirstOrDefault(), UnitId = equipment.UnitId };
+                    var character = new MP.Entities.NetworkCharacter { Name = equipment.UnitId, Owner = client.Game.Players.FirstOrDefault(), UnitId = equipment.UnitId };
                     client.Game.Characters.Add(character);
                     client.OnEquipmentSlotChanged(slot);
                     client.Game.Characters.Remove(character);

@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using Kingmaker.BundlesLoading;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.UI;
@@ -59,7 +60,7 @@ namespace WOTRMultiplayer.UI
             // had no success to limit loading
             // note: you can't delete (Object->Destroy or DestroyImmediate) redundant sprites as it causes texture errors later on
             var allSprites = bundle.LoadAllAssets<UnityEngine.Sprite>();
-            var keyValuePairs = new ConcurrentDictionary<string, UnityEngine.Sprite>();
+            var keyValuePairs = new ConcurrentDictionary<string, UnityEngine.Sprite>(StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < allSprites.Length; i++)
             {
                 var portrait = allSprites[i];

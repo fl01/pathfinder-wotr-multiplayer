@@ -46,7 +46,7 @@ namespace WOTRMultiplayer.Playground.Host
             //    new() { Name = "EmberFemaleElfWitch_Portrait", Portrait = "EmberFemaleElfWitch_Portrait"},
             //    new() { Name = "NenioFemaleKitsuneWizard_Portrait", Portrait = "NenioFemaleKitsuneWizard_Portrait"},
             //};
-            var characters = new List<NetworkCharacterOwnership> {
+            var characters = new List<NetworkCharacter> {
                 new() { Name = "Taolynn", Portrait = "KitsuneFemaleRogue_Portrait"}
                 //new() { Name = "xdd", Portrait = "KitsuneFemaleRogue_Portrait"}
             };

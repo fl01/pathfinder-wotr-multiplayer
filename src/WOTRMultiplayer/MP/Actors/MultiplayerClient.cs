@@ -40,7 +40,7 @@ namespace WOTRMultiplayer.MP.Actors
 
         public Action<NetworkGameConnectivity> OnConnected { get; set; }
 
-        public Action<List<NetworkCharacterOwnership>> OnGameCharactersChanged { get; set; }
+        public Action<List<NetworkCharacter>> OnGameCharactersChanged { get; set; }
         public Action<int, int> OnCharacterOwnerChanged { get; set; }
 
         public Action OnDisconnected { get; set; }
@@ -427,7 +427,7 @@ namespace WOTRMultiplayer.MP.Actors
                .On<GameServerConnectionSucceeded>(OnGameServerConnectionSucceeded)
                .On<PlayerReadyStatusChanged>(OnPlayerReadyStatusChanged)
                .On<NotifyLobbyPlayersChanged>(OnNotifyLobbyPlayersChanged)
-               .On<NotifyGameCharactersChanged>(OnNotifyGameCharactersChanged)
+               .On<NotifyCharactersChanged>(OnNotifyGameCharactersChanged)
                .On<NotifyCharactersOwnerChanged>(OnNotifyCharactersOwnerChanged)
                .On<NotifyGameStarted>(OnNotifyGameStarted)
                .On<NotifyPlayerSaveGameSyncStatusChanged>(OnNotifyPlayerSaveGameSyncStatusChanged)
@@ -948,8 +948,6 @@ namespace WOTRMultiplayer.MP.Actors
             Game.SaveFilePath = StoreSaveFile(notifyLobbySaveGameChanged.Content);
             Game.Id = notifyLobbySaveGameChanged.GameId;
 
-            // TODO: check dlc ?
-
             if (notifyLobbySaveGameChanged.IsForceLoad)
             {
                 ForceLoadGame();
@@ -957,7 +955,7 @@ namespace WOTRMultiplayer.MP.Actors
             }
 
             Logger.LogInformation("Game is ready to be started. SavePath={SavePath}", Game.SaveFilePath);
-            var confirmationMessage = new ClientSaveGameSyncChanged { Status = NetworkPlayerSaveGameSyncStatus.Succeed.ToString() };
+            var confirmationMessage = new NotifyPlayerSaveGameSyncStatusChanged { PlayerId = Game.LocalPlayerId, Status = NetworkPlayerSaveGameSyncStatus.Succeed.ToString() };
             Send(confirmationMessage);
         }
 
@@ -968,11 +966,11 @@ namespace WOTRMultiplayer.MP.Actors
             UpdatePlayerReadyStatus(readyStatusChanged.PlayerId, readyStatusChanged.IsReady);
         }
 
-        private void OnNotifyGameCharactersChanged(long playerId, NotifyGameCharactersChanged changed)
+        private void OnNotifyGameCharactersChanged(long playerId, NotifyCharactersChanged changed)
         {
-            Logger.LogInformation("Received {MessageType}. Portraits={Portraits}", nameof(NotifyGameCharactersChanged), string.Join(";", changed.Characters.Select(c => c.Portrait)));
+            Logger.LogInformation("Received {MessageType}. Portraits={Portraits}", nameof(NotifyCharactersChanged), string.Join(";", changed.Characters.Select(c => c.Portrait)));
 
-            var characters = Mapper.Map<List<NetworkCharacterOwnership>>(changed.Characters);
+            var characters = Mapper.Map<List<NetworkCharacter>>(changed.Characters);
             Game.Characters.Clear();
             Game.Characters.AddRange(characters);
             OnGameCharactersChanged?.Invoke(Game.Characters);
@@ -1048,12 +1046,6 @@ namespace WOTRMultiplayer.MP.Actors
             }
         }
 
-        private void InvokeOnNetworkError(string error, SocketError? socketError = null)
-        {
-            OnNetworkError?.Invoke();
-            GameInteraction.ShowModalMessage(error, socketError);
-        }
-
         private void OnGameServerConnectionSucceeded(long playerId, GameServerConnectionSucceeded connectionSucceeded)
         {
             Logger.LogInformation("Received {MessageType}. ClientPlayerId={ClientPlayerId}, SessionSeed={SessionSeed}", nameof(GameServerConnectionSucceeded), connectionSucceeded.ClientPlayerId, connectionSucceeded.SessionSeed);
@@ -1064,9 +1056,21 @@ namespace WOTRMultiplayer.MP.Actors
             var settings = Mapper.Map<NetworkGameSettings>(connectionSucceeded.GameSettings);
             GameInteraction.ApplyGameSettings(settings);
 
-            var message = new ClientGameServerConnectionConfirmed() { PlayerName = SettingsService.GetSettings().PlayerName };
-            Logger.LogInformation("Sending {MessageType}. PlayerName={PlayerName}", nameof(ClientGameServerConnectionConfirmed), message.PlayerName);
+            var contentState = GetInstalledContent();
+            var message = new ClientGameServerConnectionConfirmed
+            {
+                PlayerName = SettingsService.GetSettings().PlayerName,
+                ContentState = Mapper.Map<Networking.Messages.Contracts.NetworkContentState>(contentState)
+            };
+
+            Logger.LogInformation("Sending {MessageType}. PlayerName={PlayerName}, DLCsCount={DLCsCount}, ModsCount={ModsCount}", nameof(ClientGameServerConnectionConfirmed), message.PlayerName, message.ContentState.DLCs.Count, message.ContentState.Mods.Count);
             Send(message);
+        }
+
+        private void InvokeOnNetworkError(string error, SocketError? socketError = null)
+        {
+            OnNetworkError?.Invoke();
+            GameInteraction.ShowModalMessage(error, socketError);
         }
     }
 }

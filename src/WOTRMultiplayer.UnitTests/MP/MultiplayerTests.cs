@@ -228,7 +228,7 @@ namespace WOTRMultiplayer.UnitTests.MP
             var windowFake = A.Fake<ILobbyWindow>();
             A.CallTo(() => _multiplerActorAccessor.Current).Returns(_multiplayerHost);
             A.CallTo(() => _multiplayerHost.IsActive).Returns(true);
-            var expectedCharacters = A.Fake<List<NetworkCharacterOwnership>>();
+            var expectedCharacters = A.Fake<List<NetworkCharacter>>();
             A.CallTo(() => _multiplayerHost.GetCharacters()).Returns(expectedCharacters);
             A.CallTo(() => _uiFactory.InitializeEscMenuLobbyWindow(An<InitializeEscMenuLobbyWindowContext>.Ignored, An<Action>.Ignored)).Returns(windowFake);
 

@@ -10,7 +10,9 @@ namespace WOTRMultiplayer.MP.Entities
 
         public bool IsReady { get; set; }
 
-        public NetworkContentState ContentState { get; set; }
+        public bool IsHost { get; set; }
+
+        public NetworkContentState ContentState { get; set; } = new();
 
         public NetworkPlayerSaveGameSyncStatus SaveGameSyncStatus { get; set; }
 

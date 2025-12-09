@@ -3,12 +3,12 @@
 namespace WOTRMultiplayer.Networking.Messages.Contracts
 {
     [ProtoContract]
-    public class NetworkCharacterOwnership
+    public class NetworkDiscrepantDLC
     {
         [ProtoMember(1)]
-        public string Name { get; set; }
+        public NetworkDLC DLC { get; set; }
 
         [ProtoMember(2)]
-        public string Portrait { get; set; }
+        public string Reason { get; set; }
     }
 }

@@ -12,11 +12,10 @@
             GameServerConnectionSucceeded,
             ClientGameServerConnectionConfirmed,
             NotifyCharactersOwnerChanged,
-            NotifyGameCharactersChanged,
+            NotifyCharactersChanged,
             NotifyGameStarted,
             NotifyLobbyPlayersChanged,
             NotifyLobbySaveGameChanged,
-            ClientSaveGameSyncChanged,
             PlayerReadyStatusChanged,
             NotifyPlayerStartFailed
         }

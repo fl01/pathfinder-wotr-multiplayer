@@ -11,6 +11,7 @@ using WOTRMultiplayer.GameInteraction.Contexts;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.ActionBar;
 using WOTRMultiplayer.MP.Entities.Combat;
+using WOTRMultiplayer.MP.Entities.Content;
 using WOTRMultiplayer.MP.Entities.Dialogs;
 using WOTRMultiplayer.MP.Entities.Equipment;
 using WOTRMultiplayer.MP.Entities.GlobalMap;
@@ -121,7 +122,7 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
             return null;
         }
 
-        public List<NetworkCharacterOwnership> GetPartyPlayers()
+        public List<NetworkCharacter> GetPartyPlayers()
         {
             return [];
         }
@@ -466,6 +467,11 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
 
         public void TransferInventoryItems(NetworkItemsTransfer networkItemsTransfer)
         {
+        }
+
+        public NetworkContentState GetInstalledContent()
+        {
+            return null;
         }
     }
 }

@@ -17,6 +17,7 @@ using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.ActionBar;
 using WOTRMultiplayer.MP.Entities.Combat;
+using WOTRMultiplayer.MP.Entities.Content;
 using WOTRMultiplayer.MP.Entities.Equipment;
 using WOTRMultiplayer.MP.Entities.Leveling;
 using WOTRMultiplayer.MP.Entities.Loot;
@@ -26,7 +27,6 @@ using WOTRMultiplayer.MP.Entities.Rest;
 using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
 using WOTRMultiplayer.MP.Entities.Spells;
 using WOTRMultiplayer.MP.Entities.Vendor;
-using WOTRMultiplayer.Networking;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
@@ -114,7 +114,7 @@ namespace WOTRMultiplayer.MP.Actors
             }
         }
 
-        public List<NetworkCharacterOwnership> GetCharacters()
+        public List<NetworkCharacter> GetCharacters()
         {
             return [.. Game.Characters ?? []];
         }
@@ -395,9 +395,9 @@ namespace WOTRMultiplayer.MP.Actors
                 return;
             }
 
-            List<NetworkCharacterOwnership> oldCharacters = [.. Game.Characters];
+            List<NetworkCharacter> oldCharacters = [.. Game.Characters];
             Game.Characters = [.. partyCharacters];
-            var defaultOwner = GetPlayer(NetworkingConsts.HostPlayerId);
+            var defaultOwner = GetHost();
             foreach (var character in Game.Characters)
             {
                 NetworkPlayer historicOwner = null;
@@ -1248,7 +1248,7 @@ namespace WOTRMultiplayer.MP.Actors
         {
             Game.Players.Remove(player);
 
-            var defaultOwner = GetPlayer(NetworkingConsts.HostPlayerId);
+            var defaultOwner = GetHost();
             foreach (var characterOwnership in Game.Characters)
             {
                 if (characterOwnership.Owner != player)
@@ -1327,7 +1327,7 @@ namespace WOTRMultiplayer.MP.Actors
         {
             lock (ActionLock)
             {
-                return Game.Players.First(p => p.Id == NetworkingConsts.HostPlayerId);
+                return Game.Players.First(p => p.IsHost);
             }
         }
 
@@ -1482,7 +1482,7 @@ namespace WOTRMultiplayer.MP.Actors
             return !missingPlayers.Any(p => p.Id == playerId);
         }
 
-        protected NetworkCharacterOwnership GetCharacterOwnership(string unitId)
+        protected NetworkCharacter GetCharacterOwnership(string unitId)
         {
             if (string.IsNullOrEmpty(unitId))
             {
@@ -1552,7 +1552,7 @@ namespace WOTRMultiplayer.MP.Actors
             }
         }
 
-        protected void UpdateCharacterOwnershipHistory(NetworkCharacterOwnership ownership)
+        protected void UpdateCharacterOwnershipHistory(NetworkCharacter ownership)
         {
             if (Game.CharactersOwnershipHistory.TryGetValue(ownership.UnitId, out var playerId) && playerId == ownership.Owner.Id)
             {
@@ -1575,6 +1575,12 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 return Game.Players.Count;
             }
+        }
+
+        protected NetworkContentState GetInstalledContent()
+        {
+            var content = GameInteraction.GetInstalledContent();
+            return content;
         }
 
         protected virtual void SetupNetworkMessageHandlers()

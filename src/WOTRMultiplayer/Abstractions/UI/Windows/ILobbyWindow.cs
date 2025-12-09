@@ -16,7 +16,7 @@ namespace WOTRMultiplayer.Abstractions.UI.Windows
 
         Func<bool> GetIsHost { get; set; }
 
-        Func<List<NetworkCharacterOwnership>> GetCharacters { get; set; }
+        Func<List<NetworkCharacter>> GetCharacters { get; set; }
 
         void Show(bool state);
 

@@ -192,6 +192,84 @@ public static class WellKnownKeys
                 public static string Key { get; set; }
             }
         }
+
+        [Description("tooltips")]
+        public static class Tooltips
+        {
+            [Description("contentDiscrepancy")]
+            public static class ContentDiscrepancy
+            {
+                [Description("DLCs")]
+                public static class DLCs
+                {
+                    [Description("title")]
+                    public static class Title
+                    {
+                        public static string Key { get; set; }
+                    }
+
+                    [Description("reasons")]
+                    public static class Reasons
+                    {
+                        [Description("missing")]
+                        public static class Missing
+                        {
+                            public static string Key { get; set; }
+                        }
+
+                        [Description("extra")]
+                        public static class Extra
+                        {
+                            public static string Key { get; set; }
+                        }
+
+                        [Description("disabled")]
+                        public static class Disabled
+                        {
+                            public static string Key { get; set; }
+                        }
+                    }
+                }
+
+                [Description("mods")]
+                public static class Mods
+                {
+                    [Description("title")]
+                    public static class Title
+                    {
+                        public static string Key { get; set; }
+                    }
+
+                    [Description("reasons")]
+                    public static class Reasons
+                    {
+                        [Description("missing")]
+                        public static class Missing
+                        {
+                            public static string Key { get; set; }
+                        }
+
+                        [Description("extra")]
+                        public static class Extra
+                        {
+                            public static string Key { get; set; }
+                        }
+
+                        [Description("disabled")]
+                        public static class Disabled
+                        {
+                            public static string Key { get; set; }
+                        }
+
+                        [Description("versionMismatch")]
+                        public static class VersionMismatch
+                        {
+                            public static string Key { get; set; }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     [Description("settings")]

@@ -17,6 +17,7 @@ using Kingmaker.Controllers.Rest.State;
 using Kingmaker.Craft;
 using Kingmaker.Designers;
 using Kingmaker.DialogSystem.Blueprints;
+using Kingmaker.DLC;
 using Kingmaker.EntitySystem;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.EntitySystem.Persistence;
@@ -80,6 +81,7 @@ using Owlcat.Runtime.UI.Controls.Button;
 using TMPro;
 using UniRx;
 using UnityEngine;
+using UnityModManagerNet;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.Unity;
@@ -88,6 +90,7 @@ using WOTRMultiplayer.GameInteraction.Contexts;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.ActionBar;
 using WOTRMultiplayer.MP.Entities.Combat;
+using WOTRMultiplayer.MP.Entities.Content;
 using WOTRMultiplayer.MP.Entities.Dialogs;
 using WOTRMultiplayer.MP.Entities.Equipment;
 using WOTRMultiplayer.MP.Entities.GlobalMap;
@@ -525,10 +528,10 @@ namespace WOTRMultiplayer.GameInteraction
             return hasStartedDialogTask.Task;
         }
 
-        public List<NetworkCharacterOwnership> GetPartyPlayers()
+        public List<NetworkCharacter> GetPartyPlayers()
         {
             var partyCharacters = Game.Instance.Player.Party
-                .Select(x => new NetworkCharacterOwnership
+                .Select(x => new NetworkCharacter
                 {
                     Name = x.CharacterName,
                     Portrait = x.Portrait.SmallPortrait.name,
@@ -2708,6 +2711,56 @@ namespace WOTRMultiplayer.GameInteraction
                     throw;
                 }
             });
+        }
+
+        public NetworkContentState GetInstalledContent()
+        {
+            var state = new NetworkContentState
+            {
+                DLCs = GetInstalledDLCs(),
+                Mods = GetInstalledMods()
+            };
+
+            return state;
+        }
+
+        private List<NetworkDLC> GetInstalledDLCs()
+        {
+            var dlcs = new List<NetworkDLC>();
+            foreach (var dlc in BlueprintRoot.Instance.DlcSettings.Dlcs)
+            {
+                if (string.Equals(dlc.name, "DlcSeasonPass", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(dlc.name, "DlcPreorderAndCommanderPack", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var title = !string.IsNullOrEmpty(dlc.DefaultTitle) ? dlc.DefaultTitle
+                    : (dlc.Rewards.FirstOrDefault(x => !string.IsNullOrEmpty((x as BlueprintDlcRewardCampaign)?.Campaign?.Title)) as BlueprintDlcRewardCampaign)?.Campaign.Title
+                        ?? dlc.Rewards.FirstOrDefault(x => !string.IsNullOrEmpty(x.Description))?.Description
+                        ?? dlc.Description;
+
+                var networkDlc = new NetworkDLC
+                {
+                    Id = dlc.name,
+                    IsAvailable = dlc.IsAvailable,
+                    Title = title,
+                };
+
+                dlcs.Add(networkDlc);
+            }
+
+            return dlcs;
+        }
+
+        private List<NetworkMod> GetInstalledMods()
+        {
+            var allMods = new List<NetworkMod>();
+
+            var unityMods = UnityModManager.modEntries.Select(x => new NetworkMod { Id = x.Info.Id, Version = x.Version.ToString(), IsEnabled = x.Enabled, Type = NetworkModType.UnityModManager }).ToList();
+            allMods.AddRange(unityMods);
+
+            return allMods;
         }
 
         private string GetLocalizedText(string messageKey, params object[] args)

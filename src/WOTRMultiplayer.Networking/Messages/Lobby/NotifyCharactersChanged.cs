@@ -5,10 +5,10 @@ using WOTRMultiplayer.Networking.Messages.Contracts;
 namespace WOTRMultiplayer.Networking.Messages.Lobby
 {
     [ProtoContract]
-    [BeetleX.Packets.MessageType((int)MessageTypes.Lobby.NotifyGameCharactersChanged)]
-    public class NotifyGameCharactersChanged
+    [BeetleX.Packets.MessageType((int)MessageTypes.Lobby.NotifyCharactersChanged)]
+    public class NotifyCharactersChanged
     {
         [ProtoMember(1)]
-        public List<NetworkCharacterOwnership> Characters { get; set; } = [];
+        public List<NetworkCharacter> Characters { get; set; } = [];
     }
 }

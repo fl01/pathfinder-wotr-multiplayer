@@ -3,8 +3,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Kingmaker.UI.MVVM._VM.Tooltip.Utils;
 using Microsoft.Extensions.Logging;
+using Owlcat.Runtime.UI.Tooltips;
 using TMPro;
+using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
 using WOTRMultiplayer.Abstractions.UI;
@@ -13,6 +16,7 @@ using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.UI.Menu;
+using WOTRMultiplayer.UI.Tooltips;
 using WOTRMultiplayer.Unity.Behaviours;
 
 namespace WOTRMultiplayer.UI.Controllers
@@ -48,6 +52,8 @@ namespace WOTRMultiplayer.UI.Controllers
         private readonly IResourceProvider _resourceProvider;
         private readonly ConcurrentDictionary<LobbyWindowOwner, GameObject> _contents = new();
         private LobbyWindowOwner _activeOwner;
+
+        private readonly List<IDisposable> _disposables = [];
 
         public Action<int, int> OnCharacterOwnerChanged { get; set; }
 
@@ -104,6 +110,7 @@ namespace WOTRMultiplayer.UI.Controllers
             _mainThreadAccessor.Post(() =>
             {
                 _logger.LogInformation("Updating player list. PlayersCount={PlayersCount}", players.Count);
+                DisposeDisposables();
                 PlayersSectionContent.CleanupAllChildren();
                 foreach (var player in players)
                 {
@@ -171,6 +178,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
             });
         }
+
         public void ResetData()
         {
             _logger.LogInformation("Reset all content");
@@ -179,6 +187,7 @@ namespace WOTRMultiplayer.UI.Controllers
             var serverSection = ServerInfoSectionContent;
             _mainThreadAccessor.Post(() =>
             {
+                DisposeDisposables();
                 current?.SetActive(false);
                 playerSection?.CleanupAllChildren();
                 serverSection?.CleanupAllChildren();
@@ -201,7 +210,7 @@ namespace WOTRMultiplayer.UI.Controllers
             _contents.TryRemove(owner, out var _);
         }
 
-        public void UpdateCharacters(List<NetworkCharacterOwnership> characters, bool isHost)
+        public void UpdateCharacters(List<NetworkCharacter> characters, bool isHost)
         {
             if (GetContentOwnedObject() == null)
             {
@@ -225,14 +234,16 @@ namespace WOTRMultiplayer.UI.Controllers
             var defaultMesh = Main.Multiplayer.Factory.GetDefaultMesh();
             var playerContainerObject = Main.Multiplayer.Factory.CreateDefaultGameObject(PlayersSectionContent.transform);
             playerContainerObject.name = PlayerContainerObjectName;
-            playerContainerObject.AddComponent<HorizontalLayoutGroup>();
+            var horizontal = playerContainerObject.AddComponent<HorizontalLayoutGroup>();
+            horizontal.spacing = 6f;
             var playerContainerSizeFitter = playerContainerObject.AddComponent<ContentSizeFitter>();
             playerContainerSizeFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
             playerContainerSizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
+            const int PreferredHeight = 28;
             var playerObject = Main.Multiplayer.Factory.CreateDefaultGameObject(playerContainerObject.transform);
             var playerElement = playerObject.AddComponent<LayoutElement>();
-            playerElement.preferredHeight = 40;
+            playerElement.preferredHeight = PreferredHeight;
             playerObject.name = PlayerNameObjectName;
             var playerNameBox = playerObject.AddComponent<TextMeshProUGUI>();
             playerNameBox.alignment = TextAlignmentOptions.Center;
@@ -243,6 +254,38 @@ namespace WOTRMultiplayer.UI.Controllers
             {
                 playerNameBox.fontStyle = FontStyles.Strikethrough;
             }
+
+            if (player.ContentState.DiscrepantMods.Any() || player.ContentState.DiscrepantDLCs.Any())
+            {
+                CreatePlayerIcon("UI_QuestNotification_StampYellow", playerContainerObject, PreferredHeight, new TooltipTemplateContentDiscrepancy(player));
+            }
+        }
+
+        private void CreatePlayerIcon(string iconName, GameObject parent, int size, TooltipBaseTemplate template = null)
+        {
+            var iconObject = Main.Multiplayer.Factory.CreateDefaultGameObject(parent.transform);
+
+            var layoutElement = iconObject.AddComponent<LayoutElement>();
+            layoutElement.preferredHeight = size;
+            layoutElement.preferredWidth = size;
+            var image = iconObject.AddComponent<Image>();
+            var sprite = _resourceProvider.GetUISprite(iconName);
+            image.sprite = sprite;
+            if (template != null)
+            {
+                _disposables.Add(TooltipHelper.SetTooltip(image, template));
+            }
+        }
+
+        private void DisposeDisposables()
+        {
+            foreach (var disposable in _disposables)
+            {
+                disposable.Dispose();
+            }
+
+            _disposables.Clear();
+
         }
 
         private void UpdateCharacterOwnerDropdown(List<NetworkPlayer> networkPlayers)

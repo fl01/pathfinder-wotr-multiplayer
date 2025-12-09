@@ -2,6 +2,7 @@
 using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.MP.Entities.ActionBar;
 using WOTRMultiplayer.MP.Entities.Combat;
+using WOTRMultiplayer.MP.Entities.Content;
 using WOTRMultiplayer.MP.Entities.Dialogs;
 using WOTRMultiplayer.MP.Entities.Equipment;
 using WOTRMultiplayer.MP.Entities.GlobalMap;
@@ -35,7 +36,7 @@ namespace WOTRMultiplayer.Config.Mapping
             CreateMap<NetworkDialogAnswerSuggestion, Networking.Messages.Contracts.NetworkDialogAnswerSuggestion>()
                 .ReverseMap();
 
-            CreateMap<NetworkCharacterOwnership, Networking.Messages.Contracts.NetworkCharacterOwnership>()
+            CreateMap<NetworkCharacter, Networking.Messages.Contracts.NetworkCharacter>()
                 .ReverseMap();
 
             CreateMap<NetworkClick, Networking.Messages.Contracts.NetworkClick>()
@@ -189,6 +190,21 @@ namespace WOTRMultiplayer.Config.Mapping
                 .ReverseMap();
 
             CreateMap<NetworkLootableEntity, Networking.Messages.Contracts.NetworkLootableEntity>()
+                .ReverseMap();
+
+            CreateMap<NetworkContentState, Networking.Messages.Contracts.NetworkContentState>()
+                .ReverseMap();
+
+            CreateMap<NetworkDLC, Networking.Messages.Contracts.NetworkDLC>()
+                .ReverseMap();
+
+            CreateMap<NetworkMod, Networking.Messages.Contracts.NetworkMod>()
+                .ReverseMap();
+
+            CreateMap<NetworkDiscrepantMod, Networking.Messages.Contracts.NetworkDiscrepantMod>()
+                .ReverseMap();
+
+            CreateMap<NetworkDiscrepantDLC, Networking.Messages.Contracts.NetworkDiscrepantDLC>()
                 .ReverseMap();
         }
     }

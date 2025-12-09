@@ -17,7 +17,7 @@ namespace WOTRMultiplayer.UI.Menu
 
         public Func<NetworkGameConnectivity> GetGameConnectivity { get; set; }
         public Func<List<NetworkPlayer>> GetPlayers { get; set; }
-        public Func<List<NetworkCharacterOwnership>> GetCharacters { get; set; }
+        public Func<List<NetworkCharacter>> GetCharacters { get; set; }
         public Func<bool> GetIsHost { get; set; }
 
         public GameObject MenuItem { get; set; }

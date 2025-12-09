@@ -1,12 +1,13 @@
 ﻿namespace WOTRMultiplayer.MP.Entities
 {
-    public class NetworkCharacterOwnership
+    public class NetworkCharacter
     {
         public string Portrait { get; set; }
 
         public string Name { get; set; }
 
         public NetworkPlayer Owner { get; set; }
+
         public string UnitId { get; set; }
     }
 }

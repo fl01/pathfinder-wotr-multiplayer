@@ -211,7 +211,7 @@ namespace WOTRMultiplayer.UnitTests.MP
 
             // Assert
             A.CallTo(() => _fileSystemService.WriteFile(A<string>.Ignored, request.Content)).MustHaveHappened();
-            A.CallTo(() => _networkClient.Send(A<ClientSaveGameSyncChanged>.Ignored)).MustHaveHappened();
+            A.CallTo(() => _networkClient.Send(A<NotifyPlayerSaveGameSyncStatusChanged>.Ignored)).MustHaveHappened();
         }
 
         [Test]
@@ -238,7 +238,7 @@ namespace WOTRMultiplayer.UnitTests.MP
             // Assert
             A.CallTo(() => _fileSystemService.WriteFile(A<string>.Ignored, request.Content)).MustHaveHappened();
             A.CallTo(() => _gameInteractionService.QuickLoadGame(A<string>.Ignored)).MustHaveHappened();
-            A.CallTo(() => _networkClient.Send(A<ClientSaveGameSyncChanged>.Ignored)).MustNotHaveHappened();
+            A.CallTo(() => _networkClient.Send(A<NotifyPlayerSaveGameSyncStatusChanged>.Ignored)).MustNotHaveHappened();
         }
 
         [Test]
@@ -265,7 +265,7 @@ namespace WOTRMultiplayer.UnitTests.MP
             // Assert
             A.CallTo(() => _fileSystemService.WriteFile(A<string>.Ignored, request.Content)).MustHaveHappened();
             A.CallTo(() => _gameInteractionService.LoadGameFromMainMenu(A<string>.Ignored)).MustHaveHappened();
-            A.CallTo(() => _networkClient.Send(A<ClientSaveGameSyncChanged>.Ignored)).MustNotHaveHappened();
+            A.CallTo(() => _networkClient.Send(A<NotifyPlayerSaveGameSyncStatusChanged>.Ignored)).MustNotHaveHappened();
         }
     }
 }

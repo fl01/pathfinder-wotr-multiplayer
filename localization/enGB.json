@@ -52,6 +52,27 @@
             },
             "characters": {
                 "title": "Characters"
+            },
+            "tooltips": {
+                "contentDiscrepancy": {
+                    "DLCs": {
+                        "title": "Downloadable content",
+                        "reasons": {
+                            "missing": "Missing",
+                            "extra": "Extra",
+                            "disabled": "Disabled"
+                        }
+                    },
+                    "mods": {
+                        "title": "Modifications",
+                        "reasons": {
+                            "missing": "Missing",
+                            "extra": "Extra",
+                            "disabled": "Disabled",
+                            "versionMismatch": "Version Mismatch"
+                        }
+                    }
+                }
             }
         },
         "settings": {

@@ -28,7 +28,7 @@ namespace WOTRMultiplayer.Abstractions.MP.Actors
 
         List<NetworkPlayer> GetOtherPlayers();
 
-        List<NetworkCharacterOwnership> GetCharacters();
+        List<NetworkCharacter> GetCharacters();
 
         bool ReadyChanged();
 

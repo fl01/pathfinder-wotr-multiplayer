@@ -5,7 +5,7 @@
 ## TL/DR:
 - Prologue and Act1 are mostly playable. Anything beyond that is not implemented
 
-- DLCs are not checked, so it's up to you to ensure everyone has the same game content. This includes any extra items or classes, as any discrepancy in data will cause a desync.
+- You can see a brief comparison of each player's DLCs/Mods after they connect to the host, but it's still on you to make sure everyone has the same game content. That includes any extra items or classes - if something does not match, the game will desync.
 
 ## Other Mods Compatibility
 Most of the syncing relies on the blueprint asset ID (or something similiar) to replicate action for other players, so in **THEORY** things should work fine as long as those IDs are the same for abilities, spells, etc. This also includes any extra rolls (e.g. Skill Check or Attack Roll) added by mods, but those roll types must be available within base game.
