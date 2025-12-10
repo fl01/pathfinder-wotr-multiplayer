@@ -48,7 +48,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 VectorPath = networkPath
             };
 
-            Main.Multiplayer.OnUnitAttack(networkAbility);
+            Main.Multiplayer.OnUnitAttackCommandStarted(networkAbility);
         }
     }
 }

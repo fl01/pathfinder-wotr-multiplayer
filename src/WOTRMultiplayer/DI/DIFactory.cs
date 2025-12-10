@@ -37,13 +37,10 @@ namespace WOTRMultiplayer.DI
         public static IServiceProvider Create(UnityModManagerSettings settings)
         {
             var serviceCollection = new ServiceCollection();
-            var logLevel = (LogEventLevel)settings.MinimumLogLevel;
-            if (!typeof(LogEventLevel).IsEnumDefined(logLevel))
-            {
-                logLevel = LogEventLevel.Information;
-            }
+            var consoleLogLevel = (LogEventLevel)settings.ConsoleMinimumLogLevel;
+            var fileLogLevel = (LogEventLevel)settings.FileMinimumLogLevel;
 
-            Log.Logger = Logging.LoggerFactory.Create(settings.UseDebugConsole, logLevel);
+            Log.Logger = Logging.LoggerFactory.Create(settings.UseDebugConsole, consoleLogLevel, fileLogLevel);
 
             serviceCollection.AddLogging(x =>
             {

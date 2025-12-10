@@ -171,7 +171,7 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         void OnLockpickInteraction(NetworkLockpickInteraction lockpickInteraction);
 
-        void OnUnitAttack(NetworkUnitAttack networkUnitAttack);
+        void OnUnitAttackCommandStarted(NetworkUnitAttack networkUnitAttack);
 
         void OnHandleDelayCombatTurn(string unitId, string targetUnitId);
 

@@ -179,11 +179,13 @@ namespace WOTRMultiplayer.MP.Actors
             Send(message);
         }
 
-        public void OnUnitAttack(NetworkUnitAttack networkUnitAttack)
+        public void OnUnitAttackCommandStarted(NetworkUnitAttack networkUnitAttack)
         {
+            // this one is only used in combat
+            // regular Unit Click handler is used to initiate the combat
+
             if (Game.Combat == null)
             {
-                Logger.LogInformation("Skipping UnitAttack notification due to non combat state");
                 return;
             }
 

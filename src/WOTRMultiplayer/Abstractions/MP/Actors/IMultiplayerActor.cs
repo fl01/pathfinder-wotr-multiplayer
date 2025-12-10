@@ -91,7 +91,7 @@ namespace WOTRMultiplayer.Abstractions.MP.Actors
 
         void OnAbilityUse(NetworkAbility ability);
 
-        void OnUnitAttack(NetworkUnitAttack networkUnitAttack);
+        void OnUnitAttackCommandStarted(NetworkUnitAttack networkUnitAttack);
 
         void OnToggleActivatableAbility(NetworkActivatableAbility activatableAbilityUse);
 

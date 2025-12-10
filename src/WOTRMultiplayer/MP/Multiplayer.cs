@@ -1472,7 +1472,7 @@ namespace WOTRMultiplayer.MP
             }
         }
 
-        public void OnUnitAttack(NetworkUnitAttack networkUnitAttack)
+        public void OnUnitAttackCommandStarted(NetworkUnitAttack networkUnitAttack)
         {
             try
             {
@@ -1481,7 +1481,7 @@ namespace WOTRMultiplayer.MP
                     return;
                 }
 
-                _multiplayerActorAccessor.Current.OnUnitAttack(networkUnitAttack);
+                _multiplayerActorAccessor.Current.OnUnitAttackCommandStarted(networkUnitAttack);
             }
             catch (Exception ex)
             {

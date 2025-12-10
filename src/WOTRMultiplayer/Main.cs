@@ -145,11 +145,19 @@ namespace WOTRMultiplayer
             GUILayout.BeginHorizontal();
             _settings.UseDebugConsole = GUILayout.Toggle(_settings.UseDebugConsole, $"Enable Debug Console", GUILayout.ExpandWidth(false));
             GUILayout.EndHorizontal();
+
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Minimum Log Level (Information is recommended, Debug - if you are mad)");
+            GUILayout.Label("Minimum Console Log Level (Information is recommended, Debug - if you are mad)");
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            _settings.MinimumLogLevel = GUILayout.Toolbar(_settings.MinimumLogLevel, Enum.GetNames(typeof(LogEventLevel)));
+            _settings.ConsoleMinimumLogLevel = GUILayout.Toolbar(_settings.ConsoleMinimumLogLevel, Enum.GetNames(typeof(LogEventLevel)));
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Minimum File Log Level (Debug is recommended for maximum info)");
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            _settings.FileMinimumLogLevel = GUILayout.Toolbar(_settings.FileMinimumLogLevel, Enum.GetNames(typeof(LogEventLevel)));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
