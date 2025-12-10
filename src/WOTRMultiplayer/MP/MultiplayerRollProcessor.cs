@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.GameModes;
+using Kingmaker.RuleSystem;
 using Kingmaker.RuleSystem.Rules;
 using Kingmaker.RuleSystem.Rules.Abilities;
 using Kingmaker.RuleSystem.Rules.Damage;
@@ -775,6 +776,17 @@ namespace WOTRMultiplayer.MP
             if (gameMode == GameModeType.Cutscene || gameMode == GameModeType.CutsceneGlobalMap)
             {
                 return false;
+            }
+
+            switch (rule)
+            {
+                case RuleCalculateDamage:
+                case RuleHealDamage:
+                case RuleDealDamage:
+                    var targetEvent = (RulebookTargetEvent)rule;
+                    return _gameInteractionService.IsInCombat()
+                            || _multiplayerActorAccessor.Current.IsControlledByPlayers(targetEvent.Initiator?.UniqueId)
+                            || _multiplayerActorAccessor.Current.IsControlledByPlayers(targetEvent.Target?.UniqueId);
             }
 
             return true;
