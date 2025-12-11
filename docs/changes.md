@@ -111,9 +111,11 @@ When someone triggers an area transition, the game tries to move the whole party
 If that happens, the players who already transitioned will be stuck in a forced pause until everyone else loads in. Easiest fix: anyone left behind should just click the transition again to catch up. While that's happening, avoid doing stuff that could cause desync (like using items, abilities, or picking up loot).
 
 ## Global Map
-Global map movement is controlled by the host. Client retains the ability to click different locations to see pop-ups/descriptions, but can't actually trigger movement.
+Global map movement is controlled by the host. Client retains the ability to click different locations to see pop-ups/descriptions.
 
 Random encounters are never rolled on the client side, but rather are sent by the host once they occur.
+
+Although the base game has no support for pausing while you are in the global map, we still need to sync loading times. As a result of this, host simply can't trigger movement until everyone is loaded.
 
 ## Rolls
 Most rolls happen on the host, but combat works a little differently. Each turn has a `Turn Owner` - the player controlling the active character. That player's rolls are done locally so their turn feels smooth, and then everyone else gets the results over the network.
