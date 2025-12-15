@@ -116,7 +116,6 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 var newInstructions = new List<CodeInstruction>()
                 {
                     new(OpCodes.Ldarg_0),
-                    new(OpCodes.Ldc_I4, replacementCounter), // IsCriticall=true for critical roll replacement
                     new(OpCodes.Call, replaceWith)
                 };
                 match.Insert(newInstructions);
@@ -133,17 +132,17 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             return true;
         }
 
-        public static RuleRollD20 AttackRollD20(bool isFake, RuleAttackRoll ruleAttackRoll, bool isCriticalRoll)
+        public static RuleRollD20 AttackRollD20(bool isFake, RuleAttackRoll ruleAttackRoll)
         {
             if (!Main.Multiplayer.IsActive || PatchesUtils.IsHelperUnit(ruleAttackRoll.Initiator.UniqueId) || PatchesUtils.IsHelperUnit(ruleAttackRoll.Target.UniqueId))
             {
                 return Dice.GenerateD20(isFake);
             }
 
-            var shouldRunOriginalLogic = Main.Rolls.OnBeforeRuleAttackRoll(ruleAttackRoll, isCriticalRoll);
+            var shouldRunOriginalLogic = Main.Rolls.OnBeforeRuleAttackRoll(ruleAttackRoll);
             if (!shouldRunOriginalLogic)
             {
-                return ruleAttackRoll.D20;
+                return ruleAttackRoll.IsCriticalRoll ? ruleAttackRoll.CriticalConfirmationD20 : ruleAttackRoll.D20;
             }
 
             var roll = Dice.GenerateD20(isFake);

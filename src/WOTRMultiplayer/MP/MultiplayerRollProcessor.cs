@@ -276,7 +276,7 @@ namespace WOTRMultiplayer.MP
             }
         }
 
-        public bool OnBeforeRuleAttackRoll(RuleAttackRoll ruleAttackRoll, bool isCriticalRoll)
+        public bool OnBeforeRuleAttackRoll(RuleAttackRoll ruleAttackRoll)
         {
             try
             {
@@ -285,14 +285,14 @@ namespace WOTRMultiplayer.MP
                     return true;
                 }
 
-                var roll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll, isCriticalRoll);
+                var roll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll, ruleAttackRoll.IsCriticalRoll);
                 var d20 = RetrieveRoll<RuleRollD20>(roll, ruleAttackRoll.Initiator);
                 if (d20 == null)
                 {
                     return true;
                 }
 
-                if (isCriticalRoll)
+                if (ruleAttackRoll.IsCriticalRoll)
                 {
                     ruleAttackRoll.CriticalConfirmationD20 = d20;
                 }

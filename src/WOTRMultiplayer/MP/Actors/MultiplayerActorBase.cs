@@ -244,7 +244,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return;
             }
 
-            Logger.LogInformation("Sending unit click. TargetUnitId={TargetUnitId}, VectorPathCount={VectorPathCount}", click.TargetUnitId, click.VectorPath.Count);
+            Logger.LogInformation("Sending {MessageType}. TargetUnitId={TargetUnitId}, VectorPathCount={VectorPathCount}", nameof(NotifyUnitClicked), click.TargetUnitId, click.VectorPath.Count);
 
             var message = new NotifyUnitClicked
             {

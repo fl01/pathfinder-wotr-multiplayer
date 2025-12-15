@@ -12,7 +12,7 @@ namespace WOTRMultiplayer.Abstractions.MP
         bool OnBeforeRuleAttackOvercomeConcealmentRoll(RuleAttackRoll ruleAttackRoll);
         void OnAfterRuleAttackOvercomeConcealmentRoll(RuleAttackRoll ruleAttackRoll);
         bool OnBeforeRuleAttackFortificationRoll(RuleAttackRoll ruleAttackRoll);
-        bool OnBeforeRuleAttackRoll(RuleAttackRoll ruleAttackRoll, bool isCriticalRoll);
+        bool OnBeforeRuleAttackRoll(RuleAttackRoll ruleAttackRoll);
         void OnAfterRuleAttackRollTrigger(RuleAttackRoll ruleAttackRoll);
 
         void OnBeforeRuleSavingThrowRoll(RuleSavingThrow ruleSavingThrow);
