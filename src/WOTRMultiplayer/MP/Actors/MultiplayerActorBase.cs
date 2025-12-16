@@ -1922,6 +1922,9 @@ namespace WOTRMultiplayer.MP.Actors
         {
             Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, TargetUnitId={TargetUnitId}, SelectedUnits={SelectedUnits}", nameof(NotifyUnitClicked), playerId, clicked.Click.TargetUnitId, clicked.Click.SelectedUnits.Count);
 
+            // Combat Unit clicks are usually followed up with UnitAttack command
+            // UnitAttack commands are synced separately as we can enforce specific rules like fullattack
+            // so this must be skiped to avoid command duplication
             var canGetUp = GameInteraction.CanRiderGetUp();
             if (Game.Combat != null && !canGetUp)
             {
