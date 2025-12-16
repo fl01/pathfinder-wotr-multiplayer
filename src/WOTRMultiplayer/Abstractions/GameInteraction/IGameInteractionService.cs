@@ -243,5 +243,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         NetworkContentState GetInstalledContent();
 
         bool IsInCombat();
+
+        bool CanRiderGetUp();
     }
 }

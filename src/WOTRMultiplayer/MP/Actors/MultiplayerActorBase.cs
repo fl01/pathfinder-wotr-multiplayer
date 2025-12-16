@@ -1910,8 +1910,8 @@ namespace WOTRMultiplayer.MP.Actors
         {
             Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, TargetUnitId={TargetUnitId}, SelectedUnits={SelectedUnits}", nameof(NotifyUnitClicked), playerId, clicked.Click.TargetUnitId, clicked.Click.SelectedUnits.Count);
 
-            // Combat version of UnitAttack is handled separately
-            if (Game.Combat != null)
+            var canGetUp = GameInteraction.CanRiderGetUp();
+            if (Game.Combat != null && !canGetUp)
             {
                 Logger.LogInformation("Ignoring {MessageType} in combat", nameof(NotifyUnitClicked));
                 return;

@@ -172,7 +172,7 @@ namespace WOTRMultiplayer.UnitTests.MP
         }
 
         [Test]
-        public void OnNotifyUnitClicked_InCombat_DoesNotCallGameInteractionService()
+        public void OnNotifyUnitClicked_InCombatAndCannotGetUp_DoesNotCallGameInteractionService()
         {
             // Arrange
             var parsedHost = "192.168.1.1";
@@ -185,12 +185,36 @@ namespace WOTRMultiplayer.UnitTests.MP
             var handler = FakeUtils.GetNetworkReceiverHandler<NotifyUnitClicked>(_networkClient);
             var request = new NotifyUnitClicked { Click = new Networking.Messages.Contracts.NetworkClick { } };
             _multiplayerClient.Game = new NetworkGame("hehe") { Combat = new NetworkCombat() };
+            A.CallTo(() => _gameInteractionService.CanRiderGetUp()).Returns(false);
 
             // Act
             handler.Invoke(1, request);
 
             // Assert
             A.CallTo(() => _gameInteractionService.ClickUnit(A<NetworkClick>.Ignored)).MustNotHaveHappened();
+        }
+
+        [Test]
+        public void OnNotifyUnitClicked_InCombatAndCanGetUp_CallsGameInteractionService()
+        {
+            // Arrange
+            var parsedHost = "192.168.1.1";
+            var parsedPort = 555;
+            IPAddress.TryParse(parsedHost, out var parsedAddress);
+            var endpoint = new IPEndPoint(parsedAddress, parsedPort);
+            var address = Guid.NewGuid().ToString();
+            A.CallTo(() => _endpointParser.Parse(address)).Returns(endpoint);
+            _multiplayerClient.Connect(address);
+            var handler = FakeUtils.GetNetworkReceiverHandler<NotifyUnitClicked>(_networkClient);
+            var request = new NotifyUnitClicked { Click = new Networking.Messages.Contracts.NetworkClick { } };
+            _multiplayerClient.Game = new NetworkGame("hehe") { Combat = new NetworkCombat() };
+            A.CallTo(() => _gameInteractionService.CanRiderGetUp()).Returns(true);
+
+            // Act
+            handler.Invoke(1, request);
+
+            // Assert
+            A.CallTo(() => _gameInteractionService.ClickUnit(A<NetworkClick>.Ignored)).MustHaveHappened();
         }
 
         [Test]

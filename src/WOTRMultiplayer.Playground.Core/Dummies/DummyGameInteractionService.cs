@@ -485,5 +485,10 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void CloseDialogPopup(NetworkDialogPopup networkDialogPopup)
         {
         }
+
+        public bool CanRiderGetUp()
+        {
+            return false;
+        }
     }
 }

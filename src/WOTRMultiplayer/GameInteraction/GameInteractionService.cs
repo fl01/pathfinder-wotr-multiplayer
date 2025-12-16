@@ -2827,6 +2827,12 @@ namespace WOTRMultiplayer.GameInteraction
             return Game.Instance.Player.IsInCombat;
         }
 
+        public bool CanRiderGetUp()
+        {
+            var canGetUp = Game.Instance.TurnBasedCombatController.CurrentTurn?.UnitCanGetUpOnCommand.Value ?? false;
+            return canGetUp;
+        }
+
         private List<NetworkDLC> GetInstalledDLCs()
         {
             var dlcs = new List<NetworkDLC>();
