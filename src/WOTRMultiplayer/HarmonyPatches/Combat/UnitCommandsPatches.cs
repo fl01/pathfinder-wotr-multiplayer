@@ -137,7 +137,6 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 TargetId = command.Target?.Unit?.UniqueId,
                 TargetPoint = command.Target?.Point == null ? null : new NetworkVector3(command.Target.Point.x, command.Target.Point.y, command.Target.Point.z),
                 VectorPath = networkPath,
-                ActionsState = Main.Multiplayer.GetActionsState(),
                 CommandType = command.Type.ToString(),
                 ConvertedFromId = command.Ability.ConvertedFrom?.UniqueId
             };

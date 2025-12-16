@@ -489,25 +489,6 @@ namespace WOTRMultiplayer.MP
             }
         }
 
-        public NetworkActionsState GetActionsState()
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return null;
-                }
-
-                var actionsState = _gameInteractionService.GetActionsState();
-                return actionsState;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while getting combat actions state");
-                throw;
-            }
-        }
-
         public void OnTransferInventoryItems(NetworkItemsTransfer networkItemsTransfer)
         {
             try

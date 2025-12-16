@@ -25,15 +25,12 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         public List<NetworkVector3> VectorPath { get; set; }
 
         [ProtoMember(7)]
-        public NetworkActionsState ActionsState { get; set; }
-
-        [ProtoMember(8)]
         public string CommandType { get; set; }
 
-        [ProtoMember(9)]
+        [ProtoMember(8)]
         public string Name { get; set; }
 
-        [ProtoMember(10)]
+        [ProtoMember(9)]
         public string ConvertedFromId { get; set; }
     }
 }

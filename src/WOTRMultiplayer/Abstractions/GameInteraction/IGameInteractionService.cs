@@ -82,8 +82,6 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         bool CombatTurnHasBeenFinished();
 
-        NetworkActionsState GetActionsState();
-
         void UseAbility(NetworkAbility networkAbility);
 
         void ToggleActivatableAbility(NetworkActivatableAbility networkActivatableAbility);

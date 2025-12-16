@@ -40,7 +40,6 @@ using Kingmaker.RuleSystem;
 using Kingmaker.RuleSystem.Rules;
 using Kingmaker.Settings;
 using Kingmaker.TurnBasedMode;
-using Kingmaker.TurnBasedMode.Controllers;
 using Kingmaker.UI;
 using Kingmaker.UI._ConsoleUI.Overtips;
 using Kingmaker.UI.Common;
@@ -718,6 +717,12 @@ namespace WOTRMultiplayer.GameInteraction
             try
             {
                 var clickUnitHandler = Game.Instance.DefaultPointerController.m_ClickHandlers.FirstOrDefault(c => c is ClickUnitHandler);
+                if (clickUnitHandler == null)
+                {
+                    _logger.LogError("Unable to find ClickUnitHandler");
+                    return;
+                }
+
                 ExecuteClickHandler(clickUnitHandler, networkClick);
             }
             catch (Exception ex)
@@ -732,6 +737,12 @@ namespace WOTRMultiplayer.GameInteraction
             try
             {
                 var clickGroundHandler = Game.Instance.DefaultPointerController.m_ClickHandlers.FirstOrDefault(c => c is ClickGroundHandler);
+                if (clickGroundHandler == null)
+                {
+                    _logger.LogError("Unable to find ClickGroundHandler");
+                    return;
+                }
+
                 ExecuteClickHandler(clickGroundHandler, networkClick);
             }
             catch (Exception ex)
@@ -839,26 +850,6 @@ namespace WOTRMultiplayer.GameInteraction
             return turnStatus == TurnBased.Controllers.TurnController.TurnStatus.None
                 || turnStatus == TurnBased.Controllers.TurnController.TurnStatus.Ended
                 || turnStatus == TurnBased.Controllers.TurnController.TurnStatus.Ending;
-        }
-
-        public NetworkActionsState GetActionsState()
-        {
-            var actionStates = Game.Instance.TurnBasedCombatController.CurrentTurn?.GetActionsStates(Game.Instance.TurnBasedCombatController.CurrentTurn?.SelectedUnit);
-            if (actionStates == null)
-            {
-                return null;
-            }
-
-            return new NetworkActionsState
-            {
-                ApproachPoint = new NetworkVector3(actionStates.ApproachPoint.x, actionStates.ApproachPoint.y, actionStates.ApproachPoint.z),
-                ApproachRadius = actionStates.ApproachRadius,
-                FiveFootStep = CreateNetworkCombatAction(actionStates.FiveFootStep),
-                Free = CreateNetworkCombatAction(actionStates.Free),
-                Standard = CreateNetworkCombatAction(actionStates.Standard),
-                Swift = CreateNetworkCombatAction(actionStates.Swift),
-                Move = CreateNetworkCombatAction(actionStates.Move)
-            };
         }
 
         public void TransferInventoryItems(NetworkItemsTransfer networkItemsTransfer)
@@ -3496,30 +3487,6 @@ namespace WOTRMultiplayer.GameInteraction
             return Game.Instance.State.MapObjects.All.FirstOrDefault(o => string.Equals(o.UniqueId, uniqueId, StringComparison.OrdinalIgnoreCase));
         }
 
-        private NetworkCombatAction CreateNetworkCombatAction(CombatAction action)
-        {
-            if (action == null)
-            {
-                return null;
-            }
-
-            return new NetworkCombatAction
-            {
-                MovementActivityStatePredicted = action.m_MovementActivityStatePredicted?.ToString(),
-                MovementActivityStateCurrent = action.m_MovementActivityStateCurrent?.ToString(),
-                AttackActivityStatePredicted = action.m_AttackActivityStatePredicted?.ToString(),
-                AttackActivityStateCurrent = action.m_AttackActivityStateCurrent?.ToString(),
-                AbilityActivityStatePredicted = action.m_AbilityActivityStatePredicted?.ToString(),
-                AbilityActivityStateCurrent = action.m_AbilityActivityStateCurrent?.ToString(),
-                LockType = action.LockType,
-                HasMovePossibility = action.HasMovePossibility,
-                MaxMoveDistance = action.MaxMoveDistance,
-                RemainingMoveDistance = action.RemainingMoveDistance,
-                PredictedMoveDistance = action.PredictedMoveDistance,
-                Type = action.Type.ToString(),
-            };
-        }
-
         private ActivatableAbility FindActivatableAbility(UnitEntityData caster, NetworkActivatableAbility activatableAbility)
         {
             var ability = caster.ActivatableAbilities.Enumerable.FirstOrDefault(a => string.Equals(a.UniqueId, activatableAbility.Id, StringComparison.OrdinalIgnoreCase)
@@ -3659,17 +3626,6 @@ namespace WOTRMultiplayer.GameInteraction
             return null;
         }
 
-        private ActionsState GetGameActionsState()
-        {
-            var selectedUnit = Game.Instance.TurnBasedCombatController.CurrentTurn?.SelectedUnit;
-            if (selectedUnit == null)
-            {
-                _logger.LogError("Current turn unit is not selected");
-            }
-
-            return Game.Instance.TurnBasedCombatController.CurrentTurn.GetActionsStates(selectedUnit);
-        }
-
         private void ExecuteClickHandler(IClickEventHandler clickEventHandler, NetworkClick click)
         {
             var targetUnit = GetUnitEntity(click.TargetUnitId);
@@ -3681,91 +3637,34 @@ namespace WOTRMultiplayer.GameInteraction
             {
                 try
                 {
-                    _logger.LogInformation("Executing click handler. HandlerType={HandlerType}, WorldPosition={WorldPosition}, TargetUnitId={TargetUnitId}, SelectedUnit={SelectedUnit}, VectorPathCount={VectorPathCount}",
-                               clickEventHandler.GetType().Name, click.WorldPosition, targetUnit?.UniqueId, selectedUnit?.UniqueId, click.VectorPath.Count);
+                    _logger.LogInformation("Executing click handler. HandlerType={HandlerType}, WorldPosition={WorldPosition}, TargetUnitId={TargetUnitId}, SelectedUnit={SelectedUnit}",
+                               clickEventHandler.GetType().Name, click.WorldPosition, targetUnit?.UniqueId, selectedUnit?.UniqueId);
 
                     using var context = _networkExecutionContext.Value = RemoteExecutionContext.Create(selectedUnits);
                     Game.Instance.SelectionCharacter.SelectedUnit.Value = selectedUnit;
 
-                    if (click.ActionsState != null)
+                    if (!string.IsNullOrEmpty(click.MovementLimit) && Game.Instance.TurnBasedCombatController.CurrentTurn != null)
                     {
-                        //UpdateActionsState(click.ActionsState);
+                        Enum.TryParse<TurnBased.Controllers.TurnController.MovementLimit>(click.MovementLimit, true, out var limit);
+                        Game.Instance.TurnBasedCombatController.CurrentTurn.SetMovementLimit(limit);
+                        _logger.LogInformation("Movement limit has been updated. UnitId={UnitId}, Limit={Limit}", Game.Instance.TurnBasedCombatController.CurrentTurn.Rider.UniqueId, limit);
                     }
 
                     if (click.VectorPath != null && click.VectorPath.Count > 0)
                     {
-                        var movementPath = click.VectorPath.Select(v => new UnityEngine.Vector3(v.X, v.Y, v.Z)).ToList();
-                        // Commands are using m_CurrentPath in case of extra movement is needed, e.g. UnitAttack command with far away target
+                        var movementPath = click.VectorPath.Select(v => new Vector3(v.X, v.Y, v.Z)).ToList();
                         PathVisualizer.Instance.m_CurrentPath = new ForcedPath(movementPath);
-                        PathVisualizer.Instance.m_CurrentPathTargetPoint = new UnityEngine.Vector3(click.ActionsState.ApproachPoint.X, click.ActionsState.ApproachPoint.Y, click.ActionsState.ApproachPoint.Z);
-
-                        PathVisualizer.Instance.m_CurrentPath.Claim(this);
                         PathVisualizer.Instance.m_CurrentPath.Claim(PathVisualizer.Instance);
-
-                        var pathForCurrentUnit = PathVisualizer.Instance.CurrentPathForUnit(Game.Instance.TurnBasedCombatController.CurrentTurn.SelectedUnit.View)?.vectorPath.Count;
-                        _logger.LogInformation("Configured unit path. VectorsCount={VectorsCount}", pathForCurrentUnit);
-                    }
-
-                    if (Game.Instance.TurnBasedCombatController.CurrentTurn != null && click.AttackMode != null)
-                    {
-                        Game.Instance.TurnBasedCombatController.CurrentTurn.m_AttackMode = click.AttackMode.Value;
-                        _logger.LogInformation("AttackMode has been set. AttackMode={AttackMode}", click.AttackMode.Value);
                     }
 
                     clickEventHandler.OnClick(targetUnit?.View?.gameObject, worldPosition, click.Button, simulate: false, click.MuteEvents, IsTMBClick: false);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Unable to execute click handler. HandlerType={HandlerType}", clickEventHandler?.GetType().Name);
+                    _logger.LogError(ex, "Unable to execute click handler. HandlerType={HandlerType}", clickEventHandler.GetType().Name);
                     throw;
                 }
             });
-        }
-
-        private void UpdateActionsState(NetworkActionsState networkActionsState)
-        {
-            // could use OwlcatJsonConvert.DeserializeObject instead, but transfering/blidnly using big black box is kinda bad due to zero understanding of whats happening inside and what could cause errors in future
-            var actionStates = GetGameActionsState();
-            if (actionStates == null)
-            {
-                _logger.LogError("Unable to update missing actions state");
-                return;
-            }
-
-            actionStates.ApproachPoint = new UnityEngine.Vector3(networkActionsState.ApproachPoint.X, networkActionsState.ApproachPoint.Y, networkActionsState.ApproachPoint.Z);
-            actionStates.ApproachRadius = networkActionsState.ApproachRadius;
-            UpdateCombatAction(actionStates.FiveFootStep, networkActionsState.FiveFootStep);
-            UpdateCombatAction(actionStates.Free, networkActionsState.Free);
-            UpdateCombatAction(actionStates.Move, networkActionsState.Move);
-            UpdateCombatAction(actionStates.Standard, networkActionsState.Standard);
-            UpdateCombatAction(actionStates.Swift, networkActionsState.Swift);
-        }
-
-        private void UpdateCombatAction(CombatAction action, NetworkCombatAction networkCombatAction)
-        {
-            action.m_MovementActivityStatePredicted = ParseEnum<CombatAction.ActivityState>(networkCombatAction.MovementActivityStatePredicted);
-            action.m_MovementActivityStateCurrent = ParseEnum<CombatAction.ActivityState>(networkCombatAction.MovementActivityStateCurrent);
-            action.m_AttackActivityStatePredicted = ParseEnum<CombatAction.ActivityState>(networkCombatAction.AttackActivityStatePredicted);
-            action.m_AttackActivityStateCurrent = ParseEnum<CombatAction.ActivityState>(networkCombatAction.AttackActivityStateCurrent);
-            action.m_AbilityActivityStatePredicted = ParseEnum<CombatAction.ActivityState>(networkCombatAction.AbilityActivityStatePredicted);
-            action.m_AbilityActivityStateCurrent = ParseEnum<CombatAction.ActivityState>(networkCombatAction.AbilityActivityStateCurrent);
-            action.LockType = networkCombatAction.LockType;
-            action.HasMovePossibility = networkCombatAction.HasMovePossibility;
-            action.MaxMoveDistance = networkCombatAction.MaxMoveDistance;
-            action.RemainingMoveDistance = networkCombatAction.RemainingMoveDistance;
-            action.PredictedMoveDistance = networkCombatAction.PredictedMoveDistance;
-            action.Type = ParseEnum<CombatAction.UsageType>(networkCombatAction.Type) ?? default;
-        }
-
-        private T? ParseEnum<T>(string value)
-            where T : struct
-        {
-            if (System.Enum.TryParse<T>(value, out var parsed))
-            {
-                return parsed;
-            }
-
-            return null;
         }
 
         private void StartDialog(TaskCompletionSource<bool> hasStartedDialogTask, BlueprintDialog dialog, UnitEntityData initiator, UnitEntityData target, MapObjectView mapObjectView, LocalizedString customSpeakerName)

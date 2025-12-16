@@ -82,8 +82,6 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         bool IsInCombat { get; }
 
-        NetworkActionsState GetActionsState();
-
         void OnTransferInventoryItems(NetworkItemsTransfer networkItemsTransfer);
 
         void OnSkinLootContainer(NetworkLootableEntity networkLootableEntity);

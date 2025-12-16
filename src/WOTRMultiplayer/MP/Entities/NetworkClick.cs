@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using TurnBased.Controllers;
 
 namespace WOTRMultiplayer.MP.Entities
 {
@@ -21,10 +20,8 @@ namespace WOTRMultiplayer.MP.Entities
 
         public List<NetworkVector3> VectorPath { get; set; } = [];
 
-        public NetworkActionsState ActionsState { get; set; }
-
         public bool IsTMBClick { get; set; }
 
-        public TurnController.AttackMode? AttackMode { get; set; }
+        public string MovementLimit { get; set; }
     }
 }

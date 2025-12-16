@@ -244,7 +244,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return;
             }
 
-            Logger.LogInformation("Sending {MessageType}. TargetUnitId={TargetUnitId}, VectorPathCount={VectorPathCount}", nameof(NotifyUnitClicked), click.TargetUnitId, click.VectorPath.Count);
+            Logger.LogInformation("Sending {MessageType}. TargetUnitId={TargetUnitId}", nameof(NotifyUnitClicked), click.TargetUnitId);
 
             var message = new NotifyUnitClicked
             {
@@ -261,7 +261,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return;
             }
 
-            Logger.LogInformation("Sending ground click. WorldPosition={WorldPosition}, VectorPathCount={VectorPathCount}, SelectedUnits={SelectedUnits}", click.WorldPosition, click.VectorPath.Count, string.Join(";", click.SelectedUnits));
+            Logger.LogInformation("Sending ground click. WorldPosition={WorldPosition}, SelectedUnits={SelectedUnits}", click.WorldPosition, click.SelectedUnits);
             var message = new NotifyGroundClicked
             {
                 Click = Mapper.Map<Networking.Messages.Contracts.NetworkClick>(click)
@@ -277,7 +277,7 @@ namespace WOTRMultiplayer.MP.Actors
                 return;
             }
 
-            Logger.LogInformation("Sending map object click. WorldPosition={WorldPosition}, VectorPathCount={VectorPathCount}, SelectedUnits={SelectedUnits}", click.WorldPosition, click.VectorPath.Count, string.Join(";", click.SelectedUnits));
+            Logger.LogInformation("Sending map object click. WorldPosition={WorldPosition}, SelectedUnits={SelectedUnits}", click.WorldPosition, click.SelectedUnits);
             var message = new NotifyMapObjectClicked
             {
                 Click = Mapper.Map<Networking.Messages.Contracts.NetworkClick>(click)

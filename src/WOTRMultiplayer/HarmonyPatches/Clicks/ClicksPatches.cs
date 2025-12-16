@@ -128,7 +128,6 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
             var mapObject = gameObject?.GetComponent<MapObjectView>();
             var selectedUnit = Game.Instance.SelectionCharacter?.FirstSelectedUnit?.View;
             var path = selectedUnit == null ? null : PathVisualizer.Instance.CurrentPathForUnit(selectedUnit);
-            var actionState = Main.Multiplayer.GetActionsState();
 
             return new NetworkClick
             {
@@ -141,8 +140,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
                 WorldPosition = new NetworkVector3(worldPosition.x, worldPosition.y, worldPosition.z),
                 MuteEvents = muteEvents,
                 VectorPath = [.. path?.vectorPath?.Select(v => new NetworkVector3 { X = v.x, Y = v.y, Z = v.z }) ?? []],
-                ActionsState = actionState,
-                AttackMode = Game.Instance.TurnBasedCombatController.CurrentTurn?.m_AttackMode
+                MovementLimit = Game.Instance.TurnBasedCombatController.CurrentTurn?.CurrentMovementLimit.ToString()
             };
         }
     }

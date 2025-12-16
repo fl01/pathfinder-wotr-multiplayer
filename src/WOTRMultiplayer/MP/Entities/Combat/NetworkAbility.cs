@@ -16,8 +16,6 @@ namespace WOTRMultiplayer.MP.Entities.Combat
 
         public List<NetworkVector3> VectorPath { get; set; }
 
-        public NetworkActionsState ActionsState { get; set; }
-
         public string CommandType { get; set; }
 
         public string Name { get; set; }

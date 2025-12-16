@@ -102,11 +102,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public NetworkActionsState GetActionsState()
-        {
-            return null;
-        }
-
         public EntityDataBase GetEntity(string id)
         {
             return null;
