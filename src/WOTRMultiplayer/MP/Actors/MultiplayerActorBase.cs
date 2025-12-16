@@ -238,14 +238,12 @@ namespace WOTRMultiplayer.MP.Actors
 
         public void OnClickUnit(NetworkClick click)
         {
-            if (Game.Combat == null && !IsControlledByLocalPlayer(click.SelectedUnits)
-                || Game.Combat != null && (!(Game.Combat.Turn?.IsLocalPlayer ?? false) || GameInteraction.CombatTurnHasBeenFinished()))
+            if (!ShouldNotifyAboutUnitClick(click))
             {
                 return;
             }
 
             Logger.LogInformation("Sending {MessageType}. TargetUnitId={TargetUnitId}", nameof(NotifyUnitClicked), click.TargetUnitId);
-
             var message = new NotifyUnitClicked
             {
                 Click = Mapper.Map<Networking.Messages.Contracts.NetworkClick>(click)
@@ -1910,13 +1908,6 @@ namespace WOTRMultiplayer.MP.Actors
         {
             Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, TargetUnitId={TargetUnitId}, SelectedUnits={SelectedUnits}", nameof(NotifyUnitClicked), playerId, clicked.Click.TargetUnitId, clicked.Click.SelectedUnits.Count);
 
-            var canGetUp = GameInteraction.CanRiderGetUp();
-            if (Game.Combat != null && !canGetUp)
-            {
-                Logger.LogInformation("Ignoring {MessageType} in combat", nameof(NotifyUnitClicked));
-                return;
-            }
-
             var click = Mapper.Map<NetworkClick>(clicked.Click);
             GameInteraction.ClickUnit(click);
 
@@ -2238,6 +2229,22 @@ namespace WOTRMultiplayer.MP.Actors
                 unitId, Game.Combat.Turn.IsLocalPlayer, Game.Combat.Turn.IsAI, Game.Combat.Turn.IsActingInSurpriseRound, Game.Combat.Turn.IsInProgress);
 
             OnLocalPlayerTurnStart();
+        }
+
+        private bool ShouldNotifyAboutUnitClick(NetworkClick click)
+        {
+            if (Game.Combat == null)
+            {
+                return !IsControlledByLocalPlayer(click.SelectedUnits);
+            }
+
+            if ((Game.Combat.Turn?.IsLocalPlayer ?? false) && !GameInteraction.CombatTurnHasBeenFinished())
+            {
+                return true;
+            }
+
+            var canGetUp = GameInteraction.CanRiderGetUp();
+            return canGetUp;
         }
     }
 }
