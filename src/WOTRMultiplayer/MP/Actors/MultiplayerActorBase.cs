@@ -507,7 +507,7 @@ namespace WOTRMultiplayer.MP.Actors
             if (Game.Combat.Turn.IsAI || !Game.Combat.Turn.IsInProgress)
             {
                 Logger.LogInformation("Turn end is allowed. Round={Round}, TurnUnitId={TurnUnitId}, IsAI={IsAI}, UnitId={UnitId}", Game.Combat.Round, Game.Combat.Turn.UnitId, Game.Combat.Turn.IsAI, unitId);
-                Game.Combat.Turn = null;
+                ResetCombatTurn();
                 return true;
             }
 
@@ -1621,6 +1621,17 @@ namespace WOTRMultiplayer.MP.Actors
             return content;
         }
 
+        protected void ResetCombatTurn()
+        {
+            lock (ActionLock)
+            {
+                if (Game.Combat != null)
+                {
+                    Game.Combat.Turn = null;
+                }
+            }
+        }
+
         protected virtual void SetupNetworkMessageHandlers()
         {
             _networkReceiver
@@ -2211,14 +2222,17 @@ namespace WOTRMultiplayer.MP.Actors
 
         private void InitializeNewTurn(string unitId, bool actingInSurpriseRound)
         {
-            Game.Combat.Turn = new NetworkCombatTurn
+            lock (ActionLock)
             {
-                UnitId = unitId,
-                IsInProgress = false,
-                IsActingInSurpriseRound = actingInSurpriseRound,
-                IsLocalPlayer = IsControlledByLocalPlayer(unitId),
-                IsAI = GameInteraction.IsUnitAI(unitId),
-            };
+                Game.Combat.Turn = new NetworkCombatTurn
+                {
+                    UnitId = unitId,
+                    IsInProgress = false,
+                    IsActingInSurpriseRound = actingInSurpriseRound,
+                    IsLocalPlayer = IsControlledByLocalPlayer(unitId),
+                    IsAI = GameInteraction.IsUnitAI(unitId),
+                };
+            }
 
             Logger.LogWarning("OnTurnStart. UnitId={UnitId}, IsLocalPlayer={IsLocalPlayer}, IsAI={IsAI}, IsActingInSurpriseRound={IsActingInSurpriseRound}, IsInProgress={IsInProgress}",
                 unitId, Game.Combat.Turn.IsLocalPlayer, Game.Combat.Turn.IsAI, Game.Combat.Turn.IsActingInSurpriseRound, Game.Combat.Turn.IsInProgress);

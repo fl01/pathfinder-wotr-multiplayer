@@ -672,7 +672,7 @@ namespace WOTRMultiplayer.MP.Actors
         {
             Logger.LogInformation("Received {MessageType}. UnitId={UnitId}", nameof(NotifyInvalidCombatTurnStarted), started.UnitId);
             GameInteraction.AddCombatText(WellKnownKeys.GameNotifications.Combat.ClientTurnOrderDesync.Key);
-            Game.Combat.Turn = null;
+            ResetCombatTurn();
             GameInteraction.StartTurnBasedCombatTurn(started.UnitId);
         }
 
