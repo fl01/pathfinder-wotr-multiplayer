@@ -326,7 +326,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             // Although we set ForcedPath for the first command, it's not propagated directly to the second one.
             // Second command relies on PathVisualizer.Instance.m_currentPath value to move caster to target in combat
             // so it must not be cleared while we are casting original ability. And that's the reason why we can't enable path visualizer for players who don't own the current turn, as it will corrupt path on any update (e.g. mouse movement)
-            if (rider?.Commands.UnitUseAbility == null)
+            if (rider?.Commands.UnitUseAbility == null && rider?.Commands.Attack == null)
             {
                 PathVisualizer.Instance.Clear();
             }
