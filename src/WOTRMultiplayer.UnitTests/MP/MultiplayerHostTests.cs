@@ -32,7 +32,6 @@ namespace WOTRMultiplayer.UnitTests.MP
         private ILogger<MultiplayerHost> _logger;
         private IGameInteractionService _gameInteractionService;
         private IMultiplayerSettingsService _multiplayerSettingsProvider;
-        private IIPEndPointParser _endpointParser;
         private IFileSystemService _fileSystemService;
         private INetworkServer _networkServer;
         private IDiceRollStorage _diceRollStorage;
@@ -49,7 +48,6 @@ namespace WOTRMultiplayer.UnitTests.MP
 
             _logger = A.Fake<ILogger<MultiplayerHost>>();
             _gameInteractionService = A.Fake<IGameInteractionService>();
-            _endpointParser = A.Fake<IIPEndPointParser>();
             _multiplayerSettingsProvider = A.Fake<IMultiplayerSettingsService>();
             _fileSystemService = A.Fake<IFileSystemService>();
 
@@ -422,6 +420,13 @@ namespace WOTRMultiplayer.UnitTests.MP
                 HostMods = [new NetworkMod { Id = modId1, IsEnabled = false }],
                 PlayerMods = [],
                 ExpectedDiscrepantMods = []
+            };
+
+            yield return new ContentStateTestCase("different mod version")
+            {
+                HostMods = [new NetworkMod { Id = modId1, IsEnabled = true, Version = "1111" }],
+                PlayerMods = [new Networking.Messages.Contracts.NetworkMod { Id = modId1, IsEnabled = true, Version = "2222" }],
+                ExpectedDiscrepantMods = [new NetworkDiscrepantMod { Mod = new NetworkMod { Id = modId1 }, Reason = NetworkDiscrepancyReason.VersionMismatch }]
             };
         }
     }
