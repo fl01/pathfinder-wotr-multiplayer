@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using AutoMapper;
 using FakeItEasy;
 using Microsoft.Extensions.Logging;
@@ -10,10 +12,14 @@ using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Config.Mapping;
 using WOTRMultiplayer.MP.Actors;
+using WOTRMultiplayer.MP.Entities;
+using WOTRMultiplayer.MP.Entities.Content;
 using WOTRMultiplayer.MP.Entities.Loot;
 using WOTRMultiplayer.MP.Entities.Settings;
+using WOTRMultiplayer.Networking;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Game;
+using WOTRMultiplayer.Networking.Messages.Lobby;
 using WOTRMultiplayer.UnitTests.FakeRules;
 
 namespace WOTRMultiplayer.UnitTests.MP
@@ -110,17 +116,313 @@ namespace WOTRMultiplayer.UnitTests.MP
             var settings = new NetworkMultiplayerSettings() { HostPortRangeStart = 123, HostPortRangeEnd = 1234 };
             A.CallTo(() => _multiplayerSettingsProvider.GetSettings()).Returns(settings);
             _multiplayerHost.Create(savePath, gameId, []);
-            _multiplayerHost.Game = new WOTRMultiplayer.MP.Entities.NetworkGame("whatever");
+            _multiplayerHost.Game = new WOTRMultiplayer.MP.Entities.NetworkGame(savePath);
             var handler = FakeUtils.GetNetworkReceiverHandler<ClientRestEnded>(_networkServer);
-            var request = new ClientRestEnded();
+            var message = new ClientRestEnded();
             var playerId = 123;
 
             // Act
-            handler.Invoke(playerId, request);
+            handler.Invoke(playerId, message);
 
             // Assert
             A.CallTo(() => _gameInteractionService.UpdateStartRestButtonState(true, 1, 0)).MustHaveHappenedOnceExactly();
             Assert.That(_multiplayerHost.Game.PlayersFinishedRest, Contains.Item(playerId));
+        }
+
+        [Test]
+        public void ClientGameServerConnectionConfirmed_PlayerNameExists_PlayerNameIsUpdated()
+        {
+            // Arrange
+            var savePath = Guid.NewGuid().ToString();
+            var gameId = Guid.NewGuid().ToString();
+            var settings = new NetworkMultiplayerSettings() { HostPortRangeStart = 123, HostPortRangeEnd = 1234 };
+            A.CallTo(() => _multiplayerSettingsProvider.GetSettings()).Returns(settings);
+            _multiplayerHost.Create(savePath, gameId, []);
+            _multiplayerHost.Game = new WOTRMultiplayer.MP.Entities.NetworkGame(savePath);
+            var hostPlayer = new WOTRMultiplayer.MP.Entities.NetworkPlayer { Id = NetworkingConsts.HostPlayerId, IsHost = true };
+            var player = new WOTRMultiplayer.MP.Entities.NetworkPlayer { Id = 123 };
+            _multiplayerHost.Game.Players.AddRange([hostPlayer, player]);
+            var handler = FakeUtils.GetNetworkReceiverHandler<ClientGameServerConnectionConfirmed>(_networkServer);
+            var message = new ClientGameServerConnectionConfirmed
+            {
+                PlayerName = Guid.NewGuid().ToString(),
+                ContentState = new Networking.Messages.Contracts.NetworkContentState()
+            };
+
+            // Act
+            handler.Invoke(player.Id, message);
+
+            // Assert
+            Assert.That(player.Name, Is.EqualTo(message.PlayerName));
+        }
+
+        [Test]
+        public void ClientGameServerConnectionConfirmed_BothHaveEmptyContentState_PlayerStateRemainsUnchanged()
+        {
+            // Arrange
+            var savePath = Guid.NewGuid().ToString();
+            var gameId = Guid.NewGuid().ToString();
+            var settings = new NetworkMultiplayerSettings() { HostPortRangeStart = 123, HostPortRangeEnd = 1234 };
+            A.CallTo(() => _multiplayerSettingsProvider.GetSettings()).Returns(settings);
+            _multiplayerHost.Create(savePath, gameId, []);
+            _multiplayerHost.Game = new WOTRMultiplayer.MP.Entities.NetworkGame(savePath);
+            var hostPlayer = new WOTRMultiplayer.MP.Entities.NetworkPlayer { Id = NetworkingConsts.HostPlayerId, IsHost = true };
+            var player = new WOTRMultiplayer.MP.Entities.NetworkPlayer { Id = 123 };
+            _multiplayerHost.Game.Players.AddRange([hostPlayer, player]);
+            var handler = FakeUtils.GetNetworkReceiverHandler<ClientGameServerConnectionConfirmed>(_networkServer);
+            var message = new ClientGameServerConnectionConfirmed
+            {
+                PlayerName = Guid.NewGuid().ToString(),
+                ContentState = new Networking.Messages.Contracts.NetworkContentState()
+            };
+
+            // Act
+            handler.Invoke(player.Id, message);
+
+            // Assert
+            Assert.That(player.ContentState.DiscrepantDLCs, Has.Count.EqualTo(0));
+            Assert.That(player.ContentState.DiscrepantMods, Has.Count.EqualTo(0));
+        }
+
+        [Test]
+        public void ClientGameServerConnectionConfirmed_ExtraEnabledPlayerContent_DiscrepantListsAreUpdated()
+        {
+            // Arrange
+            var savePath = Guid.NewGuid().ToString();
+            var gameId = Guid.NewGuid().ToString();
+            var settings = new NetworkMultiplayerSettings() { HostPortRangeStart = 123, HostPortRangeEnd = 1234 };
+            A.CallTo(() => _multiplayerSettingsProvider.GetSettings()).Returns(settings);
+            _multiplayerHost.Create(savePath, gameId, []);
+            _multiplayerHost.Game = new NetworkGame(savePath);
+            var hostPlayer = new NetworkPlayer
+            {
+                Id = NetworkingConsts.HostPlayerId,
+                IsHost = true,
+                ContentState = new NetworkContentState(),
+            };
+            var player = new NetworkPlayer { Id = 123 };
+            var discrepantDlc1 = new Networking.Messages.Contracts.NetworkDLC { Id = "dlc1", IsAvailable = true, Title = "whatever" };
+            var discrepantMod1 = new Networking.Messages.Contracts.NetworkMod { Id = "mod1", IsEnabled = true, Type = NetworkModType.UnityModManager.ToString(), Version = "1.1.1.1" };
+            _multiplayerHost.Game.Players.AddRange([hostPlayer, player]);
+            var handler = FakeUtils.GetNetworkReceiverHandler<ClientGameServerConnectionConfirmed>(_networkServer);
+            var message = new ClientGameServerConnectionConfirmed
+            {
+                PlayerName = Guid.NewGuid().ToString(),
+                ContentState = new Networking.Messages.Contracts.NetworkContentState
+                {
+                    DLCs = [discrepantDlc1],
+                    Mods = [discrepantMod1],
+                },
+            };
+
+            // Act
+            handler.Invoke(player.Id, message);
+
+            // Assert
+            Assert.That(player.ContentState.DiscrepantDLCs, Has.Count.EqualTo(1));
+            Assert.That(player.ContentState.DiscrepantDLCs[0].DLC.Id, Is.EqualTo(discrepantDlc1.Id));
+            Assert.That(player.ContentState.DiscrepantDLCs[0].Reason, Is.EqualTo(NetworkDiscrepancyReason.Extra));
+            Assert.That(player.ContentState.DiscrepantMods, Has.Count.EqualTo(1));
+            Assert.That(player.ContentState.DiscrepantMods[0].Mod.Id, Is.EqualTo(discrepantMod1.Id));
+            Assert.That(player.ContentState.DiscrepantMods[0].Reason, Is.EqualTo(NetworkDiscrepancyReason.Extra));
+        }
+
+        [Test]
+        public void ClientGameServerConnectionConfirmed_ExtraDisabledPlayerContent_DiscrepantListsAreEmpty()
+        {
+            // Arrange
+            var savePath = Guid.NewGuid().ToString();
+            var gameId = Guid.NewGuid().ToString();
+            var settings = new NetworkMultiplayerSettings() { HostPortRangeStart = 123, HostPortRangeEnd = 1234 };
+            A.CallTo(() => _multiplayerSettingsProvider.GetSettings()).Returns(settings);
+            _multiplayerHost.Create(savePath, gameId, []);
+            _multiplayerHost.Game = new NetworkGame(savePath);
+            var hostPlayer = new NetworkPlayer
+            {
+                Id = NetworkingConsts.HostPlayerId,
+                IsHost = true,
+                ContentState = new NetworkContentState(),
+            };
+            var player = new NetworkPlayer { Id = 123 };
+            var discrepantDlc1 = new Networking.Messages.Contracts.NetworkDLC { Id = "dlc1", IsAvailable = false, Title = "whatever" };
+            var discrepantMod1 = new Networking.Messages.Contracts.NetworkMod { Id = "mod1", IsEnabled = false, Type = NetworkModType.UnityModManager.ToString(), Version = "1.1.1.1" };
+            _multiplayerHost.Game.Players.AddRange([hostPlayer, player]);
+            var handler = FakeUtils.GetNetworkReceiverHandler<ClientGameServerConnectionConfirmed>(_networkServer);
+            var message = new ClientGameServerConnectionConfirmed
+            {
+                PlayerName = Guid.NewGuid().ToString(),
+                ContentState = new Networking.Messages.Contracts.NetworkContentState
+                {
+                    DLCs = [discrepantDlc1],
+                    Mods = [discrepantMod1],
+                },
+            };
+
+            // Act
+            handler.Invoke(player.Id, message);
+
+            // Assert
+            Assert.That(player.ContentState.DiscrepantDLCs, Has.Count.EqualTo(0));
+            Assert.That(player.ContentState.DiscrepantMods, Has.Count.EqualTo(0));
+        }
+
+        [TestCaseSource(nameof(DlcDifferencesTestCases))]
+        public void ClientGameServerConnectionConfirmed_DlcContentStateIsDifferent_DiscrepantListContainsCorrectReasonAndNumberOfDLCs(ContentStateTestCase testCase)
+        {
+            // Arrange
+            var savePath = Guid.NewGuid().ToString();
+            var gameId = Guid.NewGuid().ToString();
+            var settings = new NetworkMultiplayerSettings() { HostPortRangeStart = 123, HostPortRangeEnd = 1234 };
+            A.CallTo(() => _multiplayerSettingsProvider.GetSettings()).Returns(settings);
+            _multiplayerHost.Create(savePath, gameId, []);
+            _multiplayerHost.Game = new NetworkGame(savePath);
+            var hostPlayer = new NetworkPlayer
+            {
+                Id = NetworkingConsts.HostPlayerId,
+                IsHost = true,
+                ContentState = new NetworkContentState
+                {
+                    DLCs = testCase.HostDLCs,
+                }
+            };
+            var player = new NetworkPlayer { Id = 123 };
+            _multiplayerHost.Game.Players.AddRange([hostPlayer, player]);
+            var handler = FakeUtils.GetNetworkReceiverHandler<ClientGameServerConnectionConfirmed>(_networkServer);
+            var message = new ClientGameServerConnectionConfirmed
+            {
+                PlayerName = Guid.NewGuid().ToString(),
+                ContentState = new Networking.Messages.Contracts.NetworkContentState
+                {
+                    DLCs = testCase.PlayerDLCs
+                },
+            };
+
+            // Act
+            handler.Invoke(player.Id, message);
+
+            // Assert
+            Assert.That(player.ContentState.DiscrepantDLCs, Has.Count.EqualTo(testCase.ExpectedDiscrepantDLCs.Count));
+            foreach (var expectedDiscrepantDLC in testCase.ExpectedDiscrepantDLCs)
+            {
+                var actualDiscrepantDLC = player.ContentState.DiscrepantDLCs.FirstOrDefault(p => p.DLC.Id == expectedDiscrepantDLC.DLC.Id);
+                Assert.That(actualDiscrepantDLC, Is.Not.Null);
+                Assert.That(actualDiscrepantDLC.Reason, Is.EqualTo(expectedDiscrepantDLC.Reason));
+            }
+        }
+
+        [TestCaseSource(nameof(ModDifferencesTestCases))]
+        public void ClientGameServerConnectionConfirmed_ModContentStateIsDifferent_DiscrepantListContainsCorrectReasonAndNumberOfDLCs(ContentStateTestCase testCase)
+        {
+            // Arrange
+            var savePath = Guid.NewGuid().ToString();
+            var gameId = Guid.NewGuid().ToString();
+            var settings = new NetworkMultiplayerSettings() { HostPortRangeStart = 123, HostPortRangeEnd = 1234 };
+            A.CallTo(() => _multiplayerSettingsProvider.GetSettings()).Returns(settings);
+            _multiplayerHost.Create(savePath, gameId, []);
+            _multiplayerHost.Game = new NetworkGame(savePath);
+            var hostPlayer = new NetworkPlayer
+            {
+                Id = NetworkingConsts.HostPlayerId,
+                IsHost = true,
+                ContentState = new NetworkContentState
+                {
+                    Mods = testCase.HostMods,
+                }
+            };
+            var player = new NetworkPlayer { Id = 123 };
+            _multiplayerHost.Game.Players.AddRange([hostPlayer, player]);
+            var handler = FakeUtils.GetNetworkReceiverHandler<ClientGameServerConnectionConfirmed>(_networkServer);
+            var message = new ClientGameServerConnectionConfirmed
+            {
+                PlayerName = Guid.NewGuid().ToString(),
+                ContentState = new Networking.Messages.Contracts.NetworkContentState
+                {
+                    Mods = testCase.PlayerMods
+                },
+            };
+
+            // Act
+            handler.Invoke(player.Id, message);
+
+            // Assert
+            Assert.That(player.ContentState.DiscrepantMods, Has.Count.EqualTo(testCase.ExpectedDiscrepantMods.Count));
+            foreach (var expectedDiscrepantMod in testCase.ExpectedDiscrepantMods)
+            {
+                var actualDiscrepantMod = player.ContentState.DiscrepantMods.FirstOrDefault(p => p.Mod.Id == expectedDiscrepantMod.Mod.Id);
+                Assert.That(actualDiscrepantMod, Is.Not.Null);
+                Assert.That(actualDiscrepantMod.Reason, Is.EqualTo(expectedDiscrepantMod.Reason));
+            }
+        }
+
+        private static IEnumerable<ContentStateTestCase> DlcDifferencesTestCases()
+        {
+            const string dlcId1 = "dlc1";
+            yield return new ContentStateTestCase("dlc is available on host, but unavailable at player")
+            {
+                HostDLCs = [new NetworkDLC { Id = dlcId1, IsAvailable = true }],
+                PlayerDLCs = [new Networking.Messages.Contracts.NetworkDLC { Id = dlcId1, IsAvailable = false }],
+                ExpectedDiscrepantDLCs = [new NetworkDiscrepantDLC { DLC = new NetworkDLC { Id = dlcId1 }, Reason = NetworkDiscrepancyReason.Missing }]
+            };
+
+            yield return new ContentStateTestCase("dlc is unavailable on host, but available at player")
+            {
+                HostDLCs = [new NetworkDLC { Id = dlcId1, IsAvailable = false }],
+                PlayerDLCs = [new Networking.Messages.Contracts.NetworkDLC { Id = dlcId1, IsAvailable = true }],
+                ExpectedDiscrepantDLCs = [new NetworkDiscrepantDLC { DLC = new NetworkDLC { Id = dlcId1 }, Reason = NetworkDiscrepancyReason.Extra }]
+            };
+
+            yield return new ContentStateTestCase("dlc is unavailable for both")
+            {
+                HostDLCs = [new NetworkDLC { Id = dlcId1, IsAvailable = false }],
+                PlayerDLCs = [new Networking.Messages.Contracts.NetworkDLC { Id = dlcId1, IsAvailable = false }],
+                ExpectedDiscrepantDLCs = []
+            };
+        }
+
+        private static IEnumerable<ContentStateTestCase> ModDifferencesTestCases()
+        {
+            const string modId1 = "mod1";
+            yield return new ContentStateTestCase("mod is enabled on host, but disabled at player")
+            {
+                HostMods = [new NetworkMod { Id = modId1, IsEnabled = true }],
+                PlayerMods = [new Networking.Messages.Contracts.NetworkMod { Id = modId1, IsEnabled = false }],
+                ExpectedDiscrepantMods = [new NetworkDiscrepantMod { Mod = new NetworkMod { Id = modId1 }, Reason = NetworkDiscrepancyReason.Disabled }]
+            };
+
+            yield return new ContentStateTestCase("mod is disabled on host, but enabled at player")
+            {
+                HostMods = [new NetworkMod { Id = modId1, IsEnabled = false }],
+                PlayerMods = [new Networking.Messages.Contracts.NetworkMod { Id = modId1, IsEnabled = true }],
+                ExpectedDiscrepantMods = [new NetworkDiscrepantMod { Mod = new NetworkMod { Id = modId1 }, Reason = NetworkDiscrepancyReason.Extra }]
+            };
+
+            yield return new ContentStateTestCase("mod is installed and enabled on host, but it's not installed at player")
+            {
+                HostMods = [new NetworkMod { Id = modId1, IsEnabled = true }],
+                PlayerMods = [],
+                ExpectedDiscrepantMods = [new NetworkDiscrepantMod { Mod = new NetworkMod { Id = modId1 }, Reason = NetworkDiscrepancyReason.Missing }]
+            };
+
+            yield return new ContentStateTestCase("mod is disabled for both")
+            {
+                HostMods = [new NetworkMod { Id = modId1, IsEnabled = false }],
+                PlayerMods = [new Networking.Messages.Contracts.NetworkMod { Id = modId1, IsEnabled = false }],
+                ExpectedDiscrepantMods = []
+            };
+
+            yield return new ContentStateTestCase("mod is not installed on host, but it's installed and disabled at player")
+            {
+                HostMods = [],
+                PlayerMods = [new Networking.Messages.Contracts.NetworkMod { Id = modId1, IsEnabled = false }],
+                ExpectedDiscrepantMods = []
+            };
+
+            yield return new ContentStateTestCase("mod is installed and disabled on host, but it's not installed at player")
+            {
+                HostMods = [new NetworkMod { Id = modId1, IsEnabled = false }],
+                PlayerMods = [],
+                ExpectedDiscrepantMods = []
+            };
         }
     }
 }
