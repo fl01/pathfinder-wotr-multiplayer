@@ -159,6 +159,9 @@ namespace WOTRMultiplayer.Config.Mapping
             CreateMap<NetworkLevelingAbilityScore, Networking.Messages.Contracts.NetworkLevelingAbilityScore>()
                 .ReverseMap();
 
+            CreateMap<NetworkLevelingPortrait, Networking.Messages.Contracts.NetworkLevelingPortrait>()
+                .ReverseMap();
+
             CreateMap<NetworkActionBarSlot, Networking.Messages.Contracts.NetworkActionBarSlot>()
                 .ReverseMap();
 

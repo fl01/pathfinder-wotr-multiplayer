@@ -50,6 +50,7 @@ using Kingmaker.UI.MVVM._PCView.CharGen.Phases.AbilityScores;
 using Kingmaker.UI.MVVM._PCView.CharGen.Phases.Class;
 using Kingmaker.UI.MVVM._PCView.CharGen.Phases.FeatureSelector;
 using Kingmaker.UI.MVVM._PCView.CharGen.Phases.Mythic;
+using Kingmaker.UI.MVVM._PCView.CharGen.Phases.Portrait;
 using Kingmaker.UI.MVVM._PCView.CharGen.Phases.Skills;
 using Kingmaker.UI.MVVM._PCView.CharGen.Phases.Spells;
 using Kingmaker.UI.MVVM._PCView.Common;
@@ -66,6 +67,7 @@ using Kingmaker.UI.MVVM._PCView.Rest;
 using Kingmaker.UI.MVVM._VM.CharGen.Phases;
 using Kingmaker.UI.MVVM._VM.CharGen.Phases.Class;
 using Kingmaker.UI.MVVM._VM.CharGen.Phases.FeatureSelector;
+using Kingmaker.UI.MVVM._VM.CharGen.Phases.Portrait;
 using Kingmaker.UI.MVVM._VM.CharGen.Phases.Spells;
 using Kingmaker.UI.MVVM._VM.Lockpick;
 using Kingmaker.UI.MVVM._VM.ServiceWindows.Inventory;
@@ -2075,6 +2077,74 @@ namespace WOTRMultiplayer.GameInteraction
                 }
             });
         }
+        public void SelectLevelingPortrait(NetworkLevelingPortrait levelingPortrait)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                try
+                {
+                    if (CharGenView?.ViewModel == null)
+                    {
+                        _logger.LogWarning("Can't select leveling portrait due to missing CharGenView");
+                        return;
+                    }
+
+                    var viewModel = (CharGenView.SelectedDetailView as CharGenPortraitPhaseDetailedPCView)?.ViewModel;
+                    if (viewModel == null)
+                    {
+                        _logger.LogError("Can't select leveling portrait due to missing portrait phase viewmodel");
+                        return;
+                    }
+
+                    System.Enum.TryParse<Kingmaker.Enums.PortraitCategory>(levelingPortrait.Category, true, out var category);
+                    if (string.IsNullOrEmpty(levelingPortrait.CustomId))
+                    {
+                        if (!viewModel.PortraitGroupVms.TryGetValue(category, out var group))
+                        {
+                            _logger.LogError("Unable to find requested portrait category. Name={Name}, Category={Category}", levelingPortrait.Name, category);
+                            return;
+                        }
+
+                        var portrait = group.PortraitCollection.FirstOrDefault(p => string.Equals(p.PortraitData.SmallPortrait.name, levelingPortrait.Name, StringComparison.OrdinalIgnoreCase));
+                        if (portrait == null)
+                        {
+                            _logger.LogError("Unable to find requested portrait. Name={Name}, Category={Category}", levelingPortrait.Name, levelingPortrait.Category);
+                            return;
+                        }
+
+                        viewModel.SelectedPortrait.Value = portrait;
+                        var defaultTab = viewModel.TabSelector.EntitiesCollection.FirstOrDefault(e => e.Tab == CharGenPortraitTab.Default);
+                        viewModel.CurrentTab.Value = defaultTab;
+                        _logger.LogInformation("Leveling portrait has been selected. Name={Name}, CustomId={CustomId}, Category={Category}", viewModel.SelectedPortrait.Value.PortraitData.SmallPortrait.name, viewModel.SelectedPortrait.Value.PortraitData.CustomId, viewModel.SelectedPortrait.Value.PortraitData.PortraitCategory);
+                        return;
+                    }
+
+                    var customPortraitVM = viewModel.CustomPortraitGroup.PortraitCollection.FirstOrDefault(x => string.Equals(x.PortraitData?.CustomId, levelingPortrait.CustomId, StringComparison.OrdinalIgnoreCase));
+                    if (customPortraitVM == null)
+                    {
+                        // CustomPortraitsManager.Instance.CreateNew as a reference
+                        var portraitData = new PortraitData(levelingPortrait.CustomId);
+                        CustomPortraitsManager.Instance.EnsureDirectory(portraitData.CustomId, true);
+                        CustomPortraitsManager.Instance.EnsureCustomPortraits(portraitData.CustomId);
+                        portraitData.EnsureImages();
+                        customPortraitVM = new CharGenPortraitSelectorItemVM(portraitData);
+                        viewModel.AllPortraitsCollection.Add(customPortraitVM);
+                        viewModel.CustomPortraitGroup.Add(customPortraitVM);
+                        _logger.LogInformation("Custom leveling portrait has been created. Name={Name}, CustomId={CustomId}, Category={Category}", portraitData.SmallPortrait.name, portraitData.CustomId, portraitData.PortraitCategory);
+                    }
+
+                    viewModel.SelectedPortrait.Value = customPortraitVM;
+                    var customTab = viewModel.TabSelector.EntitiesCollection.FirstOrDefault(e => e.Tab == CharGenPortraitTab.Custom);
+                    viewModel.CurrentTab.Value = customTab;
+                    _logger.LogInformation("Custom leveling portrait has been selected. Name={Name}, CustomId={CustomId}, Category={Category}", viewModel.SelectedPortrait.Value.PortraitData.SmallPortrait.name, viewModel.SelectedPortrait.Value.PortraitData.CustomId, viewModel.SelectedPortrait.Value.PortraitData.PortraitCategory);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error while selecting leveling portrait. Name={Name}, CustomId={CustomId}, Category={Category}", levelingPortrait.Name, levelingPortrait.CustomId, levelingPortrait.Category);
+                    throw;
+                }
+            });
+        }
 
         public void SelectLevelingClass(string classId)
         {
@@ -2152,7 +2222,7 @@ namespace WOTRMultiplayer.GameInteraction
             {
                 try
                 {
-                    if (CharGenView == null)
+                    if (CharGenView?.ViewModel == null)
                     {
                         _logger.LogError("Unable to update leveling controls due too missing CharGenView");
                         return;

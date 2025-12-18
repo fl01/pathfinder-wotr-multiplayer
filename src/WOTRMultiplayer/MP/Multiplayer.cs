@@ -1371,6 +1371,24 @@ namespace WOTRMultiplayer.MP
             }
         }
 
+        public void OnLevelingPortraitSelected(NetworkLevelingPortrait levelingPortrait)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingPortraitSelected(levelingPortrait);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while selecting leveling portrait. Name={Name}, CustomId={CustomId}, Category={Category}", levelingPortrait.Name, levelingPortrait.CustomId, levelingPortrait.Category);
+                throw;
+            }
+        }
+
         public void OnLevelingFeatureSelected(NetworkLevelingFeature networkLevelingFeature)
         {
             try

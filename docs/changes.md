@@ -219,13 +219,14 @@ Only basic usage of abilities is available. Any extra conditions like metamagic 
 ### Hiring Mercenary
 Character Generation screen is synced for leveling only. You will need to create initial merc locally and then host multiplayer game.
 
-The following CharGen phases are not synced:
-- Portrait
+The following CharGen phases/items are not synced:
 - Race
+- Racial bonus (part of Ability Score phase)
 - Alignment
-- Appearence
+- Appearance
 - Voice
 - Name
+- ... and many more
 
 ## Long term plans
 

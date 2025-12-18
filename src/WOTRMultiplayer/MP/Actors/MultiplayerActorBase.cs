@@ -801,6 +801,21 @@ namespace WOTRMultiplayer.MP.Actors
             Send(message);
         }
 
+        public void OnLevelingPortraitSelected(NetworkLevelingPortrait levelingPortrait)
+        {
+            if (!CanMakeLevelingDecisions())
+            {
+                return;
+            }
+
+            var message = new NotifyLevelingPortraitSelected
+            {
+                Portrait = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingPortrait>(levelingPortrait)
+            };
+            Logger.LogInformation("Sending {MessageType}. Name={Name}, CustomId={CustomId}, Category={Category}", nameof(NotifyLevelingPortraitSelected), message.Portrait.Name, message.Portrait.CustomId, message.Portrait.Category);
+            Send(message);
+        }
+
         public void OnLevelingFeatureSelected(NetworkLevelingFeature feature)
         {
             if (!CanMakeLevelingDecisions())
@@ -812,9 +827,10 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 Feature = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingFeature>(feature)
             };
-            Logger.LogInformation("Sending {MessageType}. FeatureName={FeatureName}, Id={Id}", nameof(NetworkLevelingFeature), message.Feature.Name, message.Feature.Id);
+            Logger.LogInformation("Sending {MessageType}. FeatureName={FeatureName}, Id={Id}", nameof(NotifyLevelingFeatureSelected), message.Feature.Name, message.Feature.Id);
             Send(message);
         }
+
         public void OnLevelingSpellRemoved(NetworkLevelingSpell spell)
         {
             if (!CanMakeLevelingDecisions())
@@ -1725,6 +1741,7 @@ namespace WOTRMultiplayer.MP.Actors
                 .On<NotifyLevelingSkillPointDecreased>(OnNotifyLevelingSkillPointDecreased)
                 .On<NotifyLevelingAbilityScoreIncreased>(OnNotifyLevelingAbilityScoreIncreased)
                 .On<NotifyLevelingAbilityScoreDecreased>(OnNotifyLevelingAbilityScoreDecreased)
+                .On<NotifyLevelingPortraitSelected>(OnNotifyLevelingPortraitSelected)
                 .On<NotifyLevelingFeatureSelected>(OnNotifyLevelingFeatureSelected)
                 .On<NotifyLevelingSpellChosen>(OnNotifyLevelingSpellChosen)
                 .On<NotifyLevelingSpellRemoved>(OnNotifyLevelingSpellRemoved)
@@ -2170,24 +2187,34 @@ namespace WOTRMultiplayer.MP.Actors
             OnAfterNetworkMessageHandled(playerId, memorized);
         }
 
-        private void OnNotifyLevelingAbilityScoreDecreased(long playerId, NotifyLevelingAbilityScoreDecreased decreased)
+        private void OnNotifyLevelingPortraitSelected(long playerId, NotifyLevelingPortraitSelected levelingPortraitSelected)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, StatType={StatType}", nameof(NotifyLevelingAbilityScoreDecreased), playerId, decreased.AbilityScore.StatType);
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, Name={Name}, CustomId={CustomId}, Category={Category}", playerId, nameof(NotifyLevelingPortraitSelected), levelingPortraitSelected.Portrait.Name, levelingPortraitSelected.Portrait.CustomId, levelingPortraitSelected.Portrait.Category);
 
-            var abilityScore = Mapper.Map<NetworkLevelingAbilityScore>(decreased.AbilityScore);
-            GameInteraction.DecreaseLevelingAbilityScore(abilityScore);
+            var levelingPortrait = Mapper.Map<NetworkLevelingPortrait>(levelingPortraitSelected.Portrait);
+            GameInteraction.SelectLevelingPortrait(levelingPortrait);
 
-            OnAfterNetworkMessageHandled(playerId, decreased);
+            OnAfterNetworkMessageHandled(playerId, levelingPortraitSelected);
         }
 
-        private void OnNotifyLevelingAbilityScoreIncreased(long playerId, NotifyLevelingAbilityScoreIncreased increased)
+        private void OnNotifyLevelingAbilityScoreDecreased(long playerId, NotifyLevelingAbilityScoreDecreased levelingAbilityScoreDecreased)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, StatType={StatType}", nameof(NotifyLevelingAbilityScoreIncreased), playerId, increased.AbilityScore.StatType);
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, StatType={StatType}", nameof(NotifyLevelingAbilityScoreDecreased), playerId, levelingAbilityScoreDecreased.AbilityScore.StatType);
 
-            var abilityScore = Mapper.Map<NetworkLevelingAbilityScore>(increased.AbilityScore);
+            var abilityScore = Mapper.Map<NetworkLevelingAbilityScore>(levelingAbilityScoreDecreased.AbilityScore);
+            GameInteraction.DecreaseLevelingAbilityScore(abilityScore);
+
+            OnAfterNetworkMessageHandled(playerId, levelingAbilityScoreDecreased);
+        }
+
+        private void OnNotifyLevelingAbilityScoreIncreased(long playerId, NotifyLevelingAbilityScoreIncreased levelingAbilityScoreIncreased)
+        {
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, StatType={StatType}", nameof(NotifyLevelingAbilityScoreIncreased), playerId, levelingAbilityScoreIncreased.AbilityScore.StatType);
+
+            var abilityScore = Mapper.Map<NetworkLevelingAbilityScore>(levelingAbilityScoreIncreased.AbilityScore);
             GameInteraction.IncreaseLevelingAbilityScore(abilityScore);
 
-            OnAfterNetworkMessageHandled(playerId, increased);
+            OnAfterNetworkMessageHandled(playerId, levelingAbilityScoreIncreased);
         }
 
         private void OnNotifyLevelingCompleted(long playerId, NotifyLevelingCompleted completed)

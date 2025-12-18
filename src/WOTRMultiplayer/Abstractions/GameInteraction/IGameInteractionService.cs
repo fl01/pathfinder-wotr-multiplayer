@@ -152,6 +152,8 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void SelectMythicLevelingClass(string mythicClassId);
 
+        void SelectLevelingPortrait(NetworkLevelingPortrait levelingPortrait);
+
         void UpdateLevelingPhaseControls(bool isEnabled);
 
         void SwitchLevelingPhase(NetworkLevelingPhase networkLevelingPhase);

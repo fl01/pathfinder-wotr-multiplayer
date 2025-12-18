@@ -503,5 +503,9 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void SelectMythicLevelingClass(string mythicClassId)
         {
         }
+
+        public void SelectLevelingPortrait(NetworkLevelingPortrait levelingPortrait)
+        {
+        }
     }
 }

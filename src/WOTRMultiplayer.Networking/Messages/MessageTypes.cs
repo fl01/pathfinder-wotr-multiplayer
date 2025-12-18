@@ -124,6 +124,7 @@
             NotifyDialogPopupClosed,
             NotifyInventoryItemUsed,
             NotifyLevelingMythicClassSelected,
+            NotifyLevelingPortraitSelected,
         }
 
         public enum Request

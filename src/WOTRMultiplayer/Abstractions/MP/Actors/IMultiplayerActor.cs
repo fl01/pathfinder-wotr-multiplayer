@@ -160,6 +160,8 @@ namespace WOTRMultiplayer.Abstractions.MP.Actors
 
         void OnLevelingDecreaseAbilityScore(NetworkLevelingAbilityScore abilityScore);
 
+        void OnLevelingPortraitSelected(NetworkLevelingPortrait levelingPortrait);
+
         void OnMoveActionBarSlot(NetworkActionBarSlot sourceActionBarSlot, NetworkActionBarSlot targetActionBarSlot);
 
         void OnClearActionBarSlot(NetworkActionBarSlot actionBarSlot);
