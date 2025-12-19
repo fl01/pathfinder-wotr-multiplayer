@@ -19,7 +19,7 @@ using WOTRMultiplayer.MP.Entities.Leveling;
 namespace WOTRMultiplayer.HarmonyPatches.Leveling
 {
     [HarmonyPatch]
-    public class CharGenSelectionGroupEntityPatches
+    public class SelectionGroupEntityViewPatches
     {
         private static readonly Dictionary<Type, Func<SelectionGroupEntityView<SelectionGroupEntityVM>, IDisposable>> _phases = new()
         {
