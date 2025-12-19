@@ -1,8 +1,11 @@
-﻿using HarmonyLib;
+﻿using System;
+using System.Collections.Generic;
+using HarmonyLib;
 using Kingmaker;
 using Kingmaker.UI.MVVM._CommonView.CharGen.Phases.Common;
 using Kingmaker.UI.MVVM._PCView.CharGen.Phases;
 using Kingmaker.UI.MVVM._PCView.CharGen.Phases.AbilityScores;
+using Kingmaker.UI.MVVM._PCView.CharGen.Phases.Name;
 using Kingmaker.UI.MVVM._PCView.GlobalMap;
 using Kingmaker.UI.MVVM._PCView.InGame;
 using Microsoft.Extensions.Logging;
@@ -13,6 +16,12 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
     [HarmonyPatch]
     public class SequentialSelectorCommonViewPatches
     {
+        private static readonly Dictionary<Type, Action<SequentialSelectorCommonView, NetworkLevelingSequenceDirection>> _selectorHandlers = new()
+        {
+            { typeof(CharGenAbilityScoresDetailedPCView), (view, direction) => Main.Multiplayer.OnLevelingRacialAbilityScoreBonusChanged(direction) },
+            { typeof(CharGenNamePhaseDetailedPCView), OnCharGenNameSelectorChanged }
+        };
+
         [HarmonyPatch(typeof(SequentialSelectorCommonView), nameof(SequentialSelectorCommonView.OnNextHandler))]
         [HarmonyPrefix]
         public static bool SequentialSelectorCommonView_OnNextHandler_Prefix(SequentialSelectorCommonView __instance, ref bool __result)
@@ -22,22 +31,13 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
                 return true;
             }
 
-            var currentView = GetCurrentCharGenDetailView();
-            switch (currentView)
+            var onHandler = OnHandler(__instance, NetworkLevelingSequenceDirection.Right);
+            if (!onHandler)
             {
-                case CharGenAbilityScoresDetailedPCView:
-                    var canInteract = Main.Multiplayer.CanMakeLevelingDecisions();
-                    if (!canInteract)
-                    {
-                        __result = false;
-                        return false;
-                    }
-
-                    Main.Multiplayer.OnLevelingRacialAbilityScoreBonusChanged(NetworkLevelingSequenceDirection.Right);
-                    return true;
-                default:
-                    return true;
+                __result = false;
             }
+
+            return onHandler;
         }
 
         [HarmonyPatch(typeof(SequentialSelectorCommonView), nameof(SequentialSelectorCommonView.OnPreviousHandler))]
@@ -49,22 +49,41 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
                 return true;
             }
 
-            var currentView = GetCurrentCharGenDetailView();
-            switch (currentView)
+            var onHandler = OnHandler(__instance, NetworkLevelingSequenceDirection.Left);
+            if (!onHandler)
             {
-                case CharGenAbilityScoresDetailedPCView:
-                    var canInteract = Main.Multiplayer.CanMakeLevelingDecisions();
-                    if (!canInteract)
-                    {
-                        __result = false;
-                        return false;
-                    }
-
-                    Main.Multiplayer.OnLevelingRacialAbilityScoreBonusChanged(NetworkLevelingSequenceDirection.Left);
-                    return true;
-                default:
-                    return true;
+                __result = false;
             }
+
+            return onHandler;
+        }
+
+        private static bool OnHandler(SequentialSelectorCommonView view, NetworkLevelingSequenceDirection direction)
+        {
+            var currentView = GetCurrentCharGenDetailView();
+            if (currentView != null && _selectorHandlers.TryGetValue(currentView.GetType(), out var handler))
+            {
+                var canInteract = Main.Multiplayer.CanMakeLevelingDecisions();
+                if (!canInteract)
+                {
+                    return false;
+                }
+
+                handler(view, direction);
+            }
+
+            return true;
+        }
+
+        private static void OnCharGenNameSelectorChanged(SequentialSelectorCommonView view, NetworkLevelingSequenceDirection direction)
+        {
+            if (view.name.EndsWith("Month", StringComparison.OrdinalIgnoreCase))
+            {
+                Main.Multiplayer.OnLevelingBirthMonthChanged(direction);
+                return;
+            }
+
+            Main.Multiplayer.OnLevelingBirthDayChanged(direction);
         }
 
         private static ICharGenPhaseDetailedView GetCurrentCharGenDetailView()

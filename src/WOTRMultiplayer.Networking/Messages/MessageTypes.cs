@@ -129,6 +129,9 @@
             NotifyLevelingGenderSelected,
             NotifyLevelingRacialAbilityScoreBonusChanged,
             NotifyLevelingAlignmentSelected,
+            NotifyLevelingBirthDayChanged,
+            NotifyLevelingBirthMonthChanged,
+            NotifyLevelingNameChanged,
         }
 
         public enum Request

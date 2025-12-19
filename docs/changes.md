@@ -222,7 +222,6 @@ Character Generation screen is synced for leveling only. You will need to create
 The following CharGen phases/items are not synced:
 - Appearance
 - Voice
-- Name
 
 ## Long term plans
 

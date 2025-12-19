@@ -523,5 +523,17 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void SelectLevelingAlignment(string alignmentId)
         {
         }
+
+        public void SetLevelingName(string name)
+        {
+        }
+
+        public void ChangeLevelingBirthDay(NetworkLevelingSequenceDirection direction)
+        {
+        }
+
+        public void ChangeLevelingBirthMonth(NetworkLevelingSequenceDirection direction)
+        {
+        }
     }
 }

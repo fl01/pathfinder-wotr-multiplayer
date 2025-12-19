@@ -172,7 +172,13 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void SelectLevelingAlignment(string alignmentId);
 
+        void SetLevelingName(string name);
+
         void ChangeLevelingRacialAbilityScoreBonus(NetworkLevelingSequenceDirection direction);
+
+        void ChangeLevelingBirthDay(NetworkLevelingSequenceDirection direction);
+
+        void ChangeLevelingBirthMonth(NetworkLevelingSequenceDirection direction);
 
         void SelectLevelingFeature(NetworkLevelingFeature networkLevelingFeature);
 

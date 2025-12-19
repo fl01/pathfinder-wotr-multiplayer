@@ -178,7 +178,13 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         void OnLevelingAlignmentSelected(string alignmentId);
 
+        void OnLevelingNameChanged(string name);
+
         void OnLevelingRacialAbilityScoreBonusChanged(NetworkLevelingSequenceDirection direction);
+
+        void OnLevelingBirthMonthChanged(NetworkLevelingSequenceDirection direction);
+
+        void OnLevelingBirthDayChanged(NetworkLevelingSequenceDirection direction);
 
         void OnMoveActionBarSlot(NetworkActionBarSlot sourceActionBarSlot, NetworkActionBarSlot targetActionBarSlot);
 

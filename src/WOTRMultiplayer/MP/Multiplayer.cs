@@ -1425,6 +1425,24 @@ namespace WOTRMultiplayer.MP
             }
         }
 
+        public void OnLevelingNameChanged(string name)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingNameChanged(name);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while selecting leveling name. Name={Name}", name);
+                throw;
+            }
+        }
+
         public void OnLevelingAlignmentSelected(string alignmentId)
         {
             try
@@ -1456,7 +1474,43 @@ namespace WOTRMultiplayer.MP
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while changing racial bonus. Direction={Direction}", direction);
+                _logger.LogError(ex, "Error while changing leveling racial bonus. Direction={Direction}", direction);
+                throw;
+            }
+        }
+
+        public void OnLevelingBirthMonthChanged(NetworkLevelingSequenceDirection direction)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingBirthMonthChanged(direction);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing leveling birth month. Direction={Direction}", direction);
+                throw;
+            }
+        }
+
+        public void OnLevelingBirthDayChanged(NetworkLevelingSequenceDirection direction)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingBirthDayChanged(direction);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing leveling birth day. Direction={Direction}", direction);
                 throw;
             }
         }

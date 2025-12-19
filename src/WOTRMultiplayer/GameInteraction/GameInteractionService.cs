@@ -51,6 +51,7 @@ using Kingmaker.UI.MVVM._PCView.CharGen.Phases.Alignment;
 using Kingmaker.UI.MVVM._PCView.CharGen.Phases.Class;
 using Kingmaker.UI.MVVM._PCView.CharGen.Phases.FeatureSelector;
 using Kingmaker.UI.MVVM._PCView.CharGen.Phases.Mythic;
+using Kingmaker.UI.MVVM._PCView.CharGen.Phases.Name;
 using Kingmaker.UI.MVVM._PCView.CharGen.Phases.Portrait;
 using Kingmaker.UI.MVVM._PCView.CharGen.Phases.Race;
 using Kingmaker.UI.MVVM._PCView.CharGen.Phases.Skills;
@@ -2362,6 +2363,13 @@ namespace WOTRMultiplayer.GameInteraction
                             baseView.m_ButtonLabel.Interactable = baseView.m_ButtonLabel.Interactable && isEnabled;
                         }
                     }
+
+                    switch (CharGenView.SelectedDetailView)
+                    {
+                        case CharGenNamePhaseDetailedPCView namePhase:
+                            namePhase.m_NameInputField.readOnly = !isEnabled;
+                            break;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -2532,6 +2540,115 @@ namespace WOTRMultiplayer.GameInteraction
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error while changing leveling racial ability score bonus. Direction={Direction}", direction);
+                    throw;
+                }
+            });
+        }
+
+        public void SetLevelingName(string name)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                try
+                {
+                    if (CharGenView?.ViewModel == null)
+                    {
+                        _logger.LogError("Unable to get leveling name vm due too missing CharGenView");
+                        return;
+                    }
+
+                    var view = CharGenView.SelectedDetailView as CharGenNamePhaseDetailedPCView;
+                    if (view == null)
+                    {
+                        _logger.LogError("Can't change leveling name due to missing ability score phase view");
+                        return;
+                    }
+
+                    view.m_NameInputField.text = name;
+                    view.ViewModel.OnEndEdit(name);
+                    _logger.LogInformation("Leveling name has been changed. Name={Name}", view.ViewModel.ChosenName.Value);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error while changing leveling name. Name={Name}", name);
+                    throw;
+                }
+            });
+        }
+
+        public void ChangeLevelingBirthDay(NetworkLevelingSequenceDirection direction)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                try
+                {
+                    if (CharGenView?.ViewModel == null)
+                    {
+                        _logger.LogError("Unable to get leveling birth day vm due too missing CharGenView");
+                        return;
+                    }
+
+                    var view = CharGenView.SelectedDetailView as CharGenNamePhaseDetailedPCView;
+                    if (view == null)
+                    {
+                        _logger.LogError("Can't change leveling birth day due to missing ability score phase view");
+                        return;
+                    }
+
+                    switch (direction)
+                    {
+                        case NetworkLevelingSequenceDirection.Left:
+                            view.ViewModel.DaySelectorVM.OnLeft();
+                            break;
+                        case NetworkLevelingSequenceDirection.Right:
+                            view.ViewModel.DaySelectorVM.OnRight();
+                            break;
+                    }
+
+                    _logger.LogInformation("Leveling birth day has been changed. Day={Day}, Direction={Direction}", view.ViewModel.DaySelectorVM.Value, direction);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error while changing leveling birth day. Direction={Direction}", direction);
+                    throw;
+                }
+            });
+        }
+
+        public void ChangeLevelingBirthMonth(NetworkLevelingSequenceDirection direction)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                try
+                {
+                    if (CharGenView?.ViewModel == null)
+                    {
+                        _logger.LogError("Unable to get leveling birth month vm due too missing CharGenView");
+                        return;
+                    }
+
+                    var view = CharGenView.SelectedDetailView as CharGenNamePhaseDetailedPCView;
+                    if (view == null)
+                    {
+                        _logger.LogError("Can't change leveling birth month due to missing ability score phase view");
+                        return;
+                    }
+
+                    switch (direction)
+                    {
+                        case NetworkLevelingSequenceDirection.Left:
+                            view.ViewModel.MonthSelectorVM.OnLeft();
+                            break;
+                        case NetworkLevelingSequenceDirection.Right:
+                            view.ViewModel.MonthSelectorVM.OnRight();
+                            break;
+                    }
+
+                    _logger.LogInformation("Leveling birth month has been changed. Month={Month}, Direction={Direction}", view.ViewModel.MonthSelectorVM.Value, direction);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error while changing leveling birth month. Direction={Direction}", direction);
                     throw;
                 }
             });

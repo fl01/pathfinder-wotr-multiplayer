@@ -861,6 +861,21 @@ namespace WOTRMultiplayer.MP.Actors
             Send(message);
         }
 
+        public void OnLevelingNameChanged(string name)
+        {
+            if (!CanMakeLevelingDecisions())
+            {
+                return;
+            }
+
+            var message = new NotifyLevelingNameChanged
+            {
+                Name = name
+            };
+            Logger.LogInformation("Sending {MessageType}. Name={Name}", nameof(NotifyLevelingNameChanged), message.Name);
+            Send(message);
+        }
+
         public void OnLevelingRacialAbilityScoreBonusChanged(NetworkLevelingSequenceDirection direction)
         {
             if (!CanMakeLevelingDecisions())
@@ -873,6 +888,36 @@ namespace WOTRMultiplayer.MP.Actors
                 Direction = direction.ToString()
             };
             Logger.LogInformation("Sending {MessageType}. Direction={Direction}", nameof(NotifyLevelingRacialAbilityScoreBonusChanged), message.Direction);
+            Send(message);
+        }
+
+        public void OnLevelingBirthMonthChanged(NetworkLevelingSequenceDirection direction)
+        {
+            if (!CanMakeLevelingDecisions())
+            {
+                return;
+            }
+
+            var message = new NotifyLevelingBirthMonthChanged
+            {
+                Direction = direction.ToString()
+            };
+            Logger.LogInformation("Sending {MessageType}. Direction={Direction}", nameof(NotifyLevelingBirthMonthChanged), message.Direction);
+            Send(message);
+        }
+
+        public void OnLevelingBirthDayChanged(NetworkLevelingSequenceDirection direction)
+        {
+            if (!CanMakeLevelingDecisions())
+            {
+                return;
+            }
+
+            var message = new NotifyLevelingBirthDayChanged
+            {
+                Direction = direction.ToString()
+            };
+            Logger.LogInformation("Sending {MessageType}. Direction={Direction}", nameof(NotifyLevelingBirthDayChanged), message.Direction);
             Send(message);
         }
 
@@ -1805,7 +1850,10 @@ namespace WOTRMultiplayer.MP.Actors
                 .On<NotifyLevelingRaceSelected>(OnNotifyLevelingRaceSelected)
                 .On<NotifyLevelingGenderSelected>(OnNotifyLevelingGenderSelected)
                 .On<NotifyLevelingAlignmentSelected>(OnNotifyLevelingAlignmentSelected)
+                .On<NotifyLevelingNameChanged>(OnNotifyLevelingNameChanged)
                 .On<NotifyLevelingRacialAbilityScoreBonusChanged>(OnNotifyLevelingRacialAbilityScoreBonusChanged)
+                .On<NotifyLevelingBirthMonthChanged>(OnNotifyLevelingBirthMonthChanged)
+                .On<NotifyLevelingBirthDayChanged>(OnNotifyLevelingBirthDayChanged)
                 .On<NotifyLevelingFeatureSelected>(OnNotifyLevelingFeatureSelected)
                 .On<NotifyLevelingSpellChosen>(OnNotifyLevelingSpellChosen)
                 .On<NotifyLevelingSpellRemoved>(OnNotifyLevelingSpellRemoved)
@@ -2270,6 +2318,15 @@ namespace WOTRMultiplayer.MP.Actors
             OnAfterNetworkMessageHandled(playerId, levelingAlignmentSelected);
         }
 
+        private void OnNotifyLevelingNameChanged(long playerId, NotifyLevelingNameChanged levelingNameChanged)
+        {
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, Name={Name}", nameof(NotifyLevelingGenderSelected), playerId, levelingNameChanged.Name);
+
+            GameInteraction.SetLevelingName(levelingNameChanged.Name);
+
+            OnAfterNetworkMessageHandled(playerId, levelingNameChanged);
+        }
+
         private void OnNotifyLevelingGenderSelected(long playerId, NotifyLevelingGenderSelected levelingGenderSelected)
         {
             Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, GenderId={GenderId}", nameof(NotifyLevelingGenderSelected), playerId, levelingGenderSelected.GenderId);
@@ -2297,6 +2354,28 @@ namespace WOTRMultiplayer.MP.Actors
             GameInteraction.ChangeLevelingRacialAbilityScoreBonus(direction);
 
             OnAfterNetworkMessageHandled(playerId, racialAbilityScoreBonusChanged);
+        }
+
+        private void OnNotifyLevelingBirthDayChanged(long playerId, NotifyLevelingBirthDayChanged levelingBirthDayChanged)
+        {
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, Direction={Direction}", nameof(NotifyLevelingBirthDayChanged), playerId, levelingBirthDayChanged.Direction);
+
+            var direction = Mapper.Map<NetworkLevelingSequenceDirection>(levelingBirthDayChanged.Direction);
+
+            GameInteraction.ChangeLevelingBirthDay(direction);
+
+            OnAfterNetworkMessageHandled(playerId, levelingBirthDayChanged);
+        }
+
+        private void OnNotifyLevelingBirthMonthChanged(long playerId, NotifyLevelingBirthMonthChanged levelingBirthMonthChanged)
+        {
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, Direction={Direction}", nameof(NotifyLevelingBirthMonthChanged), playerId, levelingBirthMonthChanged.Direction);
+
+            var direction = Mapper.Map<NetworkLevelingSequenceDirection>(levelingBirthMonthChanged.Direction);
+
+            GameInteraction.ChangeLevelingBirthMonth(direction);
+
+            OnAfterNetworkMessageHandled(playerId, levelingBirthMonthChanged);
         }
 
         private void OnNotifyLevelingAbilityScoreDecreased(long playerId, NotifyLevelingAbilityScoreDecreased levelingAbilityScoreDecreased)
