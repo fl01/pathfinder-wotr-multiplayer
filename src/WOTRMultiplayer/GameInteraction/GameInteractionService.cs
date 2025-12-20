@@ -223,22 +223,6 @@ namespace WOTRMultiplayer.GameInteraction
             });
         }
 
-
-
-        private OvertipViewBase FindOvertipForObject(MapObjectEntityData mapObject)
-        {
-            foreach (var kv in OvertipsView.Instance.m_Views)
-            {
-                var view = kv.Value.FirstOrDefault(v => string.Equals(v.m_ObjectView?.Data.UniqueId, mapObject.UniqueId, StringComparison.OrdinalIgnoreCase));
-                if (view != null)
-                {
-                    return view;
-                }
-            }
-
-            return null;
-        }
-
         public string GetSaveGamePath()
         {
             var path = Game.Instance.SaveManager.SavePath;
@@ -291,115 +275,6 @@ namespace WOTRMultiplayer.GameInteraction
         public void ResetSuggestedDialogAnswers()
         {
             ImmediatlyMarkSuggestedDialogAnswers([]);
-        }
-        private void ImmediatlyMarkSuggestedDialogAnswers(List<NetworkDialogAnswerSuggestion> suggestions)
-        {
-            _logger.LogInformation("Marking dialog answer suggestions. Count={Count}", suggestions.Count);
-            if (Game.Instance.DialogController?.Dialog == null)
-            {
-                _logger.LogWarning("DialogController.Dialog is null");
-                return;
-            }
-
-            var dialogContext = (Game.Instance.RootUiContext.m_UIView as InGamePCView)?.m_StaticPartPCView?.m_DialogContextPCView;
-            if (dialogContext == null)
-            {
-                _logger.LogWarning("DialogContextView is null");
-                return;
-            }
-
-            switch (Game.Instance.DialogController.Dialog.Type)
-            {
-                case DialogType.Interchapter:
-                    MarkInterchapterAnswer(dialogContext.m_InterchapterPCView, suggestions);
-                    break;
-                case DialogType.Common:
-                    MarkDialogAnswer(dialogContext.m_DialogPCView, suggestions);
-                    break;
-                case DialogType.Book:
-                    MarkBookAnswer(dialogContext.m_BookEventPCView, suggestions);
-                    break;
-                default:
-                    _logger.LogWarning("Marking suggested answers has not been implemented for this dialog type. DialogType={DialogType}", Game.Instance.DialogController.Dialog.Type);
-                    break;
-            }
-
-            if (suggestions.Count > 0)
-            {
-                PlaySound(UISoundType.GlobalMapRandomEncounter);
-            }
-        }
-        private void MarkInterchapterAnswer(InterchapterPCView interchapterView, List<NetworkDialogAnswerSuggestion> suggestions)
-        {
-            if (interchapterView == null)
-            {
-                return;
-            }
-
-            var answers = interchapterView.gameObject.transform.Find("ContentWrapper/Window/Content/Answers");
-            MarkAnswers(answers, suggestions);
-        }
-
-        private void MarkBookAnswer(BookEventPCView bookView, List<NetworkDialogAnswerSuggestion> suggestions)
-        {
-            if (bookView == null)
-            {
-                return;
-            }
-
-            var answers = bookView.gameObject.transform.Find("ContentWrapper/Window/Content/Answers");
-            MarkAnswers(answers, suggestions);
-        }
-
-        private void MarkDialogAnswer(DialogPCView dialogView, List<NetworkDialogAnswerSuggestion> suggestions)
-        {
-            if (dialogView == null)
-            {
-                return;
-            }
-
-            var answers = dialogView.gameObject.transform.Find("Body/View/Scroll View/Viewport/Content/AnswersPanel");
-            MarkAnswers(answers, suggestions);
-        }
-
-        private void MarkAnswers(Transform answersContainer, List<NetworkDialogAnswerSuggestion> suggestions)
-        {
-            const string SuggestionIconName = "SuggestionIcon";
-
-            for (int answerIndex = 0; answerIndex < answersContainer.childCount; answerIndex++)
-            {
-                var answer = answersContainer.GetChild(answerIndex);
-                var answerView = answer.GetComponent<DialogAnswerPCView>();
-                var answerName = answerView.ViewModel.Answer.Value.name;
-                var suggestedAnswer = suggestions.FirstOrDefault(s => string.Equals(s.AnswerName, answerName));
-
-                answer.gameObject.CleanupAllChildren(x => x.name.StartsWith(SuggestionIconName));
-                if (suggestedAnswer == null)
-                {
-                    continue;
-                }
-
-                var portrait = _resourceProvider.GetUISprite("UI_Inventory_IconHeart");
-                var maxIcons = Math.Min(3, suggestedAnswer.Players.Count);
-                for (int i = maxIcons; i > 0; i--)
-                {
-                    var arrow = answer.Find("Arrow");
-                    var suggestionIconObject = UnityEngine.Object.Instantiate(arrow.gameObject, answer);
-                    suggestionIconObject.name = SuggestionIconName + i.ToString();
-                    suggestionIconObject.SetActive(true);
-
-                    var rect = suggestionIconObject.GetComponent<RectTransform>();
-                    var preferedSize = Math.Min(rect.sizeDelta.x, rect.sizeDelta.y);
-                    rect.sizeDelta = new UnityEngine.Vector2(preferedSize, preferedSize);
-
-                    var newPosition = new UnityEngine.Vector3(suggestionIconObject.transform.position.x + 4 - (5 * i), suggestionIconObject.transform.position.y, suggestionIconObject.transform.position.z);
-                    suggestionIconObject.transform.SetPositionAndRotation(newPosition, suggestionIconObject.transform.rotation);
-
-                    var image = suggestionIconObject.GetComponent<UnityEngine.UI.Image>();
-                    image.color = UnityEngine.Color.white;
-                    image.sprite = portrait;
-                }
-            }
         }
 
         public void MoveNonCombatCharacter(NetworkCharacterMove networkCharacterMove)
@@ -912,27 +787,6 @@ namespace WOTRMultiplayer.GameInteraction
             });
         }
 
-        private bool TryFindRequiredItemsInCollection(ItemsCollection collection, List<NetworkItem> items, out Dictionary<NetworkItem, List<ItemEntity>> matchedItems)
-        {
-            matchedItems = [];
-            foreach (var item in items)
-            {
-                var existingItems = collection.Items.Where(x => IsSameUnholdedItem(x, item)).ToList();
-                var existingItemsCount = existingItems.Sum(x => x.Count);
-                if (existingItemsCount < item.Count)
-                {
-                    matchedItems = null;
-                    return false;
-                }
-
-                matchedItems.Add(item, existingItems);
-            }
-
-
-            return true;
-        }
-
-
         public void SkinLootContainer(NetworkLootableEntity lootableEntity)
         {
             _mainThreadAccessor.Post(() =>
@@ -1043,77 +897,6 @@ namespace WOTRMultiplayer.GameInteraction
                     throw;
                 }
             });
-        }
-
-        private ItemSlot GetItemSlot(string unitId, NetworkEquipmentSlotPosition position)
-        {
-            var unit = GetUnitEntity(unitId);
-
-            if (unit == null)
-            {
-                return null;
-            }
-
-            var slotType = _equipmentDefinitions.GetSlotType(position.Type);
-
-            var slotsOfSameType = unit.Body.EquipmentSlots
-                    .Where(s => s.GetType() == slotType)
-                    .ToList();
-
-            if (slotsOfSameType.Count < position.Index)
-            {
-                return null;
-            }
-
-            var itemSlot = slotsOfSameType[position.Index];
-            return itemSlot;
-        }
-
-        private TargetWrapper CreateTargetWrapper(NetworkTargetWrapper networkTargetWrapper)
-        {
-            if (networkTargetWrapper == null)
-            {
-                return null;
-            }
-
-            var point = new Vector3(networkTargetWrapper.Point.X, networkTargetWrapper.Point.Y, networkTargetWrapper.Point.Z);
-            var unit = GetUnitEntity(networkTargetWrapper.UnitUniqueId);
-            var wrapper = new TargetWrapper(point, networkTargetWrapper.Orientation, unit);
-            return wrapper;
-        }
-
-        private void MatchSameNumberOfItems(List<ItemEntity> possibleItemsBag, int countToMatch, Action<ItemEntity> onMatched)
-        {
-            var itemsLeft = countToMatch;
-            foreach (var item in possibleItemsBag)
-            {
-                var difference = itemsLeft - item.Count;
-                if (difference == 0)
-                {
-                    onMatched(item);
-                    break;
-                }
-                else if (difference < 0)
-                {
-                    var itemToDrop = item.Split(itemsLeft);
-                    onMatched(itemToDrop);
-                    break;
-                }
-                else
-                {
-                    // less than needed
-                    itemsLeft = difference;
-                    onMatched(item);
-                }
-            }
-        }
-
-        private void DropItem(ItemsCollection inventory, ItemEntity itemEntity, string ownerId)
-        {
-            var itemId = itemEntity.UniqueId;
-            using var context = _networkExecutionContext.Value = RemoteExecutionContext.CreateDropItem(itemId, ownerId);
-            inventory.DropItem(itemEntity);
-            _logger.LogInformation("Item has been dropped. EntityId={EntityId}, ItemId={ItemId}, Count={Count}", ownerId, itemId, itemEntity.Count);
         }
 
         public NetworkEquipmentSlotPosition GetEquipmentSlotPosition(ItemSlot slot)
@@ -2266,29 +2049,6 @@ namespace WOTRMultiplayer.GameInteraction
                     throw;
                 }
             });
-        }
-
-        private void SelectAppearanceTexture(SelectionGroupRadioVM<TextureSelectorItemVM> selector, string selectorName, string textureName)
-        {
-            var texture = selector.EntitiesCollection.FirstOrDefault(x => string.Equals(x.Texture.Value.name, textureName, StringComparison.OrdinalIgnoreCase));
-            if (texture == null)
-            {
-                _logger.LogError("Unable to find texture. Selector={Selector}, TextureName={TextureName}", selectorName, textureName);
-                return;
-            }
-
-            selector.SelectedEntity.Value = texture;
-            _logger.LogInformation("Leveling appearance texture has been selected. Selector={Selector}, TextureName={TextureName}", selectorName, textureName);
-        }
-
-        private void SelectAppearanceSlider(StringSequentialSelectorVM selector, int index)
-        {
-            selector.m_CurrentIndex.Value = index;
-        }
-
-        private CharGenAppearancePhaseDetailedPCView GetCharGenAppearancePhaseView()
-        {
-            return CharGenView?.SelectedDetailView as CharGenAppearancePhaseDetailedPCView;
         }
 
         public void SelectLevelingWarpaintColorAppearance(NetworkLevelingWarpaint levelingWarpaint)
@@ -3586,6 +3346,246 @@ namespace WOTRMultiplayer.GameInteraction
         {
             var hasAnyCommmands = Game.Instance.TurnBasedCombatController.CurrentTurn?.m_RunningCommands.Count > 0;
             return hasAnyCommmands;
+        }
+
+        private void ImmediatlyMarkSuggestedDialogAnswers(List<NetworkDialogAnswerSuggestion> suggestions)
+        {
+            _logger.LogInformation("Marking dialog answer suggestions. Count={Count}", suggestions.Count);
+            if (Game.Instance.DialogController?.Dialog == null)
+            {
+                _logger.LogWarning("DialogController.Dialog is null");
+                return;
+            }
+
+            var dialogContext = (Game.Instance.RootUiContext.m_UIView as InGamePCView)?.m_StaticPartPCView?.m_DialogContextPCView;
+            if (dialogContext == null)
+            {
+                _logger.LogWarning("DialogContextView is null");
+                return;
+            }
+
+            switch (Game.Instance.DialogController.Dialog.Type)
+            {
+                case DialogType.Interchapter:
+                    MarkInterchapterAnswer(dialogContext.m_InterchapterPCView, suggestions);
+                    break;
+                case DialogType.Common:
+                    MarkDialogAnswer(dialogContext.m_DialogPCView, suggestions);
+                    break;
+                case DialogType.Book:
+                    MarkBookAnswer(dialogContext.m_BookEventPCView, suggestions);
+                    break;
+                default:
+                    _logger.LogWarning("Marking suggested answers has not been implemented for this dialog type. DialogType={DialogType}", Game.Instance.DialogController.Dialog.Type);
+                    break;
+            }
+
+            if (suggestions.Count > 0)
+            {
+                PlaySound(UISoundType.GlobalMapRandomEncounter);
+            }
+        }
+
+        private void MarkInterchapterAnswer(InterchapterPCView interchapterView, List<NetworkDialogAnswerSuggestion> suggestions)
+        {
+            if (interchapterView == null)
+            {
+                return;
+            }
+
+            var answers = interchapterView.gameObject.transform.Find("ContentWrapper/Window/Content/Answers");
+            MarkAnswers(answers, suggestions);
+        }
+
+        private void MarkBookAnswer(BookEventPCView bookView, List<NetworkDialogAnswerSuggestion> suggestions)
+        {
+            if (bookView == null)
+            {
+                return;
+            }
+
+            var answers = bookView.gameObject.transform.Find("ContentWrapper/Window/Content/Answers");
+            MarkAnswers(answers, suggestions);
+        }
+
+        private void MarkDialogAnswer(DialogPCView dialogView, List<NetworkDialogAnswerSuggestion> suggestions)
+        {
+            if (dialogView == null)
+            {
+                return;
+            }
+
+            var answers = dialogView.gameObject.transform.Find("Body/View/Scroll View/Viewport/Content/AnswersPanel");
+            MarkAnswers(answers, suggestions);
+        }
+
+        private void MarkAnswers(Transform answersContainer, List<NetworkDialogAnswerSuggestion> suggestions)
+        {
+            const string SuggestionIconName = "SuggestionIcon";
+
+            for (int answerIndex = 0; answerIndex < answersContainer.childCount; answerIndex++)
+            {
+                var answer = answersContainer.GetChild(answerIndex);
+                var answerView = answer.GetComponent<DialogAnswerPCView>();
+                var answerName = answerView.ViewModel.Answer.Value.name;
+                var suggestedAnswer = suggestions.FirstOrDefault(s => string.Equals(s.AnswerName, answerName));
+
+                answer.gameObject.CleanupAllChildren(x => x.name.StartsWith(SuggestionIconName));
+                if (suggestedAnswer == null)
+                {
+                    continue;
+                }
+
+                var portrait = _resourceProvider.GetUISprite("UI_Inventory_IconHeart");
+                var maxIcons = Math.Min(3, suggestedAnswer.Players.Count);
+                for (int i = maxIcons; i > 0; i--)
+                {
+                    var arrow = answer.Find("Arrow");
+                    var suggestionIconObject = UnityEngine.Object.Instantiate(arrow.gameObject, answer);
+                    suggestionIconObject.name = SuggestionIconName + i.ToString();
+                    suggestionIconObject.SetActive(true);
+
+                    var rect = suggestionIconObject.GetComponent<RectTransform>();
+                    var preferedSize = Math.Min(rect.sizeDelta.x, rect.sizeDelta.y);
+                    rect.sizeDelta = new UnityEngine.Vector2(preferedSize, preferedSize);
+
+                    var newPosition = new UnityEngine.Vector3(suggestionIconObject.transform.position.x + 4 - (5 * i), suggestionIconObject.transform.position.y, suggestionIconObject.transform.position.z);
+                    suggestionIconObject.transform.SetPositionAndRotation(newPosition, suggestionIconObject.transform.rotation);
+
+                    var image = suggestionIconObject.GetComponent<UnityEngine.UI.Image>();
+                    image.color = UnityEngine.Color.white;
+                    image.sprite = portrait;
+                }
+            }
+        }
+
+
+        private void SelectAppearanceTexture(SelectionGroupRadioVM<TextureSelectorItemVM> selector, string selectorName, string textureName)
+        {
+            var texture = selector.EntitiesCollection.FirstOrDefault(x => string.Equals(x.Texture.Value.name, textureName, StringComparison.OrdinalIgnoreCase));
+            if (texture == null)
+            {
+                _logger.LogError("Unable to find texture. Selector={Selector}, TextureName={TextureName}", selectorName, textureName);
+                return;
+            }
+
+            selector.SelectedEntity.Value = texture;
+            _logger.LogInformation("Leveling appearance texture has been selected. Selector={Selector}, TextureName={TextureName}", selectorName, textureName);
+        }
+
+        private void SelectAppearanceSlider(StringSequentialSelectorVM selector, int index)
+        {
+            selector.m_CurrentIndex.Value = index;
+        }
+
+        private CharGenAppearancePhaseDetailedPCView GetCharGenAppearancePhaseView()
+        {
+            return CharGenView?.SelectedDetailView as CharGenAppearancePhaseDetailedPCView;
+        }
+
+        private OvertipViewBase FindOvertipForObject(MapObjectEntityData mapObject)
+        {
+            foreach (var kv in OvertipsView.Instance.m_Views)
+            {
+                var view = kv.Value.FirstOrDefault(v => string.Equals(v.m_ObjectView?.Data.UniqueId, mapObject.UniqueId, StringComparison.OrdinalIgnoreCase));
+                if (view != null)
+                {
+                    return view;
+                }
+            }
+
+            return null;
+        }
+
+        private bool TryFindRequiredItemsInCollection(ItemsCollection collection, List<NetworkItem> items, out Dictionary<NetworkItem, List<ItemEntity>> matchedItems)
+        {
+            matchedItems = [];
+            foreach (var item in items)
+            {
+                var existingItems = collection.Items.Where(x => IsSameUnholdedItem(x, item)).ToList();
+                var existingItemsCount = existingItems.Sum(x => x.Count);
+                if (existingItemsCount < item.Count)
+                {
+                    matchedItems = null;
+                    return false;
+                }
+
+                matchedItems.Add(item, existingItems);
+            }
+
+
+            return true;
+        }
+
+        private ItemSlot GetItemSlot(string unitId, NetworkEquipmentSlotPosition position)
+        {
+            var unit = GetUnitEntity(unitId);
+
+            if (unit == null)
+            {
+                return null;
+            }
+
+            var slotType = _equipmentDefinitions.GetSlotType(position.Type);
+
+            var slotsOfSameType = unit.Body.EquipmentSlots
+                    .Where(s => s.GetType() == slotType)
+                    .ToList();
+
+            if (slotsOfSameType.Count < position.Index)
+            {
+                return null;
+            }
+
+            var itemSlot = slotsOfSameType[position.Index];
+            return itemSlot;
+        }
+
+        private TargetWrapper CreateTargetWrapper(NetworkTargetWrapper networkTargetWrapper)
+        {
+            if (networkTargetWrapper == null)
+            {
+                return null;
+            }
+
+            var point = new Vector3(networkTargetWrapper.Point.X, networkTargetWrapper.Point.Y, networkTargetWrapper.Point.Z);
+            var unit = GetUnitEntity(networkTargetWrapper.UnitUniqueId);
+            var wrapper = new TargetWrapper(point, networkTargetWrapper.Orientation, unit);
+            return wrapper;
+        }
+
+        private void MatchSameNumberOfItems(List<ItemEntity> possibleItemsBag, int countToMatch, Action<ItemEntity> onMatched)
+        {
+            var itemsLeft = countToMatch;
+            foreach (var item in possibleItemsBag)
+            {
+                var difference = itemsLeft - item.Count;
+                if (difference == 0)
+                {
+                    onMatched(item);
+                    break;
+                }
+                else if (difference < 0)
+                {
+                    var itemToDrop = item.Split(itemsLeft);
+                    onMatched(itemToDrop);
+                    break;
+                }
+                else
+                {
+                    // less than needed
+                    itemsLeft = difference;
+                    onMatched(item);
+                }
+            }
+        }
+
+        private void DropItem(ItemsCollection inventory, ItemEntity itemEntity, string ownerId)
+        {
+            var itemId = itemEntity.UniqueId;
+            using var context = _networkExecutionContext.Value = RemoteExecutionContext.CreateDropItem(itemId, ownerId);
+            inventory.DropItem(itemEntity);
+            _logger.LogInformation("Item has been dropped. EntityId={EntityId}, ItemId={ItemId}, Count={Count}", ownerId, itemId, itemEntity.Count);
         }
 
         private List<NetworkDLC> GetInstalledDLCs()
