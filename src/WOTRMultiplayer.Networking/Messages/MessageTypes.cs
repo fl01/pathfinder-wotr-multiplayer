@@ -148,6 +148,10 @@
             NotifyLevelingTattooColorAppearanceChanged,
             NotifyLevelingWarpaintAppearanceChanged,
             NotifyLevelingTattooAppearanceChanged,
+            NotifyLevelingRespecCompleted,
+            NotifyLevelingRespecWindowShown,
+            NotifyLevelingRespecLevelUp,
+            NotifyLevelingRespecMythicLevelUp,
         }
 
         public enum Request

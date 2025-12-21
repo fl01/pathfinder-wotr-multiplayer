@@ -604,5 +604,26 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
             return null;
         }
+
+        public void UpdateLevelingRespecUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
+        {
+        }
+
+        public void CompleteLevelingRespec()
+        {
+        }
+
+        public string GetCurrentRespecWindowUnitId()
+        {
+            return null;
+        }
+
+        public void InitiateLevelingRespecLevelUp()
+        {
+        }
+
+        public void InitiateLevelingRespecMythicLevelUp()
+        {
+        }
     }
 }

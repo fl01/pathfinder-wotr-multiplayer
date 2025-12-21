@@ -143,6 +143,7 @@ namespace WOTRMultiplayer.GameInteraction
         private VendorVM VendorViewVM => InGamePCView?.m_StaticPartPCView?.m_VendorPCView?.ViewModel;
         private SpellbookMemorizingPanelVM SpellbookMemorizingVM => (InGamePCView?.m_StaticPartPCView?.m_ServiceWindowsPCView ?? GlobalMapPCView.m_ServiceWindowsPCView)?.m_SpellbookPCView?.m_MemorizingPanelView?.ViewModel;
         private CharGenPCView CharGenView => (InGamePCView?.m_StaticPartPCView?.m_CharGenContextPCView ?? GlobalMapPCView?.m_CharGenContextPCView)?.m_CharGenPCView;
+        private RespecWindowPCView RespecView => (InGamePCView?.m_StaticPartPCView?.m_CharGenContextPCView ?? GlobalMapPCView?.m_CharGenContextPCView)?.m_RespecWindowPCView;
         private InventoryVM InventoryVM => (Game.Instance.RootUiContext?.InGameVM?.StaticPartVM?.ServiceWindowsVM ?? Game.Instance.RootUiContext?.GlobalMapVM?.ServiceWindowsVM)?.InventoryVM?.Value;
 
         public GameInteractionService(
@@ -3135,6 +3136,79 @@ namespace WOTRMultiplayer.GameInteraction
                 UpdateButtonTextCounter(LootPCView.m_ButtonText, readyPlayersCount, totalPlayersCount);
 
                 _logger.LogInformation("ZoneLoot UI has been updated. IsInteractable={IsInteractable}, ReadyPlayers={ReadyPlayers}, TotalPlayers={TotalPlayers}", isInteractable, readyPlayersCount, totalPlayersCount);
+            });
+        }
+
+        public void UpdateLevelingRespecUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                if (RespecView?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to update closed respec window");
+                    return;
+                }
+
+                RespecView.m_MaxLevelupButton.Interactable = false;
+                RespecView.m_MaxMythicUpButton.Interactable = false;
+
+                RespecView.m_LevelupButton.Interactable = RespecView.ViewModel.CanUpCharacterLevel.Value && isInteractable;
+                RespecView.m_MythicUpButton.Interactable = RespecView.ViewModel.CanUpMythicLevel.Value && isInteractable;
+                RespecView.m_CompleteButton.Interactable = RespecView.ViewModel.IsFinished.Value && isInteractable;
+
+                UpdateButtonTextCounter(RespecView.m_CompleteButtonTitle, readyPlayersCount, totalPlayersCount);
+
+                _logger.LogInformation("Respec window UI has been updated. IsInteractable={IsInteractable}, ReadyPlayers={ReadyPlayers}, TotalPlayers={TotalPlayers}", isInteractable, readyPlayersCount, totalPlayersCount);
+            });
+        }
+
+        public string GetCurrentRespecWindowUnitId()
+        {
+            return RespecView?.ViewModel?.CurrentUnit.Value.UniqueId;
+        }
+
+        public void CompleteLevelingRespec()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                if (RespecView?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to complete closed respec window");
+                    return;
+                }
+
+                RespecView.ViewModel.Complete();
+                _logger.LogInformation("Respec window UI has been completed");
+            });
+        }
+
+        public void InitiateLevelingRespecLevelUp()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                if (RespecView?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to levelup due to missing respec window");
+                    return;
+                }
+
+                RespecView.ViewModel.InitiateNextLevelup();
+                _logger.LogInformation("Respec window levelup has been initiated");
+            });
+        }
+
+        public void InitiateLevelingRespecMythicLevelUp()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                if (RespecView?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to mythic levelup due to missing respec window");
+                    return;
+                }
+
+                RespecView.ViewModel.InitiateNextMythic();
+                _logger.LogInformation("Respec window mythic levelup has been initiated");
             });
         }
 

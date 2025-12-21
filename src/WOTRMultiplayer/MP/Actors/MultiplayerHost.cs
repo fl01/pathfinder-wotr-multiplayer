@@ -1494,6 +1494,8 @@ namespace WOTRMultiplayer.MP.Actors
                 RemovePlayerFromTracker(Game.PlayersInZoneLoot, removedPlayer.Id);
                 UpdateZoneLootUIState();
 
+                UpdateRespecWindowStateOnPlayerLeave(removedPlayer.Id);
+
                 TryEndForcedPause();
             }
         }

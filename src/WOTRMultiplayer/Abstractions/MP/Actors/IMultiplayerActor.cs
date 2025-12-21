@@ -257,5 +257,13 @@ namespace WOTRMultiplayer.Abstractions.MP.Actors
         void OnLevelingPrimaryOutfitColorAppearanceChanged(string textureName);
 
         void OnLevelingSecondaryOutfitColorAppearanceChanged(string textureName);
+
+        void OnLevelingRespecCompleted();
+
+        void OnLevelingRespecWindowShown(string unitId);
+
+        void OnLevelingRespecLevelUp();
+
+        void OnLevelingRespecMythicLevelUp();
     }
 }

@@ -41,9 +41,8 @@ namespace WOTRMultiplayer.MP.Actors
         public Action<NetworkGameConnectivity> OnConnected { get; set; }
 
         public Action<List<NetworkCharacter>> OnGameCharactersChanged { get; set; }
-        public Action<int, int> OnCharacterOwnerChanged { get; set; }
 
-        public Action OnDisconnected { get; set; }
+        public Action<int, int> OnCharacterOwnerChanged { get; set; }
 
         public bool IsActive => _networkClient.IsActive;
 
@@ -995,19 +994,21 @@ namespace WOTRMultiplayer.MP.Actors
             OnGameCharactersChanged?.Invoke(Game.Characters);
         }
 
-        private void OnNotifyLobbyPlayersChanged(long playerId, NotifyLobbyPlayersChanged changed)
+        private void OnNotifyLobbyPlayersChanged(long playerId, NotifyLobbyPlayersChanged playersChanged)
         {
-            Logger.LogInformation("Received {MessageType}. PlayersCount={PlayersCount}", nameof(NotifyLobbyPlayersChanged), changed.Players.Count);
+            Logger.LogInformation("Received {MessageType}. PlayersCount={PlayersCount}", nameof(NotifyLobbyPlayersChanged), playersChanged.Players.Count);
 
             // a lot of lame lookups below, but shouldn't really matter for a small collection size
-            var disconnectedPlayers = Game.Players.Where(x => !changed.Players.Any(c => c.Id == x.Id)).ToList();
-            var newPlayers = changed.Players.Where(x => !Game.Players.Any(c => c.Id == x.Id)).ToList();
-            // no need to handle updates here as any ready/loading/etc statuses are synced separately
+            var disconnectedPlayers = Game.Players.Where(x => !playersChanged.Players.Any(c => c.Id == x.Id)).ToList();
+            var newPlayers = playersChanged.Players.Where(x => !Game.Players.Any(c => c.Id == x.Id)).ToList();
+            // no need to handle player info updates here as any ready/loading/etc statuses are synced separately
 
             foreach (var disconnectedPlayer in disconnectedPlayers)
             {
                 CleanupPlayer(disconnectedPlayer);
                 ShowPlayerDisconnectedMessage(disconnectedPlayer);
+
+                UpdateRespecWindowStateOnPlayerLeave(disconnectedPlayer.Id);
             }
 
             foreach (var newPlayer in newPlayers)
@@ -1052,6 +1053,8 @@ namespace WOTRMultiplayer.MP.Actors
                 case SocketError.ConnectionReset:
                 case SocketError.Success:
                     error = WellKnownKeys.MultiplayerClient.Errors.Disconnected.Key;
+                    Game.Players.Clear();
+                    UpdateRespecWindowStateOnPlayerLeave(GetLocalPlayerId());
                     break;
                 default:
                     socketError = socketException.SocketErrorCode;

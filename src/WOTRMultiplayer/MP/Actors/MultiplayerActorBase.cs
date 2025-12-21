@@ -711,7 +711,7 @@ namespace WOTRMultiplayer.MP.Actors
             {
                 NetworkLevelingType.Mercenary => HasControlOverUI,
                 // either this character has been controlled by someone previously (and that player is still in lobby) or fallback to default
-                _ => Game.CharactersOwnershipHistory.TryGetValue(Game.Leveling.UnitId, out var playerId) ? Game.Players.Any(p => p.Id == playerId) && playerId == GetLocalPlayerId() : HasControlOverUI,
+                _ => WasControlledByCurrentPlayer(Game.Leveling.UnitId),
             };
 
             return characterControl && Game.Leveling.PlayerReadiness.Count >= GetPlayersCount();
@@ -1162,6 +1162,57 @@ namespace WOTRMultiplayer.MP.Actors
             Send(message);
         }
 
+        public void OnLevelingRespecCompleted()
+        {
+            ResetPlayersTracker(Game.PlayersInRespecWindow);
+            var message = new NotifyLevelingRespecCompleted();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyLevelingRespecCompleted));
+            Send(message);
+        }
+
+        public void OnLevelingRespecWindowShown(string unitId)
+        {
+            var localPlayer = GetLocalPlayerId();
+            AddPlayerToTracker(Game.PlayersInRespecWindow, localPlayer);
+
+            UpdateLevelingRespecUIState(unitId);
+
+            var message = new NotifyLevelingRespecWindowShown
+            {
+                PlayerId = localPlayer,
+                UnitId = unitId
+            };
+
+            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, UnitId={UnitId}", nameof(NotifyLevelingRespecWindowShown), message.PlayerId, message.UnitId);
+            Send(message);
+        }
+
+        public void OnLevelingRespecLevelUp()
+        {
+            var localPlayer = GetLocalPlayerId();
+            RemovePlayerFromTracker(Game.PlayersInRespecWindow, localPlayer);
+
+            var message = new NotifyLevelingRespecLevelUp
+            {
+                PlayerId = localPlayer
+            };
+            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyLevelingRespecLevelUp), message.PlayerId);
+            Send(message);
+        }
+
+        public void OnLevelingRespecMythicLevelUp()
+        {
+            var localPlayer = GetLocalPlayerId();
+            RemovePlayerFromTracker(Game.PlayersInRespecWindow, localPlayer);
+
+            var message = new NotifyLevelingRespecMythicLevelUp
+            {
+                PlayerId = localPlayer
+            };
+            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyLevelingRespecMythicLevelUp), message.PlayerId);
+            Send(message);
+        }
+
         public void OnLevelingFeatureSelected(NetworkLevelingFeature feature)
         {
             if (!CanMakeLevelingDecisions())
@@ -1604,6 +1655,17 @@ namespace WOTRMultiplayer.MP.Actors
             }
         }
 
+        protected void UpdateLevelingRespecUIState(string unitId)
+        {
+            lock (ActionLock)
+            {
+                var readyPlayers = Game.PlayersInRespecWindow.Count;
+                var totalPlayers = GetPlayersCount();
+                var canUse = WasControlledByCurrentPlayer(unitId) && readyPlayers >= totalPlayers;
+                GameInteraction.UpdateLevelingRespecUI(canUse, readyPlayers, totalPlayers);
+            }
+        }
+
         protected void ResetPlayersTracker(HashSet<long> tracker)
         {
             lock (ActionLock)
@@ -1729,6 +1791,14 @@ namespace WOTRMultiplayer.MP.Actors
 
                 characterOwnership.Owner = defaultOwner;
             }
+        }
+
+        protected void UpdateRespecWindowStateOnPlayerLeave(long playerId)
+        {
+            RemovePlayerFromTracker(Game.PlayersInRespecWindow, playerId);
+
+            var respecUnitId = GameInteraction.GetCurrentRespecWindowUnitId();
+            UpdateLevelingRespecUIState(respecUnitId);
         }
 
         protected HashSet<long> AddPlayerReadyStatus(PlayerTurnReadinessType playerReadinessType, long playerId, string unitId)
@@ -2120,6 +2190,11 @@ namespace WOTRMultiplayer.MP.Actors
                 .On<NotifyLevelingSpellRemoved>(OnNotifyLevelingSpellRemoved)
                 .On<NotifyLevelingCompleted>(OnNotifyLevelingCompleted)
                 .On<NotifyLevelingTerminated>(OnNotifyLevelingTerminated)
+                // respec selector & window
+                .On<NotifyLevelingRespecCompleted>(OnNotifyLevelingRespecCompleted)
+                .On<NotifyLevelingRespecWindowShown>(OnNotifyLevelingRespecWindowShown)
+                .On<NotifyLevelingRespecLevelUp>(OnNotifyLevelingRespecLevelUp)
+                .On<NotifyLevelingRespecMythicLevelUp>(OnNotifyLevelingRespecMythicLevelUp)
 
                 // spellbook management
                 .On<NotifySpellMemorized>(OnNotifySpellMemorized)
@@ -2188,6 +2263,49 @@ namespace WOTRMultiplayer.MP.Actors
                 // dialogs
                 .On<NotifyDialogPopupShown>(OnNotifyDialogPopupShown)
                 ;
+        }
+
+
+        private void OnNotifyLevelingRespecMythicLevelUp(long receivedFrom, NotifyLevelingRespecMythicLevelUp levelingRespecMythicLevelUp)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyLevelingRespecMythicLevelUp), receivedFrom, levelingRespecMythicLevelUp.PlayerId);
+
+            RemovePlayerFromTracker(Game.PlayersInRespecWindow, levelingRespecMythicLevelUp.PlayerId);
+            GameInteraction.InitiateLevelingRespecMythicLevelUp();
+
+            OnAfterNetworkMessageHandled(receivedFrom, levelingRespecMythicLevelUp);
+        }
+
+        private void OnNotifyLevelingRespecLevelUp(long receivedFrom, NotifyLevelingRespecLevelUp levelingRespecLevelUp)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyLevelingRespecLevelUp), receivedFrom, levelingRespecLevelUp.PlayerId);
+
+            RemovePlayerFromTracker(Game.PlayersInRespecWindow, levelingRespecLevelUp.PlayerId);
+            GameInteraction.InitiateLevelingRespecLevelUp();
+
+            OnAfterNetworkMessageHandled(receivedFrom, levelingRespecLevelUp);
+        }
+
+        private void OnNotifyLevelingRespecWindowShown(long receivedFrom, NotifyLevelingRespecWindowShown levelingRespecWindowShown)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, UnitId={UnitId}", nameof(NotifyLevelingRespecWindowShown), receivedFrom, levelingRespecWindowShown.PlayerId, levelingRespecWindowShown.UnitId);
+
+            AddPlayerToTracker(Game.PlayersInRespecWindow, levelingRespecWindowShown.PlayerId);
+
+            UpdateLevelingRespecUIState(levelingRespecWindowShown.UnitId);
+
+            OnAfterNetworkMessageHandled(receivedFrom, levelingRespecWindowShown);
+        }
+
+        private void OnNotifyLevelingRespecCompleted(long playerId, NotifyLevelingRespecCompleted levelingRespecCompleted)
+        {
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}", nameof(NotifyLevelingRespecCompleted), playerId);
+
+            ResetPlayersTracker(Game.PlayersInRespecWindow);
+
+            GameInteraction.CompleteLevelingRespec();
+
+            OnAfterNetworkMessageHandled(playerId, levelingRespecCompleted);
         }
 
         private void OnNotifyLevelingWarpaintColorAppearanceChanged(long playerId, NotifyLevelingWarpaintColorAppearanceChanged levelingWarpaintColorAppearanceChanged)
@@ -2967,6 +3085,17 @@ namespace WOTRMultiplayer.MP.Actors
                 unitId, Game.Combat.Turn.IsLocalPlayer, Game.Combat.Turn.IsAI, Game.Combat.Turn.IsActingInSurpriseRound, Game.Combat.Turn.IsInProgress);
 
             OnLocalPlayerTurnStart();
+        }
+
+        private bool WasControlledByCurrentPlayer(string unitId)
+        {
+            if (!Game.CharactersOwnershipHistory.TryGetValue(unitId, out var playerId) || GetPlayer(playerId) == null)
+            {
+                return HasControlOverUI;
+            }
+
+            var canControl = playerId == GetLocalPlayerId();
+            return canControl;
         }
     }
 }

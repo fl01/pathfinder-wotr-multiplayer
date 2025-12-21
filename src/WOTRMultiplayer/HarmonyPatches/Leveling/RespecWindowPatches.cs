@@ -1,33 +1,40 @@
 ﻿using HarmonyLib;
 using Kingmaker.UI.MVVM._PCView.CharGen;
+using Kingmaker.UI.MVVM._VM.CharGen;
+using Owlcat.Runtime.UI.Controls.Other;
+using UniRx;
 
 namespace WOTRMultiplayer.HarmonyPatches.Leveling
 {
     [HarmonyPatch]
     public class RespecWindowPatches
     {
-        [HarmonyPatch(typeof(RespecWindowPCView), nameof(RespecWindowPCView.SetupMythicUpButtonView))]
+        [HarmonyPatch(typeof(RespecWindowPCView), nameof(RespecWindowPCView.BindViewImplementation))]
         [HarmonyPostfix]
-        public static void RespecWindowPCView_SetupMythicUpButtonView_Postfix(RespecWindowPCView __instance)
+        public static void RespecWindowPCView_BindViewImplementation_Postfix(RespecWindowPCView __instance)
         {
             if (!Main.Multiplayer.IsActive)
             {
                 return;
             }
 
-            __instance.m_MaxMythicUpButton.Interactable = false;
+            __instance.AddDisposable(__instance.m_MythicUpButton.OnSingleLeftClickAsObservable().Subscribe(_ => Main.Multiplayer.OnLevelingRespecMythicLevelUp()));
+            __instance.AddDisposable(__instance.m_LevelupButton.OnSingleLeftClickAsObservable().Subscribe(_ => Main.Multiplayer.OnLevelingRespecLevelUp()));
+
+            __instance.AddDisposable(__instance.m_CompleteButton.OnSingleLeftClickAsObservable().Subscribe(_ => Main.Multiplayer.OnLevelingRespecCompleted()));
         }
 
-        [HarmonyPatch(typeof(RespecWindowPCView), nameof(RespecWindowPCView.SetupLevelupButtonView))]
+        [HarmonyPatch(typeof(RespecWindowVM), nameof(RespecWindowVM.UpdateProperties))]
         [HarmonyPostfix]
-        public static void RespecWindowPCView_SetupLevelupButtonView_Postfix(RespecWindowPCView __instance)
+        public static void RespecWindowVM_UpdateProperties_Postfix(RespecWindowVM __instance)
         {
             if (!Main.Multiplayer.IsActive)
             {
                 return;
             }
 
-            __instance.m_MaxLevelupButton.Interactable = false;
+            var unitId = __instance.CurrentUnit.Value.UniqueId;
+            Main.Multiplayer.OnLevelingRespecWindowShown(unitId);
         }
     }
 }

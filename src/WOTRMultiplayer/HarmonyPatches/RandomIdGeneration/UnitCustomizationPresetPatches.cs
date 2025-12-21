@@ -51,7 +51,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             var uniqueId = $"{blueprintUnit.name}:{nameof(UnitCustomizationPreset.SelectVariation)}";
             var variationIndex = Main.Multiplayer.ValueGenerator.Range(Random.SeedLifetime.Area, uniqueId, 0, variations.Count);
             var variation = variations[variationIndex];
-            Main.GetLogger<UnitCustomizationPresetPatches>().LogInformation("Unit variation has been selected. Id={Id}, Race={Race}, Gender={Gender}, PrefabId={PrefabId}", uniqueId,variation.Race, variation.Gender, variation.Prefab.AssetId);
+            Main.GetLogger<UnitCustomizationPresetPatches>().LogDebug("Unit variation has been selected. Id={Id}, Race={Race}, Gender={Gender}, PrefabId={PrefabId}", uniqueId, variation.Race, variation.Gender, variation.Prefab.AssetId);
 
             return variation;
         }

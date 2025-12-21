@@ -1209,6 +1209,348 @@ namespace WOTRMultiplayer.MP
             }
         }
 
+        public void OnLevelingBodyTypeAppearanceChanged(int index)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingBodyTypeAppearanceChanged(index);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing leveling body type appearance. Index={Index}", index);
+                throw;
+            }
+        }
+
+        public void OnLevelingFaceAppearanceChanged(int index)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingFaceAppearanceChanged(index);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing leveling face appearance. Index={Index}", index);
+                throw;
+            }
+        }
+
+        public void OnLevelingScarAppearanceChanged(int index)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingScarAppearanceChanged(index);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing leveling scar appearance. Index={Index}", index);
+                throw;
+            }
+        }
+
+        public void OnLevelingHairStyleAppearanceChanged(int index)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingHairStyleAppearanceChanged(index);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing leveling hair appearance. Index={Index}", index);
+                throw;
+            }
+        }
+
+        public void OnLevelingHornsAppearanceChanged(int index)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingHornsAppearanceChanged(index);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing leveling horns appearance. Index={Index}", index);
+                throw;
+            }
+        }
+
+        public void OnLevelingWarpaintAppearanceChanged(NetworkLevelingWarpaint levelingWarpaint)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingWarpaintAppearanceChanged(levelingWarpaint);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing leveling warpaint appearance. Index={Index}, PageNumber={PageNumber}", levelingWarpaint.Index, levelingWarpaint.PageNumber);
+                throw;
+            }
+        }
+
+        public void OnLevelingTattooAppearanceChanged(NetworkLevelingTattoo levelingTattoo)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingTattooAppearanceChanged(levelingTattoo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing leveling tattoo appearance. Index={Index}, PageNumber={PageNumber}", levelingTattoo.Index, levelingTattoo.PageNumber);
+                throw;
+            }
+        }
+
+        public void OnLevelingBodyColorAppearanceChanged(string textureName)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingBodyColorAppearanceChanged(textureName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing leveling body color appearance. TextureName={TextureName}", textureName);
+                throw;
+            }
+        }
+
+        public void OnLevelingEyesColorAppearanceChanged(string textureName)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingEyesColorAppearanceChanged(textureName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing leveling eyes color appearance. TextureName={TextureName}", textureName);
+                throw;
+            }
+        }
+
+        public void OnLevelingHairColorAppearanceChanged(string textureName)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingHairColorAppearanceChanged(textureName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing leveling hair color appearance. TextureName={TextureName}", textureName);
+                throw;
+            }
+        }
+
+        public void OnLevelingHornsColorAppearanceChanged(string textureName)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingHornsColorAppearanceChanged(textureName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing leveling horns color appearance. TextureName={TextureName}", textureName);
+                throw;
+            }
+        }
+
+        public void OnLevelingWarpaintColorAppearanceChanged(NetworkLevelingWarpaint levelingWarpaint)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingWarpaintColorAppearanceChanged(levelingWarpaint);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing leveling warpaint appearance. TextureName={TextureName}, PageNumber={PageNumber}", levelingWarpaint.TextureName, levelingWarpaint.PageNumber);
+                throw;
+            }
+        }
+
+        public void OnLevelingTattooColorAppearanceChanged(NetworkLevelingTattoo levelingTattoo)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingTattooColorAppearanceChanged(levelingTattoo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing leveling tattoo appearance. TextureName={TextureName}, PageNumber={PageNumber}", levelingTattoo.TextureName, levelingTattoo.PageNumber);
+                throw;
+            }
+        }
+
+        public void OnLevelingPrimaryOutfitColorAppearanceChanged(string textureName)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingPrimaryOutfitColorAppearanceChanged(textureName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing leveling primary outfit color appearance. TextureName={TextureName}", textureName);
+                throw;
+            }
+        }
+
+        public void OnLevelingSecondaryOutfitColorAppearanceChanged(string textureName)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingSecondaryOutfitColorAppearanceChanged(textureName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing leveling secondary outfit color appearance. TextureName={TextureName}", textureName);
+                throw;
+            }
+        }
+
+        public void OnLevelingRespecCompleted()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingRespecCompleted();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while completing leveling respec");
+                throw;
+            }
+        }
+
+        public void OnLevelingRespecWindowShown(string unitId)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingRespecWindowShown(unitId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while showing leveling respec");
+                throw;
+            }
+        }
+
+        public void OnLevelingRespecLevelUp()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingRespecLevelUp();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while adding level in leveling respec");
+                throw;
+            }
+        }
+
+        public void OnLevelingRespecMythicLevelUp()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnLevelingRespecMythicLevelUp();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while adding mythic level in leveling respec");
+                throw;
+            }
+        }
+
         public bool RequestLevelingUI(string unitId, NetworkLevelingType levelingType)
         {
             try
@@ -2260,276 +2602,6 @@ namespace WOTRMultiplayer.MP
         {
             _logger.LogInformation("OnLobbyCharacterOwnerChanged. CharacterIndex={CharacterIndex}, PlayerIndex={PlayerIndex}", characterIndex, playerIndex);
             _multiplayerActorAccessor.Host.ChangeCharacterOwner(characterIndex, playerIndex);
-        }
-
-        public void OnLevelingBodyTypeAppearanceChanged(int index)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Current.OnLevelingBodyTypeAppearanceChanged(index);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while changing leveling body type appearance. Index={Index}", index);
-                throw;
-            }
-        }
-
-        public void OnLevelingFaceAppearanceChanged(int index)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Current.OnLevelingFaceAppearanceChanged(index);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while changing leveling face appearance. Index={Index}", index);
-                throw;
-            }
-        }
-
-        public void OnLevelingScarAppearanceChanged(int index)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Current.OnLevelingScarAppearanceChanged(index);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while changing leveling scar appearance. Index={Index}", index);
-                throw;
-            }
-        }
-
-        public void OnLevelingHairStyleAppearanceChanged(int index)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Current.OnLevelingHairStyleAppearanceChanged(index);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while changing leveling hair appearance. Index={Index}", index);
-                throw;
-            }
-        }
-
-        public void OnLevelingHornsAppearanceChanged(int index)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Current.OnLevelingHornsAppearanceChanged(index);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while changing leveling horns appearance. Index={Index}", index);
-                throw;
-            }
-        }
-
-        public void OnLevelingWarpaintAppearanceChanged(NetworkLevelingWarpaint levelingWarpaint)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Current.OnLevelingWarpaintAppearanceChanged(levelingWarpaint);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while changing leveling warpaint appearance. Index={Index}, PageNumber={PageNumber}", levelingWarpaint.Index, levelingWarpaint.PageNumber);
-                throw;
-            }
-        }
-
-        public void OnLevelingTattooAppearanceChanged(NetworkLevelingTattoo levelingTattoo)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Current.OnLevelingTattooAppearanceChanged(levelingTattoo);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while changing leveling tattoo appearance. Index={Index}, PageNumber={PageNumber}", levelingTattoo.Index, levelingTattoo.PageNumber);
-                throw;
-            }
-        }
-
-        public void OnLevelingBodyColorAppearanceChanged(string textureName)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Current.OnLevelingBodyColorAppearanceChanged(textureName);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while changing leveling body color appearance. TextureName={TextureName}", textureName);
-                throw;
-            }
-        }
-
-        public void OnLevelingEyesColorAppearanceChanged(string textureName)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Current.OnLevelingEyesColorAppearanceChanged(textureName);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while changing leveling eyes color appearance. TextureName={TextureName}", textureName);
-                throw;
-            }
-        }
-
-        public void OnLevelingHairColorAppearanceChanged(string textureName)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Current.OnLevelingHairColorAppearanceChanged(textureName);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while changing leveling hair color appearance. TextureName={TextureName}", textureName);
-                throw;
-            }
-        }
-
-        public void OnLevelingHornsColorAppearanceChanged(string textureName)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Current.OnLevelingHornsColorAppearanceChanged(textureName);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while changing leveling horns color appearance. TextureName={TextureName}", textureName);
-                throw;
-            }
-        }
-
-        public void OnLevelingWarpaintColorAppearanceChanged(NetworkLevelingWarpaint levelingWarpaint)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Current.OnLevelingWarpaintColorAppearanceChanged(levelingWarpaint);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while changing leveling warpaint appearance. TextureName={TextureName}, PageNumber={PageNumber}", levelingWarpaint.TextureName, levelingWarpaint.PageNumber);
-                throw;
-            }
-        }
-
-        public void OnLevelingTattooColorAppearanceChanged(NetworkLevelingTattoo levelingTattoo)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Current.OnLevelingTattooColorAppearanceChanged(levelingTattoo);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while changing leveling tattoo appearance. TextureName={TextureName}, PageNumber={PageNumber}", levelingTattoo.TextureName, levelingTattoo.PageNumber);
-                throw;
-            }
-        }
-
-        public void OnLevelingPrimaryOutfitColorAppearanceChanged(string textureName)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Current.OnLevelingPrimaryOutfitColorAppearanceChanged(textureName);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while changing leveling primary outfit color appearance. TextureName={TextureName}", textureName);
-                throw;
-            }
-        }
-
-        public void OnLevelingSecondaryOutfitColorAppearanceChanged(string textureName)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Current.OnLevelingSecondaryOutfitColorAppearanceChanged(textureName);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while changing leveling secondary outfit color appearance. TextureName={TextureName}", textureName);
-                throw;
-            }
         }
     }
 }

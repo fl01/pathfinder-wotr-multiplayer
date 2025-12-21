@@ -188,6 +188,14 @@ namespace WOTRMultiplayer.Abstractions.MP
 
         void OnLevelingBirthDayChanged(NetworkLevelingSequenceDirection direction);
 
+        void OnLevelingRespecCompleted();
+
+        void OnLevelingRespecWindowShown(string unitId);
+
+        void OnLevelingRespecLevelUp();
+
+        void OnLevelingRespecMythicLevelUp();
+
         void OnMoveActionBarSlot(NetworkActionBarSlot sourceActionBarSlot, NetworkActionBarSlot targetActionBarSlot);
 
         void OnClearActionBarSlot(NetworkActionBarSlot actionBarSlot);

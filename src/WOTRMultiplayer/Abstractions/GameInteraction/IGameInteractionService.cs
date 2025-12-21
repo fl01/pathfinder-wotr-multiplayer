@@ -274,6 +274,8 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void UpdateZoneLootUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
 
+        void UpdateLevelingRespecUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
+
         void UpdateDialogPopupUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
 
         void CloseDialogPopup(NetworkDialogPopup networkDialogPopup);
@@ -301,5 +303,13 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void UseInventoryItem(NetworkUseInventoryItem useInventoryItem);
 
         string GetUnitCharacterName(string unitId);
+
+        void CompleteLevelingRespec();
+
+        string GetCurrentRespecWindowUnitId();
+
+        void InitiateLevelingRespecLevelUp();
+
+        void InitiateLevelingRespecMythicLevelUp();
     }
 }

@@ -68,7 +68,7 @@ namespace WOTRMultiplayer.Networking
         {
             var messageType = typeof(TMessage);
             _logger.LogDebug("Adding message handler. Type={Type}", messageType);
-            if (!_handlers.TryAdd(messageType, (playerId, message) => handler(playerId, (TMessage)message)))
+            if (!_handlers.TryAdd(messageType, (receivedFrom, message) => handler(receivedFrom, (TMessage)message)))
             {
                 _logger.LogError("Duplicate message handler detected. MessageType={MessageType}", messageType);
             }
