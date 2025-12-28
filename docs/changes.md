@@ -245,7 +245,13 @@ You can either ignore it (if the outcome is more or less the same for everyone) 
 ## Long term plans
 
 ### Ping system
-Highlighting a point/unit/map object so others can draw attention to it
+Highlighting a point/unit/map object for everyone in the multiplayer
 
 ### Rolls
-Roll syncing will get an update once the rest of multiplayer is stable enough. The plan is to move to 'predictable rolls' where both the host and client use the same seed to roll random values, which should reduce stutters by not blocking the main loop as much, as there is no need for real-time network communication for each single roll
+Current rolls synchronization implementation has an obvious flaw - freezing game while rolls are being retrieved. That's happening because network communication occurs at the moment when game tries to roll dice.
+
+The plan is to move to 'predictable rolls' where both the host and client use the same seed to roll random values. There are good timings when these seeds could be transferred without blocking the game (combat start / round start / area load).
+
+The downside is that incorrect usage of those seeds will break roll sequences for an entire round (i.e., until the next seed update). However, the current sync implementation has helped to isolate the dice rolling process, so it should be relatively easy to make an upgrade now.
+
+Anyway, this will be updated on a roll-type basis, i.e., reworking attack/damage rolls would almost eliminate stutters in combat, as you rarely roll anything else
