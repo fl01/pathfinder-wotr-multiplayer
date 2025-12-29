@@ -13,7 +13,7 @@ using Kingmaker.UI.MVVM._PCView.GlobalMap.Message;
 using Kingmaker.UI.MVVM._VM.GlobalMap.Message;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
-using WOTRMultiplayer.MP.Entities.GlobalMap;
+using WOTRMultiplayer.Entities.GlobalMap;
 
 namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
 {

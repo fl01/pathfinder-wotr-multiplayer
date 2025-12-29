@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.Abstractions;
 
 namespace WOTRMultiplayer.PubSub
 {

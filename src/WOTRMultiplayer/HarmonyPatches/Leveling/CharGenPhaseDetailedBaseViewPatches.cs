@@ -5,7 +5,7 @@ using Kingmaker.UI.MVVM._VM.CharGen.Phases;
 using Kingmaker.UI.MVVM._VM.CharGen.Phases.Skills;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.SelectionGroup;
-using WOTRMultiplayer.MP.Entities.Leveling;
+using WOTRMultiplayer.Entities.Leveling;
 
 namespace WOTRMultiplayer.HarmonyPatches.Leveling
 {

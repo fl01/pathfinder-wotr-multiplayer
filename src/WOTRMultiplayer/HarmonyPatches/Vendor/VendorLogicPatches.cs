@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using Kingmaker.Items;
-using WOTRMultiplayer.MP.Entities.Equipment;
-using WOTRMultiplayer.MP.Entities.Vendor;
+using WOTRMultiplayer.Entities.Equipment;
+using WOTRMultiplayer.Entities.Vendor;
 
 namespace WOTRMultiplayer.HarmonyPatches.Vendor
 {

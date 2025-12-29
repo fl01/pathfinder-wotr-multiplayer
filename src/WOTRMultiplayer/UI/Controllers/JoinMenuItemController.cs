@@ -7,13 +7,13 @@ using Owlcat.Runtime.UI.Controls.Button;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using WOTRMultiplayer.Abstractions.MP.Actors;
+using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Abstractions.Unity;
+using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Extensions;
-using WOTRMultiplayer.MP.Entities;
 using WOTRMultiplayer.UI.Menu;
 
 namespace WOTRMultiplayer.UI.Controllers

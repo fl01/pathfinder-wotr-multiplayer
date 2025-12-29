@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using Kingmaker.Assets.Controllers.GlobalMap;
-using WOTRMultiplayer.MP.Entities;
-using WOTRMultiplayer.MP.Entities.GlobalMap;
+using WOTRMultiplayer.Entities;
+using WOTRMultiplayer.Entities.GlobalMap;
 
 namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
 {

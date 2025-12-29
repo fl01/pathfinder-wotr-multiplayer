@@ -3,6 +3,7 @@ using Kingmaker.UI.MVVM._PCView.EscMenu;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
 using UnityEngine;
+using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.UI;
 
 namespace WOTRMultiplayer.HarmonyPatches.MenuPatches
@@ -21,7 +22,7 @@ namespace WOTRMultiplayer.HarmonyPatches.MenuPatches
                 var mainMenu = __instance.transform.Find($"Window/ButtonBlock/{UIFactory.MultiplayerMenuObjectName}")?.gameObject;
                 if (mainMenu == null && Main.Multiplayer.IsActive)
                 {
-                    Main.Multiplayer.InitializeEscMenuLobbyWindow(new MP.Entities.InitializeEscMenuLobbyWindowContext(__instance));
+                    Main.Multiplayer.InitializeEscMenuLobbyWindow(new InitializeEscMenuLobbyWindowContext(__instance));
                     SetPhotoModeButtonState(__instance, false);
                 }
                 else if (mainMenu != null && !Main.Multiplayer.IsActive)

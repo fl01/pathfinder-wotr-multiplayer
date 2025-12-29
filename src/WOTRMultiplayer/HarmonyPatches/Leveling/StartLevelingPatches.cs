@@ -10,7 +10,7 @@ using Kingmaker.UI.MVVM._VM.Party;
 using Kingmaker.UI.MVVM._VM.ServiceWindows.CharacterInfo.Sections.LevelClassScores.Experience;
 using Kingmaker.UnitLogic.Class.LevelUp;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.MP.Entities.Leveling;
+using WOTRMultiplayer.Entities.Leveling;
 
 namespace WOTRMultiplayer.HarmonyPatches.Leveling
 {
@@ -26,7 +26,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
                 return true;
             }
 
-            var canContinue = Main.Multiplayer.RequestLevelingUI(__instance.Unit.Value.Unit.UniqueId, MP.Entities.Leveling.NetworkLevelingType.Leveling);
+            var canContinue = Main.Multiplayer.RequestLevelingUI(__instance.Unit.Value.Unit.UniqueId, NetworkLevelingType.Leveling);
             return canContinue;
         }
 

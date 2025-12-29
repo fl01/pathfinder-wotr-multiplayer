@@ -2,7 +2,7 @@
 using Kingmaker.PubSubSystem;
 using Kingmaker.RuleSystem.Rules;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.Pubsub;
 
 namespace WOTRMultiplayer.PubSub

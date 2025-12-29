@@ -11,7 +11,7 @@ using Kingmaker.UI.MVVM._VM.CharGen.Phases.Common;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.SelectionGroup;
 using UniRx;
-using WOTRMultiplayer.MP.Entities.Leveling;
+using WOTRMultiplayer.Entities.Leveling;
 
 namespace WOTRMultiplayer.HarmonyPatches.Leveling
 {

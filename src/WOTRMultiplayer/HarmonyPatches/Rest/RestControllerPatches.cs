@@ -5,7 +5,7 @@ using HarmonyLib;
 using Kingmaker.BarkBanters;
 using Kingmaker.Controllers.Rest;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.MP.Entities.Rest;
+using WOTRMultiplayer.Entities.Rest;
 
 namespace WOTRMultiplayer.HarmonyPatches.Rest
 {

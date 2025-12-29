@@ -2,7 +2,7 @@
 using Kingmaker.UI.MVVM._PCView.CharGen.Phases.Spells;
 using Kingmaker.UI.MVVM._VM.CharGen.Phases.Spells;
 using UniRx;
-using WOTRMultiplayer.MP.Entities.Leveling;
+using WOTRMultiplayer.Entities.Leveling;
 
 namespace WOTRMultiplayer.HarmonyPatches.Leveling
 {

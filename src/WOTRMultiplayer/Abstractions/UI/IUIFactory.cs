@@ -6,7 +6,7 @@ using Owlcat.Runtime.UI.VirtualListSystem;
 using TMPro;
 using UnityEngine;
 using WOTRMultiplayer.Abstractions.UI.Windows;
-using WOTRMultiplayer.MP.Entities;
+using WOTRMultiplayer.Entities;
 
 namespace WOTRMultiplayer.Abstractions.UI
 {

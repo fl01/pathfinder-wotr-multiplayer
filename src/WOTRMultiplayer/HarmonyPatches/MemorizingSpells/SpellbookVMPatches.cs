@@ -5,9 +5,7 @@ using Kingmaker.UI.MVVM._VM.ServiceWindows.Spellbook;
 using Kingmaker.UI.MVVM._VM.ServiceWindows.Spellbook.KnownSpells;
 using Kingmaker.UI.MVVM._VM.ServiceWindows.Spellbook.MemorizingPanel;
 using Kingmaker.UnitLogic;
-using WOTRMultiplayer.Localization;
-using WOTRMultiplayer.MP.Entities.Spells;
-using WOTRMultiplayer.UI;
+using WOTRMultiplayer.Entities.Spells;
 
 namespace WOTRMultiplayer.HarmonyPatches.MemorizingSpells
 {

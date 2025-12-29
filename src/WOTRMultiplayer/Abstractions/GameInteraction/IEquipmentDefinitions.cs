@@ -1,5 +1,5 @@
 ﻿using System;
-using WOTRMultiplayer.MP.Entities.Equipment;
+using WOTRMultiplayer.Entities.Equipment;
 
 namespace WOTRMultiplayer.Abstractions.GameInteraction
 {

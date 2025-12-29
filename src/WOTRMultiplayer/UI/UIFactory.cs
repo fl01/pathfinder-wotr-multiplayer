@@ -27,16 +27,16 @@ using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Abstractions.UI.Windows;
+using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.HarmonyPatches.MenuPatches;
-using WOTRMultiplayer.MP.Entities;
-using WOTRMultiplayer.Settings;
-using WOTRMultiplayer.Settings.Validators;
+using WOTRMultiplayer.Services.Settings;
+using WOTRMultiplayer.Services.Settings.Validators;
+using WOTRMultiplayer.UI.Behaviours;
 using WOTRMultiplayer.UI.Controllers;
 using WOTRMultiplayer.UI.Menu;
 using WOTRMultiplayer.UI.Settings;
 using WOTRMultiplayer.UI.Settings.Entities;
-using WOTRMultiplayer.Unity.Behaviours;
 
 namespace WOTRMultiplayer.UI
 {

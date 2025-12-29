@@ -7,7 +7,7 @@ using Kingmaker.EntitySystem.Entities;
 using Kingmaker.RuleSystem;
 using Kingmaker.RuleSystem.Rules;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.MP.Entities.Inspect;
+using WOTRMultiplayer.Entities.Inspect;
 
 namespace WOTRMultiplayer.HarmonyPatches.Inspect
 {

@@ -7,8 +7,8 @@ using Kingmaker.TurnBasedMode;
 using Kingmaker.UnitLogic.Commands;
 using Kingmaker.UnitLogic.Commands.Base;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.MP.Entities;
-using WOTRMultiplayer.MP.Entities.Combat;
+using WOTRMultiplayer.Entities;
+using WOTRMultiplayer.Entities.Combat;
 using static Kingmaker.UnitLogic.Commands.Base.UnitCommand;
 
 namespace WOTRMultiplayer.HarmonyPatches.Combat

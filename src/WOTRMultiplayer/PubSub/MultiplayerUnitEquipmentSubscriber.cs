@@ -4,10 +4,10 @@ using Kingmaker.Items.Slots;
 using Kingmaker.PubSubSystem;
 using Kingmaker.UnitLogic;
 using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.GameInteraction;
-using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.Pubsub;
-using WOTRMultiplayer.MP.Entities.Equipment;
+using WOTRMultiplayer.Entities.Equipment;
 
 namespace WOTRMultiplayer.PubSub
 {

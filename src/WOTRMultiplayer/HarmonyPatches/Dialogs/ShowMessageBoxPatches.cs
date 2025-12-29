@@ -2,7 +2,7 @@
 using Kingmaker;
 using Kingmaker.Designers.EventConditionActionSystem.Actions;
 using Kingmaker.ElementsSystem;
-using WOTRMultiplayer.MP.Entities.Dialogs;
+using WOTRMultiplayer.Entities.Dialogs;
 
 namespace WOTRMultiplayer.HarmonyPatches.Dialogs
 {

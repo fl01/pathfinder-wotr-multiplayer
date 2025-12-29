@@ -2,7 +2,7 @@
 using Kingmaker.UI.MVVM._CommonView.CharGen.Phases.AbilityScores;
 using Kingmaker.UI.MVVM._CommonView.CharGen.Phases.Skills;
 using Kingmaker.UI.MVVM._VM.CharGen.Phases.AbilityScores;
-using WOTRMultiplayer.MP.Entities.Leveling;
+using WOTRMultiplayer.Entities.Leveling;
 
 namespace WOTRMultiplayer.HarmonyPatches.Leveling
 {

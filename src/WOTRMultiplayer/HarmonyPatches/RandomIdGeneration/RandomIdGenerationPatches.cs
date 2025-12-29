@@ -21,7 +21,7 @@ using Kingmaker.View;
 using Kingmaker.View.MapObjects;
 using Kingmaker.Visual.Sound;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.Random;
+using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
 {

@@ -3,8 +3,8 @@ using System.Linq;
 using Kingmaker.Localization;
 using Kingmaker.UI.MVVM._VM.Tooltip.Bricks;
 using Owlcat.Runtime.UI.Tooltips;
-using WOTRMultiplayer.MP.Entities;
-using WOTRMultiplayer.MP.Entities.Content;
+using WOTRMultiplayer.Entities;
+using WOTRMultiplayer.Entities.Content;
 
 namespace WOTRMultiplayer.UI.Tooltips
 {

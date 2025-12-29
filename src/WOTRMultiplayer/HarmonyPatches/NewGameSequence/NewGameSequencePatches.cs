@@ -14,7 +14,7 @@ using Kingmaker.UI.MVVM._VM.Settings.Entities;
 using Kingmaker.UI.SettingsUI;
 using Microsoft.Extensions.Logging;
 using UniRx;
-using WOTRMultiplayer.MP.Entities.NewGame;
+using WOTRMultiplayer.Entities.NewGame;
 
 namespace WOTRMultiplayer.HarmonyPatches.NewGameSequence
 {

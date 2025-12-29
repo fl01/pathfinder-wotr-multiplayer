@@ -7,7 +7,8 @@ using Kingmaker.EntitySystem.Entities;
 using Kingmaker.Pathfinding;
 using Microsoft.Extensions.Logging;
 using UnityEngine;
-using WOTRMultiplayer.MP.Entities.Combat;
+using WOTRMultiplayer.Entities;
+using WOTRMultiplayer.Entities.Combat;
 
 namespace WOTRMultiplayer.HarmonyPatches.Combat
 {
@@ -30,7 +31,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 ActionBlueprintId = bestActionResult?.Blueprint.AssetGuid.ToString(),
                 ActionType = bestActionResult?.GetType().Name,
                 IsAutoUseAbility = isAutoUseAbility,
-                BestPath = [.. context.BestPath.vectorPath.Select(v => new MP.Entities.NetworkVector3(v.x, v.y, v.z))],
+                BestPath = [.. context.BestPath.vectorPath.Select(v => new NetworkVector3(v.x, v.y, v.z))],
                 BestEnableFiveFootStep = context.BestEnableFiveFootStep
             };
 

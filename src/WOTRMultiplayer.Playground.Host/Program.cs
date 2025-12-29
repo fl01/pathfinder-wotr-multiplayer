@@ -6,14 +6,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.Random;
-using WOTRMultiplayer.MP.Actors;
-using WOTRMultiplayer.MP.Entities;
-using WOTRMultiplayer.MP.Entities.Dialogs;
-using WOTRMultiplayer.MP.Entities.Movement;
-using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
+using WOTRMultiplayer.Config.DI;
+using WOTRMultiplayer.Entities;
+using WOTRMultiplayer.Entities.Dialogs;
+using WOTRMultiplayer.Entities.Movement;
+using WOTRMultiplayer.Entities.Rolls.Claiming.Values;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Playground.Core.Dummies;
-using WOTRMultiplayer.Settings;
+using WOTRMultiplayer.Services;
+using WOTRMultiplayer.Services.Settings;
 
 namespace WOTRMultiplayer.Playground.Host
 {
@@ -27,7 +28,7 @@ namespace WOTRMultiplayer.Playground.Host
             Console.WriteLine("Press enter to host");
             Console.ReadLine();
 
-            var serviceProvider = DI.DIFactory.Create(new UnityModManagerSettings { UseDebugConsole = false });
+            var serviceProvider = DIFactory.Create(new UnityModManagerSettings { UseDebugConsole = false });
             var gameInteractionService = new DummyGameInteractionService();
             var host = new MultiplayerHost(
                 serviceProvider.GetService<ILogger<MultiplayerHost>>(),

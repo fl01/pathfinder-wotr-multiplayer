@@ -8,14 +8,14 @@ using Microsoft.Extensions.Logging;
 using Serilog.Events;
 using UnityEngine;
 using UnityModManagerNet;
+using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.Localization;
-using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Abstractions.UI;
-using WOTRMultiplayer.DI;
+using WOTRMultiplayer.Config.DI;
 using WOTRMultiplayer.Localization;
 using WOTRMultiplayer.PubSub;
-using WOTRMultiplayer.Settings;
+using WOTRMultiplayer.Services.Settings;
 
 namespace WOTRMultiplayer
 {

@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using WOTRMultiplayer.Networking.Abstractions;
-using WOTRMultiplayer.Networking.Endpoint;
 
 namespace WOTRMultiplayer.Networking.Extensions
 {

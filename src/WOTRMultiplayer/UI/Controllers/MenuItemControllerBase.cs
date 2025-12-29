@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
 using TMPro;
 using UnityEngine;
-using WOTRMultiplayer.Abstractions.MP.Actors;
+using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;

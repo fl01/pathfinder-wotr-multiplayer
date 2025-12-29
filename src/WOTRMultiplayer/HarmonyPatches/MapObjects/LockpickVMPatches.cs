@@ -2,8 +2,8 @@
 using HarmonyLib;
 using Kingmaker;
 using Kingmaker.UI.MVVM._VM.Lockpick;
-using WOTRMultiplayer.MP.Entities;
-using WOTRMultiplayer.MP.Entities.MapObjects;
+using WOTRMultiplayer.Entities;
+using WOTRMultiplayer.Entities.MapObjects;
 
 namespace WOTRMultiplayer.HarmonyPatches.MapObjects
 {

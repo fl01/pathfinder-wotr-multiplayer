@@ -1,4 +1,4 @@
-﻿using WOTRMultiplayer.Random;
+﻿using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.Abstractions.Random
 {

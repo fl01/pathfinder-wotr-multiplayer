@@ -2,8 +2,9 @@
 using Kingmaker.UI.MVVM._VM.ActionBar;
 using Kingmaker.UI.UnitSettings;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.MP.Entities.ActionBar;
-using WOTRMultiplayer.MP.Entities.Equipment;
+using WOTRMultiplayer.Entities.ActionBar;
+using WOTRMultiplayer.Entities.Combat;
+using WOTRMultiplayer.Entities.Equipment;
 
 namespace WOTRMultiplayer.HarmonyPatches.ActionBar
 {
@@ -64,7 +65,7 @@ namespace WOTRMultiplayer.HarmonyPatches.ActionBar
             switch (actionBarSlotVM.MechanicActionBarSlot)
             {
                 case MechanicActionBarSlotActivableAbility activatableAbility:
-                    slot.ActivatableAbility = new MP.Entities.Combat.NetworkActivatableAbility
+                    slot.ActivatableAbility = new NetworkActivatableAbility
                     {
                         Id = activatableAbility.ActivatableAbility.UniqueId,
                         Name = activatableAbility.ActivatableAbility.NameForAcronym,
@@ -74,7 +75,7 @@ namespace WOTRMultiplayer.HarmonyPatches.ActionBar
                     slot.UnitId = slot.ActivatableAbility.CasterId;
                     break;
                 case MechanicActionBarSlotAbility ability:
-                    slot.Ability = new MP.Entities.Combat.NetworkAbility
+                    slot.Ability = new NetworkAbility
                     {
                         Id = ability.Ability.UniqueId,
                         Name = ability.Ability.NameForAcronym,
@@ -85,7 +86,7 @@ namespace WOTRMultiplayer.HarmonyPatches.ActionBar
                     slot.UnitId = slot.Ability.CasterId;
                     break;
                 case MechanicActionBarSlotSpell spell:
-                    slot.Ability = new MP.Entities.Combat.NetworkAbility
+                    slot.Ability = new NetworkAbility
                     {
                         Id = spell.Spell.UniqueId,
                         Name = spell.Spell.NameForAcronym,

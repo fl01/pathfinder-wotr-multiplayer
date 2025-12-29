@@ -6,7 +6,7 @@ using Kingmaker.UI.MVVM._PCView.CharGen.Phases;
 using Kingmaker.UI.MVVM._PCView.CharGen.Phases.AbilityScores;
 using Kingmaker.UI.MVVM._PCView.CharGen.Phases.Name;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.MP.Entities.Leveling;
+using WOTRMultiplayer.Entities.Leveling;
 
 namespace WOTRMultiplayer.HarmonyPatches.Leveling
 {

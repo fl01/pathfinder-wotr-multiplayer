@@ -1,6 +1,6 @@
 ﻿using HarmonyLib;
 using Kingmaker.UI.MVVM._PCView.CharGen.Phases.FeatureSelector;
-using WOTRMultiplayer.MP.Entities.Leveling;
+using WOTRMultiplayer.Entities.Leveling;
 
 namespace WOTRMultiplayer.HarmonyPatches.Leveling
 {

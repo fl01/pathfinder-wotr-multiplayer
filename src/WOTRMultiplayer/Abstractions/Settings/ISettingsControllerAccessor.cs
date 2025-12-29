@@ -1,5 +1,5 @@
 ﻿using System;
-using WOTRMultiplayer.Settings;
+using WOTRMultiplayer.Services.Settings;
 
 namespace WOTRMultiplayer.Abstractions.Settings
 {

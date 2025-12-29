@@ -17,9 +17,9 @@ using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.Utility;
 using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.MP.Entities;
-using WOTRMultiplayer.MP.Entities.Equipment;
-using WOTRMultiplayer.MP.Entities.Loot;
+using WOTRMultiplayer.Entities;
+using WOTRMultiplayer.Entities.Equipment;
+using WOTRMultiplayer.Entities.Loot;
 
 namespace WOTRMultiplayer.HarmonyPatches.Loot
 {

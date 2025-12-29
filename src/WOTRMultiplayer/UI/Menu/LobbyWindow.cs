@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using UnityEngine;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Windows;
-using WOTRMultiplayer.MP.Entities;
+using WOTRMultiplayer.Entities;
 
 namespace WOTRMultiplayer.UI.Menu
 {

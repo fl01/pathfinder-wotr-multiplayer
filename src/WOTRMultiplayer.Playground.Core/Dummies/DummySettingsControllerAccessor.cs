@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using WOTRMultiplayer.Abstractions.Settings;
-using WOTRMultiplayer.Settings;
+using WOTRMultiplayer.Services.Settings;
 
 namespace WOTRMultiplayer.Playground.Core.Dummies
 {

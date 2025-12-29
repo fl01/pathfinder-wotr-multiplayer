@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 using Kingmaker.GameModes;
-using WOTRMultiplayer.MP.Entities.Equipment;
+using WOTRMultiplayer.Entities.Equipment;
 
 namespace WOTRMultiplayer.Playground.Client
 {

@@ -2,8 +2,9 @@
 using Kingmaker.Controllers.MapObjects;
 using Kingmaker.EntitySystem;
 using Kingmaker.EntitySystem.Entities;
-using WOTRMultiplayer.MP.Entities.Inspect;
-using WOTRMultiplayer.MP.Entities.MapObjects;
+using WOTRMultiplayer.Entities;
+using WOTRMultiplayer.Entities.Inspect;
+using WOTRMultiplayer.Entities.MapObjects;
 
 namespace WOTRMultiplayer.HarmonyPatches.Inspect
 {
@@ -38,7 +39,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Inspect
                 MapObject = new NetworkMapObject
                 {
                     Id = data.UniqueId,
-                    Position = new MP.Entities.NetworkVector3(data.Position.x, data.Position.y, data.Position.z)
+                    Position = new NetworkVector3(data.Position.x, data.Position.y, data.Position.z)
                 }
             };
 

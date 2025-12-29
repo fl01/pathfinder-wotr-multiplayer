@@ -3,7 +3,7 @@ using Kingmaker.EntitySystem.Entities;
 using Kingmaker.PubSubSystem;
 using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.Abstractions.MP;
+using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.Pubsub;
 
 namespace WOTRMultiplayer.PubSub

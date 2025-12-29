@@ -3,6 +3,7 @@ using HarmonyLib;
 using Kingmaker.Controllers;
 using Kingmaker.View.Roaming;
 using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.Roaming
 {
@@ -27,7 +28,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Roaming
                 }
 
                 var uniqueId = $"{__instance.UniqueId}:{nameof(RoamingWaypointData.SelectNextPoint)}";
-                int nextWaypointIndex = Main.Multiplayer.ValueGenerator.Range(Random.SeedLifetime.Area, uniqueId, 0, maxRange);
+                int nextWaypointIndex = Main.Multiplayer.ValueGenerator.Range(SeedLifetime.Area, uniqueId, 0, maxRange);
                 NextWaypointEntry nextWaypointEntry = __instance.WaypointView.NextWaypoints[nextWaypointIndex];
                 __result = nextWaypointEntry?.Waypoint?.WaypointData;
 
@@ -53,7 +54,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Roaming
             try
             {
                 var uniqueId = $"{__instance.UniqueId}:{nameof(RoamingWaypointData.SelectIdleTime)}";
-                float idleTime = Main.Multiplayer.ValueGenerator.Range(Random.SeedLifetime.Area, uniqueId, __instance.WaypointView.MinIdleTime, __instance.WaypointView.MaxIdleTime);
+                float idleTime = Main.Multiplayer.ValueGenerator.Range(SeedLifetime.Area, uniqueId, __instance.WaypointView.MinIdleTime, __instance.WaypointView.MaxIdleTime);
                 __result = idleTime.Seconds();
 
                 Main.GetLogger<RoamingWaypointDataPatches>().LogDebug("Selected idle time. Id={Id}, RawTime={RawTime}, Time={Time}, MinTimeRange={MinTimeRange}, MaxTimeRange={MaxTimeRange}", uniqueId, idleTime, __result, __instance.WaypointView.MinIdleTime, __instance.WaypointView.MaxIdleTime);

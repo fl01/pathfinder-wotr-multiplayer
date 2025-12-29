@@ -10,8 +10,8 @@ using Kingmaker.View;
 using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
 using UnityEngine;
-using WOTRMultiplayer.MP.Entities;
-using WOTRMultiplayer.MP.Entities.Movement;
+using WOTRMultiplayer.Entities;
+using WOTRMultiplayer.Entities.Movement;
 
 namespace WOTRMultiplayer.HarmonyPatches.Clicks
 {

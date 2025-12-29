@@ -1,4 +1,4 @@
-﻿using WOTRMultiplayer.MP.Entities.Settings;
+﻿using WOTRMultiplayer.Entities.Settings;
 
 namespace WOTRMultiplayer.Abstractions.Settings
 {

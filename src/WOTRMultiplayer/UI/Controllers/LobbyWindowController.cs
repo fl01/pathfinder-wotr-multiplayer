@@ -13,11 +13,11 @@ using UnityEngine.UI;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.Unity;
+using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Extensions;
-using WOTRMultiplayer.MP.Entities;
+using WOTRMultiplayer.UI.Behaviours;
 using WOTRMultiplayer.UI.Menu;
 using WOTRMultiplayer.UI.Tooltips;
-using WOTRMultiplayer.Unity.Behaviours;
 
 namespace WOTRMultiplayer.UI.Controllers
 {

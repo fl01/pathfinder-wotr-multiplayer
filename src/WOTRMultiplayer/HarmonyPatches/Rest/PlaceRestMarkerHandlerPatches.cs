@@ -6,7 +6,7 @@ using Kingmaker.Controllers.Clicks.Handlers;
 using Kingmaker.Controllers.Rest;
 using Microsoft.Extensions.Logging;
 using UnityEngine;
-using WOTRMultiplayer.MP.Entities;
+using WOTRMultiplayer.Entities;
 
 namespace WOTRMultiplayer.HarmonyPatches.Rest
 {

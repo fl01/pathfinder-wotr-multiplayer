@@ -4,10 +4,10 @@ using Kingmaker.Controllers.Rest.State;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.PubSubSystem;
 using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.GameInteraction;
-using WOTRMultiplayer.Abstractions.MP;
 using WOTRMultiplayer.Abstractions.Pubsub;
-using WOTRMultiplayer.MP.Entities.Rest;
+using WOTRMultiplayer.Entities.Rest;
 
 namespace WOTRMultiplayer.PubSub
 {

@@ -7,14 +7,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.Random;
-using WOTRMultiplayer.Localization;
-using WOTRMultiplayer.MP.Actors;
-using WOTRMultiplayer.MP.Entities.Dialogs;
-using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
+using WOTRMultiplayer.Config.DI;
+using WOTRMultiplayer.Entities;
+using WOTRMultiplayer.Entities.Dialogs;
+using WOTRMultiplayer.Entities.Equipment;
+using WOTRMultiplayer.Entities.Leveling;
+using WOTRMultiplayer.Entities.Rolls.Claiming.Values;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Playground.Core;
 using WOTRMultiplayer.Playground.Core.Dummies;
-using WOTRMultiplayer.Settings;
+using WOTRMultiplayer.Services;
+using WOTRMultiplayer.Services.Localization;
+using WOTRMultiplayer.Services.Settings;
 
 namespace WOTRMultiplayer.Playground.Client
 {
@@ -25,7 +29,7 @@ namespace WOTRMultiplayer.Playground.Client
         {
             WellKnownSettings.Initialize();
 
-            var serviceProvider = DI.DIFactory.Create(new UnityModManagerSettings { UseDebugConsole = false });
+            var serviceProvider = DIFactory.Create(new UnityModManagerSettings { UseDebugConsole = false });
             var gameInteractionService = new DummyGameInteractionService();
             Console.WriteLine("Default save game dir=" + gameInteractionService.GetSaveGamePath());
             var client = new MultiplayerClient(
@@ -106,23 +110,23 @@ namespace WOTRMultiplayer.Playground.Client
                     client.OnBeforeEndTurn(turn.UnitId);
                     break;
                 case CommandVerbs.EquipmentSlotUpdateCommandVerb equipment:
-                    var slot = new MP.Entities.Equipment.NetworkEquipmentSlot
+                    var slot = new NetworkEquipmentSlot
                     {
-                        Item = new MP.Entities.Equipment.NetworkItem { UniqueId = equipment.ItemId },
+                        Item = new NetworkItem { UniqueId = equipment.ItemId },
                         OwnerId = equipment.UnitId,
-                        Position = new MP.Entities.Equipment.NetworkEquipmentSlotPosition
+                        Position = new NetworkEquipmentSlotPosition
                         {
                             Index = equipment.SlotIndex,
                             Type = equipment.SlotType
                         }
                     };
-                    var character = new MP.Entities.NetworkCharacter { Name = equipment.UnitId, Owner = client.Game.Players.FirstOrDefault(), UnitId = equipment.UnitId };
+                    var character = new NetworkCharacter { Name = equipment.UnitId, Owner = client.Game.Players.FirstOrDefault(), UnitId = equipment.UnitId };
                     client.Game.Characters.Add(character);
                     client.OnEquipmentSlotChanged(slot);
                     client.Game.Characters.Remove(character);
                     break;
                 case CommandVerbs.EquipmentActiveHandSlotUpdateCommandVerb handSlot:
-                    var set = new MP.Entities.Equipment.NetworkActiveHandEquipmentSet { Index = handSlot.SlotIndex, UnitId = handSlot.UnitId };
+                    var set = new NetworkActiveHandEquipmentSet { Index = handSlot.SlotIndex, UnitId = handSlot.UnitId };
                     client.Game.Characters.FirstOrDefault().UnitId = set.UnitId;
                     client.OnChangeActiveHandEquipmentSet(set);
                     break;
@@ -134,8 +138,8 @@ namespace WOTRMultiplayer.Playground.Client
                     localization.UpdateLocale("dummy1");
                     break;
                 case CommandVerbs.LevelingWitnessCommandVerb levelingWitness:
-                    var phase = new MP.Entities.Leveling.NetworkLevelingPhase { Index = levelingWitness.Index };
-                    client.Game.Leveling = new MP.Entities.Leveling.NetworkLeveling("whatever", MP.Entities.Leveling.NetworkLevelingType.Leveling);
+                    var phase = new NetworkLevelingPhase { Index = levelingWitness.Index };
+                    client.Game.Leveling = new NetworkLeveling("whatever", NetworkLevelingType.Leveling);
                     client.OnLevelingWitnessPhase(phase);
                     break;
                 default:

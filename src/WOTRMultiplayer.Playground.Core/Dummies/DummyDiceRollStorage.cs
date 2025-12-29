@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WOTRMultiplayer.Abstractions.MP;
-using WOTRMultiplayer.MP.Entities.Rolls.Claiming.Values;
+using WOTRMultiplayer.Abstractions;
+using WOTRMultiplayer.Entities.Rolls.Claiming.Values;
 
 namespace WOTRMultiplayer.Playground.Core.Dummies
 {

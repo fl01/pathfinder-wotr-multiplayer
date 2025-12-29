@@ -14,7 +14,7 @@ using Kingmaker.UI.MVVM._VM.CharGen.Phases.Voice;
 using Owlcat.Runtime.UI.SelectionGroup;
 using Owlcat.Runtime.UI.SelectionGroup.View;
 using UniRx;
-using WOTRMultiplayer.MP.Entities.Leveling;
+using WOTRMultiplayer.Entities.Leveling;
 
 namespace WOTRMultiplayer.HarmonyPatches.Leveling
 {

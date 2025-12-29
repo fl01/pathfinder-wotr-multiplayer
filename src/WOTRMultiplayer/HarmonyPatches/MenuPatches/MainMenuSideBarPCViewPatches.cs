@@ -2,7 +2,7 @@
 using HarmonyLib;
 using Kingmaker.UI.MVVM._PCView.MainMenu;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.MP.Entities;
+using WOTRMultiplayer.Entities;
 
 namespace WOTRMultiplayer.HarmonyPatches.MenuPatches
 {
