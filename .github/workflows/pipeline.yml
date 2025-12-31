@@ -148,6 +148,8 @@ jobs:
     timeout-minutes: 10
     env:
       CURRENT_VERSION: ${{needs.get-version.outputs.version}}
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
 
     steps:
