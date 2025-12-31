@@ -23,8 +23,11 @@ namespace WOTRMultiplayer.Networking
         private readonly ConcurrentDictionary<long, ConcurrentDictionary<string, TaskCompletionSource<object>>> _awaiters = new();
 
         public Action<long> OnClientConnected { get; set; }
+
         public Action<long> OnClientDisconnected { get; set; }
+
         public Action<EndPoint> OnServerStarted { get; set; }
+
         public bool IsActive => Server.AppServer?.Status == ServerStatus.Start;
 
         public NetworkServer(ILogger<NetworkServer> logger)

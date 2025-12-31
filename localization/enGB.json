@@ -1,5 +1,8 @@
 {
     "wotrmultiplayer": {
+        "sysMessages":{
+            "outOfSupportedAreas" : "Thanks for playing!\nUnfortunately, this area is not supported in multiplayer, so you may experience limited or broken functionality"
+        },
         "mainMenu": {
             "multiplayer": {
                 "title": "Multiplayer"

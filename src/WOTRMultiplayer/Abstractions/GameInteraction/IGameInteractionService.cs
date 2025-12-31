@@ -333,5 +333,9 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void StartNewGameSequenceLeveling();
 
         void TerminateNewGameSequence();
+
+        int GetCurrentChapter();
+
+        string GetCurrentAreaName();
     }
 }

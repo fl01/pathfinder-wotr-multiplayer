@@ -3759,6 +3759,18 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return hasAnyCommmands;
         }
 
+        public int GetCurrentChapter()
+        {
+            var chapter = Game.Instance.Player?.Chapter ?? int.MaxValue;
+            return chapter;
+        }
+
+        public string GetCurrentAreaName()
+        {
+            var areaName = Game.Instance.CurrentlyLoadedArea?.name;
+            return areaName;
+        }
+
         private void ImmediatlyMarkSuggestedDialogAnswers(List<NetworkDialogAnswerSuggestion> suggestions)
         {
             _logger.LogInformation("Marking dialog answer suggestions. Count={Count}", suggestions.Count);

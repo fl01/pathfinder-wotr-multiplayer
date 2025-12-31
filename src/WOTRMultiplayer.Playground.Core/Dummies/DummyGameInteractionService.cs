@@ -666,5 +666,15 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void TerminateNewGameSequence()
         {
         }
+
+        public int GetCurrentChapter()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetCurrentAreaName()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

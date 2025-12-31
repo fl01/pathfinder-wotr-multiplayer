@@ -6,6 +6,16 @@ using System.ComponentModel;
 [Description("wotrmultiplayer")]
 public static class WellKnownKeys
 {
+    [Description("sysMessages")]
+    public static class SysMessages
+    {
+        [Description("outOfSupportedAreas")]
+        public static class OutOfSupportedAreas
+        {
+            public static string Key { get; set; }
+        }
+    }
+
     [Description("mainMenu")]
     public static class MainMenu
     {

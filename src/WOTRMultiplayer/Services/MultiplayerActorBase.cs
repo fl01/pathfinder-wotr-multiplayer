@@ -386,7 +386,9 @@ namespace WOTRMultiplayer.Services
 
         public void OnAreaScenesLoaded()
         {
-            Logger.LogInformation("Area loaded");
+            var currentChapter = GameInteraction.GetCurrentChapter();
+            var currentArea = GameInteraction.GetCurrentAreaName();
+            Logger.LogInformation("Area scenes loaded. Chapter={Chapter}, AreaName={AreaName}", currentChapter, currentArea);
 
             Game.Stage = NetworkGameStage.Playing;
 
@@ -400,6 +402,11 @@ namespace WOTRMultiplayer.Services
                 var localPlayerId = GetLocalPlayerId();
                 Game.ForcedPause.ReadyPlayers.Add(localPlayerId);
                 GameInteraction.SetPause(true);
+            }
+
+            if (IsOutOfSupportedArea(currentChapter, currentArea))
+            {
+                GameInteraction.ShowModalMessage(WellKnownKeys.SysMessages.OutOfSupportedAreas.Key);
             }
         }
 
@@ -3268,6 +3275,18 @@ namespace WOTRMultiplayer.Services
 
             var canControl = playerId == GetLocalPlayerId();
             return canControl;
+        }
+
+        private bool IsOutOfSupportedArea(int currentChapter, string currentArea)
+        {
+            var isOutOfSupport = currentChapter switch
+            {
+                <= 1 => false,
+                2 => currentArea != "WarCamp",
+                _ => true,
+            };
+
+            return isOutOfSupport;
         }
     }
 }
