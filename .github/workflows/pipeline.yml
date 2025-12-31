@@ -9,7 +9,7 @@ on:
      - 'releases/**'
      - 'features/**'
 concurrency:
-  group: pipeline-${{ github.head_ref || github.ref }}
+  group: pipeline-${{ github.head_ref || github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 jobs:
