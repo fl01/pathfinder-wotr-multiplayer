@@ -340,8 +340,8 @@ namespace WOTRMultiplayer.Services
             var isFirstTime = UnregisterGameMode(type, playerId);
             if (isFirstTime)
             {
-                var message = new ClientGameModeTypeEnded { TypeId = type.Index };
-                Logger.LogInformation("Sending {MessageType}. TypeId={TypeId}", nameof(ClientGameModeTypeEnded), message.TypeId);
+                var message = new ClientGameModeTypeEnded { Name = type.Name };
+                Logger.LogInformation("Sending {MessageType}. Name={Name}", nameof(ClientGameModeTypeEnded), message.Name);
                 Send(message);
 
                 if (type == GameModeType.Rest && Game.ForcedPause != null)
@@ -398,8 +398,8 @@ namespace WOTRMultiplayer.Services
                 return true;
             }
 
-            var message = new ClientGameModeTypeStarted { TypeId = type.Index };
-            Logger.LogInformation("Sending {MessageType}. TypeId={typeId}", nameof(ClientGameModeTypeStarted), message.TypeId);
+            var message = new ClientGameModeTypeStarted { Name = type.Name };
+            Logger.LogInformation("Sending {MessageType}. Name={Name}", nameof(ClientGameModeTypeStarted), message.Name);
             Send(message);
             return true;
         }

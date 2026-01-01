@@ -7,6 +7,6 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     public class ClientGameModeTypeStarted
     {
         [ProtoMember(1)]
-        public int TypeId { get; set; }
+        public string Name { get; set; }
     }
 }

@@ -5,6 +5,8 @@ using HarmonyLib;
 using Kingmaker;
 using Kingmaker.EntitySystem.Persistence;
 using Kingmaker.GameModes;
+using Kingmaker.UI.MVVM._PCView.GlobalMap;
+using Kingmaker.UI.MVVM._PCView.InGame;
 using Microsoft.Extensions.Logging;
 
 namespace WOTRMultiplayer.HarmonyPatches.GameInstance
@@ -14,7 +16,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GameInstance
     {
         [HarmonyPatch(typeof(Game), nameof(Game.LoadGame))]
         [HarmonyPrefix]
-        public static void Game_LoadGame_Postfix(SaveInfo saveInfo)
+        public static void Game_LoadGame_Prefix(SaveInfo saveInfo)
         {
             if (!Main.Multiplayer.IsActive)
             {
@@ -40,6 +42,11 @@ namespace WOTRMultiplayer.HarmonyPatches.GameInstance
             }
 
             var allowedToRun = Main.Multiplayer.OnStartGameMode(type);
+            if (!allowedToRun && type == GameModeType.FullScreenUi)
+            {
+                FixFullScreenUiToggle(true);
+            }
+
             return allowedToRun;
         }
 
@@ -53,7 +60,37 @@ namespace WOTRMultiplayer.HarmonyPatches.GameInstance
             }
 
             var allowedToRun = Main.Multiplayer.OnStopGameMode(type);
+            if (type == GameModeType.FullScreenUi)
+            {
+                FixFullScreenUiToggle(false);
+            }
+
             return allowedToRun;
+        }
+
+        /// <summary>
+        /// EscMode and FullScreenUi are never actually started. We block them to prevent the game from 'fake' pausing (reducing timeScale to 0, stopping moving units, etc.) in multiplayer — the game should keep running when a player opens Esc menu, settings, inventory, etc.
+        /// This causes some ugly side effects though. For example, the inventory can overlap with the combat log. Even though the combat log is not visible, it still captures all pointer inputs, so you can't use some inventory slots or interact with Finnean.
+        /// An alternative to blocking these modes would be to stop controllers from being deactivated (starting FullScreenUi mode stops Default mode, which calls Deactivate on every controller),
+        /// but that looks like a rabbit hole with an unclear amount of work to fix every controller that needs to stay active.
+        /// For now, fixing the side effects feels like the safer and more reasonable approach
+        /// <param name="isStart"></param>
+        private static void FixFullScreenUiToggle(bool isStart)
+        {
+            var combatLogView = (Game.Instance.RootUiContext.m_UIView as InGamePCView)?.m_StaticPartPCView?.m_CombatLogPCView ?? (Game.Instance.RootUiContext.m_UIView as GlobalMapPCView)?.m_CombatLogPCView;
+            if (combatLogView == null)
+            {
+                Main.GetLogger<GamePatches>().LogError("Unable to fix full screen game mode sideeffects due to missing combat log view");
+                return;
+            }
+
+            if (isStart)
+            {
+                combatLogView.OnGameModeStart(GameModeType.FullScreenUi);
+                return;
+            }
+
+            combatLogView.OnGameModeStop(GameModeType.FullScreenUi);
         }
 
         [HarmonyPatch(typeof(Game), nameof(Game.PauseBind))]

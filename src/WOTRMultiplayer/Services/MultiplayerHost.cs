@@ -1165,10 +1165,10 @@ namespace WOTRMultiplayer.Services
             UpdateStartRestButtonAfterResults(playerId);
         }
 
-        private void OnClientGameModeTypeEnded(long playerId, ClientGameModeTypeEnded ended)
+        private void OnClientGameModeTypeEnded(long playerId, ClientGameModeTypeEnded gameModeTypeEnded)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, TypeId={TypeId}", nameof(ClientGameModeTypeEnded), playerId, ended.TypeId);
-            var gameMode = GameModeType.All.FirstOrDefault(g => g.Index == ended.TypeId);
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, Name={Name}", nameof(ClientGameModeTypeEnded), playerId, gameModeTypeEnded.Name);
+            var gameMode = GameModeType.All.FirstOrDefault(g => string.Equals(g.Name, gameModeTypeEnded.Name, StringComparison.OrdinalIgnoreCase));
             UnregisterGameMode(gameMode, playerId);
             if (gameMode == GameModeType.Rest)
             {
@@ -1185,10 +1185,10 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        private void OnClientGameModeTypeStarted(long playerId, ClientGameModeTypeStarted started)
+        private void OnClientGameModeTypeStarted(long playerId, ClientGameModeTypeStarted gameModeTypeStarted)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, TypeId={TypeId}", nameof(ClientGameModeTypeStarted), playerId, started.TypeId);
-            var gameMode = GameModeType.All.FirstOrDefault(g => g.Index == started.TypeId);
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, Name={Name}", nameof(ClientGameModeTypeStarted), playerId, gameModeTypeStarted.Name);
+            var gameMode = GameModeType.All.FirstOrDefault(g => string.Equals(g.Name, gameModeTypeStarted.Name, StringComparison.OrdinalIgnoreCase));
             RegisterGameMode(gameMode, playerId);
             if (gameMode == GameModeType.Rest)
             {
