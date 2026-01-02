@@ -57,6 +57,13 @@ namespace WOTRMultiplayer.Services.Settings
             public static WellKnownSettingKey<int> HostPortRangeEnd { get; } = new(ushort.MaxValue);
         }
 
+        [Description("miscellaneous")]
+        public static class Miscellaneous
+        {
+            [Description("hide-server-address")]
+            public static WellKnownSettingKey<bool> HideServerAddress { get; } = new(false);
+        }
+
         [Description("danger-zone")]
         public static class DangerZone
         {

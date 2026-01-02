@@ -70,7 +70,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Items
 
         [HarmonyPatch(typeof(ItemPolymorphPart), nameof(ItemPolymorphPart.CreateAndEquipPolymorphInSlot))]
         [HarmonyPrefix]
-        public static bool ItemPolymorphPart_CreateAndEquipPolymorphInSlot_Prefix(ItemPolymorphPart __instance, ItemEntity item, UnitEntityData equipTarget, ItemSlot itemSlot)
+        public static bool ItemPolymorphPart_CreateAndEquipPolymorphInSlot_Prefix(ItemEntity item, UnitEntityData equipTarget, ItemSlot itemSlot)
         {
             if (!Main.Multiplayer.IsActive || item == null || !item.CanBeEquippedBy(equipTarget))
             {

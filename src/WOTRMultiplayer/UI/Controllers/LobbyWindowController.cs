@@ -10,6 +10,7 @@ using TMPro;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
+using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.Unity;
@@ -50,6 +51,7 @@ namespace WOTRMultiplayer.UI.Controllers
         private readonly IUIFactory _uIFactory;
         private readonly IMainThreadAccessor _mainThreadAccessor;
         private readonly IResourceProvider _resourceProvider;
+        private readonly IMultiplayerSettingsService _multiplayerSettingsService;
         private readonly ConcurrentDictionary<LobbyWindowOwner, GameObject> _contents = new();
         private LobbyWindowOwner _activeOwner;
 
@@ -76,12 +78,14 @@ namespace WOTRMultiplayer.UI.Controllers
             ILogger<LobbyWindowController> logger,
             IMainThreadAccessor mainThreadAccessor,
             IResourceProvider resourceProvider,
+            IMultiplayerSettingsService multiplayerSettingsService,
             IUIFactory uIFactory)
         {
             _logger = logger;
             _uIFactory = uIFactory;
             _mainThreadAccessor = mainThreadAccessor;
             _resourceProvider = resourceProvider;
+            _multiplayerSettingsService = multiplayerSettingsService;
         }
 
         public void InitializeContent(LobbyWindowOwner owner, Transform parent)
@@ -147,7 +151,10 @@ namespace WOTRMultiplayer.UI.Controllers
             serverAddressBox.alignment = TextAlignmentOptions.Center;
             serverAddressBox.material = defaultMesh.Material;
             serverAddressBox.color = defaultMesh.Color;
-            serverAddressBox.SetText(connectivity.Endpoint.ToString());
+
+            var settings = _multiplayerSettingsService.GetSettings();
+            var endpointText = settings.HideServerAddress ? "***.***.***.***:****" : connectivity.Endpoint.ToString();
+            serverAddressBox.SetText(endpointText);
         }
 
         public void UpdateCharacterOwnerDropdown(int characterIndex, int playerIndex, bool silent = false)

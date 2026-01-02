@@ -105,6 +105,13 @@
                     "tooltip": "The first available port within the configured range is selected to host a multiplayer game. Keep this value equal to 'Host Port Start' to always host on a specific port only.\nValid values are 1024-65535"
                 }
             },
+            "miscellaneous": {
+                "title": "Miscellaneous",
+                "hideServerAddress":{
+                    "title": "Hide Server Address",
+                    "tooltip": "Toggles whether the server IP address is shown in the UI. When enabled, the IP address is hidden to protect privacy"
+                }
+            },
             "dangerZone": {
                 "title": "Danger zone (make sure you know what you are doing)",
                 "defaultForcedPauseTimeout": {

@@ -8,6 +8,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using WOTRMultiplayer.Abstractions;
+using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
@@ -35,6 +36,7 @@ namespace WOTRMultiplayer.UI.Controllers
         private readonly ILogger<JoinMenuItemController> _logger;
         private readonly IUIFactory _uIFactory;
         private readonly IMultiplayerClient _multiplayerClient;
+        private readonly IMultiplayerSettingsService _multiplayerSettingsService;
         private GameObject _menuContent;
 
         protected override GameObject MenuContent => _menuContent;
@@ -77,12 +79,14 @@ namespace WOTRMultiplayer.UI.Controllers
             ILobbyWindowController lobbyWindowController,
             IMultiplayerClient multiplayerClient,
             IResourceProvider resourceProvider,
+            IMultiplayerSettingsService multiplayerSettingsService,
             IUIFactory uIFactory)
             : base(logger, lobbyWindowController, mainThreadAccessor, resourceProvider, multiplayerClient)
         {
             _logger = logger;
             _uIFactory = uIFactory;
             _multiplayerClient = multiplayerClient;
+            _multiplayerSettingsService = multiplayerSettingsService;
         }
 
         public override void Activate()
@@ -93,6 +97,12 @@ namespace WOTRMultiplayer.UI.Controllers
             {
                 return;
             }
+
+            var settings = _multiplayerSettingsService.GetSettings();
+            var inputContentType = settings.HideServerAddress ? TMP_InputField.ContentType.Password : TMP_InputField.ContentType.Standard;
+            var inputField = ServerAddressObject.GetComponent<TMP_InputField>();
+            inputField.text = string.Empty;
+            inputField.contentType = inputContentType;
 
             ActivateJoinLobbyControls();
 
@@ -241,6 +251,7 @@ namespace WOTRMultiplayer.UI.Controllers
         protected override void DisposeInternal()
         {
             SetupHandlers(false);
+
             base.DisposeInternal();
         }
 

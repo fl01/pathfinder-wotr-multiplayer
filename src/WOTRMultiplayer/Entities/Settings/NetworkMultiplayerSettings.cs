@@ -23,5 +23,7 @@ namespace WOTRMultiplayer.Entities.Settings
         public bool SyncAICombatActions { get; set; }
 
         public TimeSpan RestEncounterSyncTimeout { get; set; }
+
+        public bool HideServerAddress { get; set; }
     }
 }

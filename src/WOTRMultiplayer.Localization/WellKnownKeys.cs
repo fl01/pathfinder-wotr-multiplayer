@@ -385,6 +385,32 @@ public static class WellKnownKeys
             }
         }
 
+        [Description("miscellaneous")]
+        public static class Miscellaneous
+        {
+            [Description("title")]
+            public static class Title
+            {
+                public static string Key { get; set; }
+            }
+
+            [Description("hideServerAddress")]
+            public static class HideServerAddress
+            {
+                [Description("title")]
+                public static class Title
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("tooltip")]
+                public static class Tooltip
+                {
+                    public static string Key { get; set; }
+                }
+            }
+        }
+
         [Description("dangerZone")]
         public static class DangerZone
         {

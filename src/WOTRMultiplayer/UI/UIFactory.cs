@@ -553,6 +553,9 @@ namespace WOTRMultiplayer.UI
                 new NetworkPortValidator(),
                 NetworkPortValidator.MaxCharacters);
 
+            yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Miscellaneous.Title.Key });
+            yield return CreateBoolSetting(WellKnownKeys.Settings.Miscellaneous.HideServerAddress.Title.Key, WellKnownKeys.Settings.Miscellaneous.HideServerAddress.Tooltip.Key, WellKnownSettings.Miscellaneous.HideServerAddress);
+
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.DangerZone.Title.Key });
             yield return CreateStringInputSetting(
                 WellKnownKeys.Settings.DangerZone.DefaultForcedPauseTimeout.Title.Key,
