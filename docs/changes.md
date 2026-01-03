@@ -65,7 +65,7 @@ Worth noting, such way to start game is very limited as of now:
 
 However, you can create a save game in single-player using those features and then host the game from that save.
 
-Clients store the most recently joined and started multiplayer save game at `%LOCALAPPDATA%low\Owlcat Games\Pathfinder Wrath Of The Righteous\Saved Multiplayer Games\latest save.zks`.
+Clients store the most recently joined and started multiplayer save game at `%LOCALAPPDATA%low\Owlcat Games\Pathfinder Wrath Of The Righteous\Saved Multiplayer Games\latest joined game.zks`.
 
 Load/Quickload is available for **everyone** during multiplayer game. It will force other players in the lobby to load the same saved game. However, it skips all synchronization checks, so the game will load even if someone failed to receive or store the save file.
 
