@@ -173,7 +173,7 @@ namespace WOTRMultiplayer.UnitTests.Services
             _multiplayer.InitializeEscMenuLobbyWindow(context);
 
             // Assert
-            A.CallTo(() => windowFake.AssignLobbyController(_lobbyWindowController)).MustHaveHappenedOnceExactly();
+            A.CallTo(() => windowFake.WithController(_lobbyWindowController)).MustHaveHappenedOnceExactly();
             Assert.That(windowFake.GetGameConnectivity, Is.Not.Null);
             Assert.That(windowFake.GetCharacters, Is.Not.Null);
             Assert.That(windowFake.GetPlayers, Is.Not.Null);

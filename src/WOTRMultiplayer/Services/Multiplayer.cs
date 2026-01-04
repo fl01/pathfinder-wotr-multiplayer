@@ -113,7 +113,7 @@ namespace WOTRMultiplayer.Services
             _lobbyWindow.GetCharacters = _multiplayerActorAccessor.Current.GetCharacters;
             _lobbyWindow.GetIsHost = () => _multiplayerActorAccessor.Host.IsActive;
 
-            _lobbyWindow.AssignLobbyController(_lobbyWindowController);
+            _lobbyWindow.WithController(_lobbyWindowController);
 
             _lobbyWindowController.OnCharacterOwnerChanged = OnLobbyCharacterOwnerChanged;
         }

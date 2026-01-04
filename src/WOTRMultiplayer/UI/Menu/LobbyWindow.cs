@@ -16,20 +16,25 @@ namespace WOTRMultiplayer.UI.Menu
         private ILobbyWindowController _lobbyWindowController;
 
         public Func<NetworkGameConnectivity> GetGameConnectivity { get; set; }
+
         public Func<List<NetworkPlayer>> GetPlayers { get; set; }
+
         public Func<List<NetworkCharacter>> GetCharacters { get; set; }
+
         public Func<bool> GetIsHost { get; set; }
 
         public GameObject MenuItem { get; set; }
 
-        public void SetLogger(ILogger<LobbyWindow> logger)
+        public LobbyWindow WithLogger(ILogger<LobbyWindow> logger)
         {
             _logger = logger;
+            return this;
         }
 
-        public void AssignLobbyController(ILobbyWindowController controller)
+        public ILobbyWindow WithController(ILobbyWindowController controller)
         {
             _lobbyWindowController = controller;
+            return this;
         }
 
         public override void OnHide()

@@ -201,9 +201,9 @@ namespace WOTRMultiplayer.UI
             multiplayerMenu.transform.SetSiblingIndex(context.MenuItemPrototype.transform.GetSiblingIndex());
             var multiplayerMenuView = multiplayerMenu.GetComponent<ContextMenuEntityPCView>();
             var element = CreateCopyOfCreditsScreen();
-            var multiplayerWindow = element.AddComponent<MultiplayerWindow>();
-            multiplayerWindow.SetLogger(_serviceProvider.GetService<ILogger<MultiplayerWindow>>());
-            multiplayerWindow.AssignMenuItemControllers(_serviceProvider.GetService<IHostMenuItemController>(), _serviceProvider.GetService<IJoinMenuItemController>());
+            var multiplayerWindow = element.AddComponent<MultiplayerWindow>()
+                .WithLogger(_serviceProvider.GetService<ILogger<MultiplayerWindow>>())
+                .WithControllers(_serviceProvider.GetService<IHostMenuItemController>(), _serviceProvider.GetService<IJoinMenuItemController>());
             multiplayerWindow.Initialize();
 
             CreateBackgroundArt(multiplayerWindow.transform.Find("BackgroundGroup"));
@@ -286,7 +286,7 @@ namespace WOTRMultiplayer.UI
 
             UnityEngine.Object.DestroyImmediate(background.transform.Find("Art").gameObject);
             var lobbyWindow = windowContainer.AddComponent<LobbyWindow>();
-            lobbyWindow.SetLogger(_serviceProvider.GetService<ILogger<LobbyWindow>>());
+            lobbyWindow.WithLogger(_serviceProvider.GetService<ILogger<LobbyWindow>>());
             lobbyWindow.MenuItem = multiplayerMenu;
             _serviceProvider.GetService<ILobbyWindowController>().InitializeContent(LobbyWindowOwner.EscMenu, windowContainer.transform);
             windowContainer.SetActive(false);

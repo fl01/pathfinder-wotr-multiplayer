@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.IO;
 
@@ -34,7 +35,7 @@ namespace WOTRMultiplayer.Services.IO
                 File.WriteAllBytes(path, content);
                 return true;
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Unable to write file. Path={Path}", path);
                 return false;

@@ -2010,6 +2010,7 @@ namespace WOTRMultiplayer.Services
             var savePath = Path.Combine(multiplayerPath, "latest joined game.zks");
             if (!FileSystem.WriteFile(savePath, content))
             {
+                GameInteraction.ShowModalMessage(WellKnownKeys.SysMessages.FailedToStoreSave.Key);
                 return null;
             }
 

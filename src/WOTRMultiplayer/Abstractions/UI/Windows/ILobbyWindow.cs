@@ -20,6 +20,6 @@ namespace WOTRMultiplayer.Abstractions.UI.Windows
 
         void Show(bool state);
 
-        void AssignLobbyController(ILobbyWindowController controller);
+        ILobbyWindow WithController(ILobbyWindowController controller);
     }
 }

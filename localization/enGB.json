@@ -1,7 +1,8 @@
 {
     "wotrmultiplayer": {
         "sysMessages":{
-            "outOfSupportedAreas" : "Thanks for playing!\nUnfortunately, this area is not supported in multiplayer, so you may experience limited or broken functionality"
+            "outOfSupportedAreas" : "Thanks for playing!\nUnfortunately, this area is not supported in multiplayer, so you may experience limited or broken functionality",
+            "failedToStoreSave": "Failed to write save game file to disk"
         },
         "mainMenu": {
             "multiplayer": {

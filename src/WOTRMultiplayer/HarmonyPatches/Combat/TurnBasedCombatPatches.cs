@@ -227,11 +227,6 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             }
         }
 
-        /// <summary>
-        /// skips updating predictions if you have no controll over character
-        /// </summary>
-        /// <param name="instructions"></param>
-        /// <returns></returns>
         [HarmonyPatch(typeof(TurnController), nameof(TurnController.HandlePortraitHover))]
         [HarmonyTranspiler]
         public static IEnumerable<CodeInstruction> TurnController_HandlePortraitHover_Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -248,11 +243,6 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             return matcher.Instructions();
         }
 
-        // <summary>
-        /// skips updating predictions if you have no controll over character
-        /// </summary>
-        /// <param name="instructions"></param>
-        /// <returns></returns>
         [HarmonyPatch(typeof(TurnController), nameof(TurnController.HandleOvertipHover))]
         [HarmonyTranspiler]
         public static IEnumerable<CodeInstruction> TurnController_HandleOvertipHover_Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -267,30 +257,6 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
             Main.GetLogger<TurnBasedCombatPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
-        }
-
-        private static bool SetCallUpdateActionPredictionsIfControlled(CodeMatcher matcher)
-        {
-            var replaceWith = AccessTools.Method(typeof(TurnBasedCombatPatches), nameof(TurnBasedCombatPatches.UpdateActionPredictionsIfControlled));
-            var lookFor = AccessTools.Method(typeof(TurnController), nameof(TurnController.UpdateActionPredictions));
-            var match = matcher.SearchForward(x => x.Calls(lookFor));
-
-            if (!match.IsValid)
-            {
-                return false;
-            }
-
-            match = match
-                .Advance(-1)
-                .RemoveInstructions(2);
-
-            var newInstructions = new List<CodeInstruction>
-            {
-                new(OpCodes.Call, replaceWith)
-            };
-            match.Insert(newInstructions);
-
-            return true;
         }
 
         public static void UpdateActionPredictionsIfControlled()
@@ -332,6 +298,30 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             }
 
             return false;
+        }
+
+        private static bool SetCallUpdateActionPredictionsIfControlled(CodeMatcher matcher)
+        {
+            var replaceWith = AccessTools.Method(typeof(TurnBasedCombatPatches), nameof(TurnBasedCombatPatches.UpdateActionPredictionsIfControlled));
+            var lookFor = AccessTools.Method(typeof(TurnController), nameof(TurnController.UpdateActionPredictions));
+            var match = matcher.SearchForward(x => x.Calls(lookFor));
+
+            if (!match.IsValid)
+            {
+                return false;
+            }
+
+            match = match
+                .Advance(-1)
+                .RemoveInstructions(2);
+
+            var newInstructions = new List<CodeInstruction>
+            {
+                new(OpCodes.Call, replaceWith)
+            };
+            match.Insert(newInstructions);
+
+            return true;
         }
     }
 }

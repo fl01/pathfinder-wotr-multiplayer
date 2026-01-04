@@ -37,15 +37,17 @@ namespace WOTRMultiplayer.UI.Menu
             SubWindowsList = [];
         }
 
-        public void SetLogger(ILogger<MultiplayerWindow> logger)
+        public MultiplayerWindow WithLogger(ILogger<MultiplayerWindow> logger)
         {
             _logger = logger;
+            return this;
         }
 
-        public void AssignMenuItemControllers(IHostMenuItemController hostMenuItemController, IJoinMenuItemController joinMenuItemController)
+        public MultiplayerWindow WithControllers(IHostMenuItemController hostMenuItemController, IJoinMenuItemController joinMenuItemController)
         {
             _hostMenuController = hostMenuItemController;
             _joinMenuController = joinMenuItemController;
+            return this;
         }
 
         public override void Initialize()
