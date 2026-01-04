@@ -65,6 +65,7 @@ namespace WOTRMultiplayer.Config.DI
             serviceCollection.AddSingleton<IHostMenuItemController, HostMenuItemController>();
             serviceCollection.AddSingleton<IJoinMenuItemController, JoinMenuItemController>();
 
+            serviceCollection.AddSingleton<IUIAccessor, UIAccessor>();
             serviceCollection.AddSingleton<IGameInteractionService, GameInteractionService>();
             serviceCollection.AddSingleton<IEquipmentDefinitions, EquipmentDefinitions>();
 

@@ -21,7 +21,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
                 return;
             }
 
-            var charGenView = CharGenViewAccessor.GetCharGenContextView()?.m_CharGenPCView;
+            var charGenView = Main.UIAccessor.CharGenView;
             if (charGenView == null)
             {
                 Main.GetLogger<CharGenPhaseDetailedBaseViewPatches>().LogError("Unable to find char gen pc view");
@@ -51,66 +51,6 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
             __instance.m_Button.Interactable = __instance.m_Button.Interactable && canInteract;
             __instance.m_ButtonBackground.Interactable = __instance.m_ButtonBackground.Interactable && canInteract;
             __instance.m_ButtonLabel.Interactable = __instance.m_ButtonLabel.Interactable && canInteract;
-        }
-
-        [HarmonyPatch(typeof(CharGenSkillAllocatorCommonView), nameof(CharGenSkillAllocatorCommonView.OnUpButton))]
-        [HarmonyPrefix]
-        public static bool CharGenSkillAllocatorCommonView_OnUpButton_Prefix()
-        {
-            if (!Main.Multiplayer.IsActive)
-            {
-                return true;
-            }
-
-            var canInteract = Main.Multiplayer.CanMakeLevelingDecisions();
-            return canInteract;
-        }
-
-        [HarmonyPatch(typeof(CharGenSkillAllocatorCommonView), nameof(CharGenSkillAllocatorCommonView.OnDownButton))]
-        [HarmonyPrefix]
-        public static bool CharGenSkillAllocatorCommonView_OnDownButton_Prefix()
-        {
-            if (!Main.Multiplayer.IsActive)
-            {
-                return true;
-            }
-
-            var canInteract = Main.Multiplayer.CanMakeLevelingDecisions();
-            return canInteract;
-        }
-
-        [HarmonyPatch(typeof(CharGenSkillAllocatorVM), nameof(CharGenSkillAllocatorVM.TryIncreaseValue))]
-        [HarmonyPrefix]
-        public static void CharGenSkillAllocatorVM_TryIncreaseValue_Prefix(CharGenSkillAllocatorVM __instance)
-        {
-            if (!Main.Multiplayer.IsActive || !__instance.CanAdd.Value)
-            {
-                return;
-            }
-
-            var skill = new NetworkLevelingSkillPoint
-            {
-                StatType = __instance.StatType
-            };
-
-            Main.Multiplayer.OnLevelingIncreaseSkillPoint(skill);
-        }
-
-        [HarmonyPatch(typeof(CharGenSkillAllocatorVM), nameof(CharGenSkillAllocatorVM.TryDecreaseValue))]
-        [HarmonyPrefix]
-        public static void CharGenSkillAllocatorVM_TryDecreaseValue_Prefix(CharGenSkillAllocatorVM __instance)
-        {
-            if (!Main.Multiplayer.IsActive || !__instance.CanRemove.Value)
-            {
-                return;
-            }
-
-            var skill = new NetworkLevelingSkillPoint
-            {
-                StatType = __instance.StatType
-            };
-
-            Main.Multiplayer.OnLevelingDecreaseSkillPoint(skill);
         }
     }
 }

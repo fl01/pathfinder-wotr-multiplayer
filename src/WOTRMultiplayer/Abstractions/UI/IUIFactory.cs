@@ -5,6 +5,7 @@ using Kingmaker.UI.MVVM._VM.Settings;
 using Owlcat.Runtime.UI.VirtualListSystem;
 using TMPro;
 using UnityEngine;
+using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Windows;
 using WOTRMultiplayer.Entities;
 
@@ -26,7 +27,7 @@ namespace WOTRMultiplayer.Abstractions.UI
 
         SaveLoadPCView CreateSaveLoadPCView(Transform parent);
 
-        ILobbyWindow InitializeEscMenuLobbyWindow(InitializeEscMenuLobbyWindowContext context, Action onShow);
+        ILobbyWindow InitializeEscMenuLobbyWindow(ILobbyWindowController lobbyWindowController, Action onShow);
 
         GameObject CreateBackgroundArt(Transform parent);
 

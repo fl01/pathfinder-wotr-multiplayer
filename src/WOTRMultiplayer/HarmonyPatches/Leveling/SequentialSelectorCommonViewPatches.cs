@@ -85,7 +85,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
 
         private static ICharGenPhaseDetailedView GetCurrentCharGenDetailView()
         {
-            var charGenView = CharGenViewAccessor.GetCharGenContextView()?.m_CharGenPCView;
+            var charGenView = Main.UIAccessor.CharGenView;
             if (charGenView == null)
             {
                 Main.GetLogger<SequentialSelectorCommonViewPatches>().LogError("Unable to find char gen pc view");

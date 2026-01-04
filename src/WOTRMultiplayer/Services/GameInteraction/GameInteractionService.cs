@@ -136,6 +136,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
     public class GameInteractionService : IGameInteractionService
     {
         private readonly ILogger<GameInteractionService> _logger;
+        private readonly IUIAccessor _uiAccessor;
         private readonly IMainThreadAccessor _mainThreadAccessor;
         private readonly IResourceProvider _resourceProvider;
         private readonly IEquipmentDefinitions _equipmentDefinitions;
@@ -145,29 +146,15 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         public GameModeType CurrentGameMode => Game.Instance.CurrentMode;
 
-        private InGamePCView InGamePCView => Game.Instance.RootUiContext.m_UIView as InGamePCView;
-        private GlobalMapPCView GlobalMapPCView => Game.Instance.RootUiContext.m_UIView as GlobalMapPCView;
-        private MainMenuPCView MainMenuPCView => Game.Instance.RootUiContext.m_UIView as MainMenuPCView;
-        private NewGamePCView NewGamePCView => MainMenuPCView?.NewGamePCView;
-        private LootPCView LootPCView => (Game.Instance.RootUiContext.m_UIView as InGamePCView)?.m_StaticPartPCView?.m_LootContextPCView?.m_LootPCView;
-        private LootCollectorPCView LootCollector => LootPCView?.m_Collector;
-        private PartyPCView PartyPCView => InGamePCView?.m_StaticPartPCView?.m_PartyPCView ?? GlobalMapPCView?.m_PartyPCView;
-        private SkipTimePCView SkipTimeView => InGamePCView?.m_StaticPartPCView?.m_SkipTimePCView ?? GlobalMapPCView?.m_SkipTimePCView;
-        private RestPCView RestView => InGamePCView?.m_StaticPartPCView?.m_RestContextPCView?.m_RestPCView ?? GlobalMapPCView?.m_RestPCView;
-        private GroupChangerPCView GroupChangerView => (InGamePCView?.m_StaticPartPCView?.m_GroupChangerContextPCView ?? GlobalMapPCView?.m_GroupChangerContextPCView)?.m_GroupChangerPCView;
-        private VendorVM VendorViewVM => InGamePCView?.m_StaticPartPCView?.m_VendorPCView?.ViewModel;
-        private SpellbookMemorizingPanelVM SpellbookMemorizingVM => (InGamePCView?.m_StaticPartPCView?.m_ServiceWindowsPCView ?? GlobalMapPCView.m_ServiceWindowsPCView)?.m_SpellbookPCView?.m_MemorizingPanelView?.ViewModel;
-        private CharGenPCView CharGenView => (InGamePCView?.m_StaticPartPCView?.m_CharGenContextPCView ?? GlobalMapPCView?.m_CharGenContextPCView ?? MainMenuPCView?.m_CharGenContextPCView)?.m_CharGenPCView;
-        private RespecWindowPCView RespecView => (InGamePCView?.m_StaticPartPCView?.m_CharGenContextPCView ?? GlobalMapPCView?.m_CharGenContextPCView)?.m_RespecWindowPCView;
-        private InventoryVM InventoryVM => (Game.Instance.RootUiContext?.InGameVM?.StaticPartVM?.ServiceWindowsVM ?? Game.Instance.RootUiContext?.GlobalMapVM?.ServiceWindowsVM)?.InventoryVM?.Value;
-
         public GameInteractionService(
             ILogger<GameInteractionService> logger,
+            IUIAccessor uiAccessor,
             IMainThreadAccessor mainThreadAccessor,
             IEquipmentDefinitions equipmentDefinitions,
             IResourceProvider resourceProvider)
         {
             _logger = logger;
+            _uiAccessor = uiAccessor;
             _mainThreadAccessor = mainThreadAccessor;
             _resourceProvider = resourceProvider;
             _equipmentDefinitions = equipmentDefinitions;
@@ -1381,7 +1368,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                var restView = RestView;
+                var restView = _uiAccessor.RestView;
                 if (restView == null)
                 {
                     return;
@@ -1400,7 +1387,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    var restView = RestView;
+                    var restView = _uiAccessor.RestView;
                     if (restView != null)
                     {
                         restView.m_AutotuneToggle.isOn = networkCampingState.AutotuneIterationsStatus;
@@ -1443,16 +1430,16 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (GroupChangerView == null)
+                    if (_uiAccessor.GroupChangerView == null)
                     {
                         return;
                     }
 
                     _logger.LogInformation("Changing group changer view state. IsInteractable={IsInteractable}, ReadyPlayers={ReadyPlayers}, TotalPlayers={TotalPlayers}", isInteractable, readyPlayersCount, totalPlayersCount);
 
-                    GroupChangerView.m_AcceptButton.Interactable = isInteractable;
-                    GroupChangerView.m_CloseButton.Interactable = isInteractable;
-                    var acceptButtonText = GroupChangerView.m_AcceptButton.GetComponentInChildren<TextMeshProUGUI>();
+                    _uiAccessor.GroupChangerView.m_AcceptButton.Interactable = isInteractable;
+                    _uiAccessor.GroupChangerView.m_CloseButton.Interactable = isInteractable;
+                    var acceptButtonText = _uiAccessor.GroupChangerView.m_AcceptButton.GetComponentInChildren<TextMeshProUGUI>();
                     UpdateButtonTextCounter(acceptButtonText, readyPlayersCount, totalPlayersCount);
                 }
                 catch (Exception ex)
@@ -1469,12 +1456,12 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (GroupChangerView == null)
+                    if (_uiAccessor.GroupChangerView == null)
                     {
                         return;
                     }
 
-                    var viewModel = GroupChangerView.ViewModel;
+                    var viewModel = _uiAccessor.GroupChangerView.ViewModel;
                     viewModel.InternalGo();
                     viewModel.m_ActionGo?.Invoke();
                     _logger.LogInformation("Group changer has been accepted");
@@ -1493,12 +1480,12 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (GroupChangerView == null)
+                    if (_uiAccessor.GroupChangerView == null)
                     {
                         return;
                     }
 
-                    var view = GroupChangerView.m_CharacterViews.FirstOrDefault(v => string.Equals(v.UnitRef.UniqueId, unitId, StringComparison.OrdinalIgnoreCase));
+                    var view = _uiAccessor.GroupChangerView.m_CharacterViews.FirstOrDefault(v => string.Equals(v.UnitRef.UniqueId, unitId, StringComparison.OrdinalIgnoreCase));
                     if (view == null)
                     {
                         _logger.LogError("Unable to find character view in group manager ui. UnitId={UnitId}", unitId);
@@ -1523,13 +1510,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (GroupChangerView == null)
+                    if (_uiAccessor.GroupChangerView == null)
                     {
                         return;
                     }
 
                     _logger.LogInformation("Closing group changer view");
-                    var viewModel = GroupChangerView.ViewModel;
+                    var viewModel = _uiAccessor.GroupChangerView.ViewModel;
                     viewModel?.m_ActionClose?.Invoke();
                 }
                 catch (Exception ex)
@@ -1546,7 +1533,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (SkipTimeView?.ViewModel == null)
+                    if (_uiAccessor.SkipTimeView?.ViewModel == null)
                     {
                         _logger.LogWarning("Unable to update skip time due to missing UI");
                         return;
@@ -1554,10 +1541,10 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                     _logger.LogInformation("Updating skip time ui state. IsInteractable={IsInteractable}, ReadyPlayers={ReadyPlayers}, TotalPlayers={TotalPlayers}", isInteractable, readyPlayersCount, totalPlayersCount);
 
-                    SkipTimeView.m_CloseButton.Interactable = isInteractable;
-                    SkipTimeView.m_HoursSlider.interactable = isInteractable;
-                    SkipTimeView.m_SkipTimeButton.Interactable = isInteractable;
-                    var skipTimeButtonText = SkipTimeView.m_SkipTimeButton.GetComponentInChildren<TextMeshProUGUI>();
+                    _uiAccessor.SkipTimeView.m_CloseButton.Interactable = isInteractable;
+                    _uiAccessor.SkipTimeView.m_HoursSlider.interactable = isInteractable;
+                    _uiAccessor.SkipTimeView.m_SkipTimeButton.Interactable = isInteractable;
+                    var skipTimeButtonText = _uiAccessor.SkipTimeView.m_SkipTimeButton.GetComponentInChildren<TextMeshProUGUI>();
                     UpdateButtonTextCounter(skipTimeButtonText, readyPlayersCount, totalPlayersCount);
                 }
                 catch (Exception ex)
@@ -1574,13 +1561,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (SkipTimeView?.ViewModel == null)
+                    if (_uiAccessor.SkipTimeView?.ViewModel == null)
                     {
                         _logger.LogWarning("Skip time UI is already closed");
                         return;
                     }
 
-                    SkipTimeView.ViewModel.Close();
+                    _uiAccessor.SkipTimeView.ViewModel.Close();
                     _logger.LogInformation("Skip time UI has been closed");
                 }
                 catch (Exception ex)
@@ -1595,7 +1582,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (SkipTimeView?.ViewModel != null)
+                if (_uiAccessor.SkipTimeView?.ViewModel != null)
                 {
                     _logger.LogWarning("Skip time UI is already opened");
                     return;
@@ -1611,13 +1598,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (SkipTimeView?.ViewModel == null)
+                    if (_uiAccessor.SkipTimeView?.ViewModel == null)
                     {
                         _logger.LogWarning("Unable to update skip time hours due to missing UI");
                         return;
                     }
 
-                    SkipTimeView.m_HoursSlider.value = hours;
+                    _uiAccessor.SkipTimeView.m_HoursSlider.value = hours;
                     _logger.LogInformation("Skip time hours has been updated. Hours={Hours}", hours);
                 }
                 catch (Exception ex)
@@ -1634,13 +1621,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (SkipTimeView.ViewModel == null)
+                    if (_uiAccessor.SkipTimeView.ViewModel == null)
                     {
                         _logger.LogWarning("Unable to start skip time due to missing UI");
                         return;
                     }
 
-                    SkipTimeView.m_SkipTimeButton.OnLeftClick.Invoke();
+                    _uiAccessor.SkipTimeView.m_SkipTimeButton.OnLeftClick.Invoke();
                     _logger.LogInformation("Skip time has been started");
                 }
                 catch (Exception ex)
@@ -1657,15 +1644,15 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (RestView == null)
+                    if (_uiAccessor.RestView == null)
                     {
                         return;
                     }
 
                     _logger.LogInformation("Changing rest button state. IsInteractable={IsInteractable}, ReadyPlayers={ReadyPlayers}, TotalPlayers={TotalPlayers}", isInteractable, readyPlayersCount, totalPlayersCount);
 
-                    RestView.m_StartRestButton.Interactable = isInteractable;
-                    UpdateButtonTextCounter(RestView.m_StartRestButtonText, readyPlayersCount, totalPlayersCount);
+                    _uiAccessor.RestView.m_StartRestButton.Interactable = isInteractable;
+                    UpdateButtonTextCounter(_uiAccessor.RestView.m_StartRestButtonText, readyPlayersCount, totalPlayersCount);
                 }
                 catch (Exception ex)
                 {
@@ -1679,7 +1666,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                RestView?.StartRest();
+                _uiAccessor.RestView?.StartRest();
             });
         }
 
@@ -1781,13 +1768,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (VendorViewVM == null)
+                if (_uiAccessor.VendorViewVM == null)
                 {
                     _logger.LogWarning("Unable to close vendor screen due to missing VendorViewVM");
                     return;
                 }
 
-                VendorViewVM.m_CloseAction?.Invoke();
+                _uiAccessor.VendorViewVM.m_CloseAction?.Invoke();
                 SetPause(false);
             });
         }
@@ -1796,13 +1783,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (VendorViewVM == null)
+                if (_uiAccessor.VendorViewVM == null)
                 {
                     _logger.LogWarning("Unable to make vendor deal due to missing VendorViewVM");
                     return;
                 }
 
-                VendorViewVM.Deal();
+                _uiAccessor.VendorViewVM.Deal();
             });
         }
 
@@ -1869,7 +1856,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    var partyView = PartyPCView?.m_Characters?.FirstOrDefault(p => string.Equals(p.UnitEntityData.UniqueId, unitId, StringComparison.OrdinalIgnoreCase));
+                    var partyView = _uiAccessor.PartyPCView?.m_Characters?.FirstOrDefault(p => string.Equals(p.UnitEntityData.UniqueId, unitId, StringComparison.OrdinalIgnoreCase));
                     if (partyView?.ViewModel == null)
                     {
                         _logger.LogError("Unable to start leveling due to missing party character vm. UnitId={UnitId}, Type={Type}", unitId, levelingType);
@@ -1906,7 +1893,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (CharGenView == null)
+                    if (_uiAccessor.CharGenView == null)
                     {
                         _logger.LogWarning("Can't select class archetype due to missing CharGenView");
                         return;
@@ -1961,13 +1948,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (CharGenView?.ViewModel == null)
+                    if (_uiAccessor.CharGenView?.ViewModel == null)
                     {
                         _logger.LogWarning("Can't select mythic class due to missing CharGenView");
                         return;
                     }
 
-                    var viewModel = (CharGenView?.SelectedDetailView as CharGenMythicPhaseDetailedPCView)?.ViewModel;
+                    var viewModel = (_uiAccessor.CharGenView?.SelectedDetailView as CharGenMythicPhaseDetailedPCView)?.ViewModel;
                     if (viewModel == null)
                     {
                         _logger.LogError("Can't select mythic class due to missing mythic leveling phase viewmodel");
@@ -1990,13 +1977,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (CharGenView?.ViewModel == null)
+                    if (_uiAccessor.CharGenView?.ViewModel == null)
                     {
                         _logger.LogWarning("Can't select leveling portrait due to missing CharGenView");
                         return;
                     }
 
-                    var viewModel = (CharGenView.SelectedDetailView as CharGenPortraitPhaseDetailedPCView)?.ViewModel;
+                    var viewModel = (_uiAccessor.CharGenView.SelectedDetailView as CharGenPortraitPhaseDetailedPCView)?.ViewModel;
                     if (viewModel == null)
                     {
                         _logger.LogError("Can't select leveling portrait due to missing portrait phase viewmodel");
@@ -2059,13 +2046,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (CharGenView?.ViewModel == null)
+                    if (_uiAccessor.CharGenView?.ViewModel == null)
                     {
                         _logger.LogWarning("Can't select leveling voice due to missing CharGenView");
                         return;
                     }
 
-                    var view = CharGenView.SelectedDetailView as CharGenVoicePhaseDetailedPCView;
+                    var view = _uiAccessor.CharGenView.SelectedDetailView as CharGenVoicePhaseDetailedPCView;
                     if (view == null)
                     {
                         _logger.LogError("Can't select leveling voice due to missing voice phase view");
@@ -2100,13 +2087,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (CharGenView?.ViewModel == null)
+                    if (_uiAccessor.CharGenView?.ViewModel == null)
                     {
                         _logger.LogWarning("Can't select leveling gender due to missing CharGenView");
                         return;
                     }
 
-                    var viewModel = (CharGenView.SelectedDetailView as CharGenRacePhaseDetailedPCView)?.ViewModel;
+                    var viewModel = (_uiAccessor.CharGenView.SelectedDetailView as CharGenRacePhaseDetailedPCView)?.ViewModel;
                     if (viewModel == null)
                     {
                         _logger.LogError("Can't select leveling gender due to missing race phase viewmodel");
@@ -2137,13 +2124,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (CharGenView?.ViewModel == null)
+                    if (_uiAccessor.CharGenView?.ViewModel == null)
                     {
                         _logger.LogWarning("Can't select leveling race due to missing CharGenView");
                         return;
                     }
 
-                    var viewModel = (CharGenView.SelectedDetailView as CharGenRacePhaseDetailedPCView)?.ViewModel;
+                    var viewModel = (_uiAccessor.CharGenView.SelectedDetailView as CharGenRacePhaseDetailedPCView)?.ViewModel;
                     if (viewModel == null)
                     {
                         _logger.LogError("Can't select leveling race due to missing race phase viewmodel");
@@ -2402,13 +2389,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (CharGenView?.ViewModel == null)
+                    if (_uiAccessor.CharGenView?.ViewModel == null)
                     {
                         _logger.LogWarning("Can't select leveling alignment due to missing CharGenView");
                         return;
                     }
 
-                    var viewModel = (CharGenView.SelectedDetailView as CharGenAlignmentPhaseDetailedPCView)?.ViewModel;
+                    var viewModel = (_uiAccessor.CharGenView.SelectedDetailView as CharGenAlignmentPhaseDetailedPCView)?.ViewModel;
                     if (viewModel == null)
                     {
                         _logger.LogError("Can't select leveling alignment due to missing alignment phase viewmodel");
@@ -2439,7 +2426,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (CharGenView?.ViewModel == null)
+                    if (_uiAccessor.CharGenView?.ViewModel == null)
                     {
                         _logger.LogWarning("Can't select class due to missing CharGenView");
                         return;
@@ -2469,13 +2456,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (CharGenView?.ViewModel == null)
+                    if (_uiAccessor.CharGenView?.ViewModel == null)
                     {
                         _logger.LogWarning("Can't select feature due to missing CharGenView");
                         return;
                     }
 
-                    var view = CharGenView?.SelectedDetailView as CharGenFeatureSelectorPhaseDetailedPCView;
+                    var view = _uiAccessor.CharGenView?.SelectedDetailView as CharGenFeatureSelectorPhaseDetailedPCView;
                     if (view == null)
                     {
                         _logger.LogError("Unable to get leveling feature view");
@@ -2509,7 +2496,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (NewGamePCView?.ViewModel == null)
+                    if (_uiAccessor.NewGamePCView?.ViewModel == null)
                     {
                         _logger.LogWarning("Unable to select new game sequence phase due to missing NewGamePCView. PhaseType={PhaseType}", newGameSequencePhase.Type);
                         return;
@@ -2518,16 +2505,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     switch (newGameSequencePhase.Type)
                     {
                         case NetworkNewGameSequencePhaseType.Story:
-                            NewGamePCView.ViewModel.MenuSelectionGroup.SelectedEntity.Value = NewGamePCView.ViewModel.m_MenuEntitiesList.FirstOrDefault(m => m.NewGamePhaseVM == NewGamePCView.ViewModel.StoryVM);
-                            //NewGamePCView.ViewModel.OnStoryMenuSelect();
+                            _uiAccessor.NewGamePCView.ViewModel.MenuSelectionGroup.SelectedEntity.Value = _uiAccessor.NewGamePCView.ViewModel.m_MenuEntitiesList.FirstOrDefault(m => m.NewGamePhaseVM == _uiAccessor.NewGamePCView.ViewModel.StoryVM);
                             break;
                         case NetworkNewGameSequencePhaseType.Difficulty:
-                            NewGamePCView.ViewModel.MenuSelectionGroup.SelectedEntity.Value = NewGamePCView.ViewModel.m_MenuEntitiesList.FirstOrDefault(m => m.NewGamePhaseVM == NewGamePCView.ViewModel.DifficultyVM);
-                            //NewGamePCView.ViewModel.OnDifficultyMenuSelect();
+                            _uiAccessor.NewGamePCView.ViewModel.MenuSelectionGroup.SelectedEntity.Value = _uiAccessor.NewGamePCView.ViewModel.m_MenuEntitiesList.FirstOrDefault(m => m.NewGamePhaseVM == _uiAccessor.NewGamePCView.ViewModel.DifficultyVM);
                             break;
                         case NetworkNewGameSequencePhaseType.SaveInjector:
-                            NewGamePCView.ViewModel.MenuSelectionGroup.SelectedEntity.Value = NewGamePCView.ViewModel.m_MenuEntitiesList.FirstOrDefault(m => m.NewGamePhaseVM == NewGamePCView.ViewModel.SaveInjectorVM);
-                            //NewGamePCView.ViewModel.OnSaveInjectionMenuSelect();
+                            _uiAccessor.NewGamePCView.ViewModel.MenuSelectionGroup.SelectedEntity.Value = _uiAccessor.NewGamePCView.ViewModel.m_MenuEntitiesList.FirstOrDefault(m => m.NewGamePhaseVM == _uiAccessor.NewGamePCView.ViewModel.SaveInjectorVM);
                             break;
                     }
 
@@ -2547,13 +2531,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (NewGamePCView?.ViewModel == null)
+                    if (_uiAccessor.NewGamePCView?.ViewModel == null)
                     {
                         _logger.LogWarning("Unable to terminate new game sequence due to missing NewGamePCView");
                         return;
                     }
 
-                    NewGamePCView.ViewModel.OnClose();
+                    _uiAccessor.NewGamePCView.ViewModel.OnClose();
                     _logger.LogError("New game sequence has been terminted");
                 }
                 catch (Exception ex)
@@ -2570,13 +2554,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (NewGamePCView?.ViewModel == null)
+                    if (_uiAccessor.NewGamePCView?.ViewModel == null)
                     {
                         _logger.LogWarning("Unable to start new game sequence leveling due to missing NewGamePCView");
                         return;
                     }
 
-                    NewGamePCView.ViewModel.MenuSelectionGroup.SelectedEntity.Value.OnNext();
+                    _uiAccessor.NewGamePCView.ViewModel.MenuSelectionGroup.SelectedEntity.Value.OnNext();
                     _logger.LogInformation("New game sequence leveling has been selected");
                 }
                 catch (Exception ex)
@@ -2593,16 +2577,16 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (NewGamePCView?.ViewModel == null)
+                    if (_uiAccessor.NewGamePCView?.ViewModel == null)
                     {
                         _logger.LogWarning("Unable to update new game sequence phase controls due to missing NewGamePCView. IsEnabled={IsEnabled}, PhaseType={PhaseType}", isEnabled, newGameSequencePhaseType);
                         return;
                     }
 
-                    NewGamePCView.m_BackButton.Interactable = isEnabled;
-                    NewGamePCView.m_NextButton.Interactable = isEnabled;
-                    NewGamePCView.m_CloseButton.Interactable = isEnabled;
-                    foreach (var menu in NewGamePCView.m_MenuSelectorView.m_MenuEntities)
+                    _uiAccessor.NewGamePCView.m_BackButton.Interactable = isEnabled;
+                    _uiAccessor.NewGamePCView.m_NextButton.Interactable = isEnabled;
+                    _uiAccessor.NewGamePCView.m_CloseButton.Interactable = isEnabled;
+                    foreach (var menu in _uiAccessor.NewGamePCView.m_MenuSelectorView.m_MenuEntities)
                     {
                         menu.m_Button.Interactable = isEnabled;
                     }
@@ -2610,7 +2594,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     switch (newGameSequencePhaseType)
                     {
                         case NetworkNewGameSequencePhaseType.Story:
-                            foreach (var widgetEntry in NewGamePCView.m_StoryPCView.m_SelectorPCView.m_WidgetList.Entries)
+                            foreach (var widgetEntry in _uiAccessor.NewGamePCView.m_StoryPCView.m_SelectorPCView.m_WidgetList.Entries)
                             {
                                 if (widgetEntry is NewGamePhaseStoryScenarioEntityPCView story)
                                 {
@@ -2619,7 +2603,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                             }
                             break;
                         case NetworkNewGameSequencePhaseType.Difficulty:
-                            foreach (var entry in NewGamePCView.m_DifficultyPCView.m_VirtualList.Elements)
+                            foreach (var entry in _uiAccessor.NewGamePCView.m_DifficultyPCView.m_VirtualList.Elements)
                             {
                                 switch (entry.View)
                                 {
@@ -2650,24 +2634,24 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (CharGenView?.ViewModel == null)
+                    if (_uiAccessor.CharGenView?.ViewModel == null)
                     {
                         _logger.LogError("Unable to update leveling controls due too missing CharGenView");
                         return;
                     }
 
                     _logger.LogInformation("Updating generic part of leveling screen. IsEnabled={IsEnabled}", isEnabled);
-                    CharGenView.m_CloseButton.Interactable = isEnabled;
-                    CharGenView.SetActiveNextPhaseButton(isEnabled);
+                    _uiAccessor.CharGenView.m_CloseButton.Interactable = isEnabled;
+                    _uiAccessor.CharGenView.SetActiveNextPhaseButton(isEnabled);
 
-                    var nextEnabled = CharGenView.CanGoNext.Value && isEnabled;
-                    CharGenView.m_NextButton.Interactable = nextEnabled;
-                    CharGenView.m_NextValidPageButton.Interactable = nextEnabled;
-                    var backEnabled = CharGenView.CanGoBack.Value && isEnabled;
-                    CharGenView.m_BackButton.Interactable = backEnabled;
-                    CharGenView.m_FirstPageButton.Interactable = backEnabled;
+                    var nextEnabled = _uiAccessor.CharGenView.CanGoNext.Value && isEnabled;
+                    _uiAccessor.CharGenView.m_NextButton.Interactable = nextEnabled;
+                    _uiAccessor.CharGenView.m_NextValidPageButton.Interactable = nextEnabled;
+                    var backEnabled = _uiAccessor.CharGenView.CanGoBack.Value && isEnabled;
+                    _uiAccessor.CharGenView.m_BackButton.Interactable = backEnabled;
+                    _uiAccessor.CharGenView.m_FirstPageButton.Interactable = backEnabled;
 
-                    foreach (var roadmapPhase in CharGenView.RoadmapMenuView.m_VisiblePhases)
+                    foreach (var roadmapPhase in _uiAccessor.CharGenView.RoadmapMenuView.m_VisiblePhases)
                     {
                         var baseView = roadmapPhase as CharGenPhaseRoadmapBaseView<CharGenPhaseBaseVM>;
                         if (baseView != null)
@@ -2678,7 +2662,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                         }
                     }
 
-                    switch (CharGenView.SelectedDetailView)
+                    switch (_uiAccessor.CharGenView.SelectedDetailView)
                     {
                         case CharGenNamePhaseDetailedPCView namePhase:
                             namePhase.m_NameInputField.readOnly = !isEnabled;
@@ -2706,13 +2690,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (CharGenView == null)
+                if (_uiAccessor.CharGenView == null)
                 {
                     _logger.LogError("Unable to update switch leveling phase due too missing CharGenView");
                     return;
                 }
 
-                var roadmapVM = CharGenView.RoadmapMenuView.ViewModel;
+                var roadmapVM = _uiAccessor.CharGenView.RoadmapMenuView.ViewModel;
                 if (networkLevelingPhase.Index >= roadmapVM.EntitiesCollection.Count)
                 {
                     _logger.LogError("Leveling phase is out of range. Index={Index}, TotalCount={TotalCount}", networkLevelingPhase.Index, roadmapVM.EntitiesCollection.Count);
@@ -2835,13 +2819,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (CharGenView?.ViewModel == null)
+                    if (_uiAccessor.CharGenView?.ViewModel == null)
                     {
                         _logger.LogError("Unable to get leveling ability score vm due too missing CharGenView");
                         return;
                     }
 
-                    var view = CharGenView.SelectedDetailView as CharGenAbilityScoresDetailedPCView;
+                    var view = _uiAccessor.CharGenView.SelectedDetailView as CharGenAbilityScoresDetailedPCView;
                     if (view == null)
                     {
                         _logger.LogError("Can't change leveling racial bonus due to missing ability score phase view");
@@ -2874,13 +2858,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (CharGenView?.ViewModel == null)
+                    if (_uiAccessor.CharGenView?.ViewModel == null)
                     {
                         _logger.LogError("Unable to get leveling name vm due too missing CharGenView");
                         return;
                     }
 
-                    var view = CharGenView.SelectedDetailView as CharGenNamePhaseDetailedPCView;
+                    var view = _uiAccessor.CharGenView.SelectedDetailView as CharGenNamePhaseDetailedPCView;
                     if (view == null)
                     {
                         _logger.LogError("Can't change leveling name due to missing ability score phase view");
@@ -2905,13 +2889,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (CharGenView?.ViewModel == null)
+                    if (_uiAccessor.CharGenView?.ViewModel == null)
                     {
                         _logger.LogError("Unable to get leveling birth day vm due too missing CharGenView");
                         return;
                     }
 
-                    var view = CharGenView.SelectedDetailView as CharGenNamePhaseDetailedPCView;
+                    var view = _uiAccessor.CharGenView.SelectedDetailView as CharGenNamePhaseDetailedPCView;
                     if (view == null)
                     {
                         _logger.LogError("Can't change leveling birth day due to missing ability score phase view");
@@ -2944,13 +2928,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    if (CharGenView?.ViewModel == null)
+                    if (_uiAccessor.CharGenView?.ViewModel == null)
                     {
                         _logger.LogError("Unable to get leveling birth month vm due too missing CharGenView");
                         return;
                     }
 
-                    var view = CharGenView.SelectedDetailView as CharGenNamePhaseDetailedPCView;
+                    var view = _uiAccessor.CharGenView.SelectedDetailView as CharGenNamePhaseDetailedPCView;
                     if (view == null)
                     {
                         _logger.LogError("Can't change leveling birth month due to missing ability score phase view");
@@ -3031,7 +3015,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    CharGenView.ViewModel.Complete();
+                    _uiAccessor.CharGenView.ViewModel.Complete();
                 }
                 catch (Exception ex)
                 {
@@ -3047,7 +3031,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    CharGenView.ViewModel.Close();
+                    _uiAccessor.CharGenView.ViewModel.Close();
                 }
                 catch (Exception ex)
                 {
@@ -3234,7 +3218,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (RestView != null)
+                if (_uiAccessor.RestView != null)
                 {
                     return;
                 }
@@ -3269,7 +3253,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                 var modalMessage = (Game.Instance.RootUiContext.m_CommonView as CommonPCView).m_MessageModalPCView;
                 modalMessage.ViewModel?.OnDeclinePressed();
-                var messageBoxView = GlobalMapPCView.m_GlobalMapEnterMessagePCView;
+                var messageBoxView = _uiAccessor.GlobalMapPCView.m_GlobalMapEnterMessagePCView;
                 messageBoxView.ViewModel?.Close();
 
                 var traveler = Game.Instance.GlobalMapController.SelectedTraveler;
@@ -3309,12 +3293,12 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (GlobalMapPCView == null)
+                if (_uiAccessor.GlobalMapPCView == null)
                 {
                     return;
                 }
 
-                var messageBoxView = GlobalMapPCView.m_GlobalMapEnterMessagePCView;
+                var messageBoxView = _uiAccessor.GlobalMapPCView.m_GlobalMapEnterMessagePCView;
                 if (messageBoxView?.ViewModel == null)
                 {
                     return;
@@ -3340,7 +3324,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (GlobalMapPCView?.ViewModel == null)
+                if (_uiAccessor.GlobalMapPCView?.ViewModel == null)
                 {
                     return;
                 }
@@ -3357,12 +3341,12 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (GlobalMapPCView?.ViewModel == null)
+                if (_uiAccessor.GlobalMapPCView?.ViewModel == null)
                 {
                     return;
                 }
 
-                var modalMessage = GlobalMapPCView.m_GlobalMapRandomEncounterPCView;
+                var modalMessage = _uiAccessor.GlobalMapPCView.m_GlobalMapRandomEncounterPCView;
                 modalMessage.m_AvoidButton.Interactable = isInteractable;
                 modalMessage.m_ContinueButton.Interactable = isInteractable;
                 modalMessage.m_EnterButton.Interactable = isInteractable;
@@ -3379,18 +3363,18 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (LootPCView?.ViewModel == null)
+                if (_uiAccessor.LootPCView?.ViewModel == null)
                 {
                     _logger.LogWarning("Unable to update closed zone loot ui");
                     return;
                 }
 
-                LootPCView.m_RemoveLootToggle.Interactable = isInteractable;
-                LootPCView.m_Button.Interactable = isInteractable; // Leave button
-                LootCollector.m_ButtonCollectAll.Interactable = isInteractable;
+                _uiAccessor.LootPCView.m_RemoveLootToggle.Interactable = isInteractable;
+                _uiAccessor.LootPCView.m_Button.Interactable = isInteractable; // Leave button
+                _uiAccessor.LootCollector.m_ButtonCollectAll.Interactable = isInteractable;
 
-                UpdateButtonTextCounter(LootCollector.m_ButtonCollectAllLabel, readyPlayersCount, totalPlayersCount);
-                UpdateButtonTextCounter(LootPCView.m_ButtonText, readyPlayersCount, totalPlayersCount);
+                UpdateButtonTextCounter(_uiAccessor.LootCollector.m_ButtonCollectAllLabel, readyPlayersCount, totalPlayersCount);
+                UpdateButtonTextCounter(_uiAccessor.LootPCView.m_ButtonText, readyPlayersCount, totalPlayersCount);
 
                 _logger.LogInformation("ZoneLoot UI has been updated. IsInteractable={IsInteractable}, ReadyPlayers={ReadyPlayers}, TotalPlayers={TotalPlayers}", isInteractable, readyPlayersCount, totalPlayersCount);
             });
@@ -3400,20 +3384,20 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (RespecView?.ViewModel == null)
+                if (_uiAccessor.RespecView?.ViewModel == null)
                 {
                     _logger.LogWarning("Unable to update closed respec window");
                     return;
                 }
 
-                RespecView.m_MaxLevelupButton.Interactable = false;
-                RespecView.m_MaxMythicUpButton.Interactable = false;
+                _uiAccessor.RespecView.m_MaxLevelupButton.Interactable = false;
+                _uiAccessor.RespecView.m_MaxMythicUpButton.Interactable = false;
 
-                RespecView.m_LevelupButton.Interactable = RespecView.ViewModel.CanUpCharacterLevel.Value && isInteractable;
-                RespecView.m_MythicUpButton.Interactable = RespecView.ViewModel.CanUpMythicLevel.Value && isInteractable;
-                RespecView.m_CompleteButton.Interactable = RespecView.ViewModel.IsFinished.Value && isInteractable;
+                _uiAccessor.RespecView.m_LevelupButton.Interactable = _uiAccessor.RespecView.ViewModel.CanUpCharacterLevel.Value && isInteractable;
+                _uiAccessor.RespecView.m_MythicUpButton.Interactable = _uiAccessor.RespecView.ViewModel.CanUpMythicLevel.Value && isInteractable;
+                _uiAccessor.RespecView.m_CompleteButton.Interactable = _uiAccessor.RespecView.ViewModel.IsFinished.Value && isInteractable;
 
-                UpdateButtonTextCounter(RespecView.m_CompleteButtonTitle, readyPlayersCount, totalPlayersCount);
+                UpdateButtonTextCounter(_uiAccessor.RespecView.m_CompleteButtonTitle, readyPlayersCount, totalPlayersCount);
 
                 _logger.LogInformation("Respec window UI has been updated. IsInteractable={IsInteractable}, ReadyPlayers={ReadyPlayers}, TotalPlayers={TotalPlayers}", isInteractable, readyPlayersCount, totalPlayersCount);
             });
@@ -3421,20 +3405,20 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         public string GetCurrentRespecWindowUnitId()
         {
-            return RespecView?.ViewModel?.CurrentUnit.Value.UniqueId;
+            return _uiAccessor.RespecView?.ViewModel?.CurrentUnit.Value.UniqueId;
         }
 
         public void CompleteLevelingRespec()
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (RespecView?.ViewModel == null)
+                if (_uiAccessor.RespecView?.ViewModel == null)
                 {
                     _logger.LogWarning("Unable to complete closed respec window");
                     return;
                 }
 
-                RespecView.ViewModel.Complete();
+                _uiAccessor.RespecView.ViewModel.Complete();
                 _logger.LogInformation("Respec window UI has been completed");
             });
         }
@@ -3443,13 +3427,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (RespecView?.ViewModel == null)
+                if (_uiAccessor.RespecView?.ViewModel == null)
                 {
                     _logger.LogWarning("Unable to levelup due to missing respec window");
                     return;
                 }
 
-                RespecView.ViewModel.InitiateNextLevelup();
+                _uiAccessor.RespecView.ViewModel.InitiateNextLevelup();
                 _logger.LogInformation("Respec window levelup has been initiated");
             });
         }
@@ -3458,13 +3442,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (RespecView?.ViewModel == null)
+                if (_uiAccessor.RespecView?.ViewModel == null)
                 {
                     _logger.LogWarning("Unable to mythic levelup due to missing respec window");
                     return;
                 }
 
-                RespecView.ViewModel.InitiateNextMythic();
+                _uiAccessor.RespecView.ViewModel.InitiateNextMythic();
                 _logger.LogInformation("Respec window mythic levelup has been initiated");
             });
         }
@@ -3588,13 +3572,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (LootPCView?.ViewModel == null)
+                if (_uiAccessor.LootPCView?.ViewModel == null)
                 {
                     _logger.LogWarning("Unable to update closed zone loot ui");
                     return;
                 }
 
-                LootPCView.ViewModel.RemoveUncollectedLoot.Value = removeLoot;
+                _uiAccessor.LootPCView.ViewModel.RemoveUncollectedLoot.Value = removeLoot;
 
                 _logger.LogInformation("ZoneLoot Remove Uncollected loot toggle has been updated. RemoveLoot={RemoveLoot}", removeLoot);
             });
@@ -3604,7 +3588,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (LootPCView?.ViewModel == null)
+                if (_uiAccessor.LootPCView?.ViewModel == null)
                 {
                     _logger.LogWarning("Unable to update closed zone loot ui");
                     return;
@@ -3612,7 +3596,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                 // looks like we can just leave zone since item collection is synced anyway
                 // however, let's keep collect all just in case
-                LootPCView.ViewModel.CollectAll();
+                _uiAccessor.LootPCView.ViewModel.CollectAll();
 
                 _logger.LogError("ZoneLoot has been completed");
             });
@@ -3622,7 +3606,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (GlobalMapPCView == null)
+                if (_uiAccessor.GlobalMapPCView == null)
                 {
                     return;
                 }
@@ -3667,7 +3651,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     return;
                 }
 
-                GlobalMapPCView?.m_GlobalMapEnterMessagePCView?.ViewModel?.Close();
+                _uiAccessor.GlobalMapPCView?.m_GlobalMapEnterMessagePCView?.ViewModel?.Close();
 
                 GlobalMapView.Instance.EnterLocation();
                 _logger.LogInformation("Global map location has been entered. LocationId={LocationId}, LocationName={LocationName}", globalMapLocation.Id, globalMapLocation.Name);
@@ -3678,13 +3662,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (GlobalMapPCView == null)
+                if (_uiAccessor.GlobalMapPCView == null)
                 {
                     _logger.LogWarning("Unable to avoid global map encounter when global map view is not available");
                     return;
                 }
 
-                GlobalMapPCView.m_GlobalMapRandomEncounterPCView.ViewModel.Avoid();
+                _uiAccessor.GlobalMapPCView.m_GlobalMapRandomEncounterPCView.ViewModel.Avoid();
                 _logger.LogInformation("Global map encounter has been avoided");
             });
         }
@@ -3693,13 +3677,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (GlobalMapPCView == null)
+                if (_uiAccessor.GlobalMapPCView == null)
                 {
                     _logger.LogWarning("Unable to avoid global map encounter when global map view is not available");
                     return;
                 }
 
-                GlobalMapPCView.m_GlobalMapRandomEncounterPCView.ViewModel.Accept();
+                _uiAccessor.GlobalMapPCView.m_GlobalMapRandomEncounterPCView.ViewModel.Accept();
                 _logger.LogInformation("Global map encounter has been accepted");
             });
         }
@@ -3994,7 +3978,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private CharGenAppearancePhaseDetailedPCView GetCharGenAppearancePhaseView()
         {
-            return CharGenView?.SelectedDetailView as CharGenAppearancePhaseDetailedPCView;
+            return _uiAccessor.CharGenView?.SelectedDetailView as CharGenAppearancePhaseDetailedPCView;
         }
 
         private OvertipViewBase FindOvertipForObject(MapObjectEntityData mapObject)
@@ -4480,13 +4464,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private CharGenSkillAllocatorPCView GetLevelingSkillAllocatorView(StatType statType)
         {
-            if (CharGenView == null)
+            if (_uiAccessor.CharGenView == null)
             {
                 _logger.LogError("Unable to get leveling skillpoint vm due too missing CharGenView");
                 return null;
             }
 
-            if (CharGenView.SelectedDetailView is not CharGenSkillsPhaseDetailedPCView skillAllocator)
+            if (_uiAccessor.CharGenView.SelectedDetailView is not CharGenSkillsPhaseDetailedPCView skillAllocator)
             {
                 _logger.LogWarning("Unable to get leveling skillpoint vm because current phase is not skill phase");
                 return null;
@@ -4504,13 +4488,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private CharGenAbilityScoreAllocatorPCView GetLevelingAbilityScoreAllocatorView(StatType statType)
         {
-            if (CharGenView?.ViewModel == null)
+            if (_uiAccessor.CharGenView?.ViewModel == null)
             {
                 _logger.LogError("Unable to get leveling ability score vm due too missing CharGenView");
                 return null;
             }
 
-            if (CharGenView.SelectedDetailView is not CharGenAbilityScoresDetailedPCView abilityScoresDetailedPCView)
+            if (_uiAccessor.CharGenView.SelectedDetailView is not CharGenAbilityScoresDetailedPCView abilityScoresDetailedPCView)
             {
                 _logger.LogWarning("Unable to get leveling ability score vm because current phase is not skill phase");
                 return null;
@@ -4528,13 +4512,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private CharGenSpellsPhaseVM GetCharGenSpellsPhaseVM()
         {
-            if (CharGenView == null)
+            if (_uiAccessor.CharGenView == null)
             {
                 _logger.LogError("Unable to get leveling spellphase vm due too missing CharGenView");
                 return null;
             }
 
-            if (CharGenView.SelectedDetailView is not CharGenSpellsPhaseDetailedPCView spellsPhaseDetailedPCView)
+            if (_uiAccessor.CharGenView.SelectedDetailView is not CharGenSpellsPhaseDetailedPCView spellsPhaseDetailedPCView)
             {
                 _logger.LogWarning("Unable to get leveling spellphase vm because current phase is not spell phase");
                 return null;
@@ -4545,7 +4529,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private CharGenClassPhaseVM GetLevelingPhaseViewModel()
         {
-            var viewModel = (CharGenView?.SelectedDetailView as CharGenClassPhaseDetailedPCView)?.ViewModel;
+            var viewModel = (_uiAccessor.CharGenView?.SelectedDetailView as CharGenClassPhaseDetailedPCView)?.ViewModel;
             return viewModel;
         }
 
@@ -4564,12 +4548,12 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private void RefreshSpellbookUI()
         {
-            SpellbookMemorizingVM?.UpdateSlots();
+            _uiAccessor.SpellbookMemorizingVM?.UpdateSlots();
         }
 
         private void RefreshVendorScreen()
         {
-            if (VendorViewVM == null)
+            if (_uiAccessor.VendorViewVM == null)
             {
                 _logger.LogWarning("Unable to refresh vendor screen due to missing VendorViewVM");
                 return;
@@ -4577,8 +4561,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
             try
             {
-                VendorViewVM.UpdateVendorSide();
-                VendorViewVM.UpdatePlayerSide();
+                _uiAccessor.VendorViewVM.UpdateVendorSide();
+                _uiAccessor.VendorViewVM.UpdatePlayerSide();
             }
             catch (Exception ex)
             {
@@ -4715,8 +4699,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private void RefreshInventoryWindow()
         {
-            InventoryVM?.StashVM?.CollectionChanged();
-            InventoryVM?.DollVM?.RefreshData();
+            _uiAccessor.InventoryVM?.StashVM?.CollectionChanged();
+            _uiAccessor.InventoryVM?.DollVM?.RefreshData();
         }
 
         private MapObjectEntityData GetNeareastLootBagMapObject(NetworkVector3 position)
@@ -4758,7 +4742,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 }
             }
 
-            LootPCView.ViewModel?.InventoryCollectionChanged();
+            _uiAccessor.LootPCView.ViewModel?.InventoryCollectionChanged();
         }
 
         private List<MapObjectEntityData> GetNeareastLootableMapObjects(NetworkVector3 position)

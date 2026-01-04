@@ -9,6 +9,7 @@ using Serilog.Events;
 using UnityEngine;
 using UnityModManagerNet;
 using WOTRMultiplayer.Abstractions;
+using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.Localization;
 using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Abstractions.UI;
@@ -26,6 +27,8 @@ namespace WOTRMultiplayer
         private static ILogger<Main> _logger;
 
         public static IMultiplayer Multiplayer { get; private set; }
+
+        public static IUIAccessor UIAccessor { get; private set; }
 
         public static IMultiplayerRollsProcessor Rolls { get; private set; }
 
@@ -63,6 +66,8 @@ namespace WOTRMultiplayer
 
                 Multiplayer = _serviceProvider.GetService<IMultiplayer>();
                 Rolls = _serviceProvider.GetService<IMultiplayerRollsProcessor>();
+                UIAccessor = _serviceProvider.GetService<IUIAccessor>();
+
                 entry.OnGUI += OnGui;
                 entry.OnSaveGUI += OnSaveGui;
                 entry.OnUnload += OnUnload;

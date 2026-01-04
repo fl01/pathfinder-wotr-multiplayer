@@ -10,7 +10,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Vendor
     {
         [HarmonyPatch(typeof(VendorLogic), nameof(VendorLogic.Deal))]
         [HarmonyPrefix]
-        public static void VendorLogic_AddForBuy_Postfix(VendorLogic __instance)
+        public static void VendorLogic_Deal_Postfix(VendorLogic __instance)
         {
             if (!Main.Multiplayer.IsActive || !__instance.IsDealPossible)
             {

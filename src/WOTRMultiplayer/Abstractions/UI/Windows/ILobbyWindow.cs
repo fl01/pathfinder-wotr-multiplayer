@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Entities;
+using WOTRMultiplayer.UI.Menu;
 
 namespace WOTRMultiplayer.Abstractions.UI.Windows
 {
     public interface ILobbyWindow
     {
-        GameObject MenuItem { get; set; }
+        GameObject Initiator { get; }
 
         Func<NetworkGameConnectivity> GetGameConnectivity { get; set; }
 
@@ -21,5 +22,9 @@ namespace WOTRMultiplayer.Abstractions.UI.Windows
         void Show(bool state);
 
         ILobbyWindow WithController(ILobbyWindowController controller);
+
+        ILobbyWindow WithCloseHandler(Action onClose);
+
+        ILobbyWindow Initialize(LobbyWindowOwner lobbyWindowOwner);
     }
 }

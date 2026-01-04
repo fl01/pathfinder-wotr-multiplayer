@@ -9,6 +9,7 @@ using Owlcat.Runtime.UI.Tooltips;
 using TMPro;
 using UniRx;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Abstractions.UI;
@@ -264,14 +265,13 @@ namespace WOTRMultiplayer.UI.Controllers
 
             if (player.ContentState.DiscrepantMods.Any() || player.ContentState.DiscrepantDLCs.Any())
             {
-                CreatePlayerIcon("UI_QuestNotification_StampYellow", playerContainerObject, PreferredHeight, new TooltipTemplateContentDiscrepancy(player));
+                CreatePlayerIcon("UI_QuestNotification_StampYellow", playerContainerObject, PreferredHeight, new ContentDiscrepancyTooltipTemplate(player));
             }
         }
 
         private void CreatePlayerIcon(string iconName, GameObject parent, int size, TooltipBaseTemplate template = null)
         {
             var iconObject = Main.Multiplayer.Factory.CreateDefaultGameObject(parent.transform);
-
             var layoutElement = iconObject.AddComponent<LayoutElement>();
             layoutElement.preferredHeight = size;
             layoutElement.preferredWidth = size;
@@ -280,7 +280,8 @@ namespace WOTRMultiplayer.UI.Controllers
             image.sprite = sprite;
             if (template != null)
             {
-                _disposables.Add(TooltipHelper.SetTooltip(image, template));
+                var tooltipHandler = TooltipHelper.SetTooltip(image, template);
+                _disposables.Add(tooltipHandler);
             }
         }
 

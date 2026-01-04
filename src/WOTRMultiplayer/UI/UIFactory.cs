@@ -6,7 +6,9 @@ using Kingmaker.Localization;
 using Kingmaker.Settings;
 using Kingmaker.UI;
 using Kingmaker.UI.Common;
+using Kingmaker.UI.MVVM._PCView.Common;
 using Kingmaker.UI.MVVM._PCView.ContextMenu;
+using Kingmaker.UI.MVVM._PCView.EscMenu;
 using Kingmaker.UI.MVVM._PCView.SaveLoad;
 using Kingmaker.UI.MVVM._PCView.Settings.Entities;
 using Kingmaker.UI.MVVM._VM.ContextMenu;
@@ -23,6 +25,7 @@ using Owlcat.Runtime.UI.VirtualListSystem;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
@@ -58,13 +61,19 @@ namespace WOTRMultiplayer.UI
         private GameObject _defaultGameObject;
         private GameObject _borderDecoration;
         private Mesh _defaultTextMesh;
+
         private readonly ILogger<UIFactory> _logger;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IUIAccessor _uiAccessor;
 
-        public UIFactory(ILogger<UIFactory> logger, IServiceProvider serviceProvider)
+        public UIFactory(
+            ILogger<UIFactory> logger,
+            IServiceProvider serviceProvider,
+            IUIAccessor uiAccessor)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
+            _uiAccessor = uiAccessor;
         }
 
         public void StoreDropdownPrefab(SettingsEntityDropdownPCView view)
@@ -255,49 +264,66 @@ namespace WOTRMultiplayer.UI
             return lobbyContent;
         }
 
-        public ILobbyWindow InitializeEscMenuLobbyWindow(InitializeEscMenuLobbyWindowContext context, Action onShow)
+        public ILobbyWindow InitializeEscMenuLobbyWindow(ILobbyWindowController controller, Action onShow)
         {
-            _logger.LogInformation("Creating esc menu MultiplayerLobby");
-            var optionsButton = context.View.transform.Find("Window/ButtonBlock/OptionsButton");
-            var multiplayerMenu = UnityEngine.Object.Instantiate(optionsButton.gameObject, optionsButton.transform.parent);
-            multiplayerMenu.transform.SetSiblingIndex(optionsButton.GetSiblingIndex());
-            multiplayerMenu.name = MultiplayerMenuObjectName;
-            var textObject = multiplayerMenu.transform.Find("Text");
+            var escMenuView = _uiAccessor.EscMenu;
+
+            _logger.LogInformation("Adding new menu 'Multiplayer Lobby' to EscMenu");
+            var optionsButton = escMenuView.transform.Find("Window/ButtonBlock/OptionsButton");
+            var multiplayerLobbyMenuItem = UnityEngine.Object.Instantiate(optionsButton.gameObject, optionsButton.transform.parent);
+            multiplayerLobbyMenuItem.transform.SetSiblingIndex(optionsButton.GetSiblingIndex());
+            multiplayerLobbyMenuItem.name = MultiplayerMenuObjectName;
+            var textObject = multiplayerLobbyMenuItem.transform.Find("Text");
             UnityEngine.Object.DestroyImmediate(textObject.GetComponent<LocalizedUIText>());
             textObject.GetComponent<TextMeshProUGUI>().SetText(new LocalizedString { Key = WellKnownKeys.EscMenu.MultiplayerLobby.Title.Key });
 
-            var windowContainer = CreateDefaultGameObject(context.View.transform.parent);
-            // Backgroud - n is missing in the game object name
-            UnityEngine.Object.Instantiate(context.View.gameObject.transform.Find("BackgroudWorldCover"), windowContainer.transform);
-            windowContainer.name = "EscMultiplayerLobbyWindowContainer";
-            var windowContainerRect = windowContainer.GetComponent<RectTransform>();
-            var windowWidth = Math.Min(Screen.width * 0.45f, 1444);
-            var windowHeight = Math.Min(Screen.height * 0.65f, 1000);
-            _logger.LogInformation("Settings lobby window size. ScreenWidth={ScreenWidth}, ScreenHeight={ScreenHeight}, WindowWidth={WindowWidth}, WindowHeight={WindowHeight}", Screen.width, Screen.height, windowWidth, windowHeight);
-            windowContainerRect.sizeDelta = new Vector2(windowWidth, windowHeight);
-            windowContainerRect.anchorMin = new Vector2(0.5f, 0.5f);
-            windowContainerRect.anchorMax = new Vector2(0.5f, 0.5f);
-            var background = CreateBackgroundArt(windowContainer.transform);
-            var backgroundRect = background.GetComponent<RectTransform>();
-            backgroundRect.anchorMin = windowContainerRect.anchorMin;
-            backgroundRect.anchorMax = windowContainerRect.anchorMax;
-            backgroundRect.sizeDelta = new Vector2(windowContainerRect.sizeDelta.x * 1.1f, windowContainerRect.sizeDelta.y * 1.1f);
-            backgroundRect.pivot = windowContainerRect.pivot;
+            _logger.LogInformation("Initializing 'Multiplayer Lobby' Window");
+            var windowContainer = UnityEngine.Object.Instantiate(escMenuView.gameObject, escMenuView.transform.parent);
+            windowContainer.name = "MultiplayerLobbyWindow";
+            // must be located before the tooltip game-objects to avoid obstruction
+            var infoWindowViewIndex = windowContainer.transform.parent.Find("InfoWindowPCViewBig").GetSiblingIndex();
+            var tooltipViewIndex = windowContainer.transform.parent.Find("TooltipView").GetSiblingIndex();
+            var windowIndex = Math.Min(infoWindowViewIndex, tooltipViewIndex);
+            windowContainer.transform.SetSiblingIndex(windowIndex);
 
+            UnityEngine.Object.DestroyImmediate(windowContainer.GetComponent<EscMenuPCView>());
+            windowContainer.transform.Find("Window").gameObject.CleanupAllChildren();
+
+            var lobbyContainer = CreateDefaultGameObject(windowContainer.transform);
+            var lobbyContainerRect = lobbyContainer.GetComponent<RectTransform>();
+            var lobbyWidth = Math.Min(Screen.width * 0.45f, 1444);
+            var lobbyHeight = Math.Min(Screen.height * 0.65f, 1000);
+            lobbyContainerRect.sizeDelta = new Vector2(lobbyWidth, lobbyHeight);
+            lobbyContainerRect.anchorMin = new Vector2(0.5f, 0.5f);
+            lobbyContainerRect.anchorMax = new Vector2(0.5f, 0.5f);
+            lobbyContainerRect.pivot = new Vector2(0.5f, 0.5f);
+
+            var background = CreateBackgroundArt(lobbyContainer.transform);
             UnityEngine.Object.DestroyImmediate(background.transform.Find("Art").gameObject);
-            var lobbyWindow = windowContainer.AddComponent<LobbyWindow>();
-            lobbyWindow.WithLogger(_serviceProvider.GetService<ILogger<LobbyWindow>>());
-            lobbyWindow.MenuItem = multiplayerMenu;
-            _serviceProvider.GetService<ILobbyWindowController>().InitializeContent(LobbyWindowOwner.EscMenu, windowContainer.transform);
-            windowContainer.SetActive(false);
+            var backgroundRect = background.GetComponent<RectTransform>();
+            backgroundRect.anchorMin = lobbyContainerRect.anchorMin;
+            backgroundRect.anchorMax = lobbyContainerRect.anchorMax;
+            backgroundRect.sizeDelta = new Vector2(lobbyContainerRect.sizeDelta.x * 1.1f, lobbyContainerRect.sizeDelta.y * 1.1f);
+            backgroundRect.pivot = lobbyContainerRect.pivot;
 
-            var button = multiplayerMenu.GetComponent<OwlcatButton>();
-            button.OnLeftClick.RemoveAllListeners();
-            button.OnLeftClick.AddListener(() =>
-                {
-                    context.View.m_CloseButton.m_OnLeftClick.Invoke();
-                    onShow();
-                });
+            var lobbyWindow = lobbyContainer.AddComponent<LobbyWindow>()
+                .WithLogger(_serviceProvider.GetService<ILogger<LobbyWindow>>())
+                .WithInitiator(multiplayerLobbyMenuItem)
+                .WithController(controller)
+                .WithCloseHandler(() => windowContainer.SetActive(false))
+                .Initialize(LobbyWindowOwner.EscMenu);
+
+            var multiplayerLobbyButton = multiplayerLobbyMenuItem.GetComponent<OwlcatButton>();
+            multiplayerLobbyButton.OnLeftClick.RemoveAllListeners();
+            multiplayerLobbyButton.OnLeftClick.AddListener(() =>
+            {
+                escMenuView.m_CloseButton.m_OnLeftClick.Invoke();
+                windowContainer.SetActive(true);
+                onShow();
+            });
+
+
+            windowContainer.SetActive(false);
             return lobbyWindow;
         }
 
@@ -481,13 +507,13 @@ namespace WOTRMultiplayer.UI
             lobbyWindow.GetCharacters = null;
             lobbyWindow.GetIsHost = null;
 
-            if (lobbyWindow.MenuItem == null)
+            if (lobbyWindow.Initiator == null)
             {
-                _logger.LogWarning("Lobby MenuItem is null");
+                _logger.LogWarning("Lobby Initiator is null");
                 return;
             }
 
-            UnityEngine.Object.DestroyImmediate(lobbyWindow.MenuItem);
+            UnityEngine.Object.DestroyImmediate(lobbyWindow.Initiator);
         }
 
         public void PopulateMultiplayerSettingsUI(SettingsVM settingsVM)

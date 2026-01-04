@@ -98,7 +98,7 @@ namespace WOTRMultiplayer.Services
             _logger.LogInformation("Disposing stored rolls");
         }
 
-        public void InitializeEscMenuLobbyWindow(InitializeEscMenuLobbyWindowContext context)
+        public void InitializeEscMenuLobbyWindow()
         {
             if (_multiplayerActorAccessor.Current == null)
             {
@@ -106,7 +106,7 @@ namespace WOTRMultiplayer.Services
             }
 
             _logger.LogInformation("Creating Esc menu multiplayer lobby window");
-            _lobbyWindow = Factory.InitializeEscMenuLobbyWindow(context, ShowEscMenuMultiplayerLobby);
+            _lobbyWindow = Factory.InitializeEscMenuLobbyWindow(_lobbyWindowController, ShowEscMenuMultiplayerLobby);
 
             _lobbyWindow.GetGameConnectivity = _multiplayerActorAccessor.Current.GetGameConnectivity;
             _lobbyWindow.GetPlayers = _multiplayerActorAccessor.Current.GetPlayers;

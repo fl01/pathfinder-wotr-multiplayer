@@ -14,6 +14,7 @@ namespace WOTRMultiplayer.UI.Menu
     {
         private ILogger<LobbyWindow> _logger;
         private ILobbyWindowController _lobbyWindowController;
+        private Action _onClose;
 
         public Func<NetworkGameConnectivity> GetGameConnectivity { get; set; }
 
@@ -23,7 +24,7 @@ namespace WOTRMultiplayer.UI.Menu
 
         public Func<bool> GetIsHost { get; set; }
 
-        public GameObject MenuItem { get; set; }
+        public GameObject Initiator { get; private set; }
 
         public LobbyWindow WithLogger(ILogger<LobbyWindow> logger)
         {
@@ -34,6 +35,24 @@ namespace WOTRMultiplayer.UI.Menu
         public ILobbyWindow WithController(ILobbyWindowController controller)
         {
             _lobbyWindowController = controller;
+            return this;
+        }
+
+        public ILobbyWindow WithCloseHandler(Action onClose)
+        {
+            _onClose = onClose;
+            return this;
+        }
+
+        public ILobbyWindow WithInitiator(GameObject initiator)
+        {
+            Initiator = initiator;
+            return this;
+        }
+
+        public ILobbyWindow Initialize(LobbyWindowOwner lobbyWindowOwner)
+        {
+            _lobbyWindowController.InitializeContent(lobbyWindowOwner, this.transform);
             return this;
         }
 
@@ -85,6 +104,7 @@ namespace WOTRMultiplayer.UI.Menu
             _logger.LogInformation("Close lobby window");
             _lobbyWindowController?.ResetData();
             Show(false);
+            _onClose?.Invoke();
         }
     }
 }

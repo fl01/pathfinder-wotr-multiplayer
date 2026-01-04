@@ -8,11 +8,11 @@ using WOTRMultiplayer.Entities.Content;
 
 namespace WOTRMultiplayer.UI.Tooltips
 {
-    public class TooltipTemplateContentDiscrepancy : TooltipBaseTemplate
+    public class ContentDiscrepancyTooltipTemplate : TooltipBaseTemplate
     {
         private readonly NetworkPlayer _player;
 
-        public TooltipTemplateContentDiscrepancy(NetworkPlayer player)
+        public ContentDiscrepancyTooltipTemplate(NetworkPlayer player)
         {
             _player = player;
         }

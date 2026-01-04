@@ -22,7 +22,7 @@ namespace WOTRMultiplayer.HarmonyPatches.MenuPatches
                 var mainMenu = __instance.transform.Find($"Window/ButtonBlock/{UIFactory.MultiplayerMenuObjectName}")?.gameObject;
                 if (mainMenu == null && Main.Multiplayer.IsActive)
                 {
-                    Main.Multiplayer.InitializeEscMenuLobbyWindow(new InitializeEscMenuLobbyWindowContext(__instance));
+                    Main.Multiplayer.InitializeEscMenuLobbyWindow();
                     SetPhotoModeButtonState(__instance, false);
                 }
                 else if (mainMenu != null && !Main.Multiplayer.IsActive)

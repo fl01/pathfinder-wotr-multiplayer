@@ -13,7 +13,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
     {
         [HarmonyPatch(typeof(RuleConcealmentCheck), nameof(RuleConcealmentCheck.OnTrigger))]
         [HarmonyPostfix]
-        public static void RuleCalculateDamage_OnTrigger_Postfix(RuleConcealmentCheck __instance)
+        public static void RuleConcealmentCheck_OnTrigger_Postfix(RuleConcealmentCheck __instance)
         {
             if (!Main.Multiplayer.IsActive
                 || PatchesUtils.IsHelperUnit(__instance.Initiator.UniqueId)

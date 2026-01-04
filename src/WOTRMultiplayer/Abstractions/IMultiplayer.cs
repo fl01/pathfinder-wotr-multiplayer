@@ -35,7 +35,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void TerminateMultiplayer();
 
-        void InitializeEscMenuLobbyWindow(InitializeEscMenuLobbyWindowContext context);
+        void InitializeEscMenuLobbyWindow();
 
         void MoveNonCombatCharacter(NetworkCharacterMove networkCharacterMove);
 
