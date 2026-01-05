@@ -1113,11 +1113,12 @@ namespace WOTRMultiplayer.Services
         {
             Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}", nameof(RandomEncounterContextRequest));
 
+            var randomEncounterIndex = request.SleepPhase - 1;
             var timeout = Task.Delay(request.Timeout);
-            await WaitWhileTrue(() => !timeout.IsCompleted && (Game.Rest?.RandomEncounters.Count ?? 0) < request.SleepPhase,
-                $"Rest Random Encounter is not available yet. RequestedSleepPhase={request.SleepPhase}");
+            await WaitWhileTrue(() => !timeout.IsCompleted && (Game.Rest == null || Game.Rest.RandomEncounters.Count <= randomEncounterIndex),
+                $"Rest Random Encounter is not available yet. RequestedSleepPhase={request.SleepPhase}, RandomEncounterIndex={randomEncounterIndex}");
 
-            var encounter = Game.Rest?.RandomEncounters.ElementAt(request.SleepPhase - 1);
+            var encounter = timeout.IsCompleted ? null : Game.Rest?.RandomEncounters[randomEncounterIndex];
             var response = new RandomEncounterContextResponse
             {
                 Encounter = Mapper.Map<Networking.Messages.Contracts.NetworkRandomEncounter>(encounter)
