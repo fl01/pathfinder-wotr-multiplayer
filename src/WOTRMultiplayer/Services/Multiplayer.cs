@@ -173,17 +173,16 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public bool OnStartGameMode(GameModeType type)
+        public void OnStartGameMode(GameModeType type)
         {
             try
             {
                 if (_multiplayerActorAccessor.Current == null)
                 {
-                    return true;
+                    return;
                 }
 
-                var canContinue = _multiplayerActorAccessor.Current.OnStartGameMode(type);
-                return canContinue;
+                _multiplayerActorAccessor.Current.OnStartGameMode(type);
             }
             catch (Exception ex)
             {
@@ -192,17 +191,16 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public bool OnStopGameMode(GameModeType type)
+        public void OnStopGameMode(GameModeType type)
         {
             try
             {
                 if (_multiplayerActorAccessor.Current == null)
                 {
-                    return true;
+                    return;
                 }
 
-                var canContinue = _multiplayerActorAccessor.Current.OnStopGameMode(type);
-                return canContinue;
+                _multiplayerActorAccessor.Current.OnStopGameMode(type);
             }
             catch (Exception ex)
             {
@@ -820,16 +818,29 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                if (_multiplayerActorAccessor.Client.IsActive)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Host.OnStartRest();
+                _multiplayerActorAccessor.Current.OnStartRest();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while starting camp rest");
+                throw;
+            }
+        }
+
+        public void OnStartRestSleepPhase()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnStartRestSleepPhase();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while starting rest sleep phase");
                 throw;
             }
         }
@@ -927,7 +938,7 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Client.OnBeforeTryRollRandomEncounter();
+                _multiplayerActorAccessor.Client.OnBeforeTryRollRestRandomEncounter();
             }
             catch (Exception ex)
             {
@@ -947,7 +958,7 @@ namespace WOTRMultiplayer.Services
 
                 if (_multiplayerActorAccessor.Host.IsActive)
                 {
-                    _multiplayerActorAccessor.Host.OnAfterTryRollRandomEncounter();
+                    _multiplayerActorAccessor.Host.OnAfterTryRollRestRandomEncounter();
                     return;
                 }
 

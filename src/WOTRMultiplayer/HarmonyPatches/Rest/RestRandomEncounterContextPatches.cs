@@ -29,6 +29,19 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
             Main.Multiplayer.OnBeforeTryRollRandomEncounter();
         }
 
+        [HarmonyPatch(typeof(RestController), nameof(RestController.StartSleepPhase))]
+        [HarmonyPrefix]
+        public static void RestController_StartSleepPhase_Prefix()
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+
+            Main.Multiplayer.OnStartRestSleepPhase();
+        }
+
         [HarmonyPatch(typeof(RestController), nameof(RestController.TryRollRandomEncounter))]
         [HarmonyPostfix]
         public static void RestController_TryRollRandomEncounter_Postfix()

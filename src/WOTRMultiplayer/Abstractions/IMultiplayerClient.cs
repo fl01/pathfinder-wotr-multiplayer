@@ -16,6 +16,6 @@ namespace WOTRMultiplayer.Abstractions
 
         Action<int, int> OnCharacterOwnerChanged { get; set; }
 
-        void OnBeforeTryRollRandomEncounter();
+        void OnBeforeTryRollRestRandomEncounter();
     }
 }

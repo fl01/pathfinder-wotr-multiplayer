@@ -116,7 +116,7 @@ namespace WOTRMultiplayer.UnitTests.Services
         }
 
         [Test]
-        public void OnClientRestEnded__AddsToReadyListAndCallsGameInteractionService()
+        public void OnNotifyRestEnded__AddsToReadyListAndCallsGameInteractionService()
         {
             // Arrange
             var startUp = new NetworkGameStartUp(Guid.NewGuid().ToString());
@@ -124,16 +124,17 @@ namespace WOTRMultiplayer.UnitTests.Services
             var settings = new NetworkMultiplayerSettings() { HostPortRangeStart = 123, HostPortRangeEnd = 1234 };
             A.CallTo(() => _multiplayerSettingsProvider.GetSettings()).Returns(settings);
             _multiplayerHost.Create(gameId, startUp);
-            var handler = FakeUtils.GetNetworkReceiverHandler<ClientRestEnded>(_networkServer);
-            var message = new ClientRestEnded();
+            _multiplayerHost.Game.Rest = new NetworkRest();
+            var handler = FakeUtils.GetNetworkReceiverHandler<NotifyRestEnded>(_networkServer);
             var playerId = 123;
+            var message = new NotifyRestEnded { PlayerId = playerId };
 
             // Act
             handler.Invoke(playerId, message);
 
             // Assert
             A.CallTo(() => _gameInteractionService.UpdateStartRestButtonState(true, 1, 0)).MustHaveHappenedOnceExactly();
-            Assert.That(_multiplayerHost.Game.PlayersFinishedRest, Contains.Item(playerId));
+            Assert.That(_multiplayerHost.Game.Rest.PlayersFinishedRest, Contains.Item(playerId));
         }
 
         [Test]

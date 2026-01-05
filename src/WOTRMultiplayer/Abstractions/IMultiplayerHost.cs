@@ -33,9 +33,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnCampingUnitsRoleChanged(List<NetworkCampingRole> roles);
 
-        void OnStartRest();
-
-        void OnAfterTryRollRandomEncounter();
+        void OnAfterTryRollRestRandomEncounter();
 
         void OnMakeVendorDeal();
 

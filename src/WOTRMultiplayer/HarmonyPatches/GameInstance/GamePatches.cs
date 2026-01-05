@@ -35,13 +35,18 @@ namespace WOTRMultiplayer.HarmonyPatches.GameInstance
                 return true;
             }
 
-            var allowedToRun = Main.Multiplayer.OnStartGameMode(type);
-            if (!allowedToRun && type == GameModeType.FullScreenUi)
+            if (type == GameModeType.FullScreenUi)
             {
                 FixFullScreenUiToggle(true);
+                return false;
+            }
+            else if (type == GameModeType.EscMode)
+            {
+                return false;
             }
 
-            return allowedToRun;
+            Main.Multiplayer.OnStartGameMode(type);
+            return true;
         }
 
         [HarmonyPatch(typeof(Game), nameof(Game.StopMode))]
@@ -53,13 +58,18 @@ namespace WOTRMultiplayer.HarmonyPatches.GameInstance
                 return true;
             }
 
-            var allowedToRun = Main.Multiplayer.OnStopGameMode(type);
             if (type == GameModeType.FullScreenUi)
             {
                 FixFullScreenUiToggle(false);
+                return false;
+            }
+            else if (type == GameModeType.EscMode)
+            {
+                return false;
             }
 
-            return allowedToRun;
+            Main.Multiplayer.OnStopGameMode(type);
+            return true;
         }
 
         /// <summary>

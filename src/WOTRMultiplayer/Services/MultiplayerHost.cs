@@ -4,8 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
-using Kingmaker.Controllers.Rest;
-using Kingmaker.GameModes;
 using Kingmaker.Utility;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions;
@@ -220,6 +218,12 @@ namespace WOTRMultiplayer.Services
             if (hasSystemAnswer)
             {
                 DialogInteraction.SetDialogContinueButtonState(false);
+            }
+
+            if (Game.Dialog == null)
+            {
+                Logger.LogWarning("Showing dialog cue for not initialized dialog. Most likely it is an autosave load with autostarted dialog after rest. Reinitializing dialog...");
+                Game.Dialog = new NetworkDialog(dialogName);
             }
 
             Game.Dialog.CurrentCueName = cueName;
@@ -442,48 +446,21 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
-        public void OnStartRest()
-        {
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyRestStarted));
-            var message = new NotifyRestStarted();
-            Send(message);
-            Game.RandomEncounter = null;
-            Game.PlayersFinishedRest.Clear();
-        }
-
-        public bool OnShowRestView(RestPhase phase)
-        {
-            Logger.LogInformation("Showing rest view. Phase={Phase}", phase);
-            if (phase == RestPhase.ShowingResults)
-            {
-                var localPlayer = GetLocalPlayerId();
-                UpdateStartRestButtonAfterResults(localPlayer);
-            }
-
-            return true;
-        }
-
-        public void OnAfterTryRollRandomEncounter()
+        public void OnAfterTryRollRestRandomEncounter()
         {
             try
             {
                 var encounterContext = GameInteraction.RemoteContext?.RandomEncounter;
                 if (encounterContext == null)
                 {
-                    Logger.LogError("Random encounter rolling is finished, but context has not been recorded");
+                    Logger.LogError("Rest random encounter rolling is finished, but context has not been recorded");
                     return;
                 }
 
-                if (Game.RandomEncounter != null)
-                {
-                    Logger.LogWarning("Previous random encounter context has not been disposed correctly");
-                }
+                Game.Rest.RandomEncounters.Add(encounterContext.Recording);
+                Logger.LogInformation("Rest random encounter context has been stored. SleepPhase={SleepPhase}, Data={Data}", Game.Rest.SleepPhase, encounterContext.Recording);
 
-                Game.RandomEncounter = encounterContext.Recording;
-
-                Logger.LogInformation("Random encounter context has been stored. Data={Data}", Game.RandomEncounter);
-
-                if (Game.RandomEncounter.RandomUnitSeed.HasValue)
+                if (encounterContext.Recording.RandomUnitSeed.HasValue)
                 {
                     var settings = SettingsService.GetSettings();
                     EnsureForcePaused(WellKnownKeys.GameNotifications.ForcedPause.RestRandomEncounterLoading.Key, settings.ForcedPauseRandomEncounterTerminationDelay);
@@ -493,7 +470,7 @@ namespace WOTRMultiplayer.Services
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Unable to store random encounter context");
+                Logger.LogError(ex, "Unable to store rest random encounter context");
                 throw;
             }
         }
@@ -581,24 +558,6 @@ namespace WOTRMultiplayer.Services
 
                 return false;
             }
-        }
-
-        public bool OnStopGameMode(GameModeType type)
-        {
-            var playerId = GetLocalPlayerId();
-            var isFirstTime = UnregisterGameMode(type, playerId);
-
-            if (isFirstTime && type == GameModeType.Rest && Game.ForcedPause != null)
-            {
-                lock (ActionLock)
-                {
-                    Game.ForcedPause.ReadyPlayers.Add(playerId);
-                    GameInteraction.SetPause(true);
-                    TryEndForcedPause();
-                }
-            }
-
-            return true;
         }
 
         public void OnAutoPausedByTrapDetection()
@@ -849,19 +808,6 @@ namespace WOTRMultiplayer.Services
             return true;
         }
 
-        protected override bool OnStartGameModeInternal(GameModeType type)
-        {
-            var playerId = GetLocalPlayerId();
-            RegisterGameMode(type, playerId);
-
-            if (type == GameModeType.Rest)
-            {
-                UpdateStartRestButton();
-            }
-
-            return true;
-        }
-
         protected override DiceRollValueResponse RetrieveRoll(DiceRollValueRequest rollRequest)
         {
             // the only case when host is retrieving rolls - he is not the turn owner + it's not AI turn
@@ -998,6 +944,37 @@ namespace WOTRMultiplayer.Services
             _networkServer.SendAllExcept(senderPlayerId, message);
         }
 
+        protected override void OnLocalRestGameModeEnded()
+        {
+            base.OnLocalRestGameModeEnded();
+
+            Game.ForcedPause.ReadyPlayers.Add(Game.LocalPlayerId);
+            TryEndForcedPause();
+        }
+
+        protected override void OnRemoteRestGameModeEnded(long playerId)
+        {
+            base.OnRemoteRestGameModeEnded(playerId);
+
+            if (Game.ForcedPause != null)
+            {
+                lock (ActionLock)
+                {
+                    Game.ForcedPause.ReadyPlayers.Add(playerId);
+                    TryEndForcedPause();
+                }
+            }
+        }
+
+        protected override void OnLocalRestStarted()
+        {
+            base.OnLocalRestStarted();
+
+            var message = new NotifyRestStarted();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyRestStarted));
+            Send(message);
+        }
+
         protected override void SetupNetworkMessageHandlers()
         {
             _networkServer.OnClientConnected = OnPlayerConnected;
@@ -1021,15 +998,8 @@ namespace WOTRMultiplayer.Services
                // area transitioning
                .On<ClientAreaLoaded>(OnClientAreaLoaded)
 
-               // game modes
-               .On<ClientGameModeTypeStarted>(OnClientGameModeTypeStarted)
-               .On<ClientGameModeTypeEnded>(OnClientGameModeTypeEnded)
-
                // leveling
                .On<ClientCharacterLevelingRequested>(OnClientCharacterLevelingRequested)
-
-               // rest
-               .On<ClientRestEnded>(OnClientRestEnded)
 
                // combat
                .On<ClientCombatInitialized>(OnClientCombatInitialized)
@@ -1141,64 +1111,18 @@ namespace WOTRMultiplayer.Services
             Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}", nameof(RandomEncounterContextRequest));
 
             var timeout = Task.Delay(request.Timeout);
-            while (!timeout.IsCompleted && Game.RandomEncounter == null)
-            {
-                await Task.Delay(TimeSpan.FromMilliseconds(10));
-            }
+            await WaitWhileTrue(() => !timeout.IsCompleted && (Game.Rest?.RandomEncounters.Count ?? 0) < request.SleepPhase,
+                $"Rest Random Encounter is not available yet. RequestedSleepPhase={request.SleepPhase}");
 
+            var encounter = Game.Rest?.RandomEncounters.ElementAt(request.SleepPhase - 1);
             var response = new RandomEncounterContextResponse
             {
-                Encounter = Mapper.Map<Networking.Messages.Contracts.NetworkRandomEncounter>(Game.RandomEncounter)
+                Encounter = Mapper.Map<Networking.Messages.Contracts.NetworkRandomEncounter>(encounter)
             };
 
             Logger.LogInformation("Sending {MessageType}. IsAvailable={IsAvailable}", response.Encounter != null);
 
             Send(playerId, response);
-        }
-
-        private void OnClientRestEnded(long playerId, ClientRestEnded ended)
-        {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}", nameof(ClientRestEnded), playerId);
-
-            UpdateStartRestButtonAfterResults(playerId);
-        }
-
-        private void OnClientGameModeTypeEnded(long playerId, ClientGameModeTypeEnded gameModeTypeEnded)
-        {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, Name={Name}", nameof(ClientGameModeTypeEnded), playerId, gameModeTypeEnded.Name);
-            var gameMode = GameModeType.All.FirstOrDefault(g => string.Equals(g.Name, gameModeTypeEnded.Name, StringComparison.OrdinalIgnoreCase));
-            UnregisterGameMode(gameMode, playerId);
-            if (gameMode == GameModeType.Rest)
-            {
-                UpdateStartRestButton();
-
-                if (Game.ForcedPause != null)
-                {
-                    lock (ActionLock)
-                    {
-                        Game.ForcedPause.ReadyPlayers.Add(playerId);
-                        TryEndForcedPause();
-                    }
-                }
-            }
-        }
-
-        private void OnClientGameModeTypeStarted(long playerId, ClientGameModeTypeStarted gameModeTypeStarted)
-        {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, Name={Name}", nameof(ClientGameModeTypeStarted), playerId, gameModeTypeStarted.Name);
-            var gameMode = GameModeType.All.FirstOrDefault(g => string.Equals(g.Name, gameModeTypeStarted.Name, StringComparison.OrdinalIgnoreCase));
-            RegisterGameMode(gameMode, playerId);
-            if (gameMode == GameModeType.Rest)
-            {
-                UpdateStartRestButton();
-            }
-            else if (gameMode == GameModeType.Pause && Game.ForcedPause != null)
-            {
-                lock (ActionLock)
-                {
-                    Game.ForcedPause.ReadyPlayers.Add(playerId);
-                }
-            }
         }
 
         private void OnClientCombatTurnSynchronized(long playerId, ClientCombatTurnSynchronized synchronized)
@@ -1540,8 +1464,14 @@ namespace WOTRMultiplayer.Services
                 _networkServer.SendAllExcept(playerId, playersChanged);
                 ShowPlayerDisconnectedMessage(removedPlayer);
 
-                UpdateStartRestButton();
-                UpdateStartRestButtonAfterResults(playerId);
+                UpdateRestUIState();
+
+                if (Game.Rest != null)
+                {
+                    RemovePlayerFromTracker(Game.Rest.PlayersFinishedRest, removedPlayer.Id);
+                    UpdateRestResultsUIState();
+                }
+
                 TryEnableDialogContinueButton();
 
                 RemovePlayerFromTracker(Game.PlayersInSkipTime, removedPlayer.Id);
@@ -1783,30 +1713,6 @@ namespace WOTRMultiplayer.Services
             };
 
             return charactersOwnerChanged;
-        }
-
-        private void UpdateStartRestButtonAfterResults(long player)
-        {
-            lock (ActionLock)
-            {
-                Game.PlayersFinishedRest.Add(player);
-                var readyPlayersCount = Game.PlayersFinishedRest.Count;
-                UpdateStartRestButton(readyPlayersCount);
-            }
-        }
-
-        private void UpdateStartRestButton()
-        {
-            Game.PlayersInGameMode.TryGetValue(GameModeType.Rest, out var readyPlayers);
-            var readyPlayersCount = (readyPlayers ?? []).Count;
-            UpdateStartRestButton(readyPlayersCount);
-        }
-
-        private void UpdateStartRestButton(int readyPlayersCount)
-        {
-            var totalPlayersCount = GetSyncedPlayersCount();
-            var isInteractable = readyPlayersCount >= totalPlayersCount;
-            GameInteraction.UpdateStartRestButtonState(isInteractable, readyPlayersCount, totalPlayersCount);
         }
 
         private void ShowForcedPauseReason()

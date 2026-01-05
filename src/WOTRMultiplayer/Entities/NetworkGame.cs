@@ -33,13 +33,11 @@ namespace WOTRMultiplayer.Entities
 
         public NetworkForcedPause ForcedPause { get; set; }
 
-        public NetworkRandomEncounter RandomEncounter { get; set; }
+        public NetworkRest Rest { get; set; }
 
         public NetworkLeveling Leveling { get; set; }
 
         public ConcurrentDictionary<GameModeType, HashSet<long>> PlayersInGameMode { get; set; } = [];
-
-        public HashSet<long> PlayersFinishedRest { get; set; } = [];
 
         public HashSet<long> PlayersInGroupChanger { get; set; } = [];
 

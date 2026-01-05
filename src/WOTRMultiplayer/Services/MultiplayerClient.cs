@@ -5,8 +5,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using AutoMapper;
-using Kingmaker.Controllers.Rest;
-using Kingmaker.GameModes;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.GameInteraction;
@@ -206,26 +204,14 @@ namespace WOTRMultiplayer.Services
             return !IsRolledByHost() && IsRolledByLocalPlayer();
         }
 
-        public bool OnShowRestView(RestPhase phase)
-        {
-            Logger.LogInformation("Showing rest view. Phase={phase}", phase);
-            if (phase == RestPhase.ShowingResults)
-            {
-                var message = new ClientRestEnded();
-                Send(message);
-            }
-
-            return false;
-        }
-
-        public void OnBeforeTryRollRandomEncounter()
+        public void OnBeforeTryRollRestRandomEncounter()
         {
             try
             {
-                Logger.LogInformation("Retrieving random encounter context");
+                Logger.LogInformation("Retrieving rest random encounter context. SleepPhase={SleepPhase}", Game.Rest.SleepPhase);
 
                 var settings = SettingsService.GetSettings();
-                var message = new RandomEncounterContextRequest { Timeout = settings.RestEncounterSyncTimeout };
+                var message = new RandomEncounterContextRequest { SleepPhase = Game.Rest.SleepPhase, Timeout = settings.RestEncounterSyncTimeout };
                 var response = _networkClient.SendAndWaitFor<RandomEncounterContextResponse>(message);
 
                 if (response?.Encounter == null)
@@ -239,7 +225,7 @@ namespace WOTRMultiplayer.Services
                     PreRecorded = Mapper.Map<NetworkRandomEncounter>(response.Encounter)
                 };
 
-                Logger.LogInformation("Random encounter context has been retrieved. Data={encounter}", context.PreRecorded);
+                Logger.LogInformation("Rest random encounter context has been retrieved. SleepPhase={SleepPhase}, Data={Data}", Game.Rest.SleepPhase, context.PreRecorded);
 
                 GameInteraction.SetRandomEncounterContext(context);
 
@@ -251,7 +237,7 @@ namespace WOTRMultiplayer.Services
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Unable to retrieve random encounter context");
+                Logger.LogError(ex, "Unable to retrieve rest random encounter context");
                 throw;
             }
         }
@@ -340,25 +326,6 @@ namespace WOTRMultiplayer.Services
             EnsureForcePaused(reason: null, removalDelay: null);
         }
 
-        public bool OnStopGameMode(GameModeType type)
-        {
-            var playerId = GetLocalPlayerId();
-            var isFirstTime = UnregisterGameMode(type, playerId);
-            if (isFirstTime)
-            {
-                var message = new ClientGameModeTypeEnded { Name = type.Name };
-                Logger.LogInformation("Sending {MessageType}. Name={Name}", nameof(ClientGameModeTypeEnded), message.Name);
-                Send(message);
-
-                if (type == GameModeType.Rest && Game.ForcedPause != null)
-                {
-                    GameInteraction.SetPause(true);
-                }
-            }
-
-            return true;
-        }
-
         public bool OnClickGroupChangerUnit(string unitId)
         {
             // client is not allowed to move characters (no restrictions, just to avoid implementing extra synchronization)
@@ -393,21 +360,6 @@ namespace WOTRMultiplayer.Services
             Send(message);
 
             return false;
-        }
-
-        protected override bool OnStartGameModeInternal(GameModeType type)
-        {
-            var playerId = GetLocalPlayerId();
-            var isFirstTime = RegisterGameMode(type, playerId);
-            if (!isFirstTime)
-            {
-                return true;
-            }
-
-            var message = new ClientGameModeTypeStarted { Name = type.Name };
-            Logger.LogInformation("Sending {MessageType}. Name={Name}", nameof(ClientGameModeTypeStarted), message.Name);
-            Send(message);
-            return true;
         }
 
         protected override DiceRollValueResponse RetrieveRoll(DiceRollValueRequest rollRequest)

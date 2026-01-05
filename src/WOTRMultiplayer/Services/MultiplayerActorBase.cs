@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AutoMapper;
+using Kingmaker.Controllers.Rest;
 using Kingmaker.GameModes;
 using Microsoft.Extensions.Logging;
 using UniRx;
@@ -617,15 +618,80 @@ namespace WOTRMultiplayer.Services
             return owner?.Owner?.Name;
         }
 
-        public bool OnStartGameMode(GameModeType type)
+        public void OnStartGameMode(GameModeType type)
         {
-            if (!IsGameModeAllowedToRun(type))
+            var playerId = GetLocalPlayerId();
+            var isFirstTime = RegisterGameMode(type, playerId);
+            if (!isFirstTime)
             {
-                return false;
+                return;
             }
 
-            var canRun = OnStartGameModeInternal(type);
-            return canRun;
+            if (type == GameModeType.Rest)
+            {
+                UpdateRestUIState();
+            }
+
+            var message = new NotifyGameModeTypeStarted { PlayerId = playerId, Type = type.Name };
+            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, Type={Type}", nameof(NotifyGameModeTypeStarted), message.PlayerId, message.Type);
+            Send(message);
+        }
+
+        public void OnStopGameMode(GameModeType type)
+        {
+            var playerId = GetLocalPlayerId();
+            var isFirstTime = UnregisterGameMode(type, playerId);
+            if (!isFirstTime)
+            {
+                return;
+            }
+
+            if (type == GameModeType.Rest && Game.ForcedPause != null)
+            {
+                lock (ActionLock)
+                {
+                    OnLocalRestGameModeEnded();
+                }
+            }
+
+            var message = new NotifyGameModeTypeEnded { PlayerId = playerId, Type = type.Name };
+            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, Type={Type}", nameof(NotifyGameModeTypeEnded), message.PlayerId, message.Type);
+            Send(message);
+        }
+
+        public void OnStartRest()
+        {
+            Game.Rest = new NetworkRest();
+
+            OnLocalRestStarted();
+        }
+
+        public void OnStartRestSleepPhase()
+        {
+            lock (ActionLock)
+            {
+                Game.Rest.SleepPhase++;
+                Logger.LogInformation("Rest sleep phase has been updated. SleepPhase={SleepPhase}", Game.Rest.SleepPhase);
+            }
+        }
+
+        public void OnShowRestView(RestPhase phase)
+        {
+            if (phase != RestPhase.ShowingResults)
+            {
+                return;
+            }
+
+            var localPlayer = GetLocalPlayerId();
+            lock (ActionLock)
+            {
+                AddPlayerToTracker(Game.Rest.PlayersFinishedRest, localPlayer);
+                UpdateRestResultsUIState();
+            }
+
+            var message = new NotifyRestEnded { PlayerId = localPlayer };
+            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyRestEnded), message.PlayerId);
+            Send(message);
         }
 
         public void OnInterrupRestBanterBark(NetworkRestBanter networkBanter)
@@ -1642,8 +1708,6 @@ namespace WOTRMultiplayer.Services
             return ReadyChanged(player, !player.IsReady);
         }
 
-        protected abstract bool OnStartGameModeInternal(GameModeType type);
-
         protected abstract DiceRollValueResponse RetrieveRoll(DiceRollValueRequest rollRequest);
 
         protected abstract void OnLocalPlayerTurnStart();
@@ -1651,6 +1715,33 @@ namespace WOTRMultiplayer.Services
         protected abstract void Send(object message);
 
         protected abstract void Send(long playerId, object message);
+
+        protected virtual void OnLocalRestGameModeEnded()
+        {
+            GameInteraction.SetPause(true);
+        }
+
+        protected virtual void OnRemoteRestGameModeEnded(long playerId)
+        {
+            UpdateRestUIState();
+        }
+
+        protected virtual void OnRemoteRestGameModeStarted(long playerId)
+        {
+            UpdateRestUIState();
+        }
+
+        protected virtual void OnRemotePauseGameModeStarted(long playerId)
+        {
+            lock (ActionLock)
+            {
+                Game.ForcedPause?.ReadyPlayers.Add(playerId);
+            }
+        }
+
+        protected virtual void OnLocalRestStarted()
+        {
+        }
 
         protected void InitiateLeveling(string unitId, NetworkLevelingType levelingType)
         {
@@ -1758,6 +1849,28 @@ namespace WOTRMultiplayer.Services
                 var totalPlayers = GetSyncedPlayersCount();
                 var canUse = HasControlOverUI && readyPlayers >= totalPlayers;
                 GameInteraction.UpdateCharacterSelectionUI(canUse, readyPlayers, totalPlayers);
+            }
+        }
+
+        protected void UpdateRestUIState()
+        {
+            lock (ActionLock)
+            {
+                Game.PlayersInGameMode.TryGetValue(GameModeType.Rest, out var readyPlayers);
+                var totalPlayers = GetSyncedPlayersCount();
+                var canUse = HasControlOverUI && readyPlayers.Count >= totalPlayers;
+                GameInteraction.UpdateStartRestButtonState(canUse, readyPlayers.Count, totalPlayers);
+            }
+        }
+
+        protected void UpdateRestResultsUIState()
+        {
+            lock (ActionLock)
+            {
+                var readyPlayers = Game.Rest.PlayersFinishedRest.Count;
+                var totalPlayers = GetSyncedPlayersCount();
+                var canUse = HasControlOverUI && readyPlayers >= totalPlayers;
+                GameInteraction.UpdateStartRestButtonState(canUse, readyPlayers, totalPlayers);
             }
         }
 
@@ -2405,6 +2518,7 @@ namespace WOTRMultiplayer.Services
 
                 // rest
                 .On<NotifyRestBanterInterrupted>(OnNotifyRestBanterInterrupted)
+                .On<NotifyRestEnded>(OnNotifyRestEnded)
 
                 // combat
                 .On<NotifyUnitJoinedMidCombat>(OnNotifyUnitJoinedMidCombat)
@@ -2462,7 +2576,52 @@ namespace WOTRMultiplayer.Services
 
                 // dialogs
                 .On<NotifyDialogPopupShown>(OnNotifyDialogPopupShown)
+
+                // game modes
+                .On<NotifyGameModeTypeStarted>(OnNotifyGameModeTypeStarted)
+                .On<NotifyGameModeTypeEnded>(OnNotifyGameModeTypeEnded)
                 ;
+        }
+
+        private void OnNotifyRestEnded(long receivedFrom, NotifyRestEnded restEnded)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyRestEnded), receivedFrom, restEnded.PlayerId);
+            AddPlayerToTracker(Game.Rest.PlayersFinishedRest, restEnded.PlayerId);
+
+            UpdateRestResultsUIState();
+
+            OnAfterNetworkMessageHandled(receivedFrom, restEnded);
+        }
+
+        private void OnNotifyGameModeTypeEnded(long receivedFrom, NotifyGameModeTypeEnded gameModeTypeEnded)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, Type={Type}", nameof(NotifyGameModeTypeEnded), receivedFrom, gameModeTypeEnded.PlayerId, gameModeTypeEnded.Type);
+            var gameMode = GameModeType.All.FirstOrDefault(g => string.Equals(g.Name, gameModeTypeEnded.Type, StringComparison.OrdinalIgnoreCase));
+            UnregisterGameMode(gameMode, receivedFrom);
+            if (gameMode == GameModeType.Rest)
+            {
+                OnRemoteRestGameModeEnded(receivedFrom);
+            }
+
+            OnAfterNetworkMessageHandled(receivedFrom, gameModeTypeEnded);
+        }
+
+        private void OnNotifyGameModeTypeStarted(long receivedFrom, NotifyGameModeTypeStarted gameModeTypeStarted)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, Name={Name}", nameof(NotifyGameModeTypeStarted), receivedFrom, gameModeTypeStarted.PlayerId, gameModeTypeStarted.Type);
+            var gameMode = GameModeType.All.FirstOrDefault(g => string.Equals(g.Name, gameModeTypeStarted.Type, StringComparison.OrdinalIgnoreCase));
+            RegisterGameMode(gameMode, receivedFrom);
+
+            if (gameMode == GameModeType.Rest)
+            {
+                OnRemoteRestGameModeStarted(receivedFrom);
+            }
+            else if (gameMode == GameModeType.Pause)
+            {
+                OnRemotePauseGameModeStarted(receivedFrom);
+            }
+
+            OnAfterNetworkMessageHandled(receivedFrom, gameModeTypeStarted);
         }
 
         private void OnNotifyGameForceLoaded(long playerId, NotifyGameForceLoaded gameForceLoaded)

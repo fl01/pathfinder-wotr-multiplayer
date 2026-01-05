@@ -11,6 +11,9 @@ namespace WOTRMultiplayer.Networking.Messages.Requests
         [ProtoMember(1)]
         public TimeSpan Timeout { get; set; }
 
+        [ProtoMember(2)]
+        public int SleepPhase { get; set; }
+
         public string GetKey()
         {
             return typeof(RandomEncounterContextResponse).Name;

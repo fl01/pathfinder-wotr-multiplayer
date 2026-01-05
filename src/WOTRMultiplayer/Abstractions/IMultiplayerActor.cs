@@ -119,11 +119,11 @@ namespace WOTRMultiplayer.Abstractions
 
         string GetMultiplayerOwnerName(string unitId);
 
-        bool OnStartGameMode(GameModeType type);
+        void OnStartGameMode(GameModeType type);
 
-        bool OnStopGameMode(GameModeType type);
+        void OnStopGameMode(GameModeType type);
 
-        bool OnShowRestView(RestPhase phase);
+        void OnShowRestView(RestPhase phase);
 
         void OnInterrupRestBanterBark(NetworkRestBanter networkBanter);
 
@@ -276,5 +276,9 @@ namespace WOTRMultiplayer.Abstractions
         bool CanMakeNewGameSequenceDecisions();
 
         bool OnCreateAndEquipPolymorphInSlot(NetworkPolymorphicItem polymorphicItem);
+
+        void OnStartRest();
+
+        void OnStartRestSleepPhase();
     }
 }

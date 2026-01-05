@@ -38,9 +38,9 @@ namespace WOTRMultiplayer.Abstractions
 
         void MoveNonCombatCharacter(NetworkCharacterMove networkCharacterMove);
 
-        bool OnStartGameMode(GameModeType type);
+        void OnStartGameMode(GameModeType type);
 
-        bool OnStopGameMode(GameModeType type);
+        void OnStopGameMode(GameModeType type);
 
         bool CanLeaveArea();
 
@@ -109,6 +109,8 @@ namespace WOTRMultiplayer.Abstractions
         void OnCampingUnitsRoleChanged(List<NetworkCampingRole> networkCampingRoles);
 
         void OnStartRest();
+
+        void OnStartRestSleepPhase();
 
         bool CanUseCampingUI();
 
