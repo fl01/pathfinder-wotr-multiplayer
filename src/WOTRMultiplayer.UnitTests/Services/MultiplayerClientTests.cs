@@ -14,7 +14,6 @@ using WOTRMultiplayer.Config.Mapping;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Rolls.Claiming.Values;
-using WOTRMultiplayer.Networking;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
