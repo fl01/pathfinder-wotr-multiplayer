@@ -948,8 +948,11 @@ namespace WOTRMultiplayer.Services
         {
             base.OnLocalRestGameModeEnded();
 
-            Game.ForcedPause.ReadyPlayers.Add(Game.LocalPlayerId);
-            TryEndForcedPause();
+            if (Game.ForcedPause != null)
+            {
+                Game.ForcedPause.ReadyPlayers.Add(Game.LocalPlayerId);
+                TryEndForcedPause();
+            }
         }
 
         protected override void OnRemoteRestGameModeEnded(long playerId)

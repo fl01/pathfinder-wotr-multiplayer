@@ -646,7 +646,7 @@ namespace WOTRMultiplayer.Services
                 return;
             }
 
-            if (type == GameModeType.Rest && Game.ForcedPause != null)
+            if (type == GameModeType.Rest)
             {
                 lock (ActionLock)
                 {
@@ -1718,7 +1718,10 @@ namespace WOTRMultiplayer.Services
 
         protected virtual void OnLocalRestGameModeEnded()
         {
-            GameInteraction.SetPause(true);
+            if (Game.ForcedPause != null)
+            {
+                GameInteraction.SetPause(true);
+            }
         }
 
         protected virtual void OnRemoteRestGameModeEnded(long playerId)
