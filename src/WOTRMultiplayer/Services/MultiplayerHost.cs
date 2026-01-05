@@ -1010,9 +1010,9 @@ namespace WOTRMultiplayer.Services
                .On<ClientCombatTurnSynchronized>(OnClientCombatTurnSynchronized)
 
                // dialogs
-               .On<DialogCueAnswerSuggested>(OnDialogCueAnswerSuggested)
+               .On<ClientDialogCueAnswerSuggested>(OnClientDialogCueAnswerSuggested)
                .On<ClientDialogStartRequested>(OnClientDialogStartRequested)
-               .On<CueWitnessed>(OnCueWitnessed)
+               .On<ClientDialogCueWitnessed>(OnClientDialogCueWitnessed)
 
                // pause
                .On<ClientGameAutoPaused>(OnClientGameAutoPaused)
@@ -1182,31 +1182,31 @@ namespace WOTRMultiplayer.Services
             _networkServer.SendAll(message);
         }
 
-        private void OnDialogCueAnswerSuggested(long playerId, DialogCueAnswerSuggested suggested)
+        private void OnClientDialogCueAnswerSuggested(long playerId, ClientDialogCueAnswerSuggested clientDialogCueAnswerSuggested)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, DialogName={DialogName}, CueName={CueName}, AnswerName={AnswerName}", nameof(DialogCueAnswerSuggested), playerId, suggested.DialogName, suggested.CueName, suggested.AnswerName);
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, DialogName={DialogName}, CueName={CueName}, AnswerName={AnswerName}", nameof(ClientDialogCueAnswerSuggested), playerId, clientDialogCueAnswerSuggested.DialogName, clientDialogCueAnswerSuggested.CueName, clientDialogCueAnswerSuggested.AnswerName);
 
             if (Game.Dialog == null)
             {
-                Logger.LogError("Received dialog answer suggestion, but there is no active dialog right now. SuggestedDialogName={SuggestedDialogName}, SuggestedCueName={SuggestedCueName}, SuggestedAnswer={SuggestedAnswer}", suggested.DialogName, suggested.CueName, suggested.AnswerName);
+                Logger.LogError("Received dialog answer suggestion, but there is no active dialog right now. SuggestedDialogName={SuggestedDialogName}, SuggestedCueName={SuggestedCueName}, SuggestedAnswer={SuggestedAnswer}", clientDialogCueAnswerSuggested.DialogName, clientDialogCueAnswerSuggested.CueName, clientDialogCueAnswerSuggested.AnswerName);
                 return;
             }
 
-            if (!string.Equals(Game.Dialog.Name, suggested.DialogName, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(Game.Dialog.Name, clientDialogCueAnswerSuggested.DialogName, StringComparison.OrdinalIgnoreCase))
             {
-                Logger.LogError("Dialog suggestion has mismatched dialog name. SuggestedDialogName={SuggestedDialogName}, CurrentDialogName={CurrentDialogName}", suggested.DialogName, Game.Dialog.Name);
+                Logger.LogError("Dialog suggestion has mismatched dialog name. SuggestedDialogName={SuggestedDialogName}, CurrentDialogName={CurrentDialogName}", clientDialogCueAnswerSuggested.DialogName, Game.Dialog.Name);
                 return;
             }
 
-            if (!string.Equals(Game.Dialog.CurrentCueName, suggested.CueName, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(Game.Dialog.CurrentCueName, clientDialogCueAnswerSuggested.CueName, StringComparison.OrdinalIgnoreCase))
             {
-                Logger.LogError("Dialog suggestion has mismatched cue name. SuggestedCueName={SuggestedCueName}, CurrentCueName={CurrentCueName}", suggested.CueName, Game.Dialog.CurrentCueName);
+                Logger.LogError("Dialog suggestion has mismatched cue name. SuggestedCueName={SuggestedCueName}, CurrentCueName={CurrentCueName}", clientDialogCueAnswerSuggested.CueName, Game.Dialog.CurrentCueName);
                 return;
             }
 
-            Game.Dialog.AnswerSuggestions.AddOrUpdate(playerId, suggested.AnswerName, (key, existing) =>
+            Game.Dialog.AnswerSuggestions.AddOrUpdate(playerId, clientDialogCueAnswerSuggested.AnswerName, (key, existing) =>
             {
-                return suggested.AnswerName;
+                return clientDialogCueAnswerSuggested.AnswerName;
             });
 
             List<NetworkDialogAnswerSuggestion> suggestions = [.. Game.Dialog.AnswerSuggestions.GroupBy(x => x.Value, x => x.Key).Select(x => new NetworkDialogAnswerSuggestion { AnswerName = x.Key, Players = [.. x] })];
@@ -1214,29 +1214,29 @@ namespace WOTRMultiplayer.Services
 
             var notifyMessage = new NotifyDialogCueAnswerSuggested
             {
-                DialogName = suggested.DialogName,
-                CueName = suggested.CueName,
+                DialogName = clientDialogCueAnswerSuggested.DialogName,
+                CueName = clientDialogCueAnswerSuggested.CueName,
                 Suggestions = Mapper.Map<List<Networking.Messages.Contracts.NetworkDialogAnswerSuggestion>>(suggestions),
             };
             _networkServer.SendAll(notifyMessage);
         }
 
-        private void OnCueWitnessed(long playerId, CueWitnessed witnessed)
+        private void OnClientDialogCueWitnessed(long playerId, ClientDialogCueWitnessed clientDialogCueWitnessed)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, DialogName={DialogName}, CueName={CueName}", nameof(CueWitnessed), playerId, witnessed.DialogName, witnessed.CueName);
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, DialogName={DialogName}, CueName={CueName}", nameof(ClientDialogCueWitnessed), playerId, clientDialogCueWitnessed.DialogName, clientDialogCueWitnessed.CueName);
             if (Game.Dialog == null)
             {
-                Logger.LogError("Received cue witness, but there is no active dialog right now. WitnessedDialogName={WitnessedDialogName}, WitnessedCueName={WitnessedCueName}", witnessed.DialogName, witnessed.CueName);
+                Logger.LogError("Received cue witness, but there is no active dialog right now. WitnessedDialogName={WitnessedDialogName}, WitnessedCueName={WitnessedCueName}", clientDialogCueWitnessed.DialogName, clientDialogCueWitnessed.CueName);
                 return;
             }
 
-            if (!string.Equals(Game.Dialog.Name, witnessed.DialogName, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(Game.Dialog.Name, clientDialogCueWitnessed.DialogName, StringComparison.OrdinalIgnoreCase))
             {
-                Logger.LogError("Cue witness has mismatched dialog. WitnessedDialogName={WitnessedDialogName}, CurrentDialogName={CurrentDialogName}", witnessed.DialogName, Game.Dialog.Name);
+                Logger.LogError("Cue witness has mismatched dialog. WitnessedDialogName={WitnessedDialogName}, CurrentDialogName={CurrentDialogName}", clientDialogCueWitnessed.DialogName, Game.Dialog.Name);
                 return;
             }
 
-            AddCueWitness(witnessed.CueName, playerId);
+            AddCueWitness(clientDialogCueWitnessed.CueName, playerId);
             TryEnableDialogContinueButton();
         }
 

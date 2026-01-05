@@ -3,8 +3,8 @@
 namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
-    [BeetleX.Packets.MessageType((int)MessageTypes.Game.DialogCueAnswerSuggested)]
-    public class DialogCueAnswerSuggested
+    [BeetleX.Packets.MessageType((int)MessageTypes.Game.ClientDialogCueAnswerSuggested)]
+    public class ClientDialogCueAnswerSuggested
     {
         [ProtoMember(1)]
         public string CueName { get; set; }

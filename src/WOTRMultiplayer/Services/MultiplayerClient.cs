@@ -115,6 +115,7 @@ namespace WOTRMultiplayer.Services
         public void OnAreaLoadingComplete()
         {
             var message = new ClientAreaLoaded();
+            Logger.LogInformation("Sending {MessageType}", nameof(ClientAreaLoaded));
             Send(message);
         }
 
@@ -129,7 +130,8 @@ namespace WOTRMultiplayer.Services
             Game.Dialog.CurrentCueName = cueName;
             Game.Dialog.Answer = null;
 
-            var message = new CueWitnessed { CueName = cueName, DialogName = dialogName };
+            var message = new ClientDialogCueWitnessed { CueName = cueName, DialogName = dialogName };
+            Logger.LogInformation("Sending {MessageType}. DialogName={DialogName}, CueName={CueName}", nameof(ClientDialogCueWitnessed), message.DialogName, message.CueName);
             Send(message);
         }
 
@@ -158,8 +160,8 @@ namespace WOTRMultiplayer.Services
                 return true;
             }
 
-            var message = new DialogCueAnswerSuggested { DialogName = dialogName, CueName = cueName, AnswerName = answerName };
-            Logger.LogInformation("Sending dialog answer suggestion. DialogName={DialogName}, CueName={CueName}, AnswerName={AnswerName}", message.DialogName, message.CueName, message.AnswerName);
+            var message = new ClientDialogCueAnswerSuggested { DialogName = dialogName, CueName = cueName, AnswerName = answerName };
+            Logger.LogInformation("Sending {MessageType}. DialogName={DialogName}, CueName={CueName}, AnswerName={AnswerName}", nameof(ClientDialogCueAnswerSuggested), message.DialogName, message.CueName, message.AnswerName);
             Send(message);
             Game.Dialog.IsSelectingAnswer = true;
             return false;
