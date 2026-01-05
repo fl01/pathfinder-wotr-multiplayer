@@ -1,6 +1,4 @@
-﻿using BeetleX.Clients;
-
-namespace WOTRMultiplayer.Networking.Abstractions
+﻿namespace WOTRMultiplayer.Networking.Abstractions
 {
     public interface ITcpClientFactory
     {

@@ -9,7 +9,6 @@ using Kingmaker.UnitLogic.Parts;
 using Kingmaker.View;
 using Microsoft.Extensions.Logging;
 using UnityEngine;
-using WOTRMultiplayer.HarmonyPatches.Combat;
 
 namespace WOTRMultiplayer.HarmonyPatches
 {

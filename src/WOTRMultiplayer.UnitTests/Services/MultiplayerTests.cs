@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using FakeItEasy;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Kingmaker.EntitySystem.Persistence;
 using Kingmaker.GameModes;
 using Kingmaker.Items.Slots;
 using WOTRMultiplayer.Abstractions.Random;

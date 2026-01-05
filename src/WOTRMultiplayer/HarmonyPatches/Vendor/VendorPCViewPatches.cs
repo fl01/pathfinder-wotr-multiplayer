@@ -9,7 +9,6 @@ using Kingmaker.UI.MVVM._PCView.Vendor;
 using Kingmaker.UI.MVVM._VM.Vendor;
 using Microsoft.Extensions.Logging;
 using UniRx;
-using WOTRMultiplayer.HarmonyPatches.Combat;
 
 namespace WOTRMultiplayer.HarmonyPatches.Vendor
 {

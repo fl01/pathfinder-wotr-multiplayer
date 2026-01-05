@@ -1,6 +1,4 @@
-﻿using WOTRMultiplayer.Entities;
-
-namespace WOTRMultiplayer.Entities.Movement
+﻿namespace WOTRMultiplayer.Entities.Movement
 {
     public class NetworkCharacterMove
     {

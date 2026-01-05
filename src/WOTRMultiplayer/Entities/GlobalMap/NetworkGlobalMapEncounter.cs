@@ -1,6 +1,4 @@
-﻿using WOTRMultiplayer.Entities;
-
-namespace WOTRMultiplayer.Entities.GlobalMap
+﻿namespace WOTRMultiplayer.Entities.GlobalMap
 {
     public class NetworkGlobalMapEncounter
     {

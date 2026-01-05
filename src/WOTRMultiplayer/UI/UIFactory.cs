@@ -6,7 +6,6 @@ using Kingmaker.Localization;
 using Kingmaker.Settings;
 using Kingmaker.UI;
 using Kingmaker.UI.Common;
-using Kingmaker.UI.MVVM._PCView.Common;
 using Kingmaker.UI.MVVM._PCView.ContextMenu;
 using Kingmaker.UI.MVVM._PCView.EscMenu;
 using Kingmaker.UI.MVVM._PCView.SaveLoad;

@@ -9,7 +9,6 @@ using Owlcat.Runtime.UI.Tooltips;
 using TMPro;
 using UniRx;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.UI;
 using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Abstractions.UI;

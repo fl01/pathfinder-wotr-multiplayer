@@ -3,7 +3,6 @@ using Kingmaker.UI.MVVM._PCView.EscMenu;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
 using UnityEngine;
-using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.UI;
 
 namespace WOTRMultiplayer.HarmonyPatches.MenuPatches

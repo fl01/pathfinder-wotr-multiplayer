@@ -1,6 +1,4 @@
-﻿using Kingmaker.GameModes;
-
-namespace WOTRMultiplayer.Abstractions
+﻿namespace WOTRMultiplayer.Abstractions
 {
     public interface IMultiplayerActorAccessor
     {

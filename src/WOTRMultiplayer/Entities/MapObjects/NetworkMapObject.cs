@@ -1,6 +1,4 @@
-﻿using WOTRMultiplayer.Entities;
-
-namespace WOTRMultiplayer.Entities.MapObjects
+﻿namespace WOTRMultiplayer.Entities.MapObjects
 {
     public class NetworkMapObject
     {

@@ -1,6 +1,4 @@
-﻿using WOTRMultiplayer.Entities;
-
-namespace WOTRMultiplayer.Entities.Units
+﻿namespace WOTRMultiplayer.Entities.Units
 {
     public class NetworkUnit
     {

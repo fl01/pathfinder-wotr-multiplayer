@@ -36,7 +36,7 @@ namespace WOTRMultiplayer
 
         public static ILogger<T> GetLogger<T>()
         {
-            return _serviceProvider.GetService<ILogger<T>>();
+            return _serviceProvider.GetRequiredService<ILogger<T>>();
         }
 
         public static bool AddUnitIdToOvertip => _settings.AddUnitIdToOvertip;
@@ -45,15 +45,11 @@ namespace WOTRMultiplayer
         {
             try
             {
-                _settings = UnityModManager.ModSettings.Load<UnityModManagerSettings>(entry);
-                _serviceProvider = DIFactory.Create(_settings);
-                _logger = _serviceProvider.GetService<ILogger<Main>>();
-                Subscribe();
+                _logger = _serviceProvider.GetRequiredService<ILogger<Main>>();
             }
             catch (Exception ex)
             {
-                // something when wrong and our logger is not available here
-                entry.Logger.Error($"Unable to initialize mod. Error={ex}");
+                entry.Logger.Error($"Unable to initialize logger. Error={ex}");
                 throw;
             }
 
@@ -61,12 +57,17 @@ namespace WOTRMultiplayer
 
             try
             {
+                _settings = UnityModManager.ModSettings.Load<UnityModManagerSettings>(entry);
+                _serviceProvider = DIFactory.Create(_settings);
+
+                Subscribe();
+
                 WellKnownKeysInitializer.Run();
                 WellKnownSettings.Initialize();
 
-                Multiplayer = _serviceProvider.GetService<IMultiplayer>();
-                Rolls = _serviceProvider.GetService<IMultiplayerRollsProcessor>();
-                UIAccessor = _serviceProvider.GetService<IUIAccessor>();
+                Multiplayer = _serviceProvider.GetRequiredService<IMultiplayer>();
+                Rolls = _serviceProvider.GetRequiredService<IMultiplayerRollsProcessor>();
+                UIAccessor = _serviceProvider.GetRequiredService<IUIAccessor>();
 
                 entry.OnGUI += OnGui;
                 entry.OnSaveGUI += OnSaveGui;

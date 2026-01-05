@@ -1,8 +1,6 @@
 ﻿using HarmonyLib;
-using Kingmaker.UI.MVVM._CommonView.CharGen.Phases.Skills;
 using Kingmaker.UI.MVVM._PCView.CharGen.Phases;
 using Kingmaker.UI.MVVM._VM.CharGen.Phases;
-using Kingmaker.UI.MVVM._VM.CharGen.Phases.Skills;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.SelectionGroup;
 using WOTRMultiplayer.Entities.Leveling;

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using WOTRMultiplayer.Entities;
 
 namespace WOTRMultiplayer.Entities.Combat
 {

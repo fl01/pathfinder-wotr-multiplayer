@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Kingmaker.EntitySystem.Stats;
 
 namespace WOTRMultiplayer.Entities.Rolls
 {
