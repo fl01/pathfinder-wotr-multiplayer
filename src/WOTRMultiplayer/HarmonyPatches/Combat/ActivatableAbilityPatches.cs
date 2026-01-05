@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Linq;
 using HarmonyLib;
+using Kingmaker;
 using Kingmaker.EntitySystem.Entities;
+using Kingmaker.GameModes;
 using Kingmaker.UnitLogic.Abilities.Components.TargetCheckers;
 using Kingmaker.UnitLogic.ActivatableAbilities;
 using Microsoft.Extensions.Logging;
@@ -16,7 +18,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
         [HarmonyPostfix]
         public static void ActivatableAbility_SetIsOn_Postfix(ActivatableAbility __instance, UnitEntityData target)
         {
-            if (!Main.Multiplayer.IsActive)
+            if (!Main.Multiplayer.IsActive || Game.Instance.CurrentMode == GameModeType.None)
             {
                 return;
             }

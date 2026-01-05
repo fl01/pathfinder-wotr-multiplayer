@@ -1,5 +1,6 @@
 ﻿using System;
 using Kingmaker.ElementsSystem;
+using Kingmaker.GameModes;
 using Kingmaker.Items;
 using Kingmaker.Items.Slots;
 using Kingmaker.PubSubSystem;
@@ -30,7 +31,7 @@ namespace WOTRMultiplayer.PubSub
 
         public void HandleEquipmentSlotUpdated(ItemSlot slot, ItemEntity previousItem)
         {
-            if (ActorAccessor.Current == null)
+            if (ActorAccessor.Current == null || _gameInteractionService.CurrentGameMode == GameModeType.None)
             {
                 return;
             }

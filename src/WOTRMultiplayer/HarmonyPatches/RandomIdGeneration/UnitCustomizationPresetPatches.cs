@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -44,17 +45,25 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
 
         public static UnitCustomizationVariation SelectUnitVariation(IList<UnitCustomizationVariation> variations, BlueprintUnit blueprintUnit)
         {
-            if (!Main.Multiplayer.IsActive)
+            if (!Main.Multiplayer.IsActive || variations == null || variations.Count == 0)
             {
                 return variations.Random();
             }
 
-            var uniqueId = $"{blueprintUnit.name}:{nameof(UnitCustomizationPreset.SelectVariation)}";
-            var variationIndex = Main.Multiplayer.ValueGenerator.Range(SeedLifetime.Area, uniqueId, 0, variations.Count);
-            var variation = variations[variationIndex];
-            Main.GetLogger<UnitCustomizationPresetPatches>().LogDebug("Unit variation has been selected. Id={Id}, Race={Race}, Gender={Gender}, PrefabId={PrefabId}", uniqueId, variation.Race, variation.Gender, variation.Prefab.AssetId);
+            try
+            {
+                var uniqueId = $"{blueprintUnit.name}:{nameof(UnitCustomizationPreset.SelectVariation)}";
+                var variationIndex = Main.Multiplayer.ValueGenerator.Range(SeedLifetime.Area, uniqueId, 0, variations.Count);
+                var variation = variations[variationIndex];
+                Main.GetLogger<UnitCustomizationPresetPatches>().LogDebug("Unit variation has been selected. Id={Id}, Race={Race}, Gender={Gender}, PrefabId={PrefabId}", uniqueId, variation.Race, variation.Gender, variation.Prefab.AssetId);
 
-            return variation;
+                return variation;
+            }
+            catch (Exception ex)
+            {
+                Main.GetLogger<UnitCustomizationPresetPatches>().LogError(ex, "Failed to select unit variation");
+                throw;
+            }
         }
     }
 }

@@ -197,19 +197,27 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
                 return blueprintUnit.CustomizationPreset.SelectVoice(gender);
             }
 
-            var voices = gender == Gender.Male ? blueprintUnit.CustomizationPreset.MaleVoices : blueprintUnit.CustomizationPreset.FemaleVoices;
-            if (voices.Count == 0)
+            try
             {
-                return null;
+                var voices = gender == Gender.Male ? blueprintUnit.CustomizationPreset.MaleVoices : blueprintUnit.CustomizationPreset.FemaleVoices;
+                if (voices.Count == 0)
+                {
+                    return null;
+                }
+
+                var uniqueId = blueprintUnit.name;
+                var voiceIndex = Main.Multiplayer.ValueGenerator.Range(SeedLifetime.Area, uniqueId, 0, voices.Count);
+                var voiceReference = voices[voiceIndex];
+                var voice = voiceReference.Get();
+                Main.GetLogger<RandomIdGenerationPatches>().LogDebug("Unit voice has been selected. Id={Id}, Gender={Gender}, Voice={Voice}", uniqueId, gender, voice.name);
+
+                return voice;
             }
-
-            var uniqueId = blueprintUnit.name;
-            var voiceIndex = Main.Multiplayer.ValueGenerator.Range(SeedLifetime.Area, uniqueId, 0, voices.Count);
-            var voiceReference = voices[voiceIndex];
-            var voice = voiceReference.Get();
-            Main.GetLogger<RandomIdGenerationPatches>().LogDebug("Unit voice has been selected. Id={Id}, Gender={Gender}, Voice={Voice}", uniqueId, gender, voice.name);
-
-            return voice;
+            catch (Exception ex)
+            {
+                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Unable to select unit voice");
+                throw;
+            }
         }
 
         public static bool SelectLeftHanded(BlueprintUnit blueprintUnit)
@@ -219,11 +227,19 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
                 return blueprintUnit.CustomizationPreset.SelectLeftHanded();
             }
 
-            var uniqueId = blueprintUnit.name;
-            var leftHandedRoll = Main.Multiplayer.ValueGenerator.Range(SeedLifetime.Area, uniqueId, 0f, 1f);
-            var isLeftHanded = leftHandedRoll <= blueprintUnit.CustomizationPreset.Distribution.LeftHandedChance;
-            Main.GetLogger<RandomIdGenerationPatches>().LogDebug("Unit handedness has been selected. Id={Id}, Roll={Roll}, IsLeftHanded={IsLeftHanded}", uniqueId, leftHandedRoll, isLeftHanded);
-            return isLeftHanded;
+            try
+            {
+                var uniqueId = blueprintUnit.name;
+                var leftHandedRoll = Main.Multiplayer.ValueGenerator.Range(SeedLifetime.Area, uniqueId, 0f, 1f);
+                var isLeftHanded = leftHandedRoll <= blueprintUnit.CustomizationPreset.Distribution.LeftHandedChance;
+                Main.GetLogger<RandomIdGenerationPatches>().LogDebug("Unit handedness has been selected. Id={Id}, Roll={Roll}, IsLeftHanded={IsLeftHanded}", uniqueId, leftHandedRoll, isLeftHanded);
+                return isLeftHanded;
+            }
+            catch (Exception ex)
+            {
+                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Unable to select unit handedness");
+                throw;
+            }
         }
 
         [HarmonyPatch(typeof(EntityCreationController), nameof(EntityCreationController.ChangeUnitBlueprint))]
