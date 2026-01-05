@@ -1108,7 +1108,6 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-
         private async void OnRandomEncounterContextRequest(long playerId, RandomEncounterContextRequest request)
         {
             Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}", nameof(RandomEncounterContextRequest));
