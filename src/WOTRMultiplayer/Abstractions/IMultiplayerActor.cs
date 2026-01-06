@@ -13,6 +13,7 @@ using WOTRMultiplayer.Entities.Leveling;
 using WOTRMultiplayer.Entities.MapObjects;
 using WOTRMultiplayer.Entities.Movement;
 using WOTRMultiplayer.Entities.NewGame;
+using WOTRMultiplayer.Entities.Ping;
 using WOTRMultiplayer.Entities.Rest;
 using WOTRMultiplayer.Entities.Rolls.Claiming.Values;
 using WOTRMultiplayer.Entities.Spells;
@@ -284,5 +285,7 @@ namespace WOTRMultiplayer.Abstractions
         void OnStartRestSleepPhase();
 
         void OnGameLoaded();
+
+        void OnPing(NetworkPing ping);
     }
 }

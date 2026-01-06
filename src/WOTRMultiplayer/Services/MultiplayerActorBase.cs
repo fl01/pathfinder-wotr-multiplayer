@@ -26,6 +26,7 @@ using WOTRMultiplayer.Entities.Leveling;
 using WOTRMultiplayer.Entities.MapObjects;
 using WOTRMultiplayer.Entities.Movement;
 using WOTRMultiplayer.Entities.NewGame;
+using WOTRMultiplayer.Entities.Ping;
 using WOTRMultiplayer.Entities.Rest;
 using WOTRMultiplayer.Entities.Rolls.Claiming.Values;
 using WOTRMultiplayer.Entities.Settings;
@@ -474,6 +475,11 @@ namespace WOTRMultiplayer.Services
             // Tutorial settings are save dependant, so it must be overriden if save was created without a mod
             var settings = new NetworkGameSettings { Tutorial = new NetworkTutorialSettings() };
             GameInteraction.ApplyGameSettings(settings);
+        }
+
+        public void OnPing(NetworkPing ping)
+        {
+            Logger.LogWarning("Ping. Type={Type}, WorldPosition={WorldPosition}, TargetUnitId={TargetUnitId}, MapObjectId={MapObjectId}, MapObjectPosition={MapObjectPosition}", ping.Type, ping.WorldPosition, ping.UnitId, ping.MapObject?.Id, ping.MapObject?.Position);
         }
 
         public void ForceLoadGame(string gameId, string savePath)

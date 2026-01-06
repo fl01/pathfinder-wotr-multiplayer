@@ -17,18 +17,21 @@ namespace WOTRMultiplayer.Services.Hotkeys
         private readonly IMultiplayerActorAccessor _multiplayerActorAccessor;
         private readonly ISettingsControllerAccessor _settingsControllerAccessor;
         private readonly IKeyboardAccessor _keyboardAccessor;
-
+        private readonly IGameInteractionService _gameInteractionService;
         private readonly List<IDisposable> _bindings = [];
+
         public HotkeysService(
             ILogger<HotkeysService> logger,
             IMultiplayerActorAccessor multiplayerActorAccessor,
             ISettingsControllerAccessor settingsControllerAccessor,
+            IGameInteractionService gameInteractionService,
             IKeyboardAccessor keyboardAccessor)
         {
             _logger = logger;
             _multiplayerActorAccessor = multiplayerActorAccessor;
             _settingsControllerAccessor = settingsControllerAccessor;
             _keyboardAccessor = keyboardAccessor;
+            _gameInteractionService = gameInteractionService;
         }
 
         public void Initialize()
@@ -80,7 +83,13 @@ namespace WOTRMultiplayer.Services.Hotkeys
 
         private void OnPingHotkey()
         {
-            _logger.LogWarning("Ping hotkey pressed");
+            var ping = _gameInteractionService.GetPingedTarget();
+            if (ping == null)
+            {
+                return;
+            }
+
+            _multiplayerActorAccessor.Current.OnPing(ping);
         }
     }
 }

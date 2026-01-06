@@ -17,6 +17,7 @@ using WOTRMultiplayer.Entities.Items;
 using WOTRMultiplayer.Entities.MapObjects;
 using WOTRMultiplayer.Entities.Movement;
 using WOTRMultiplayer.Entities.NewGame;
+using WOTRMultiplayer.Entities.Ping;
 using WOTRMultiplayer.Entities.Rest;
 using WOTRMultiplayer.Entities.Settings;
 using WOTRMultiplayer.Entities.Spells;
@@ -201,6 +202,11 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public string GetPetOwnerId(string unitId)
         {
             return string.Empty;
+        }
+
+        public NetworkPing GetPingedTarget()
+        {
+            return null;
         }
 
         public string GetSaveGamePath()

@@ -15,6 +15,7 @@ using WOTRMultiplayer.Entities.Items;
 using WOTRMultiplayer.Entities.MapObjects;
 using WOTRMultiplayer.Entities.Movement;
 using WOTRMultiplayer.Entities.NewGame;
+using WOTRMultiplayer.Entities.Ping;
 using WOTRMultiplayer.Entities.Rest;
 using WOTRMultiplayer.Entities.Settings;
 using WOTRMultiplayer.Entities.Spells;
@@ -231,5 +232,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         /// <param name="polymorphicItem"></param>
         /// <param name="createContext">means this operation should be ignored and never sent to other players</param>
         void CreateAndEquipPolymorphicItem(NetworkPolymorphicItem polymorphicItem, bool createContext);
+
+        NetworkPing GetPingedTarget();
     }
 }

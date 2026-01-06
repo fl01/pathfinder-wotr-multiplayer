@@ -57,6 +57,7 @@ using Kingmaker.UnitLogic.ActivatableAbilities;
 using Kingmaker.UnitLogic.Commands;
 using Kingmaker.UnitLogic.Commands.Base;
 using Kingmaker.Utility;
+using Kingmaker.View;
 using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
@@ -77,6 +78,7 @@ using WOTRMultiplayer.Entities.Items;
 using WOTRMultiplayer.Entities.MapObjects;
 using WOTRMultiplayer.Entities.Movement;
 using WOTRMultiplayer.Entities.NewGame;
+using WOTRMultiplayer.Entities.Ping;
 using WOTRMultiplayer.Entities.Rest;
 using WOTRMultiplayer.Entities.Settings;
 using WOTRMultiplayer.Entities.Spells;
@@ -2485,6 +2487,53 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 itemPolymorphPart.CreateAndEquipPolymorphInSlot(targetItem, unit, itemSlot);
                 _logger.LogInformation("Polymorphic item has been created and equipped. UnitId={UnitId}, ItemName={ItemName}, SlotType={SlotType}", unit.UniqueId, targetItem.NameForAcronym, itemSlot.GetType().Name);
             });
+        }
+
+        public NetworkPing GetPingedTarget()
+        {
+            if (PointerController.InGui)
+            {
+                var guiPing = GetPingedGuiElement();
+                return guiPing;
+            }
+
+            var pointer = PointerController.PointerPosition;
+            Game.Instance.DefaultPointerController.SelectClickObject(pointer, out var gameObject, out var worldPosition, out _);
+
+            if (worldPosition == Vector3.zero && gameObject == null)
+            {
+                return null;
+            }
+
+            var point = new NetworkVector3(worldPosition.x, worldPosition.y, worldPosition.z);
+            var unitId = gameObject?.GetComponent<UnitEntityView>()?.Data?.UniqueId;
+            var mapObjectData = gameObject?.GetComponent<MapObjectView>()?.Data;
+            var ping = new NetworkPing
+            {
+                WorldPosition = point,
+                UnitId = unitId,
+                MapObject = mapObjectData == null ? null : new NetworkMapObject { Id = mapObjectData.UniqueId, Position = new NetworkVector3(mapObjectData.Position.x, mapObjectData.Position.y, mapObjectData.Position.z) },
+            };
+
+            if (ping.MapObject != null)
+            {
+                ping.Type = NetworkPingType.MapObject;
+            }
+            else if (!string.IsNullOrEmpty(ping.UnitId))
+            {
+                ping.Type = NetworkPingType.Unit;
+            }
+            else
+            {
+                ping.Type = NetworkPingType.WorldPosition;
+            }
+
+            return ping;
+        }
+
+        private NetworkPing GetPingedGuiElement()
+        {
+            return null;
         }
 
         /// <summary>
