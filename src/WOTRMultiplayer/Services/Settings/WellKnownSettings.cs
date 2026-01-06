@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using Kingmaker.Settings;
 
 namespace WOTRMultiplayer.Services.Settings
 {
@@ -62,6 +63,13 @@ namespace WOTRMultiplayer.Services.Settings
         {
             [Description("hide-server-address")]
             public static WellKnownSettingKey<bool> HideServerAddress { get; } = new(false);
+        }
+
+        [Description("hotkeys")]
+        public static class Hotkeys
+        {
+            [Description("ping")]
+            public static WellKnownSettingKey<KeyBindingPair> Ping { get; } = new(new KeyBindingPair { GameModesGroup = Kingmaker.UI.KeyboardAccess.GameModesGroup.All, Binding1 = new KeyBindingData { IsShiftDown = true, Key = UnityEngine.KeyCode.T } });
         }
 
         [Description("danger-zone")]

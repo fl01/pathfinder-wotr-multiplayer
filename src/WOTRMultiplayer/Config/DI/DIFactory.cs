@@ -6,6 +6,7 @@ using Serilog.Events;
 using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.Hashing;
+using WOTRMultiplayer.Abstractions.Hotkeys;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.Localization;
 using WOTRMultiplayer.Abstractions.Random;
@@ -16,12 +17,13 @@ using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.Config.Mapping;
 using WOTRMultiplayer.Networking.Extensions;
-using WOTRMultiplayer.PubSub;
 using WOTRMultiplayer.Services;
 using WOTRMultiplayer.Services.GameInteraction;
 using WOTRMultiplayer.Services.Hashing;
+using WOTRMultiplayer.Services.Hotkeys;
 using WOTRMultiplayer.Services.IO;
 using WOTRMultiplayer.Services.Localization;
+using WOTRMultiplayer.Services.PubSub;
 using WOTRMultiplayer.Services.Random;
 using WOTRMultiplayer.Services.Settings;
 using WOTRMultiplayer.UI;
@@ -66,6 +68,7 @@ namespace WOTRMultiplayer.Config.DI
             serviceCollection.AddSingleton<IJoinMenuItemController, JoinMenuItemController>();
 
             serviceCollection.AddSingleton<IUIAccessor, UIAccessor>();
+            serviceCollection.AddSingleton<IKeyboardAccessor, KeyboardAccessor>();
             serviceCollection.AddSingleton<IUISyncCountersService, UISyncCountersService>();
             serviceCollection.AddSingleton<IGameStateLookupService, GameStateLookupService>();
             serviceCollection.AddSingleton<IUISyncCountersService, UISyncCountersService>();
@@ -75,6 +78,7 @@ namespace WOTRMultiplayer.Config.DI
             serviceCollection.AddSingleton<IEquipmentDefinitions, EquipmentDefinitions>();
             serviceCollection.AddSingleton<IDialogInteractionService, DialogInteractionService>();
 
+            serviceCollection.AddSingleton<IHotkeysService, HotkeysService>();
             serviceCollection.AddSingleton<MultiplayerSubscriber>();
             serviceCollection.AddSingleton<MultiplayerUnitEquipmentSubscriber>();
             serviceCollection.AddSingleton<MultiplayerCampingStateSubscriber>();

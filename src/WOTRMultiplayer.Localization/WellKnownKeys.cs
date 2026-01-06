@@ -417,6 +417,32 @@ public static class WellKnownKeys
             }
         }
 
+        [Description("hotkeys")]
+        public static class Hotkeys
+        {
+            [Description("title")]
+            public static class Title
+            {
+                public static string Key { get; set; }
+            }
+
+            [Description("ping")]
+            public static class Ping
+            {
+                [Description("title")]
+                public static class Title
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("tooltip")]
+                public static class Tooltip
+                {
+                    public static string Key { get; set; }
+                }
+            }
+        }
+
         [Description("dangerZone")]
         public static class DangerZone
         {

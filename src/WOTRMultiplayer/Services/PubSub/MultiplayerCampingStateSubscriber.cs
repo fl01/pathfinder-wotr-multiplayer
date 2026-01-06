@@ -6,10 +6,10 @@ using Kingmaker.PubSubSystem;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.GameInteraction;
-using WOTRMultiplayer.Abstractions.Pubsub;
+using WOTRMultiplayer.Abstractions.PubSub;
 using WOTRMultiplayer.Entities.Rest;
 
-namespace WOTRMultiplayer.PubSub
+namespace WOTRMultiplayer.Services.PubSub
 {
     public class MultiplayerCampingStateSubscriber : MultiplayerSubscriberBase,
         IMultiplayerGlobalSubscriber,

@@ -3,16 +3,18 @@ using Kingmaker.PubSubSystem;
 using Kingmaker.RuleSystem.Rules;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions;
-using WOTRMultiplayer.Abstractions.Pubsub;
+using WOTRMultiplayer.Abstractions.PubSub;
 
-namespace WOTRMultiplayer.PubSub
+namespace WOTRMultiplayer.Services.PubSub
 {
     public class MultiplayerCombatSubscriber : MultiplayerSubscriberBase,
         IMultiplayerGlobalSubscriber,
         IPartyCombatHandler,
         ITurnBasedModeHandler
     {
-        public MultiplayerCombatSubscriber(ILogger<MultiplayerCombatSubscriber> logger, IMultiplayerActorAccessor multiplayerActorAccessor)
+        public MultiplayerCombatSubscriber(
+            ILogger<MultiplayerCombatSubscriber> logger,
+            IMultiplayerActorAccessor multiplayerActorAccessor)
             : base(logger, multiplayerActorAccessor)
         {
         }

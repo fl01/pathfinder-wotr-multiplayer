@@ -14,15 +14,23 @@ namespace WOTRMultiplayer.Services.Settings
 
         public void Initialize()
         {
+            // general
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.General.PlayerName);
 
+            // combat
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Combat.AISync);
 
+            // networking
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Networking.HostPortRangeStart);
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Networking.HostPortRangeEnd);
 
+            // hotkeys
+            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Hotkeys.Ping);
+
+            // misc
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Miscellaneous.HideServerAddress);
 
+            // danger zone
             _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.DefaultForcedPauseTimeout);
             _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.RestEncounterForcedPauseTimeout);
             _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.RemoteRollRetrievalTimeout);

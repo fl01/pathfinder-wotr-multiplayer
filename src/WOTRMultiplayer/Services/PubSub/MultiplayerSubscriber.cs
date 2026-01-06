@@ -5,9 +5,9 @@ using Kingmaker.UI;
 using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions;
-using WOTRMultiplayer.Abstractions.Pubsub;
+using WOTRMultiplayer.Abstractions.PubSub;
 
-namespace WOTRMultiplayer.PubSub
+namespace WOTRMultiplayer.Services.PubSub
 {
     public class MultiplayerSubscriber : MultiplayerSubscriberBase,
         IMultiplayerGlobalSubscriber,

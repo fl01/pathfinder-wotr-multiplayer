@@ -1,7 +1,7 @@
 {
     "wotrmultiplayer": {
-        "sysMessages":{
-            "outOfSupportedAreas" : "Thanks for playing!\nUnfortunately, this area is not supported in multiplayer, so you may experience limited or broken functionality",
+        "sysMessages": {
+            "outOfSupportedAreas": "Thanks for playing!\nUnfortunately, this area is not supported in multiplayer, so you may experience limited or broken functionality",
             "failedToStoreSave": "Failed to write save game file to disk"
         },
         "mainMenu": {
@@ -108,9 +108,16 @@
             },
             "miscellaneous": {
                 "title": "Miscellaneous",
-                "hideServerAddress":{
+                "hideServerAddress": {
                     "title": "Hide Server Address",
                     "tooltip": "Toggles whether the server IP address is shown in the UI. When enabled, the IP address is hidden to protect privacy"
+                }
+            },
+            "hotkeys": {
+                "title": "Hotkeys",
+                "ping": {
+                    "title": "Ping",
+                    "tooltip": "Ping at specific position/unit/map object/etc..."
                 }
             },
             "dangerZone": {

@@ -561,6 +561,7 @@ namespace WOTRMultiplayer.UI
 
         private IEnumerable<VirtualListElementVMBase> GetSettingEntities()
         {
+            // general
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.General.Title.Key });
             yield return CreateStringInputSetting(
                 WellKnownKeys.Settings.General.PlayerName.Title.Key,
@@ -569,9 +570,11 @@ namespace WOTRMultiplayer.UI
                 new PlayerNameValidator(),
                 PlayerNameValidator.MaxLength);
 
+            // combat
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Combat.Title.Key });
             yield return CreateBoolSetting(WellKnownKeys.Settings.Combat.SyncAI.Title.Key, WellKnownKeys.Settings.Combat.SyncAI.Tooltip.Key, WellKnownSettings.Combat.AISync);
 
+            // networking
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Networking.Title.Key });
             yield return CreateIntInputSetting(
                 WellKnownKeys.Settings.Networking.HostPortRangeStart.Title.Key,
@@ -586,9 +589,15 @@ namespace WOTRMultiplayer.UI
                 new NetworkPortValidator(),
                 NetworkPortValidator.MaxCharacters);
 
+            // misc
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Miscellaneous.Title.Key });
             yield return CreateBoolSetting(WellKnownKeys.Settings.Miscellaneous.HideServerAddress.Title.Key, WellKnownKeys.Settings.Miscellaneous.HideServerAddress.Tooltip.Key, WellKnownSettings.Miscellaneous.HideServerAddress);
 
+            // hotkeys
+            yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Hotkeys.Title.Key });
+            yield return CreateKeyBindingSetting(WellKnownKeys.Settings.Hotkeys.Ping.Title.Key, WellKnownKeys.Settings.Hotkeys.Ping.Tooltip.Key, WellKnownSettings.Hotkeys.Ping);
+
+            // danger zone
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.DangerZone.Title.Key });
             yield return CreateStringInputSetting(
                 WellKnownKeys.Settings.DangerZone.DefaultForcedPauseTimeout.Title.Key,
@@ -626,6 +635,18 @@ namespace WOTRMultiplayer.UI
                 WellKnownSettings.DangerZone.AISyncTimeout,
                 new TimeSpanValidator(),
                 TimeSpanValidator.MaxLength);
+        }
+
+        private SettingEntityKeyBindingVM CreateKeyBindingSetting(string titleKey, string tooltipKey, WellKnownSettingKey<KeyBindingPair> settingKey)
+        {
+            var keyBindingSetting = ScriptableObject.CreateInstance<UISettingsEntityKeyBinding>();
+            keyBindingSetting.name = settingKey.Key;
+            ConfigureSetting(keyBindingSetting, titleKey, tooltipKey);
+            var setting = new SettingsEntityKeyBindingPair(settingKey.Key, settingKey.DefaultValue);
+            keyBindingSetting.LinkSetting(setting);
+
+            var viewModel = new SettingEntityKeyBindingVM(keyBindingSetting);
+            return viewModel;
         }
 
         private SettingsEntityBoolVM CreateBoolSetting(string titleKey, string tooltipKey, WellKnownSettingKey<bool> settingKey)

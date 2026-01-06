@@ -10,12 +10,13 @@ using UnityEngine;
 using UnityModManagerNet;
 using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.GameInteraction;
+using WOTRMultiplayer.Abstractions.Hotkeys;
 using WOTRMultiplayer.Abstractions.Localization;
 using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Config.DI;
 using WOTRMultiplayer.Localization;
-using WOTRMultiplayer.PubSub;
+using WOTRMultiplayer.Services.PubSub;
 using WOTRMultiplayer.Services.Settings;
 
 namespace WOTRMultiplayer
@@ -99,21 +100,34 @@ namespace WOTRMultiplayer
             _logger.LogError(e.ExceptionObject as Exception, "Unhandled exception");
         }
 
-        public static void InitializePortraits()
+        public static void Initialize()
         {
-            _logger.LogInformation("Initializing portrait sprites");
-            _serviceProvider.GetService<IResourceProvider>().Initialize();
-        }
-
-        public static void InitializeMultiplayerSettings()
-        {
-            _logger.LogInformation("Initializing multiplayer settings");
-            _serviceProvider.GetService<IMultiplayerSettingsService>().Initialize();
+            InitializePortraits();
+            InitializeMultiplayerSettings();
+            InitializeHotkeys();
         }
 
         public static void UpdateLocale(string locale)
         {
             _serviceProvider.GetService<ILocalizationService>().UpdateLocale(locale);
+        }
+
+        private static void InitializePortraits()
+        {
+            _logger.LogInformation("Initializing portrait sprites");
+            _serviceProvider.GetService<IResourceProvider>().Initialize();
+        }
+
+        private static void InitializeMultiplayerSettings()
+        {
+            _logger.LogInformation("Initializing multiplayer settings");
+            _serviceProvider.GetService<IMultiplayerSettingsService>().Initialize();
+        }
+
+        private static void InitializeHotkeys()
+        {
+            _logger.LogInformation("Initializing hotkeys");
+            _serviceProvider.GetService<IHotkeysService>().Initialize();
         }
 
         private static void Subscribe()

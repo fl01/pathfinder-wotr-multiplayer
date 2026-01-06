@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions;
 
-namespace WOTRMultiplayer.PubSub
+namespace WOTRMultiplayer.Services.PubSub
 {
     public abstract class MultiplayerSubscriberBase
     {

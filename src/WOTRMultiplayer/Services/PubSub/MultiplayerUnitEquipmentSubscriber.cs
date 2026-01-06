@@ -8,10 +8,10 @@ using Kingmaker.UnitLogic;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.GameInteraction;
-using WOTRMultiplayer.Abstractions.Pubsub;
+using WOTRMultiplayer.Abstractions.PubSub;
 using WOTRMultiplayer.Entities.Equipment;
 
-namespace WOTRMultiplayer.PubSub
+namespace WOTRMultiplayer.Services.PubSub
 {
     public class MultiplayerUnitEquipmentSubscriber : MultiplayerSubscriberBase,
         IMultiplayerGlobalSubscriber,

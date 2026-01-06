@@ -1,6 +1,6 @@
 ﻿using Kingmaker.PubSubSystem;
 
-namespace WOTRMultiplayer.Abstractions.Pubsub
+namespace WOTRMultiplayer.Abstractions.PubSub
 {
     public interface IMultiplayerGlobalSubscriber : ISubscriber, IGlobalSubscriber
     {
