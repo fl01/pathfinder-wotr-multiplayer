@@ -17,11 +17,7 @@ namespace WOTRMultiplayer.UnityBehaviours
 
         protected override void OnPartialDecay(float decayState)
         {
-            var transparency = Math.Max(0f, 1f - decayState);
-            if (transparency > 0.8f)
-            {
-                transparency = 1f;
-            }
+            var transparency = Math.Max(0f, 1f - decayState + 0.25f);
 
             foreach (var renderer in _renderers)
             {

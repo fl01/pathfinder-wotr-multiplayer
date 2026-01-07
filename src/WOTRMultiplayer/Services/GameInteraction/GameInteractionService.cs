@@ -2281,9 +2281,10 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 var position = new Vector3(ping.WorldPosition.X, ping.WorldPosition.Y, ping.WorldPosition.Z);
                 var pingObject = UnityEngine.Object.Instantiate(ClickPointerManager.Instance.PointerPrefab.gameObject);
                 var meshRenderers = pingObject.transform.Children().SelectMany(x => x.Children()).Select(x => x.GetComponent<MeshRenderer>()).ToList();
+                var odd = new Color(0.887f, 0.273f, 0.263f, 1f);
                 for (int i = 0; i < meshRenderers.Count; i++)
                 {
-                    var color = i % 2 == 0 ? Color.blue : Color.magenta;
+                    var color = i % 2 == 0 ? Color.blue : odd;
                     var renderer = meshRenderers[i];
                     renderer.material.color = color;
                 }
