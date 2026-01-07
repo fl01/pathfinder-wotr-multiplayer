@@ -102,7 +102,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     var continueButton = systemButtonGameObject?.GetComponent<OwlcatButton>();
                     if (continueButton == null)
                     {
-                        _logger.LogError("Unable to find system dialog continue button");
+                        _logger.LogWarning("Unable to find system dialog continue button");
                         return;
                     }
 

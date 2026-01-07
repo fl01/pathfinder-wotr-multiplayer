@@ -11,7 +11,6 @@ using WOTRMultiplayer.Entities.ActionBar;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Content;
 using WOTRMultiplayer.Entities.Equipment;
-using WOTRMultiplayer.Entities.GlobalMap;
 using WOTRMultiplayer.Entities.Inspect;
 using WOTRMultiplayer.Entities.Items;
 using WOTRMultiplayer.Entities.MapObjects;
@@ -113,20 +112,12 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void CollectGlobalMapIngredients(NetworkGlobalMapLocation globalMapLocation)
-        {
-        }
-
         public bool CombatTurnHasBeenFinished()
         {
             return false;
         }
 
         public void CompleteZoneLoot()
-        {
-        }
-
-        public void ContinueGlobalMapTravel(NetworkGlobalMapState globalMapState)
         {
         }
 
@@ -143,10 +134,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         }
 
         public void EndTurnBasedCombatTurn()
-        {
-        }
-
-        public void EnterGlobalMapLocation(NetworkGlobalMapLocation globalMapLocation)
         {
         }
 
@@ -230,11 +217,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public bool IsAtGlobalMapLocation(NetworkGlobalMapLocation globalMapLocation)
-        {
-            return false;
-        }
-
         public bool IsInCombat()
         {
             return false;
@@ -296,10 +278,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void RollGlobalMapEncounter(NetworkGlobalMapEncounter encounter)
-        {
-        }
-
         public void SelectNewGameDifficulty(string difficulty)
         {
         }
@@ -344,10 +322,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void StartGlobalMapTravel(NetworkGlobalMapLocation destination)
-        {
-        }
-
         public void StartNewGameSequence(string mainCharacterId, Action onBack, Action onStart, Action<NetworkCharacter> onCharacterCreated)
         {
         }
@@ -365,10 +339,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         }
 
         public void StartTurnBasedCombatTurn(string unitId)
-        {
-        }
-
-        public void StopGlobalMapTravel(NetworkGlobalMapState globalMapState)
         {
         }
 
@@ -406,18 +376,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         }
 
         public void UpdateEquipmentSlot(NetworkEquipmentSlot networkEquipmentSlot)
-        {
-        }
-
-        public void UpdateGlobalMapEncounterMessageUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
-        {
-        }
-
-        public void UpdateGlobalMapIngredientCollectionUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
-        {
-        }
-
-        public void UpdateGlobalMapMessageBoxUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
         {
         }
 

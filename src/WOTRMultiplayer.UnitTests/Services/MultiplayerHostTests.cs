@@ -35,6 +35,7 @@ namespace WOTRMultiplayer.UnitTests.Services
         private ILevelingInteractionService _levelingInteractionService;
         private IPlayerNotificationService _playerNotificationService;
         private IDialogInteractionService _dialogInteractionService;
+        private IGlobalMapInteractionService _globalMapInteractionService;
         private IMultiplayerSettingsService _multiplayerSettingsProvider;
         private IFileSystemService _fileSystemService;
         private INetworkServer _networkServer;
@@ -55,6 +56,7 @@ namespace WOTRMultiplayer.UnitTests.Services
             _levelingInteractionService = A.Fake<ILevelingInteractionService>();
             _playerNotificationService = A.Fake<IPlayerNotificationService>();
             _dialogInteractionService = A.Fake<IDialogInteractionService>();
+            _globalMapInteractionService = A.Fake<IGlobalMapInteractionService>();
             _multiplayerSettingsProvider = A.Fake<IMultiplayerSettingsService>();
             _fileSystemService = A.Fake<IFileSystemService>();
 
@@ -70,6 +72,7 @@ namespace WOTRMultiplayer.UnitTests.Services
                 _levelingInteractionService,
                 _playerNotificationService,
                 _dialogInteractionService,
+                _globalMapInteractionService,
                 _multiplayerSettingsProvider,
                 _fileSystemService,
                 _networkServer,

@@ -9,7 +9,6 @@ using WOTRMultiplayer.Entities.ActionBar;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Content;
 using WOTRMultiplayer.Entities.Equipment;
-using WOTRMultiplayer.Entities.GlobalMap;
 using WOTRMultiplayer.Entities.Inspect;
 using WOTRMultiplayer.Entities.Items;
 using WOTRMultiplayer.Entities.MapObjects;
@@ -146,10 +145,6 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void AcceptGroupChangerParty();
 
-        void OpenGlobalMapRestMenu();
-
-        void StartGlobalMapTravel(NetworkGlobalMapLocation destination);
-
         void UpdateSkipTimeUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
 
         void CloseSkipTimeUI();
@@ -160,29 +155,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void StartSkipTime();
 
-        bool IsAtGlobalMapLocation(NetworkGlobalMapLocation globalMapLocation);
-
-        void ContinueGlobalMapTravel(NetworkGlobalMapState globalMapState);
-
-        void StopGlobalMapTravel(NetworkGlobalMapState globalMapState);
-
-        void UpdateGlobalMapMessageBoxUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
-
-        void UpdateGlobalMapIngredientCollectionUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
-
-        void CollectGlobalMapIngredients(NetworkGlobalMapLocation globalMapLocation);
-
-        void EnterGlobalMapLocation(NetworkGlobalMapLocation globalMapLocation);
-
-        void UpdateGlobalMapEncounterMessageUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
-
         void UpdateZoneLootUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
-
-        void AvoidGlobalMapEncounter();
-
-        void AcceptGlobalMapEncounter();
-
-        void RollGlobalMapEncounter(NetworkGlobalMapEncounter encounter);
 
         NetworkCampingState GetCampigState();
 

@@ -11,7 +11,6 @@ using Kingmaker.UI;
 using Kingmaker.UI.Common;
 using Kingmaker.UI.MVVM._PCView.GlobalMap.Message;
 using Kingmaker.UI.MVVM._VM.GlobalMap.Message;
-using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
 using WOTRMultiplayer.Entities.GlobalMap;
 
@@ -33,18 +32,6 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             var destination = GetNetworkGlobalMapLocation(travelData.To.Location);
 
             Main.Multiplayer.OnGlobalMapStartTravel(destination);
-        }
-
-        [HarmonyPatch(typeof(GlobalMapPlayerState), nameof(GlobalMapPlayerState.FinishTravel))]
-        [HarmonyPrefix]
-        public static void GlobalMapPlayerState_FinishTravel_Prefix()
-        {
-            if (!Main.Multiplayer.IsActive)
-            {
-                return;
-            }
-
-            Main.GetLogger<GlobalMapRandomEncounterPatches>().LogWarning("GlobalMapPlayerState_FinishTravel_Prefix");
         }
 
         [HarmonyPatch(typeof(GlobalMapView), nameof(GlobalMapView.EnterLocation))]

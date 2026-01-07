@@ -68,6 +68,8 @@ namespace WOTRMultiplayer.Services
 
         protected IDialogInteractionService DialogInteraction { get; private set; }
 
+        protected IGlobalMapInteractionService GlobalMapInteraction { get; private set; }
+
         protected IDiceRollStorage DiceRollStorage { get; private set; }
 
         protected IFileSystemService FileSystem { get; private set; }
@@ -90,6 +92,7 @@ namespace WOTRMultiplayer.Services
             ILevelingInteractionService levelingInteractionService,
             IPlayerNotificationService playerNotificationService,
             IDialogInteractionService dialogInteractionService,
+            IGlobalMapInteractionService globalMapInteractionService,
             IDiceRollStorage diceRollStorage,
             IFileSystemService fileSystemService,
             IValueGenerator valueGenerator,
@@ -101,6 +104,7 @@ namespace WOTRMultiplayer.Services
             LevelingInteraction = levelingInteractionService;
             PlayerNotification = playerNotificationService;
             DialogInteraction = dialogInteractionService;
+            GlobalMapInteraction = globalMapInteractionService;
             DiceRollStorage = diceRollStorage;
             FileSystem = fileSystemService;
             SettingsService = multiplayerSettingsService;
@@ -1816,7 +1820,7 @@ namespace WOTRMultiplayer.Services
                 var readyPlayers = Game.PlayersInGlobalMapLocationMessage.Count;
                 var totalPlayers = GetSyncedPlayersCount();
                 var canUse = HasControlOverUI && readyPlayers >= totalPlayers;
-                GameInteraction.UpdateGlobalMapMessageBoxUI(canUse, readyPlayers, totalPlayers);
+                GlobalMapInteraction.UpdateGlobalMapMessageBoxUI(canUse, readyPlayers, totalPlayers);
             }
         }
 
@@ -1827,7 +1831,7 @@ namespace WOTRMultiplayer.Services
                 var readyPlayers = Game.PlayersInGlobalMapIngredientCollection.Count;
                 var totalPlayers = GetSyncedPlayersCount();
                 var canUse = HasControlOverUI && readyPlayers >= totalPlayers;
-                GameInteraction.UpdateGlobalMapIngredientCollectionUI(canUse, readyPlayers, totalPlayers);
+                GlobalMapInteraction.UpdateGlobalMapIngredientCollectionUI(canUse, readyPlayers, totalPlayers);
             }
         }
 
@@ -1838,7 +1842,7 @@ namespace WOTRMultiplayer.Services
                 var readyPlayers = Game.PlayersInGlobalMapEncounterMessage.Count;
                 var totalPlayers = GetSyncedPlayersCount();
                 var canUse = HasControlOverUI && readyPlayers >= totalPlayers;
-                GameInteraction.UpdateGlobalMapEncounterMessageUI(canUse, readyPlayers, totalPlayers);
+                GlobalMapInteraction.UpdateGlobalMapEncounterMessageUI(canUse, readyPlayers, totalPlayers);
             }
         }
 

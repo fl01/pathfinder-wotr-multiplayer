@@ -7,7 +7,6 @@ using NUnit.Framework;
 using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.Settings;
-using WOTRMultiplayer.Services.GameInteraction;
 using WOTRMultiplayer.Services.Hotkeys;
 using WOTRMultiplayer.Services.Settings;
 
