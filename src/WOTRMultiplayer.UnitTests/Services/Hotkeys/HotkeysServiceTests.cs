@@ -42,6 +42,21 @@ namespace WOTRMultiplayer.UnitTests.Services.Hotkeys
         }
 
         [Test]
+        public void Initialize_ExistingBindings_DisposesOldBindings()
+        {
+            // Arrange
+            var fakeDisposable = A.Fake<IDisposable>();
+            A.CallTo(() => _keyboardAccessor.Bind(WellKnownSettings.Hotkeys.Ping.Key, A<Action>.Ignored)).Returns(fakeDisposable);
+
+            // Act
+            _hotkeysService.Initialize();
+            _hotkeysService.Initialize();
+
+            // Assert
+            A.CallTo(() => fakeDisposable.Dispose()).MustHaveHappenedOnceExactly();
+        }
+
+        [Test]
         public void ConfigureHotkey_NotNullSetting_ConfiguresCallback()
         {
             // Arrange

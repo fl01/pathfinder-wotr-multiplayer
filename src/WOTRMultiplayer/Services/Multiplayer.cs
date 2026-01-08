@@ -6,6 +6,7 @@ using Kingmaker.Items.Slots;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.GameInteraction;
+using WOTRMultiplayer.Abstractions.Hotkeys;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
@@ -40,6 +41,7 @@ namespace WOTRMultiplayer.Services
         private readonly IGameInteractionService _gameInteractionService;
         private readonly ILogger _logger;
         private readonly IMultiplayerActorAccessor _multiplayerActorAccessor;
+        private readonly IHotkeysService _hotkeysService;
 
         public IUIFactory Factory { get; private set; }
 
@@ -57,6 +59,7 @@ namespace WOTRMultiplayer.Services
             ILobbyWindowController lobbyWindowController,
             IMultiplayerActorAccessor multiplayerActorAccessor,
             IGameInteractionService gameInteractionService,
+            IHotkeysService hotkeysService,
             IValueGenerator valueGenerator)
         {
             _logger = logger;
@@ -64,6 +67,7 @@ namespace WOTRMultiplayer.Services
             _multiplayerActorAccessor = multiplayerActorAccessor;
             _lobbyWindowController = lobbyWindowController;
             _gameInteractionService = gameInteractionService;
+            _hotkeysService = hotkeysService;
             ValueGenerator = valueGenerator;
         }
 
@@ -82,6 +86,7 @@ namespace WOTRMultiplayer.Services
             }
 
             _multiplayerWindow = Factory.InitializeMultiplayerWindow(context, ShowMultiplayerWindow);
+            _hotkeysService.Initialize();
 
             return true;
         }

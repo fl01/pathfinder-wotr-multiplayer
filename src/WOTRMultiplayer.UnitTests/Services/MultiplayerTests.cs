@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.GameInteraction;
+using WOTRMultiplayer.Abstractions.Hotkeys;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
@@ -26,6 +27,7 @@ namespace WOTRMultiplayer.UnitTests.Services
         private IGameInteractionService _gameInteractionService;
         private IValueGenerator _idGenerator;
         private IMultiplayerActorAccessor _multiplerActorAccessor;
+        private IHotkeysService _hotkeysService;
 
         [SetUp]
         public void SetUp()
@@ -38,6 +40,7 @@ namespace WOTRMultiplayer.UnitTests.Services
             _gameInteractionService = A.Fake<IGameInteractionService>();
             _idGenerator = A.Fake<IValueGenerator>();
             _multiplerActorAccessor = A.Fake<IMultiplayerActorAccessor>();
+            _hotkeysService = A.Fake<IHotkeysService>();
 
             _multiplayer = new Multiplayer(
                 _logger,
@@ -45,6 +48,7 @@ namespace WOTRMultiplayer.UnitTests.Services
                 _lobbyWindowController,
                 _multiplerActorAccessor,
                 _gameInteractionService,
+                _hotkeysService,
                 _idGenerator);
         }
 

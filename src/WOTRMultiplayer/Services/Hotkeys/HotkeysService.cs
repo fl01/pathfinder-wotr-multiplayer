@@ -36,6 +36,15 @@ namespace WOTRMultiplayer.Services.Hotkeys
 
         public void Initialize()
         {
+            _logger.LogInformation("Initializing hotkeys");
+
+            foreach (var disposable in _bindings)
+            {
+                disposable?.Dispose();
+            }
+
+            _bindings.Clear();
+
             ConfigureHotkey(WellKnownSettings.Hotkeys.Ping, OnPingHotkey);
         }
 

@@ -10,7 +10,6 @@ using UnityEngine;
 using UnityModManagerNet;
 using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.GameInteraction;
-using WOTRMultiplayer.Abstractions.Hotkeys;
 using WOTRMultiplayer.Abstractions.Localization;
 using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Abstractions.UI;
@@ -104,7 +103,6 @@ namespace WOTRMultiplayer
         {
             InitializePortraits();
             InitializeMultiplayerSettings();
-            InitializeHotkeys();
         }
 
         public static void UpdateLocale(string locale)
@@ -124,11 +122,6 @@ namespace WOTRMultiplayer
             _serviceProvider.GetService<IMultiplayerSettingsService>().Initialize();
         }
 
-        private static void InitializeHotkeys()
-        {
-            _logger.LogInformation("Initializing hotkeys");
-            _serviceProvider.GetService<IHotkeysService>().Initialize();
-        }
 
         private static void Subscribe()
         {
