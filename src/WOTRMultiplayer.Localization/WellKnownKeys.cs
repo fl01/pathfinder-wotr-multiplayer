@@ -792,5 +792,15 @@ public static class WellKnownKeys
                 public static string Key { get; set; }
             }
         }
+
+        [Description("cutscenes")]
+        public static class Cutscenes
+        {
+            [Description("skipped")]
+            public static class Skipped
+            {
+                public static string Key { get; set; }
+            }
+        }
     }
 }

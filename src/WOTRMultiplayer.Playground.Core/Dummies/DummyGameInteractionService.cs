@@ -322,6 +322,10 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
+        public void SkipCutscene(string playerName)
+        {
+        }
+
         public void SpawnCampPlace(NetworkVector3 position)
         {
         }

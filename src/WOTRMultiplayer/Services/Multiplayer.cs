@@ -2764,6 +2764,24 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        public void OnCutsceneSkip()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnCutsceneSkip();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while skipping cutscene");
+                throw;
+            }
+        }
+
         private void ShowEscMenuMultiplayerLobby()
         {
             _logger.LogInformation("Show lobby window");

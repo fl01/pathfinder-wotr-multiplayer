@@ -9,6 +9,7 @@ using Kingmaker.Blueprints.Items;
 using Kingmaker.Blueprints.Items.Components;
 using Kingmaker.Blueprints.Items.Equipment;
 using Kingmaker.Blueprints.Root;
+using Kingmaker.Controllers;
 using Kingmaker.Controllers.Clicks;
 using Kingmaker.Controllers.Clicks.Handlers;
 using Kingmaker.Controllers.MapObjects;
@@ -2316,6 +2317,20 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 var decayingBehaviour = pingObject.AddComponent<DecayingMeshRenderersBehaviour>();
                 decayingBehaviour.Initialize(TimeSpan.FromSeconds(2), UnityEngine.Object.DestroyImmediate, meshRenderers);
                 UISoundController.Instance.Play(UISoundType.GlobalMapLocationsSelect, pingObject);
+            });
+        }
+
+        public void SkipCutscene(string playerName)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                if (CutsceneController.Skipping || CutsceneController.s_ShouldStartSkipping)
+                {
+                    return;
+                }
+
+                CutsceneController.SkipCutscene();
+                _playerNotificationService.ShowWarningNotification(WellKnownKeys.GameNotifications.Cutscenes.Skipped.Key, playerName);
             });
         }
 

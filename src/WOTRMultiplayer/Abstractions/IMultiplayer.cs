@@ -337,5 +337,7 @@ namespace WOTRMultiplayer.Abstractions
         void OnNewGameSequenceWitnessPhase(NetworkNewGameSequencePhase phase);
 
         bool OnCreateAndEquipPolymorphInSlot(NetworkPolymorphicItem polymorphicItem);
+
+        void OnCutsceneSkip();
     }
 }

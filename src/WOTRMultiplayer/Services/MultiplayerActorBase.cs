@@ -495,6 +495,14 @@ namespace WOTRMultiplayer.Services
             GameInteraction.CreatePing(localPlayer.Name, ping);
         }
 
+
+        public void OnCutsceneSkip()
+        {
+            var message = new NotifyCutsceneSkipped { PlayerId = GetLocalPlayerId() };
+            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyCutsceneSkipped), message.PlayerId);
+            Send(message);
+        }
+
         public void ForceLoadGame(string gameId, string savePath)
         {
             if (Game.Stage != NetworkGameStage.Playing && Game.Stage != NetworkGameStage.Lobby)
@@ -2638,7 +2646,23 @@ namespace WOTRMultiplayer.Services
 
                 // ping
                 .On<NotifyPingedByPlayer>(OnNotifyPingedAt)
+
+                // cutscenes
+                .On<NotifyCutsceneSkipped>(OnNotifyCutsceneSkipped)
                 ;
+        }
+
+        private void OnNotifyCutsceneSkipped(long playerId, NotifyCutsceneSkipped cutsceneSkipped)
+        {
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}", nameof(NotifyCutsceneSkipped), cutsceneSkipped.PlayerId);
+
+            var player = GetPlayer(cutsceneSkipped.PlayerId);
+            if (player != null)
+            {
+                GameInteraction.SkipCutscene(player.Name);
+            }
+
+            OnAfterNetworkMessageHandled(playerId, cutsceneSkipped);
         }
 
         private void OnNotifyPingedAt(long receivedFrom, NotifyPingedByPlayer pingedAt)

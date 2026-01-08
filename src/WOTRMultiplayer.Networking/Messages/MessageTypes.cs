@@ -163,7 +163,8 @@
             NotifyNewGameSequenceTerminated,
             NotifyPolymorphicItemCreated,
             NotifyPolymorphicItemCreationRequested,
-            NotifyPingedByPlayer
+            NotifyPingedByPlayer,
+            NotifyCutsceneSkipped
         }
 
         public enum Request

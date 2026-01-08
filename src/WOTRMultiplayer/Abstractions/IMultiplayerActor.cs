@@ -287,5 +287,7 @@ namespace WOTRMultiplayer.Abstractions
         void OnGameLoaded();
 
         void OnPing(NetworkPing ping);
+
+        void OnCutsceneSkip();
     }
 }
