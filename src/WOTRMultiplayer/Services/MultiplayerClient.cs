@@ -1043,6 +1043,9 @@ namespace WOTRMultiplayer.Services
             var characters = Mapper.Map<List<NetworkCharacter>>(changed.Characters);
             Game.Characters.Clear();
             Game.Characters.AddRange(characters);
+
+            ResetCharacterOwnership();
+
             OnGameCharactersChanged?.Invoke(Game.Characters);
         }
 

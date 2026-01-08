@@ -2,6 +2,7 @@
 {
     public enum NetworkModType
     {
-        UnityModManager
+        UnityModManager,
+        OwlcatModification,
     }
 }

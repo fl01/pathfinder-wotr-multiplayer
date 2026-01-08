@@ -17,5 +17,8 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
 
         [ProtoMember(4)]
         public List<NetworkDiscrepantMod> DiscrepantMods { get; set; } = [];
+
+        [ProtoMember(5)]
+        public string GameVersion { get; set; }
     }
 }

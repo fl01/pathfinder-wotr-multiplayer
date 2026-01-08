@@ -2058,6 +2058,18 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        protected void ResetCharacterOwnership()
+        {
+            var host = GetHost();
+
+            foreach (var character in Game.Characters)
+            {
+                character.Owner = host;
+            }
+
+            Game.CharactersOwnershipHistory.Clear();
+        }
+
         protected void UpdateRespecWindowStateOnPlayerLeave(long playerId)
         {
             RemovePlayerFromTracker(Game.PlayersInRespecWindow, playerId);

@@ -15,6 +15,8 @@ namespace WOTRMultiplayer.HarmonyPatches.MenuPatches
         {
             try
             {
+                Main.GetLogger<MainMenuSideBarPCViewPatches>().LogInformation("Initializing multiplayer");
+
                 var menuButtons = __instance.transform.GetChild(0);
                 for (int menuIndex = 0; menuIndex < menuButtons.childCount; menuIndex++)
                 {

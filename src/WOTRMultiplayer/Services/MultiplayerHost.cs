@@ -101,15 +101,15 @@ namespace WOTRMultiplayer.Services
             Game.StartUp = gameStartUp;
             Game.Characters.Clear();
             Game.Characters.AddRange(gameStartUp.Characters);
-            var host = GetHost();
-            foreach (var character in Game.Characters)
-            {
-                character.Owner = host;
-            }
 
-            Logger.LogInformation("Notifying game characters changed. Portraits={Portraits}", string.Join(";", Game.Characters.Select(c => c.Portrait)));
             var message = CreateNotifyGameCharactersChanged();
+            Logger.LogInformation("Sending {MessageType} to ALL players. Portraits={Portraits}", nameof(NotifyCharactersChanged), message.Characters.Select(x => x.Portrait));
             Send(message);
+
+            ResetCharacterOwnership();
+            var charactersOwnerChanged = CreateNotifyCharactersOwnerChanged();
+            Logger.LogInformation("Sending {MessageType} to ALL players", nameof(NotifyCharactersOwnerChanged));
+            Send(charactersOwnerChanged);
 
             Logger.LogInformation("Game starting point has been updated. GameId={GameId}, IsNewGameSequence={IsNewGameSequence}, SavePath={SavePath}, Portraits={Portraits}", Game.Id, Game.StartUp.IsNewGameSequence, Game.StartUp.SavePath, string.Join(";", Game.Characters.Select(c => c.Portrait)));
         }
@@ -157,7 +157,7 @@ namespace WOTRMultiplayer.Services
                 }
 
                 var charactersOwnerChanged = CreateNotifyCharactersOwnerChanged();
-                _networkServer.SendAll(charactersOwnerChanged);
+                Send(charactersOwnerChanged);
             }
         }
 

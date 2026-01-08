@@ -26,6 +26,7 @@ using Kingmaker.Globalmap.Blueprints;
 using Kingmaker.Inspect;
 using Kingmaker.Items;
 using Kingmaker.Items.Slots;
+using Kingmaker.Modding;
 using Kingmaker.Pathfinding;
 using Kingmaker.PubSubSystem;
 using Kingmaker.RuleSystem;
@@ -347,6 +348,12 @@ namespace WOTRMultiplayer.Services.GameInteraction
         public string LoadGameFromMainMenu(string savePath)
         {
             var save = LoadSave(savePath);
+            if (save == null)
+            {
+                _logger.LogError("Unable to load save. Path={Path}", savePath);
+                return null;
+            }
+
             _mainThreadAccessor.Post(() =>
             {
                 Game.Instance.RootUiContext.MainMenuVM.EnterLoadGame(save);
@@ -2158,6 +2165,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             var state = new NetworkContentState
             {
+                GameVersion = GameVersion.Cached,
                 DLCs = GetInstalledDLCs(),
                 Mods = GetInstalledMods()
             };
@@ -2517,6 +2525,12 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
             var unityMods = UnityModManager.modEntries.Select(x => new NetworkMod { Id = x.Info.Id, Version = x.Version.ToString(), IsEnabled = x.Enabled, Type = NetworkModType.UnityModManager }).ToList();
             allMods.AddRange(unityMods);
+
+            var owlcatModifications = OwlcatModificationsManager.Instance
+                .m_Modifications?
+                .Select(x => new NetworkMod { Id = x.Manifest?.UniqueName, Type = NetworkModType.OwlcatModification, IsEnabled = true, Version = x.Manifest?.Version })
+                .ToList();
+            allMods.AddRange(owlcatModifications);
 
             return allMods;
         }

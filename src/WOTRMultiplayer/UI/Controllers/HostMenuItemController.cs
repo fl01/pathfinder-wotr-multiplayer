@@ -262,6 +262,12 @@ namespace WOTRMultiplayer.UI.Controllers
             }
 
             _multiplayerHost.ChangeHostedStartingPoint(gameId, startup);
+            // changing hosted game should reset all ownership
+            for (int i = 0; i < startup.Characters.Count; i++)
+            {
+                Lobby.UpdateCharacterOwnerDropdown(i, 0, true);
+            }
+
             _logger.LogInformation("Updated hosted game");
         }
 

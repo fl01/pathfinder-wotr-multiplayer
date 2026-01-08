@@ -248,6 +248,15 @@ namespace WOTRMultiplayer.UI.Controllers
             playerContainerSizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             const int PreferredHeight = 28;
+            var gameVersionObject = Main.Multiplayer.Factory.CreateDefaultGameObject(playerContainerObject.transform);
+            var gameVersionElement = gameVersionObject.AddComponent<LayoutElement>();
+            gameVersionElement.preferredHeight = PreferredHeight;
+            var gameVersionBox = gameVersionObject.AddComponent<TextMeshProUGUI>();
+            gameVersionBox.alignment = TextAlignmentOptions.Center;
+            gameVersionBox.material = defaultMesh.Material;
+            gameVersionBox.color = defaultMesh.Color;
+            gameVersionBox.SetText($"[{player.ContentState.GameVersion}]");
+
             var playerObject = Main.Multiplayer.Factory.CreateDefaultGameObject(playerContainerObject.transform);
             var playerElement = playerObject.AddComponent<LayoutElement>();
             playerElement.preferredHeight = PreferredHeight;
@@ -257,9 +266,11 @@ namespace WOTRMultiplayer.UI.Controllers
             playerNameBox.material = defaultMesh.Material;
             playerNameBox.color = defaultMesh.Color;
             playerNameBox.SetText(player.Name);
-            if (!player.IsReady)
+            playerNameBox.fontStyle = player.IsReady ? FontStyles.Normal : FontStyles.Strikethrough;
+
+            if (player.IsReady)
             {
-                playerNameBox.fontStyle = FontStyles.Strikethrough;
+                CreatePlayerIcon("UI_journal_iconok_new2", playerContainerObject, PreferredHeight, null);
             }
 
             if (player.ContentState.DiscrepantMods.Any() || player.ContentState.DiscrepantDLCs.Any())
