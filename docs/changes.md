@@ -123,9 +123,8 @@ The same rules apply
 works the same way as Group Changer due to same data storage reasons
 
 ## Area Transitions
-When someone triggers an area transition, the game tries to move the whole party (even characters you don't control) to the exit. Usually that works fine, but you can still cancel movement for your own characters. Because of network delay, this might not sync instantly for others, which can lead to one player loading the next area while the rest are still behind.
-
-If that happens, the players who already transitioned will be stuck in a forced pause until everyone else loads in. Easiest fix: anyone left behind should just click the transition again to catch up. While that's happening, avoid doing stuff that could cause desync (like using items, abilities, or picking up loot).
+Changed behavior to only move characters you control. That means everyone must click on area transition icon (overtip) to move entire party to the exit.
+Although, clients cannot initiate area transition (they do transit once it happens on the host side), they still need to move characters near exit point. Otherwise, host will not be able to make area transition.
 
 ## Global Map
 Global map movement is controlled by the host. Client retains the ability to click different locations to see pop-ups/descriptions.
