@@ -12,6 +12,7 @@ using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Entities;
+using WOTRMultiplayer.Entities.Area;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Dialogs;
 using WOTRMultiplayer.Entities.GlobalMap;
@@ -325,7 +326,7 @@ namespace WOTRMultiplayer.Services
         {
             var message = new ClientGameAutoPaused();
             Send(message);
-            // reason is null because we need to show generic 'unpausable as a client' message
+            // client doesn't care about exact reason because of no permissions to unpause it anyway
             EnsureForcePaused(reason: null, removalDelay: null);
         }
 
@@ -423,7 +424,7 @@ namespace WOTRMultiplayer.Services
                .On<NotifyGamePauseEnded>(OnNotifyGamePauseEnded)
 
                // area transitioning
-               .On<NotifyPartyLeaveArea>(OnNotifyPartyLeaveArea)
+               .On<NotifyPartyAreaTransitioned>(OnNotifyPartyAreaTransitioned)
 
                // leveling
                .On<NotifyCharacterLevelingStarted>(OnNotifyCharacterLevelingStarted)
@@ -955,10 +956,12 @@ namespace WOTRMultiplayer.Services
             DialogInteraction.MarkSuggestedDialogAnswers(suggestions);
         }
 
-        private void OnNotifyPartyLeaveArea(long playerId, NotifyPartyLeaveArea area)
+        private void OnNotifyPartyAreaTransitioned(long playerId, NotifyPartyAreaTransitioned partyLeftArea)
         {
-            Logger.LogInformation("Received {MessageType}. AreaExitId={AreaExitId}", nameof(NotifyPartyLeaveArea), area.AreaExitId);
-            GameInteraction.LeaveArea(area.AreaExitId);
+            Logger.LogInformation("Received {MessageType}. AreaExitId={AreaExitId}, IsActionsTransition={IsActionsTransition}, FromAreaId={FromAreaId}, FromAreaName={FromAreaName}, ToAreaId={ToAreaId}, ToAreaName={ToAreaName}", nameof(NotifyPartyAreaTransitioned), partyLeftArea.Transition.AreaExitId, partyLeftArea.Transition.IsActionsTransition, partyLeftArea.Transition.From.Id, partyLeftArea.Transition.From.Name, partyLeftArea.Transition.To.Id, partyLeftArea.Transition.To.Name);
+
+            var transition = Mapper.Map<NetworkAreaTransition>(partyLeftArea.Transition);
+            GameInteraction.LeaveArea(transition);
         }
 
         private void OnNotifyGamePauseEnded(long playerId, NotifyGamePauseEnded changed)

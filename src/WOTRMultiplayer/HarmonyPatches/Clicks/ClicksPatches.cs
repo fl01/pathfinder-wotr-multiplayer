@@ -16,19 +16,19 @@ using WOTRMultiplayer.Entities.Movement;
 namespace WOTRMultiplayer.HarmonyPatches.Clicks
 {
     [HarmonyPatch]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
     public class ClicksPatches
     {
         [HarmonyPatch(typeof(ClickGroundHandler), nameof(ClickGroundHandler.MoveSelectedUnitsToPoint), [typeof(Vector3), typeof(Vector3), typeof(bool), typeof(bool), typeof(float), typeof(bool), typeof(Action<UnitEntityData, ClickGroundHandler.CommandSettings>)])]
         [HarmonyPrefix]
         public static bool ClickGroundHandler_MoveSelectedUnitsToPoint_Prefix(Vector3 worldPosition, Vector3 direction, bool preview, bool showTargetMarker, float formationSpaceFactor, bool ignoreHold, Action<UnitEntityData, ClickGroundHandler.CommandSettings> commandRunner)
         {
-            if (!Main.Multiplayer.IsActive || !Main.Multiplayer.ShouldGroundHandlerMoveAllUnitsToPoint())
+            if (!Main.Multiplayer.IsActive || Main.Multiplayer.RemoteContext?.SelectedUnits == null)
             {
                 return true;
             }
 
-            ClickGroundHandlerEx.MoveSelectedUnitsToPoint(worldPosition, direction, preview, showTargetMarker, formationSpaceFactor, ignoreHold, commandRunner);
+            var unitsToMove = Main.Multiplayer.RemoteContext.SelectedUnits;
+            ClickGroundHandlerEx.MoveSelectedUnitsToPoint(unitsToMove, worldPosition, direction, preview, showTargetMarker, formationSpaceFactor, ignoreHold, commandRunner);
             return false;
         }
 

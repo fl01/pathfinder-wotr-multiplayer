@@ -65,6 +65,7 @@ using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.ActionBar;
+using WOTRMultiplayer.Entities.Area;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Content;
 using WOTRMultiplayer.Entities.Equipment;
@@ -141,10 +142,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 var units = networkOvertip.Units.Select(_gameStateLookupService.GetUnitEntity).ToList();
                 using var context = _networkExecutionContext.Value = RemoteExecutionContext.Create(units);
                 context.Overtip = new OvertipInteractionContext { MapObjectId = networkOvertip.MapObject.Id };
-                if (networkOvertip.RequiresEveryoneToMoveMove)
-                {
-                    context.UnitsMovement = new UnitsMovementContext { ShouldMoveEveryone = true };
-                }
 
                 var mapObject = _gameStateLookupService.GetMapObject(networkOvertip.MapObject.Id);
                 if (mapObject == null)
@@ -197,16 +194,31 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return save;
         }
 
-        public void LeaveArea(string areaExitId)
+        public void LeaveArea(NetworkAreaTransition networkAreaTransition)
         {
             _mainThreadAccessor.Post(() =>
             {
+                var currentArea = Game.Instance.CurrentlyLoadedArea;
+                if (!string.Equals(currentArea?.AssetGuid.ToString(), networkAreaTransition.From.Id, StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning("Current area doesn't match area transition. AreaExitId={AreaExitId}, FromAreaId={FromAreaId}, FromAreaName={FromAreaName}, CurrentAreaId={CurrentAreaId}, CurrentAreaName={CurrentAreaName}", networkAreaTransition.AreaExitId, networkAreaTransition.From.Id, networkAreaTransition.From.Name, currentArea?.AssetGuid.ToString(), currentArea?.name);
+                    return;
+                }
+
                 var allTransitions = Game.Instance.State.MapObjects.All.Select(o => o.View.GetComponent<AreaTransition>()).Where(t => t != null).ToList();
-                var transition = allTransitions.FirstOrDefault(x => string.Equals(x.GetComponent<MapObjectView>().UniqueId, areaExitId, StringComparison.OrdinalIgnoreCase));
+                var transition = allTransitions.FirstOrDefault(x => string.Equals(x.GetComponent<MapObjectView>().UniqueId, networkAreaTransition.AreaExitId, StringComparison.OrdinalIgnoreCase));
                 var areaTransition = transition?.GetComponent<MapObjectView>()?.Data.Get<AreaTransitionPart>();
                 if (areaTransition == null)
                 {
-                    _logger.LogError("Unable to find requested area transition. TransitionsCount={TransitionsCount}, AreaExitId={AreaExitId}", allTransitions.Count, areaExitId);
+                    _logger.LogError("Unable to find requested area transition. TransitionsCount={TransitionsCount}, AreaExitId={AreaExitId}", allTransitions.Count, networkAreaTransition.AreaExitId);
+                    return;
+                }
+
+                if (networkAreaTransition.IsActionsTransition)
+                {
+                    var action = areaTransition.Blueprint.Actions.FirstOrDefault(a => a.Condition == null || a.Condition.Check(null));
+                    action.Actions.Run();
+                    _logger.LogInformation("Area transition has been executed via blueprint actions");
                     return;
                 }
 
@@ -220,8 +232,10 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     }
                 }
 
-                _logger.LogInformation("Leaving area. AreaExitId={AreaExitId}", areaExitId);
-                Game.Instance.LoadArea(areaTransition.AreaEnterPoint, areaTransition.Settings.AutoSaveMode, null);
+                var targetPoint = areaTransition.AreaEnterPoint;
+                _logger.LogInformation("Leaving area. AreaExitId={AreaExitId}, TargetAreaName={TargetAreaName}", networkAreaTransition.AreaExitId, targetPoint.Area?.AreaName);
+                EventBus.RaiseEvent<IPartyLeaveAreaHandler>(x => x.HandlePartyLeaveArea(Game.Instance.CurrentlyLoadedArea, targetPoint, areaTransition));
+                Game.Instance.LoadArea(targetPoint, areaTransition.Settings.AutoSaveMode, null);
             });
 
         }
@@ -1532,14 +1546,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
         public void SetRandomEncounterContext(NetworkRandomEncounterContext networkRandomEncounterContext)
         {
             _networkExecutionContext.Value = RemoteExecutionContext.Create(networkRandomEncounterContext);
-        }
-
-        public void SetGroundMoveEveryone()
-        {
-            _networkExecutionContext.Value = new RemoteExecutionContext
-            {
-                UnitsMovement = new UnitsMovementContext { ShouldMoveEveryone = true }
-            };
         }
 
         public void UpdateIsInCombatStatus()

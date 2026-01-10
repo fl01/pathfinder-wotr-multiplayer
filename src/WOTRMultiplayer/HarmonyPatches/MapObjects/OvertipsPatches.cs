@@ -7,29 +7,17 @@ using Kingmaker;
 using Kingmaker.Assets.Code.UI._ConsoleUI.Overtips;
 using Kingmaker.UI._ConsoleUI.Overtips;
 using Kingmaker.UI.Common;
+using Kingmaker.UI.Selection;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.MapObjects;
 
 namespace WOTRMultiplayer.HarmonyPatches.MapObjects
 {
-    /// don't be confused by Kingmaker.UI._ConsoleUI.Overtips namespace, it's still being used on PC
+    /// despite Kingmaker.UI._ConsoleUI.Overtips namespace name, it's still being used on PC
     [HarmonyPatch]
     public class OvertipsPatches
     {
-        [HarmonyPatch(typeof(ObjectInteractionOvertipView), nameof(ObjectInteractionOvertipView.OnClick))]
-        [HarmonyPrefix]
-        public static void ObjectInteractionOvertipView_OnClick_Prefix(ObjectInteractionOvertipView __instance)
-        {
-            var networkOvertip = new NetworkOvertip
-            {
-                MapObject = CreateMapObject(__instance),
-                Units = [.. Game.Instance.SelectionCharacter.SelectedUnits.Select(x => x.UniqueId)]
-            };
-
-            Main.Multiplayer.OnInteractWithMapObjectOvertip(networkOvertip);
-        }
-
         [HarmonyPatch(typeof(OvertipViewPartName), nameof(OvertipViewPartName.SetName))]
         [HarmonyPostfix]
         public static void OvertipViewPartName_SetName_Prefix(OvertipViewPartName __instance)
@@ -61,13 +49,26 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
             __instance.m_CharacterName.text = formattedText;
         }
 
+        [HarmonyPatch(typeof(ObjectInteractionOvertipView), nameof(ObjectInteractionOvertipView.OnClick))]
+        [HarmonyPrefix]
+        public static void ObjectInteractionOvertipView_OnClick_Prefix(ObjectInteractionOvertipView __instance)
+        {
+            var networkOvertip = new NetworkOvertip
+            {
+                MapObject = CreateMapObject(__instance),
+                Units = [.. Game.Instance.SelectionCharacter.SelectedUnits.Select(x => x.UniqueId)]
+            };
+
+            Main.Multiplayer.OnInteractWithMapObjectOvertip(networkOvertip);
+        }
+
         [HarmonyPatch(typeof(EntityOvertipVM), nameof(EntityOvertipVM.StartAreaTransition))]
         [HarmonyTranspiler]
         public static IEnumerable<CodeInstruction> EntityOvertipVM_StartAreaTransition_Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
-            var replaceWith = AccessTools.Method(typeof(CommonTranspilerReplacements), nameof(CommonTranspilerReplacements.GetPartyCharactersForGroupCommand));
-            var lookFor = AccessTools.Method(typeof(Player), nameof(Player.GetPartyCharactersForGroupCommand));
+            var replaceWith = AccessTools.Method(typeof(OvertipsPatches), nameof(OvertipsPatches.SelectAllCharactersControlledByLocalPlayer));
+            var lookFor = AccessTools.Method(typeof(SelectionManagerBase), nameof(SelectionManagerBase.SelectAll));
             var matcher = new CodeMatcher(instructions);
             var match = matcher.SearchForward(x => x.Calls(lookFor));
 
@@ -80,11 +81,10 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
             match = match.Advance(-4).RemoveInstructions(5);
             var newInstructions = new List<CodeInstruction>()
             {
-                new(OpCodes.Ldloc_2),
-                new(OpCodes.Ldc_I4_1),
                 new(OpCodes.Call, replaceWith),
             };
             match.Insert(newInstructions);
+
             Main.GetLogger<OvertipsPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
@@ -98,26 +98,14 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
                 return;
             }
 
+            var units = Game.Instance.Player.PartyAndPets.Where(u => Main.Multiplayer.IsControlledByLocalPlayer(u.UniqueId)).Select(c => c.View).ToList();
             var networkOvertip = new NetworkOvertip
             {
                 MapObject = CreateMapObject(__instance),
-                Units = [.. CommonTranspilerReplacements.GetPartyCharactersForGroupCommand(__instance.MapObjectView.Data.Position, true).Select(x => x.UniqueId)],
-                RequiresEveryoneToMoveMove = true
+                Units = [.. units.Select(x => x.Data.UniqueId)]
             };
 
             Main.Multiplayer.OnInteractWithMapObjectOvertip(networkOvertip);
-        }
-
-        [HarmonyPatch(typeof(AreaTransitionOvertipView), nameof(AreaTransitionOvertipView.OnClick))]
-        [HarmonyPostfix]
-        public static void AreaTransitionOvertipView_OnClick_Postfix()
-        {
-            if (!Main.Multiplayer.IsActive)
-            {
-                return;
-            }
-
-            Main.Multiplayer.ResetExecutionContext();
         }
 
         private static NetworkMapObject CreateMapObject(ObjectOvertipViewBase view)
@@ -129,6 +117,18 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
             };
 
             return mapObject;
+        }
+
+        private static void SelectAllCharactersControlledByLocalPlayer()
+        {
+            if (Main.Multiplayer.RemoteContext?.SelectedUnits != null)
+            {
+                return;
+            }
+
+            var units = Main.Multiplayer.RemoteContext?.SelectedUnits ?? [.. Game.Instance.Player.PartyAndPets.Where(u => Main.Multiplayer.IsControlledByLocalPlayer(u.UniqueId))];
+            var unitsViews = units.Select(c => c.View).ToList();
+            (Game.Instance.UI.SelectionManager as SelectionManagerPC).MultiSelect(unitsViews, true);
         }
     }
 }

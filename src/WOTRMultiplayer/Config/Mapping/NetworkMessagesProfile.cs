@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.ActionBar;
+using WOTRMultiplayer.Entities.Area;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Content;
 using WOTRMultiplayer.Entities.Dialogs;
@@ -243,6 +244,12 @@ namespace WOTRMultiplayer.Config.Mapping
                 .ReverseMap();
 
             CreateMap<NetworkPing, Networking.Messages.Contracts.NetworkPing>()
+                .ReverseMap();
+
+            CreateMap<NetworkAreaTransition, Networking.Messages.Contracts.NetworkAreaTransition>()
+                .ReverseMap();
+
+            CreateMap<NetworkArea, Networking.Messages.Contracts.NetworkArea>()
                 .ReverseMap();
         }
     }

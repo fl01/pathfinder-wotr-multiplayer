@@ -12,6 +12,7 @@ using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Entities;
+using WOTRMultiplayer.Entities.Area;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Content;
 using WOTRMultiplayer.Entities.Dialogs;
@@ -149,8 +150,7 @@ namespace WOTRMultiplayer.Services
                 character.Owner = player;
                 Logger.LogInformation("New character owner. CharacterName={CharacterName}, PlayerId={PlayerId}, PlayerName={PlayerName}", character.Name, player.Id, player.Name);
 
-                // UnitId is available once we are in the loaded game
-                // any further changes should be recorded so we can automatically assign ownership on adding or removing companions
+                // UnitId becomes relevant once we are in the game
                 if (!string.IsNullOrEmpty(character.UnitId))
                 {
                     UpdateCharacterOwnershipHistory(character);
@@ -207,11 +207,14 @@ namespace WOTRMultiplayer.Services
             TryEndForcedPause();
         }
 
-        public void LeaveArea(string areaExitId)
+        public void OnAreaTransition(NetworkAreaTransition areaTransition)
         {
-            Logger.LogInformation("Sending {MessageType}. AreaExitId={AreaExitId}", nameof(NotifyPartyLeaveArea), areaExitId);
-            var message = new NotifyPartyLeaveArea { AreaExitId = areaExitId };
-            _networkServer.SendAll(message);
+            var message = new NotifyPartyAreaTransitioned
+            {
+                Transition = Mapper.Map<Networking.Messages.Contracts.NetworkAreaTransition>(areaTransition)
+            };
+            Logger.LogInformation("Sending {MessageType}. AreaExitId={AreaExitId}, IsActionsTransition={IsActionsTransition}, FromAreaId={FromAreaId}, FromAreaName={FromAreaName}, ToAreaId={ToAreaId}, ToAreaName={ToAreaName}", nameof(NotifyPartyAreaTransitioned), message.Transition.AreaExitId, message.Transition.IsActionsTransition, message.Transition.From.Id, message.Transition.From.Name, message.Transition.To.Id, message.Transition.To.Name);
+            Send(message);
         }
 
         public void OnAfterCueShow(string dialogName, string cueName, bool hasSystemAnswer)
@@ -1247,7 +1250,7 @@ namespace WOTRMultiplayer.Services
             try
             {
                 Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, RollId={RollId}, UnitId={UnitId}, RuleName={RuleName}, IsCombatRoll={IsCombatRoll}", nameof(DiceRollValueRequest), playerId, request.RollId, request.UnitId, request.RuleName, request.IsCombatRoll);
-                // so basically in combat we need to ask another player for rolls in case he is the owner of the turn
+                // roll storage (location) is dynamic in combat and depends on TurnOwner
                 var (shouldBeProxied, playerToAsk) = ShouldRollBeProxied(playerId, request);
                 if (!shouldBeProxied)
                 {
@@ -1310,6 +1313,119 @@ namespace WOTRMultiplayer.Services
 
             // including original client so his UI can be properly updated as well
             _networkServer.SendAll(readyStatusChanged);
+        }
+
+        private void OnClientAreaLoaded(long playerId, ClientAreaLoaded loaded)
+        {
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}", nameof(ClientAreaLoaded), playerId);
+            lock (ActionLock)
+            {
+                EnsureForcePaused(WellKnownKeys.GameNotifications.ForcedPause.AreaLoading.Key);
+                Game.ForcedPause.ReadyPlayers.Add(playerId);
+            }
+
+            TryEndForcedPause();
+        }
+
+        private void OnPlayerConnected(long playerId)
+        {
+            lock (ActionLock)
+            {
+                var existingPlayer = GetPlayer(playerId);
+                if (existingPlayer != null)
+                {
+                    Logger.LogWarning("Player already exists. PlayerId={PlayerId}", playerId);
+                    return;
+                }
+
+                var player = new NetworkPlayer(playerId);
+                Game.Players.Add(player);
+
+                var settings = GameInteraction.GetGameSettings();
+                settings.Multiplayer = SettingsService.GetSettings();
+
+                var message = new GameServerConnectionSucceeded
+                {
+                    ClientPlayerId = playerId,
+                    GameSettings = Mapper.Map<Networking.Messages.Contracts.NetworkGameSettings>(settings),
+                    SessionSeed = Game.SessionSeed
+                };
+                Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, Settings={Settings}", nameof(GameServerConnectionSucceeded), message.ClientPlayerId, message.GameSettings);
+
+                _networkServer.Send(playerId, message);
+            }
+        }
+
+        private void OnServerStarted(EndPoint endpoint)
+        {
+            var hostPlayer = new NetworkPlayer(NetworkingConsts.HostPlayerId)
+            {
+                Name = SettingsService.GetSettings().PlayerName,
+                ContentState = GameInteraction.GetInstalledContent(),
+                IsHost = true
+            };
+
+            Game.Players.Add(hostPlayer);
+
+            Game.Connectivity = new NetworkGameConnectivity
+            {
+                Endpoint = endpoint
+            };
+
+            foreach (var character in Game.Characters)
+            {
+                character.Owner = hostPlayer;
+            }
+
+            var enforcedSettings = GetEnforcedGameSettings();
+            GameInteraction.ApplyGameSettings(enforcedSettings);
+
+            OnConnected?.Invoke(Game.Connectivity);
+            InvokeOnPlayersChanged();
+            Logger.LogInformation("Server has been started. DLCs={DLCs}, Mods={Mods}", hostPlayer.ContentState.DLCs.Count, hostPlayer.ContentState.Mods.Count);
+        }
+
+        private void OnPlayerDisconnected(long playerId)
+        {
+            lock (ActionLock)
+            {
+                var removedPlayer = CleanupPlayer(playerId);
+                if (removedPlayer == null)
+                {
+                    return;
+                }
+
+                InvokeOnPlayersChanged();
+                var playersChanged = CreateNotifyLobbyPlayersChanged();
+                Logger.LogInformation("Sending {MessageType}", nameof(NotifyLobbyPlayersChanged));
+                _networkServer.SendAllExcept(playerId, playersChanged);
+                ShowPlayerDisconnectedMessage(removedPlayer);
+
+                UpdateRestUIState();
+
+                if (Game.Rest != null)
+                {
+                    RemovePlayerFromTracker(Game.Rest.PlayersFinishedRest, removedPlayer.Id);
+                    UpdateRestResultsUIState();
+                }
+
+                TryEnableDialogContinueButton();
+
+                RemovePlayerFromTracker(Game.PlayersInSkipTime, removedPlayer.Id);
+                UpdateSkipTimeUIState();
+
+                RemovePlayerFromTracker(Game.PlayersInGroupChanger, removedPlayer.Id);
+                UpdateGroupManagerUIState();
+
+                RemovePlayerFromTracker(Game.PlayersInZoneLoot, removedPlayer.Id);
+                UpdateZoneLootUIState();
+
+                UpdateRespecWindowStateOnPlayerLeave(removedPlayer.Id);
+
+                UpdateCharacterSelectionUIState();
+
+                TryEndForcedPause();
+            }
         }
 
         private void OnClientGameServerConnectionConfirmed(long playerId, ClientGameServerConnectionConfirmed connectionConfirmed)
@@ -1443,78 +1559,6 @@ namespace WOTRMultiplayer.Services
             return discrepantMods;
         }
 
-        private void OnPlayerConnected(long playerId)
-        {
-            lock (ActionLock)
-            {
-                var existingPlayer = GetPlayer(playerId);
-                if (existingPlayer != null)
-                {
-                    Logger.LogWarning("Player already exists. PlayerId={PlayerId}", playerId);
-                    return;
-                }
-
-                var player = new NetworkPlayer(playerId);
-                Game.Players.Add(player);
-
-                var settings = GameInteraction.GetGameSettings();
-                settings.Multiplayer = SettingsService.GetSettings();
-
-                var message = new GameServerConnectionSucceeded
-                {
-                    ClientPlayerId = playerId,
-                    GameSettings = Mapper.Map<Networking.Messages.Contracts.NetworkGameSettings>(settings),
-                    SessionSeed = Game.SessionSeed
-                };
-                Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, Settings={Settings}", nameof(GameServerConnectionSucceeded), message.ClientPlayerId, message.GameSettings);
-
-                _networkServer.Send(playerId, message);
-            }
-        }
-
-        private void OnPlayerDisconnected(long playerId)
-        {
-            lock (ActionLock)
-            {
-                var removedPlayer = CleanupPlayer(playerId);
-                if (removedPlayer == null)
-                {
-                    return;
-                }
-
-                InvokeOnPlayersChanged();
-                var playersChanged = CreateNotifyLobbyPlayersChanged();
-                Logger.LogInformation("Sending {MessageType}", nameof(NotifyLobbyPlayersChanged));
-                _networkServer.SendAllExcept(playerId, playersChanged);
-                ShowPlayerDisconnectedMessage(removedPlayer);
-
-                UpdateRestUIState();
-
-                if (Game.Rest != null)
-                {
-                    RemovePlayerFromTracker(Game.Rest.PlayersFinishedRest, removedPlayer.Id);
-                    UpdateRestResultsUIState();
-                }
-
-                TryEnableDialogContinueButton();
-
-                RemovePlayerFromTracker(Game.PlayersInSkipTime, removedPlayer.Id);
-                UpdateSkipTimeUIState();
-
-                RemovePlayerFromTracker(Game.PlayersInGroupChanger, removedPlayer.Id);
-                UpdateGroupManagerUIState();
-
-                RemovePlayerFromTracker(Game.PlayersInZoneLoot, removedPlayer.Id);
-                UpdateZoneLootUIState();
-
-                UpdateRespecWindowStateOnPlayerLeave(removedPlayer.Id);
-
-                UpdateCharacterSelectionUIState();
-
-                TryEndForcedPause();
-            }
-        }
-
         private NotifyLobbyPlayersChanged CreateNotifyLobbyPlayersChanged()
         {
             var playersChanged = new NotifyLobbyPlayersChanged
@@ -1522,35 +1566,6 @@ namespace WOTRMultiplayer.Services
                 Players = Mapper.Map<List<Networking.Messages.Contracts.NetworkPlayer>>(GetPlayers())
             };
             return playersChanged;
-        }
-
-        private void OnServerStarted(EndPoint endpoint)
-        {
-            var hostPlayer = new NetworkPlayer(NetworkingConsts.HostPlayerId)
-            {
-                Name = SettingsService.GetSettings().PlayerName,
-                ContentState = GameInteraction.GetInstalledContent(),
-                IsHost = true
-            };
-
-            Game.Players.Add(hostPlayer);
-
-            Game.Connectivity = new NetworkGameConnectivity
-            {
-                Endpoint = endpoint
-            };
-
-            foreach (var character in Game.Characters)
-            {
-                character.Owner = hostPlayer;
-            }
-
-            var enforcedSettings = GetEnforcedGameSettings();
-            GameInteraction.ApplyGameSettings(enforcedSettings);
-
-            OnConnected?.Invoke(Game.Connectivity);
-            InvokeOnPlayersChanged();
-            Logger.LogInformation("Server has been started. DLCs={DLCs}, Mods={Mods}", hostPlayer.ContentState.DLCs.Count, hostPlayer.ContentState.Mods.Count);
         }
 
         private NetworkGameSettings GetEnforcedGameSettings()
@@ -1696,18 +1711,6 @@ namespace WOTRMultiplayer.Services
                 Logger.LogError(ex, "Unable to end forced pause");
                 throw;
             }
-        }
-
-        private void OnClientAreaLoaded(long playerId, ClientAreaLoaded loaded)
-        {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}", nameof(ClientAreaLoaded), playerId);
-            lock (ActionLock)
-            {
-                EnsureForcePaused(WellKnownKeys.GameNotifications.ForcedPause.AreaLoading.Key);
-                Game.ForcedPause.ReadyPlayers.Add(playerId);
-            }
-
-            TryEndForcedPause();
         }
 
         private void TryStartSavedGame()

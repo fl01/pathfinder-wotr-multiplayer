@@ -5,6 +5,7 @@ using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.ActionBar;
+using WOTRMultiplayer.Entities.Area;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Dialogs;
 using WOTRMultiplayer.Entities.Equipment;
@@ -42,7 +43,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnStopGameMode(GameModeType type);
 
-        bool CanLeaveArea();
+        bool CanInitiateAreaTransitions();
 
         void OnAfterCueShow(string dialogName, string cueName, bool hasSystemAnswer);
 
@@ -125,10 +126,6 @@ namespace WOTRMultiplayer.Abstractions
         void OnInterrupRestBanterBark(NetworkRestBanter networkRestBanter);
 
         NetworkAIAction OnAfterAISelectedAction(NetworkAIAction networkAIAction);
-
-        bool ShouldGroundHandlerMoveAllUnitsToPoint();
-
-        void ResetExecutionContext();
 
         void OnTransferVendorItem(NetworkVendorItemTransfer networkVendorItemTransfer);
 
@@ -339,5 +336,7 @@ namespace WOTRMultiplayer.Abstractions
         bool OnCreateAndEquipPolymorphInSlot(NetworkPolymorphicItem polymorphicItem);
 
         void OnCutsceneSkip();
+
+        void OnAreaTransition(NetworkAreaTransition areaTransition);
     }
 }

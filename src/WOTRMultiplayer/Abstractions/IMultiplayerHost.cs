@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using WOTRMultiplayer.Entities;
+using WOTRMultiplayer.Entities.Area;
 using WOTRMultiplayer.Entities.Dialogs;
 using WOTRMultiplayer.Entities.GlobalMap;
 using WOTRMultiplayer.Entities.Inspect;
@@ -17,7 +18,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void ChangeCharacterOwner(int characterIndex, int playerIndex);
 
-        void LeaveArea(string areaExitId);
+        void OnAreaTransition(NetworkAreaTransition areaTransition);
 
         void SendSelectedAnswer();
 

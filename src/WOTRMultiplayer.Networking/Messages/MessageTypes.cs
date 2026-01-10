@@ -70,7 +70,7 @@
             NotifyLevelingTerminated,
             NotifyMapObjectClicked,
             NotifyOvertipInteracted,
-            NotifyPartyLeaveArea,
+            NotifyPartyAreaTransitioned,
             NotifyPerceptionCheckRolled,
             NotifyRestBanterInterrupted,
             NotifyRestStarted,

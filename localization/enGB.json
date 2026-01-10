@@ -23,7 +23,7 @@
                 "title": "Host",
                 "hostButton": {
                     "hostText": "Host",
-                    "selectSaveText": "Select Save"
+                    "selectSaveText": "Change Save"
                 },
                 "startButton": "Start",
                 "deactivation": {

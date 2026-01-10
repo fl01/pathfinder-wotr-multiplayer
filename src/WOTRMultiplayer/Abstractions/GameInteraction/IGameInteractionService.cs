@@ -6,6 +6,7 @@ using Kingmaker.GameModes;
 using Kingmaker.Items.Slots;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.ActionBar;
+using WOTRMultiplayer.Entities.Area;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Content;
 using WOTRMultiplayer.Entities.Equipment;
@@ -29,7 +30,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         GameModeType CurrentGameMode { get; }
 
-        void LeaveArea(string areaExitId);
+        void LeaveArea(NetworkAreaTransition areaTransition);
 
         void MoveNonCombatCharacter(NetworkCharacterMove networkCharacterMove);
 
@@ -112,8 +113,6 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void UpdateIsInCombatStatus();
 
         void TryInterruptRestBanter(NetworkRestBanter networkRestBanter);
-
-        void SetGroundMoveEveryone();
 
         void TransferVendorItem(NetworkVendorItemTransfer networkVendorItemTransfer);
 

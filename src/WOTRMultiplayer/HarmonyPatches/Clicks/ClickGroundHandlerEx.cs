@@ -30,13 +30,13 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
         /// <param name="formationSpaceFactor"></param>
         /// <param name="ignoreHold"></param>
         /// <param name="commandRunner"></param>
-        public static void MoveSelectedUnitsToPoint(Vector3 worldPosition, Vector3 direction, bool preview = false, bool showTargetMarker = true, float formationSpaceFactor = 1f, bool ignoreHold = true, Action<UnitEntityData, ClickGroundHandler.CommandSettings> commandRunner = null)
+        public static void MoveSelectedUnitsToPoint(List<UnitEntityData> unitsToMove, Vector3 worldPosition, Vector3 direction, bool preview = false, bool showTargetMarker = true, float formationSpaceFactor = 1f, bool ignoreHold = true, Action<UnitEntityData, ClickGroundHandler.CommandSettings> commandRunner = null)
         {
             if (!preview)
             {
                 ClickGroundHandler.m_UnitWaitAgentList.Clear();
             }
-            UnitEntityData unitEntityData = Game.Instance.SelectionCharacter.SingleSelectedUnit;
+            UnitEntityData unitEntityData = unitsToMove.FirstOrDefault();
             if (!Game.Instance.IsControllerMouse)
             {
                 unitEntityData = unitEntityData?.GetRider() ?? unitEntityData;
@@ -75,7 +75,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
                 return;
             }
             IPartyFormation currentFormation = Game.Instance.Player.FormationManager.CurrentFormation;
-            List<UnitEntityData> allUnits = [.. Game.Instance.SelectionCharacter.ActualGroup.Where(u => CommonTranspilerReplacements.IsControlledByPlayers(u) && u.SaddledPart == null)];
+            List<UnitEntityData> allUnits = [.. unitsToMove.Where(u => CommonTranspilerReplacements.IsControlledByPlayers(u) && u.SaddledPart == null)];
             float num = Mathf.Atan2(direction.x, direction.z) * 57.29578f;
             float? num2 = null;
             if (allUnits.Count > 1 && !Game.Instance.Player.IsInCombat)

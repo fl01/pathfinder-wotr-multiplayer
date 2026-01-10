@@ -8,6 +8,7 @@ using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Config.DI;
 using WOTRMultiplayer.Entities;
+using WOTRMultiplayer.Entities.Area;
 using WOTRMultiplayer.Entities.Dialogs;
 using WOTRMultiplayer.Entities.Movement;
 using WOTRMultiplayer.Entities.Rolls.Claiming.Values;
@@ -116,7 +117,8 @@ namespace WOTRMultiplayer.Playground.Host
                         host.OnAreaScenesLoaded();
                         break;
                     case "leave-area":
-                        host.LeaveArea("1b018b52-c1be-40bf-8937-1f2a77b96049");
+                        var transition = new NetworkAreaTransition { AreaExitId = "1b018b52-c1be-40bf-8937-1f2a77b96049" };
+                        host.OnAreaTransition(transition);
                         break;
                     case "dialog-answer_continue0001":
                         host.Game.Dialog = new NetworkDialog(DialogName)

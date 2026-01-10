@@ -25,8 +25,6 @@ namespace WOTRMultiplayer.Services.GameInteraction.Contexts
 
         public OvertipInteractionContext Overtip { get; set; }
 
-        public UnitsMovementContext UnitsMovement { get; set; }
-
         public VendorItemTransferContext VendorItemTransfer { get; set; }
 
         public MapObjectLockpickContext Lockpick { get; set; }
@@ -43,7 +41,6 @@ namespace WOTRMultiplayer.Services.GameInteraction.Contexts
             HandEquipment = null;
             RandomEncounter = null;
             Overtip = null;
-            UnitsMovement = null;
             VendorItemTransfer = null;
             Lockpick = null;
             PolymorphicItem = null;
@@ -112,11 +109,6 @@ namespace WOTRMultiplayer.Services.GameInteraction.Contexts
         public static RemoteExecutionContext Create(NetworkRandomEncounterContext encounterContext)
         {
             return new RemoteExecutionContext { RandomEncounter = encounterContext };
-        }
-
-        public static RemoteExecutionContext Create(UnitsMovementContext unitsMovementContext)
-        {
-            return new RemoteExecutionContext { UnitsMovement = unitsMovementContext };
         }
 
         public static RemoteExecutionContext CreateVendorItemTransfer(string itemId)

@@ -8,6 +8,7 @@ using Kingmaker.Items.Slots;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.ActionBar;
+using WOTRMultiplayer.Entities.Area;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Content;
 using WOTRMultiplayer.Entities.Equipment;
@@ -182,7 +183,10 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
 
         public NetworkContentState GetInstalledContent()
         {
-            return null;
+            return new NetworkContentState()
+            {
+                GameVersion = "Playground"
+            };
         }
 
         public List<NetworkCharacter> GetPartyPlayers()
@@ -236,8 +240,9 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
             return false;
         }
 
-        public void LeaveArea(string areaExitId)
+        public void LeaveArea(NetworkAreaTransition areaTransition)
         {
+            throw new NotImplementedException();
         }
 
         public string LoadGameFromMainMenu(string savePath)
@@ -303,10 +308,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         }
 
         public void SetCampingUseHealingSpells(bool isOn)
-        {
-        }
-
-        public void SetGroundMoveEveryone()
         {
         }
 

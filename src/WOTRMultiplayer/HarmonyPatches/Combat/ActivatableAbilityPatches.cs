@@ -30,7 +30,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                         && (__instance.m_IsOn
                             || !__instance.Owner.Unit.Buffs.Enumerable.Any(a => string.Equals(a.Blueprint.NameForAcronym, "MountedBuff", System.StringComparison.OrdinalIgnoreCase))))
                 {
-                    // mount toggle is messing up with AbilityUse, so we need to handle Dismount only as everything else is handled by AbilityUse
+                    // mount toggle is messing up with AbilityUse
                     Main.GetLogger<ActivatableAbilityPatches>().LogInformation("Mount toggle is ignored. IsActive={IsActive}", __instance.m_IsOn);
                     return;
                 }

@@ -13,6 +13,7 @@ using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Windows;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.ActionBar;
+using WOTRMultiplayer.Entities.Area;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Dialogs;
 using WOTRMultiplayer.Entities.Equipment;
@@ -213,9 +214,9 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public bool CanLeaveArea()
+        public bool CanInitiateAreaTransitions()
         {
-            return !_multiplayerActorAccessor.Client.IsActive;
+            return _multiplayerActorAccessor.Current != null && _multiplayerActorAccessor.Host.IsActive;
         }
 
         public void OnAfterCueShow(string dialogName, string cueName, bool hasSystemAnswer)
@@ -593,11 +594,6 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                if (networkOvertip.RequiresEveryoneToMoveMove)
-                {
-                    _gameInteractionService.SetGroundMoveEveryone();
-                }
-
                 _multiplayerActorAccessor.Current.OnInteractWithMapObjectOvertip(networkOvertip);
             }
             catch (Exception ex)
@@ -605,27 +601,6 @@ namespace WOTRMultiplayer.Services
                 _logger.LogError(ex, "Error while interacting with map object overtip. MapObjectId={MapObjectId}", networkOvertip?.MapObject?.Id);
                 throw;
             }
-        }
-
-        public void ResetExecutionContext()
-        {
-            if (_multiplayerActorAccessor.Current == null)
-            {
-                return;
-            }
-
-            _gameInteractionService.RemoteContext?.Dispose();
-        }
-
-        public bool ShouldGroundHandlerMoveAllUnitsToPoint()
-        {
-            if (_multiplayerActorAccessor.Current == null)
-            {
-                return false;
-            }
-
-            var context = _gameInteractionService.RemoteContext?.UnitsMovement;
-            return context != null && context.ShouldMoveEveryone;
         }
 
         public bool CanUnitJoinCombat(string unitId)
@@ -2778,6 +2753,24 @@ namespace WOTRMultiplayer.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while skipping cutscene");
+                throw;
+            }
+        }
+
+        public void OnAreaTransition(NetworkAreaTransition areaTransition)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnAreaTransition(areaTransition);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while processing area transition. AreaExitId={AreaExitId}", areaTransition.AreaExitId);
                 throw;
             }
         }

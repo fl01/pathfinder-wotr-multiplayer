@@ -1,4 +1,5 @@
-﻿using Kingmaker.Blueprints.Area;
+﻿using System;
+using Kingmaker.Blueprints.Area;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.PubSubSystem;
 using Kingmaker.UI;
@@ -6,6 +7,7 @@ using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.PubSub;
+using WOTRMultiplayer.Entities.Area;
 
 namespace WOTRMultiplayer.Services.PubSub
 {
@@ -56,29 +58,53 @@ namespace WOTRMultiplayer.Services.PubSub
 
         public void HandlePartyLeaveArea(BlueprintArea currentArea, BlueprintAreaEnterPoint targetArea, AreaTransitionPart areaTransition)
         {
-            if (ActorAccessor.Current == null || !ActorAccessor.Host.IsActive)
+            try
             {
-                return;
-            }
+                if (ActorAccessor.Current == null || !ActorAccessor.Host.IsActive)
+                {
+                    return;
+                }
 
-            var areaExitId = areaTransition.View?.UniqueId;
-            if (string.IsNullOrEmpty(areaExitId))
+                var areaExitId = areaTransition.View?.UniqueId;
+                if (string.IsNullOrEmpty(areaExitId))
+                {
+                    Logger.LogError("Missing area transition unique id");
+                    return;
+                }
+
+                var transition = new NetworkAreaTransition
+                {
+                    AreaExitId = areaExitId,
+                    IsActionsTransition = false, // HandlePartyLeaveArea is never called on actions transition
+                    From = new NetworkArea { Id = currentArea.AssetGuid.ToString(), Name = currentArea.name },
+                    To = new NetworkArea { Id = targetArea.AssetGuid.ToString(), Name = targetArea.name }
+                };
+
+                ActorAccessor.Host.OnAreaTransition(transition);
+            }
+            catch (Exception ex)
             {
-                Logger.LogError("Missing area transition unique id");
-                return;
+                Logger.LogError(ex, "Unable to handle party leave area event");
+                throw;
             }
-
-            ActorAccessor.Host.LeaveArea(areaExitId);
         }
 
         public void HandleWarning(WarningNotificationType warningType, bool addToLog = true)
         {
-            if (ActorAccessor.Current == null || warningType != WarningNotificationType.GameLoaded)
+            try
             {
-                return;
-            }
+                if (ActorAccessor.Current == null || warningType != WarningNotificationType.GameLoaded)
+                {
+                    return;
+                }
 
-            ActorAccessor.Current.OnGameLoaded();
+                ActorAccessor.Current.OnGameLoaded();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Unable to handle OnGameLoaded event");
+                throw;
+            }
         }
 
         public void HandleWarning(string text, bool addToLog = true)
@@ -87,34 +113,58 @@ namespace WOTRMultiplayer.Services.PubSub
 
         public void OnAreaLoadingComplete()
         {
-            if (ActorAccessor.Current == null)
+            try
             {
-                return;
-            }
+                if (ActorAccessor.Current == null)
+                {
+                    return;
+                }
 
-            Logger.LogInformation("OnAreaLoadingComplete");
-            ActorAccessor.Current.OnAreaLoadingComplete();
+                Logger.LogInformation("OnAreaLoadingComplete");
+                ActorAccessor.Current.OnAreaLoadingComplete();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Unable to handle OnAreaLoadingComplete event");
+                throw;
+            }
         }
 
         public void OnAreaScenesLoaded()
         {
-            if (ActorAccessor.Current == null)
+            try
             {
-                return;
-            }
+                if (ActorAccessor.Current == null)
+                {
+                    return;
+                }
 
-            Logger.LogInformation("OnAreaScenesLoaded");
-            ActorAccessor.Current.OnAreaScenesLoaded();
+                Logger.LogInformation("OnAreaScenesLoaded");
+                ActorAccessor.Current.OnAreaScenesLoaded();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Unable to handle OnAreaScenesLoaded event");
+                throw;
+            }
         }
 
         private void OnPartyChanged()
         {
-            if (ActorAccessor.Current == null)
+            try
             {
-                return;
-            }
+                if (ActorAccessor.Current == null)
+                {
+                    return;
+                }
 
-            ActorAccessor.Current.UpdateCharactersOwnership();
+                ActorAccessor.Current.UpdateCharactersOwnership();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Unable to handle OnPartyChanged event");
+                throw;
+            }
         }
     }
 }
