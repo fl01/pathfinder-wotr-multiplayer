@@ -2697,10 +2697,10 @@ namespace WOTRMultiplayer.Services
         {
             Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, Type={Type}", nameof(NotifyGameModeTypeEnded), receivedFrom, gameModeTypeEnded.PlayerId, gameModeTypeEnded.Type);
             var gameMode = GameModeType.All.FirstOrDefault(g => string.Equals(g.Name, gameModeTypeEnded.Type, StringComparison.OrdinalIgnoreCase));
-            UnregisterGameMode(gameMode, receivedFrom);
+            UnregisterGameMode(gameMode, gameModeTypeEnded.PlayerId);
             if (gameMode == GameModeType.Rest)
             {
-                OnRemoteRestGameModeEnded(receivedFrom);
+                OnRemoteRestGameModeEnded(gameModeTypeEnded.PlayerId);
             }
 
             OnAfterNetworkMessageHandled(receivedFrom, gameModeTypeEnded);
