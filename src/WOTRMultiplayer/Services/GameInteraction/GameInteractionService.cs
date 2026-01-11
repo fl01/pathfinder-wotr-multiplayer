@@ -1886,11 +1886,23 @@ namespace WOTRMultiplayer.Services.GameInteraction
                         return;
                     }
 
+
                     var sourceSlot = unit.UISettings.GetSlot(sourceActionBarSlot.Index, unit);
+                    // source can't be empty unless ActionBar was never initialized, e.g. right at the game start if you never had a control of character
+                    if (sourceSlot is MechanicActionBarSlotEmpty)
+                    {
+                        unit.UISettings.TryToInitialize();
+                        sourceSlot = unit.UISettings.GetSlot(sourceActionBarSlot.Index, unit);
+                    }
+
                     var targetSlot = unit.UISettings.GetSlot(targetActionBarSlot.Index, unit);
                     unit.UISettings.SetSlot(sourceSlot, targetActionBarSlot.Index);
                     unit.UISettings.SetSlot(targetSlot, sourceActionBarSlot.Index);
-                    _logger.LogInformation("Action bar slots have been updated for unit. UnitId={UnitId}", targetActionBarSlot.UnitId);
+
+                    var updatedSourceSlot = unit.UISettings.GetSlot(sourceActionBarSlot.Index, unit);
+                    var updatedTargetSlot = unit.UISettings.GetSlot(targetActionBarSlot.Index, unit);
+
+                    _logger.LogInformation("Action bar slots have been updated for unit. UnitId={UnitId}, SourceSlotType={SourceSlotType}, TargetSlotType={TargetSlotType}", unit.UniqueId, updatedSourceSlot.GetType().Name, updatedTargetSlot.GetType().Name);
                 }
                 catch (Exception ex)
                 {
@@ -2826,7 +2838,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 return abilitySpellSlot;
             }
 
-            if (ability.SpellLevel == 0)
+            if (ability.SpellSlot == null)
             {
                 if (!string.IsNullOrEmpty(networkActionBarSlot.Ability.ConvertedFromId))
                 {
@@ -2834,8 +2846,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     return convertedSpellSlot;
                 }
 
-                var cantripSpellSlot = new MechanicActionBarSlotSpontaneousSpell(ability) { Unit = unit };
-                return cantripSpellSlot;
+                var spontaneousSpell = new MechanicActionBarSlotSpontaneousSpell(ability) { Unit = unit };
+                return spontaneousSpell;
             }
 
             var spellSlot = new MechanicActionBarSlotMemorizedSpell(ability.SpellSlot) { Unit = unit };
