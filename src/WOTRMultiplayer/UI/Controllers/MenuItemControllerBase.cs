@@ -115,8 +115,8 @@ namespace WOTRMultiplayer.UI.Controllers
 
         protected void ToggleReadyButton(bool isReady)
         {
-            var label = isReady ? new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.ReadyButton.ReadyText.Key }
-                : new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.ReadyButton.NotReadyText.Key };
+            var label = isReady ? new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.ReadyButton.NotReadyText.Key }
+                : new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.ReadyButton.ReadyText.Key };
             ReadyButtonObject.GetComponentInChildren<TextMeshProUGUI>().SetText(label);
         }
 

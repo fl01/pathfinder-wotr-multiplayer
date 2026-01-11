@@ -406,7 +406,6 @@ namespace WOTRMultiplayer.Services
                // lobby
                .On<NotifyLobbySaveGameChanged>(OnNotifyLobbySaveGameChanged)
                .On<GameServerConnectionSucceeded>(OnGameServerConnectionSucceeded)
-               .On<NotifyPlayerReadyStatusChanged>(OnPlayerReadyStatusChanged)
                .On<NotifyLobbyPlayersChanged>(OnNotifyLobbyPlayersChanged)
                .On<NotifyCharactersChanged>(OnNotifyGameCharactersChanged)
                .On<NotifyCharactersOwnerChanged>(OnNotifyCharactersOwnerChanged)
@@ -1030,13 +1029,6 @@ namespace WOTRMultiplayer.Services
             Logger.LogInformation("Game is ready to be started. SavePath={SavePath}", Game.StartUp.SavePath);
             var confirmationMessage = new NotifyPlayerGameStartUpSyncStatusChanged { PlayerId = Game.LocalPlayerId, Status = NetworkGameStartUpSyncStatus.Succeed.ToString() };
             Send(confirmationMessage);
-        }
-
-        private void OnPlayerReadyStatusChanged(long playerId, NotifyPlayerReadyStatusChanged readyStatusChanged)
-        {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, IsReady={IsReady}", nameof(NotifyPlayerReadyStatusChanged), readyStatusChanged.PlayerId, readyStatusChanged.IsReady);
-
-            UpdatePlayerReadyStatus(readyStatusChanged.PlayerId, readyStatusChanged.IsReady);
         }
 
         private void OnNotifyGameCharactersChanged(long playerId, NotifyCharactersChanged changed)

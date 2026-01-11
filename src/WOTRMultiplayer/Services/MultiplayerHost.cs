@@ -1001,7 +1001,6 @@ namespace WOTRMultiplayer.Services
 
                // lobby
                .On<NotifyPlayerGameStartUpSyncStatusChanged>(OnNotifyPlayerSaveGameSyncStatusChanged)
-               .On<NotifyPlayerReadyStatusChanged>(OnPlayerReadyStatusChanged)
                .On<ClientGameServerConnectionConfirmed>(OnClientGameServerConnectionConfirmed)
 
                // area transitioning
@@ -1302,15 +1301,6 @@ namespace WOTRMultiplayer.Services
             TryStartSavedGame();
 
             OnAfterNetworkMessageHandled(playerId, playerSaveGameSyncStatusChanged);
-        }
-
-        private void OnPlayerReadyStatusChanged(long playerId, NotifyPlayerReadyStatusChanged readyStatusChanged)
-        {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, IsReady={IsReady}", nameof(NotifyPlayerReadyStatusChanged), playerId, readyStatusChanged.IsReady);
-            UpdatePlayerReadyStatus(readyStatusChanged.PlayerId, readyStatusChanged.IsReady);
-
-            // including original client so his UI can be properly updated as well
-            Send(readyStatusChanged);
         }
 
         private void OnClientAreaLoaded(long playerId, ClientAreaLoaded loaded)

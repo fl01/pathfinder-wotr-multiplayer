@@ -2520,6 +2520,7 @@ namespace WOTRMultiplayer.Services
             _networkReceiver
                 // lobby
                 .On<NotifyGameForceLoaded>(OnNotifyGameForceLoaded)
+                .On<NotifyPlayerReadyStatusChanged>(OnNotifyPlayerReadyStatusChanged)
 
                 // leveling
                 .On<NotifyLevelingClassArchetypeSelected>(OnNotifyLevelingClassArchetypeSelected)
@@ -2650,6 +2651,14 @@ namespace WOTRMultiplayer.Services
                 // cutscenes
                 .On<NotifyCutsceneSkipped>(OnNotifyCutsceneSkipped)
                 ;
+        }
+
+        private void OnNotifyPlayerReadyStatusChanged(long receivedFrom, NotifyPlayerReadyStatusChanged readyStatusChanged)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, IsReady={IsReady}", nameof(NotifyPlayerReadyStatusChanged), receivedFrom, readyStatusChanged.PlayerId, readyStatusChanged.IsReady);
+            UpdatePlayerReadyStatus(readyStatusChanged.PlayerId, readyStatusChanged.IsReady);
+
+            OnAfterNetworkMessageHandled(receivedFrom, readyStatusChanged);
         }
 
         private void OnNotifyCutsceneSkipped(long playerId, NotifyCutsceneSkipped cutsceneSkipped)
