@@ -210,5 +210,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void CreatePing(string playerName, NetworkPing ping);
 
         void SkipCutscene(string playerName);
+
+        void ReselectSelectedCharacters();
     }
 }

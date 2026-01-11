@@ -283,6 +283,10 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
             return string.Empty;
         }
 
+        public void ReselectSelectedCharacters()
+        {
+        }
+
         public void ResetSuggestedDialogAnswers()
         {
         }

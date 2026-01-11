@@ -1011,6 +1011,7 @@ namespace WOTRMultiplayer.Services
                     }
 
                     OnCharacterOwnerChanged?.Invoke(owner.CharacterIndex, Game.Players.IndexOf(player));
+                    GameInteraction.ReselectSelectedCharacters();
                 }
             }
             catch (Exception ex)

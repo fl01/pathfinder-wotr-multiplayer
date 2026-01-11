@@ -158,6 +158,8 @@ namespace WOTRMultiplayer.Services
 
                 var charactersOwnerChanged = CreateNotifyCharactersOwnerChanged();
                 Send(charactersOwnerChanged);
+
+                GameInteraction.ReselectSelectedCharacters();
             }
         }
 
