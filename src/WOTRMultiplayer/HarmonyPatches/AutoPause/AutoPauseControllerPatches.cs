@@ -20,5 +20,21 @@ namespace WOTRMultiplayer.HarmonyPatches.AutoPause
 
             Main.Multiplayer.OnAutoPausedByTrapDetection();
         }
+
+        /// <summary>
+        /// this type of pause is disabled anyway, no need to check if setting is enabled
+        /// </summary>
+        /// <returns></returns>
+        [HarmonyPatch(typeof(AutoPauseController), nameof(AutoPauseController.OnApplicationFocusChanged))]
+        [HarmonyPrefix]
+        public static bool AutoPauseController_OnApplicationFocusChanged_Prefix()
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }
