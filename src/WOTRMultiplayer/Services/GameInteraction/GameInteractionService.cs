@@ -44,6 +44,7 @@ using Kingmaker.UI.MVVM._PCView.Settings.Entities.Difficulty;
 using Kingmaker.UI.MVVM._VM.Lockpick;
 using Kingmaker.UI.MVVM._VM.NewGame;
 using Kingmaker.UI.MVVM._VM.Settings.Entities;
+using Kingmaker.UI.Selection;
 using Kingmaker.UI.SettingsUI;
 using Kingmaker.UI.UnitSettings;
 using Kingmaker.UnitLogic;
@@ -1889,7 +1890,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     var targetSlot = unit.UISettings.GetSlot(targetActionBarSlot.Index, unit);
                     unit.UISettings.SetSlot(sourceSlot, targetActionBarSlot.Index);
                     unit.UISettings.SetSlot(targetSlot, sourceActionBarSlot.Index);
-
                     _logger.LogInformation("Action bar slots have been updated for unit. UnitId={UnitId}", targetActionBarSlot.UnitId);
                 }
                 catch (Exception ex)
@@ -2337,6 +2337,21 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                 CutsceneController.SkipCutscene();
                 _playerNotificationService.ShowWarningNotification(WellKnownKeys.GameNotifications.Cutscenes.Skipped.Key, playerName);
+            });
+        }
+
+        public void ReselectSelectedCharacters()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                if (!Game.Instance.Player.IsInGame)
+                {
+                    return;
+                }
+
+                var selectionManager = Game.Instance.UI.SelectionManager as SelectionManagerPC;
+                var selectedCharacters = selectionManager?.SelectedUnits.Select(x => x.View).ToList() ?? [];
+                selectionManager?.MultiSelect(selectedCharacters, false);
             });
         }
 
