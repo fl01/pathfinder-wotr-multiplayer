@@ -158,6 +158,9 @@
             }
         },
         "gameNotifications": {
+            "dialogs": {
+                "waitingForOtherPlayers": "Can't continue until everyone has seen the cue"
+            },
             "rolls": {
                 "failedToAcquireRemoteDamageRoll": "Failed to acquire damage roll from remote player which guarantees desync in the game",
                 "failedToAcquireRemoteHealRoll": "Failed to acquire heal roll from remote player which guarantees desync in the game",

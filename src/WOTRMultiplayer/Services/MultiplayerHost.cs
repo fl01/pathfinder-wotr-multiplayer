@@ -247,12 +247,14 @@ namespace WOTRMultiplayer.Services
             if (missingPlayers.Count > 0)
             {
                 Logger.LogWarning("Some players haven't seen the dialog yet. Players={Players}", string.Join(";", missingPlayers.Select(p => p.Name)));
+                DialogInteraction.PlayUnableToSelectCueAnimation(answerName);
+                PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.Dialogs.WaitingForOtherPlayers.Key, addToLog: false);
                 return false;
             }
 
             DialogInteraction.ResetSuggestedDialogAnswers();
             Game.Dialog.AnswerSuggestions.Clear();
-
+            Game.Dialog.CueViews.TryRemove(cueName, out _);
             Game.Dialog.Answer = new NetworkDialogAnswer
             {
                 AnswerName = answerName,
@@ -266,7 +268,6 @@ namespace WOTRMultiplayer.Services
             {
                 SendSelectedAnswer();
             }
-
 
             return true;
         }

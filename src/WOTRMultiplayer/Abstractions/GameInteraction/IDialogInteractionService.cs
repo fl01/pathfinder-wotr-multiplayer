@@ -10,7 +10,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void ResetSuggestedDialogAnswers();
 
-        void SelectDialogAnswer(string dialogName, string cueName, string answerName, string manualUnitSelectionId);
+        void SelectDialogAnswer(string answerName, string manualUnitSelectionId);
 
         void SetDialogContinueButtonState(bool isEnabled);
 
@@ -19,5 +19,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void UpdateDialogPopupUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
 
         void CloseDialogPopup(NetworkDialogPopup networkDialogPopup);
+
+        void PlayUnableToSelectCueAnimation(string answerName);
     }
 }

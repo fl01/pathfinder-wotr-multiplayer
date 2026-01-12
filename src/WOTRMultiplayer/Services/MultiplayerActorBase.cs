@@ -503,7 +503,7 @@ namespace WOTRMultiplayer.Services
             Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyCutsceneSkipped), message.PlayerId);
             Send(message);
 
-            PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.Cutscenes.Skipped.Key, localPlayer.Name);
+            PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.Cutscenes.Skipped.Key, args: localPlayer.Name);
         }
 
         public void ForceLoadGame(string gameId, string savePath)
@@ -1465,7 +1465,7 @@ namespace WOTRMultiplayer.Services
 
             if (!string.IsNullOrEmpty(messageKey))
             {
-                PlayerNotification.ShowWarningNotification(messageKey, characterName);
+                PlayerNotification.ShowWarningNotification(messageKey, args: characterName);
             }
 
             Game.Leveling = null;
@@ -2031,7 +2031,7 @@ namespace WOTRMultiplayer.Services
                 return;
             }
 
-            PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.Session.PlayerJoined.Key, networkPlayer.Name);
+            PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.Session.PlayerJoined.Key, args: networkPlayer.Name);
         }
 
         protected void ShowPlayerDisconnectedMessage(NetworkPlayer networkPlayer)

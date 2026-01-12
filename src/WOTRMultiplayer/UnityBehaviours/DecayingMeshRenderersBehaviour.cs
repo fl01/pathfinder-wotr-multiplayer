@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace WOTRMultiplayer.UnityBehaviours
 {
-    public class DecayingMeshRenderersBehaviour : DecayingBehaviour
+    public class DecayingMeshRenderersBehaviour : DecayingBehaviourBase
     {
         private List<MeshRenderer> _renderers;
 

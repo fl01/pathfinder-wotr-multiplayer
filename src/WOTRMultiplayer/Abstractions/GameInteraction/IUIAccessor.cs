@@ -2,6 +2,7 @@
 using Kingmaker.UI.MVVM._PCView.CombatLog;
 using Kingmaker.UI.MVVM._PCView.Common;
 using Kingmaker.UI.MVVM._PCView.Common.MessageModal;
+using Kingmaker.UI.MVVM._PCView.Dialog;
 using Kingmaker.UI.MVVM._PCView.EscMenu;
 using Kingmaker.UI.MVVM._PCView.GlobalMap;
 using Kingmaker.UI.MVVM._PCView.GroupChanger;
@@ -47,6 +48,8 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         InventoryVM InventoryVM { get; }
 
-        CombatLogPCView CombatLogPcView { get; }
+        CombatLogPCView CombatLogPCView { get; }
+
+        DialogContextPCView DialogContextPCView { get; }
     }
 }

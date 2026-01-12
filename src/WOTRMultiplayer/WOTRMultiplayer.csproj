@@ -76,6 +76,9 @@
 		<Reference Include="AstarPathfindingProject">
 			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\AstarPathfindingProject.dll</HintPath>
 		</Reference>
+		<Reference Include="DOTween">
+			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\DOTween.dll</HintPath>
+		</Reference>
 		<Reference Include="DOTweenPro">
 			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\DOTweenPro.dll</HintPath>
 		</Reference>
@@ -100,11 +103,17 @@
 		<Reference Include="UnityEngine.AssetBundleModule">
 			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
 		</Reference>
+		<Reference Include="UnityEngine.AudioModule">
+			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+		</Reference>
 		<Reference Include="UnityEngine.CoreModule">
 			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.IMGUIModule">
 			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.PhysicsModule">
+			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.TextRenderingModule">
 			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>

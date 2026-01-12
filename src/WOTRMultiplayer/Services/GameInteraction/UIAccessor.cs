@@ -3,6 +3,7 @@ using Kingmaker.UI.MVVM._PCView.CharGen;
 using Kingmaker.UI.MVVM._PCView.CombatLog;
 using Kingmaker.UI.MVVM._PCView.Common;
 using Kingmaker.UI.MVVM._PCView.Common.MessageModal;
+using Kingmaker.UI.MVVM._PCView.Dialog;
 using Kingmaker.UI.MVVM._PCView.EscMenu;
 using Kingmaker.UI.MVVM._PCView.GlobalMap;
 using Kingmaker.UI.MVVM._PCView.GroupChanger;
@@ -54,6 +55,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         public InventoryVM InventoryVM => (Game.Instance.RootUiContext?.InGameVM?.StaticPartVM?.ServiceWindowsVM ?? Game.Instance.RootUiContext?.GlobalMapVM?.ServiceWindowsVM)?.InventoryVM?.Value;
 
-        public CombatLogPCView CombatLogPcView => InGamePCView?.m_StaticPartPCView?.m_CombatLogPCView ?? GlobalMapPCView?.m_CombatLogPCView;
+        public CombatLogPCView CombatLogPCView => InGamePCView?.m_StaticPartPCView?.m_CombatLogPCView ?? GlobalMapPCView?.m_CombatLogPCView;
+
+        public DialogContextPCView DialogContextPCView => InGamePCView?.m_StaticPartPCView?.m_DialogContextPCView ?? GlobalMapPCView?.m_DialogContextPCView;
     }
 }

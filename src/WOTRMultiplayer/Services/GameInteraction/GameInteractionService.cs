@@ -2356,7 +2356,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 }
 
                 CutsceneController.SkipCutscene();
-                _playerNotificationService.ShowWarningNotification(WellKnownKeys.GameNotifications.Cutscenes.Skipped.Key, playerName);
+                _playerNotificationService.ShowWarningNotification(WellKnownKeys.GameNotifications.Cutscenes.Skipped.Key, args: playerName);
             });
         }
 

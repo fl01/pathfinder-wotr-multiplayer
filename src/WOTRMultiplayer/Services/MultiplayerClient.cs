@@ -918,7 +918,7 @@ namespace WOTRMultiplayer.Services
             };
 
             Game.Dialog.AnswerSuggestions.Clear();
-            DialogInteraction.SelectDialogAnswer(selected.DialogName, selected.CueName, selected.AnswerName, selected.ManualUnitSelectionId);
+            DialogInteraction.SelectDialogAnswer(selected.AnswerName, selected.ManualUnitSelectionId);
         }
 
         private void OnNotifyDialogCueAnswerSuggested(long playerId, NotifyDialogCueAnswerSuggested suggested)

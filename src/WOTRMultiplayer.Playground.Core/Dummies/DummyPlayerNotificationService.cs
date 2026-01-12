@@ -17,7 +17,7 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void ShowWarningNotification(string messageKey, params object[] args)
+        public void ShowWarningNotification(string messageKey, bool addToLog = true, params object[] args)
         {
         }
     }

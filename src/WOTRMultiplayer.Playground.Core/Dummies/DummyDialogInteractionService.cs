@@ -15,11 +15,15 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
+        public void PlayUnableToSelectCueAnimation(string answerName)
+        {
+        }
+
         public void ResetSuggestedDialogAnswers()
         {
         }
 
-        public void SelectDialogAnswer(string dialogName, string cueName, string answerName, string manualUnitSelectionId)
+        public void SelectDialogAnswer(string answerName, string manualUnitSelectionId)
         {
         }
 

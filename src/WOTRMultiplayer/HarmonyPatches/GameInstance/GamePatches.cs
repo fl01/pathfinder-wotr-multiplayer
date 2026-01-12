@@ -174,7 +174,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GameInstance
         {
             // known issues:
             // combat log is not closed during vendor UI
-            var combatLogView = Main.UIAccessor.CombatLogPcView;
+            var combatLogView = Main.UIAccessor.CombatLogPCView;
             if (combatLogView == null)
             {
                 Main.GetLogger<GamePatches>().LogError("Unable to fix full screen game mode sideeffects due to missing combat log view");

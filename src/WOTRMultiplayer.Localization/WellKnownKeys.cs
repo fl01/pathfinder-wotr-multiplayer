@@ -591,6 +591,16 @@ public static class WellKnownKeys
     [Description("gameNotifications")]
     public static class GameNotifications
     {
+        [Description("dialogs")]
+        public static class Dialogs
+        {
+            [Description("waitingForOtherPlayers")]
+            public static class WaitingForOtherPlayers
+            {
+                public static string Key { get; set; }
+            }
+        }
+
         [Description("rolls")]
         public static class Rolls
         {

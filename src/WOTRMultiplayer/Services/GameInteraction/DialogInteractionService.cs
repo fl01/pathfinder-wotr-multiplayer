@@ -9,12 +9,11 @@ using Kingmaker.EntitySystem.Entities;
 using Kingmaker.Localization;
 using Kingmaker.UI;
 using Kingmaker.UI.MVVM._PCView.Common;
-using Kingmaker.UI.MVVM._PCView.Dialog.BookEvent;
 using Kingmaker.UI.MVVM._PCView.Dialog.Dialog;
-using Kingmaker.UI.MVVM._PCView.Dialog.Interchapter;
 using Kingmaker.UI.MVVM._PCView.InGame;
 using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
+using Owlcat.Runtime.Core.Utils;
 using Owlcat.Runtime.UI.Controls.Button;
 using UnityEngine;
 using WOTRMultiplayer.Abstractions.GameInteraction;
@@ -23,11 +22,14 @@ using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.Entities.Dialogs;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.UI;
+using WOTRMultiplayer.UnityBehaviours.DialogAnswers;
 
 namespace WOTRMultiplayer.Services.GameInteraction
 {
     public class DialogInteractionService : IDialogInteractionService
     {
+        public const string SuggestionIconObjectPrefix = "SuggestionIcon";
+
         private readonly ILogger<DialogInteractionService> _logger;
         private readonly IMainThreadAccessor _mainThreadAccessor;
         private readonly IUISyncCountersService _uiSyncCountersService;
@@ -64,30 +66,77 @@ namespace WOTRMultiplayer.Services.GameInteraction
             ImmediatlyMarkSuggestedDialogAnswers([]);
         }
 
-        public void SelectDialogAnswer(string dialogName, string cueName, string answerName, string manualUnitSelectionId)
+        public void PlayUnableToSelectCueAnimation(string answerName)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var answers = GetAnswers()?.Children() ?? [];
+                foreach (var answer in answers)
+                {
+                    if (string.Equals(answer.gameObject.GetComponent<DialogAnswerPCView>()?.ViewModel?.Answer.Value.name, answerName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var selectedAnswerBehavior = answer.gameObject.AddComponent<SelectedDialogAnswerBehavior>();
+                        selectedAnswerBehavior.Initialize(duration: 0.8f, onExpired: null);
+                        break;
+                    }
+                }
+            });
+        }
+
+        public void SelectDialogAnswer(string answerName, string manualUnitSelectionId)
         {
             _mainThreadAccessor.Post(() =>
             {
                 try
                 {
-                    ResetSuggestedDialogAnswers();
-
-                    var answer = Game.Instance.DialogController.Answers.FirstOrDefault(a => string.Equals(a.name, answerName, StringComparison.OrdinalIgnoreCase));
-                    if (answer == null)
+                    var answerBlueprint = Game.Instance.DialogController.Answers.FirstOrDefault(a => string.Equals(a.name, answerName, StringComparison.OrdinalIgnoreCase));
+                    if (answerBlueprint == null)
                     {
                         _logger.LogError("Unable to find requested answer. AnswerName={answerName}", answerName);
                         return;
                     }
 
-                    var unit = manualUnitSelectionId == null ? null : Game.Instance.Player.PartyAndPets.FirstOrDefault(u => string.Equals(u.UniqueId, manualUnitSelectionId));
-                    Game.Instance.DialogController.SelectAnswer(answer, unit);
+                    var answers = GetAnswers()?.Children() ?? [];
+
+                    if (!answers.Any())
+                    {
+                        DoSelectAnswer(answerBlueprint, manualUnitSelectionId);
+                        return;
+                    }
+
+                    foreach (var answer in answers)
+                    {
+                        var view = answer.gameObject.GetComponent<DialogAnswerPCView>();
+                        if (view == null)
+                        {
+                            _logger.LogWarning("Answer child has no DialogAnswerPCView component");
+                            continue;
+                        }
+
+                        if (string.Equals(view.ViewModel.Answer.Value.name, answerName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            var selectedAnswerBehavior = answer.gameObject.AddComponent<SelectedDialogAnswerBehavior>();
+                            selectedAnswerBehavior.Initialize(duration: 0.5f, () => DoSelectAnswer(answerBlueprint, manualUnitSelectionId));
+                            continue;
+                        }
+
+                        var nonSelectedAnswerBehavior = answer.gameObject.AddComponent<NotSelectedDialogAnswerBehavior>();
+                        nonSelectedAnswerBehavior.Initialize(duration: 0.5f, onExpired: null);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Unable to select dialog answer");
+                    _logger.LogError(ex, "Unable to select dialog answer. AnswerName={AnswerName}", answerName);
                     throw;
                 }
             });
+        }
+
+        private void DoSelectAnswer(BlueprintAnswer answerBlueprint, string manualUnitSelectionId)
+        {
+            ResetSuggestedDialogAnswers();
+            var unit = manualUnitSelectionId == null ? null : Game.Instance.Player.PartyAndPets.FirstOrDefault(u => string.Equals(u.UniqueId, manualUnitSelectionId));
+            Game.Instance.DialogController.SelectAnswer(answerBlueprint, unit);
         }
 
         public void SetDialogContinueButtonState(bool isEnabled)
@@ -205,28 +254,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 return;
             }
 
-            var dialogContext = (Game.Instance.RootUiContext.m_UIView as InGamePCView)?.m_StaticPartPCView?.m_DialogContextPCView;
-            if (dialogContext == null)
-            {
-                _logger.LogWarning("DialogContextView is null");
-                return;
-            }
-
-            switch (Game.Instance.DialogController.Dialog.Type)
-            {
-                case DialogType.Interchapter:
-                    MarkInterchapterAnswer(dialogContext.m_InterchapterPCView, suggestions);
-                    break;
-                case DialogType.Common:
-                    MarkDialogAnswer(dialogContext.m_DialogPCView, suggestions);
-                    break;
-                case DialogType.Book:
-                    MarkBookAnswer(dialogContext.m_BookEventPCView, suggestions);
-                    break;
-                default:
-                    _logger.LogWarning("Marking suggested answers has not been implemented for this dialog type. DialogType={DialogType}", Game.Instance.DialogController.Dialog.Type);
-                    break;
-            }
+            var answers = GetAnswers();
+            MarkAnswers(answers, suggestions);
 
             if (suggestions.Count > 0)
             {
@@ -234,43 +263,34 @@ namespace WOTRMultiplayer.Services.GameInteraction
             }
         }
 
-        private void MarkInterchapterAnswer(InterchapterPCView interchapterView, List<NetworkDialogAnswerSuggestion> suggestions)
+        private Transform GetAnswers()
         {
-            if (interchapterView == null)
+            var dialogContext = _uiAccessor.DialogContextPCView;
+            if (dialogContext == null)
             {
-                return;
+                _logger.LogWarning("DialogContextView is null");
+                return null;
             }
 
-            var answers = interchapterView.gameObject.transform.Find("ContentWrapper/Window/Content/Answers");
-            MarkAnswers(answers, suggestions);
-        }
-
-        private void MarkBookAnswer(BookEventPCView bookView, List<NetworkDialogAnswerSuggestion> suggestions)
-        {
-            if (bookView == null)
+            switch (Game.Instance.DialogController.Dialog.Type)
             {
-                return;
+                case DialogType.Common:
+                    var dialogAnswers = dialogContext.m_DialogPCView.gameObject.transform.Find("Body/View/Scroll View/Viewport/Content/AnswersPanel");
+                    return dialogAnswers;
+                case DialogType.Book:
+                    var bookAnswers = dialogContext.m_BookEventPCView.gameObject.transform.Find("ContentWrapper/Window/Content/Answers");
+                    return bookAnswers;
+                case DialogType.Interchapter:
+                    var interchapterAnswers = dialogContext.m_InterchapterPCView.gameObject.transform.Find("ContentWrapper/Window/Content/Answers");
+                    return interchapterAnswers;
+                default:
+                    _logger.LogWarning("Marking suggested answers has not been implemented for this dialog type. DialogType={DialogType}", Game.Instance.DialogController.Dialog.Type);
+                    return null;
             }
-
-            var answers = bookView.gameObject.transform.Find("ContentWrapper/Window/Content/Answers");
-            MarkAnswers(answers, suggestions);
-        }
-
-        private void MarkDialogAnswer(DialogPCView dialogView, List<NetworkDialogAnswerSuggestion> suggestions)
-        {
-            if (dialogView == null)
-            {
-                return;
-            }
-
-            var answers = dialogView.gameObject.transform.Find("Body/View/Scroll View/Viewport/Content/AnswersPanel");
-            MarkAnswers(answers, suggestions);
         }
 
         private void MarkAnswers(Transform answersContainer, List<NetworkDialogAnswerSuggestion> suggestions)
         {
-            const string SuggestionIconName = "SuggestionIcon";
-
             for (int answerIndex = 0; answerIndex < answersContainer.childCount; answerIndex++)
             {
                 var answer = answersContainer.GetChild(answerIndex);
@@ -278,7 +298,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 var answerName = answerView.ViewModel.Answer.Value.name;
                 var suggestedAnswer = suggestions.FirstOrDefault(s => string.Equals(s.AnswerName, answerName));
 
-                answer.gameObject.CleanupAllChildren(x => x.name.StartsWith(SuggestionIconName));
+                answer.gameObject.CleanupAllChildren(x => x.name.StartsWith(SuggestionIconObjectPrefix));
                 if (suggestedAnswer == null)
                 {
                     continue;
@@ -290,7 +310,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 {
                     var arrow = answer.Find("Arrow");
                     var suggestionIconObject = UnityEngine.Object.Instantiate(arrow.gameObject, answer);
-                    suggestionIconObject.name = SuggestionIconName + i.ToString();
+                    suggestionIconObject.name = SuggestionIconObjectPrefix + i.ToString();
                     suggestionIconObject.SetActive(true);
 
                     var rect = suggestionIconObject.GetComponent<RectTransform>();

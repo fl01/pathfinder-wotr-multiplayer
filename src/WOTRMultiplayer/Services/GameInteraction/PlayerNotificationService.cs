@@ -33,12 +33,12 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
-        public void ShowWarningNotification(string messageKey, params object[] args)
+        public void ShowWarningNotification(string messageKey, bool addToLog, params object[] args)
         {
             _mainThreadAccessor.Post(() =>
             {
                 var message = GetLocalizedText(messageKey, args);
-                EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(message, true), true);
+                EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(message, addToLog), true);
             });
         }
 
