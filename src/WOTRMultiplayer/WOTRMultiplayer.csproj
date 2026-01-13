@@ -91,6 +91,9 @@
 		<Reference Include="Owlcat.Runtime.Validation">
 			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\Owlcat.Runtime.Validation.dll</HintPath>
 		</Reference>
+		<Reference Include="Owlcat.Runtime.Visual">
+			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\Owlcat.Runtime.Visual.dll</HintPath>
+		</Reference>
 		<Reference Include="UniRx">
 			<HintPath>$(WOTR_PATH)\Wrath_Data\Managed\UniRx.dll</HintPath>
 		</Reference>

@@ -179,7 +179,7 @@ namespace WOTRMultiplayer.Services
                 Status = host.LobbySyncStatus.ToString(),
                 PlayerId = host.Id,
             };
-            _networkServer.SendAll(saveSyncStatusChanged);
+            Send(saveSyncStatusChanged);
 
             var saveGameChanged = new NotifyLobbySaveGameChanged
             {
@@ -188,7 +188,7 @@ namespace WOTRMultiplayer.Services
             };
 
             Logger.LogInformation("Sending {MessageType}. GameId={GameId}, ContentSize={ContentSize}", nameof(NotifyLobbySaveGameChanged), saveGameChanged.GameId, saveGameChanged.Content?.Length);
-            _networkServer.SendAll(saveGameChanged);
+            Send(saveGameChanged);
 
             TryStartSavedGame();
             return true;
@@ -342,7 +342,7 @@ namespace WOTRMultiplayer.Services
                     Seed = Game.Combat.Seed
                 };
 
-                _networkServer.SendAll(message);
+                Send(message);
                 Game.Combat.IsInitialized = true;
                 Game.Combat.PlayersCombatInitialization.TryAdd(Game.LocalPlayerId, true);
                 Logger.LogInformation("Sending {MessageType}. Seed={Seed}, RoundNumber={RoundNumber}, HasSurprisingRound={HasSurprisingRound}, UnitsInCombat={UnitsInCombat}", nameof(NotifyCombatInitialized), message.Seed, message.CombatState.RoundNumber, message.CombatState.HasSurpriseRound, message.CombatState.Units.Count);
@@ -905,7 +905,7 @@ namespace WOTRMultiplayer.Services
                             CombatState = Mapper.Map<Networking.Messages.Contracts.NetworkCombatState>(combatState),
                             UnitId = Game.Combat.Turn.UnitId
                         };
-                        _networkServer.SendAll(syncMessage);
+                        Send(syncMessage);
                     }
 
                     var notSynchronizedPlayers = GetMissingPlayers(Game.Combat.Turn.UnitId, Game.Combat.PlayersNextTurnSynchronization);
@@ -924,7 +924,7 @@ namespace WOTRMultiplayer.Services
                         UnitId = Game.Combat.Turn.UnitId
                     };
 
-                    _networkServer.SendAll(message);
+                    Send(message);
 
                     Game.Combat.Turn.IsInProgress = true;
                 }
@@ -1333,7 +1333,7 @@ namespace WOTRMultiplayer.Services
                 };
                 Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, Settings={Settings}", nameof(GameServerConnectionSucceeded), message.ClientPlayerId, message.GameSettings);
 
-                _networkServer.Send(playerId, message);
+                Send(playerId, message);
             }
         }
 
@@ -1671,7 +1671,7 @@ namespace WOTRMultiplayer.Services
                         Game.ForcedPause = null;
                         GameInteraction.SetPause(false);
                         var message = new NotifyGamePauseEnded();
-                        _networkServer.SendAll(message);
+                        Send(message);
                         Logger.LogInformation("Forced pause has been lifted");
                     });
                     return true;
@@ -1693,7 +1693,7 @@ namespace WOTRMultiplayer.Services
                 if (canStart)
                 {
                     Logger.LogInformation("Everyone is synced, game can be started. LobbyStage={LobbyStage}, IsNewGameSequence={IsNewGameSequence}", Game.Stage, Game.StartUp.IsNewGameSequence);
-                    _networkServer.SendAll(new NotifyGameStarted());
+                    Send(new NotifyGameStarted());
 
                     if (Game.StartUp.IsNewGameSequence)
                     {

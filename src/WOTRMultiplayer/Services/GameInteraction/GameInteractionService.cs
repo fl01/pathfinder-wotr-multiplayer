@@ -84,6 +84,7 @@ using WOTRMultiplayer.Entities.Vendor;
 using WOTRMultiplayer.Services.GameInteraction.Contexts;
 using WOTRMultiplayer.Services.Settings;
 using WOTRMultiplayer.UnityBehaviours;
+using WOTRMultiplayer.UnityBehaviours.Ping;
 
 namespace WOTRMultiplayer.Services.GameInteraction
 {
@@ -2312,40 +2313,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
             return ping;
         }
-
-        public void CreatePing(string playerName, NetworkPing ping)
-        {
-            _mainThreadAccessor.Post(() =>
-            {
-                // TODO: expand supported pings
-                if (ping.Type != NetworkPingType.WorldPosition)
-                {
-                    return;
-                }
-
-                // this is a placeholder that needs to be replaced with something good
-                var position = new Vector3(ping.WorldPosition.X, ping.WorldPosition.Y, ping.WorldPosition.Z);
-                var pingObject = UnityEngine.Object.Instantiate(ClickPointerManager.Instance.PointerPrefab.gameObject);
-                var meshRenderers = pingObject.transform.Children().SelectMany(x => x.Children()).Select(x => x.GetComponent<MeshRenderer>()).ToList();
-                var even = new Color(0f, 0f, 0.6f, 1f);
-                var odd = new Color(0.887f, 0.273f, 0.263f, 1f);
-                for (int i = 0; i < meshRenderers.Count; i++)
-                {
-                    var color = i % 2 == 0 ? even : odd;
-                    var renderer = meshRenderers[i];
-                    renderer.material.color = color;
-                }
-
-                var clickPointer = pingObject.GetComponent<ClickPointerPrefab>();
-                clickPointer.transform.SetParent(ClickPointerManager.Instance.transform);
-                clickPointer.transform.localPosition = position;
-
-                var decayingBehaviour = pingObject.AddComponent<DecayingMeshRenderersBehaviour>();
-                decayingBehaviour.Begin(TimeSpan.FromSeconds(2), UnityEngine.Object.DestroyImmediate, meshRenderers);
-                UISoundController.Instance.Play(UISoundType.GlobalMapLocationsSelect, pingObject);
-            });
-        }
-
         public void SkipCutscene(string playerName)
         {
             _mainThreadAccessor.Post(() =>
@@ -2373,6 +2340,69 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 var selectedCharacters = selectionManager?.SelectedUnits.Select(x => x.View).ToList() ?? [];
                 selectionManager?.MultiSelect(selectedCharacters, false);
             });
+        }
+
+        public void CreatePing(string playerName, NetworkPing ping)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                switch (ping.Type)
+                {
+                    case NetworkPingType.WorldPosition:
+                        var position = new Vector3(ping.WorldPosition.X, ping.WorldPosition.Y, ping.WorldPosition.Z);
+                        CreateWorldPositionPing(position);
+                        break;
+                    case NetworkPingType.Unit:
+                        var unit = _gameStateLookupService.GetUnitEntity(ping.UnitId);
+                        if (unit == null)
+                        {
+                            _logger.LogWarning("Unable to enable ping highlighter for missing unit. UnitId={UnitId}", ping.UnitId);
+                            return;
+                        }
+
+                        CreateWorldPositionPing(unit.Position);
+                        CreateUnitPing(unit);
+                        break;
+                    default:
+                        return;
+                }
+            });
+        }
+
+        private void CreateUnitPing(UnitEntityData unit)
+        {
+            var existing = unit.View.gameObject.GetComponent<UnitPingHighlighterBehaviour>();
+            if (existing != null)
+            {
+                existing.RefreshDuration();
+                return;
+            }
+
+            var pingHighlighter = unit.View.gameObject.AddComponent<UnitPingHighlighterBehaviour>();
+            pingHighlighter.Begin(TimeSpan.FromSeconds(2), null);
+        }
+
+        private void CreateWorldPositionPing(Vector3 position)
+        {
+            // this is a placeholder that needs to be replaced with something good
+            var pingObject = UnityEngine.Object.Instantiate(ClickPointerManager.Instance.PointerPrefab.gameObject);
+            var meshRenderers = pingObject.transform.Children().SelectMany(x => x.Children()).Select(x => x.GetComponent<MeshRenderer>()).ToList();
+            var even = new Color(0f, 0f, 0.6f, 1f);
+            var odd = new Color(0.887f, 0.273f, 0.263f, 1f);
+            for (int i = 0; i < meshRenderers.Count; i++)
+            {
+                var color = i % 2 == 0 ? even : odd;
+                var renderer = meshRenderers[i];
+                renderer.material.color = color;
+            }
+
+            var clickPointer = pingObject.GetComponent<ClickPointerPrefab>();
+            clickPointer.transform.SetParent(ClickPointerManager.Instance.transform);
+            clickPointer.transform.localPosition = position;
+
+            var decayingBehaviour = pingObject.AddComponent<DecayingMeshRenderersBehaviour>();
+            decayingBehaviour.Begin(TimeSpan.FromSeconds(2), UnityEngine.Object.DestroyImmediate, meshRenderers);
+            UISoundController.Instance.Play(UISoundType.GlobalMapLocationsSelect, pingObject);
         }
 
         private NetworkPing GetPingedGuiElement()

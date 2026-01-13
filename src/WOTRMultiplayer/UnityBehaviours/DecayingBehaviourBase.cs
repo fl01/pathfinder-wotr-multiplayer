@@ -13,9 +13,13 @@ namespace WOTRMultiplayer.UnityBehaviours
         {
             _expiration = expiration;
             _onExpired = onExpired;
-            _startedAt = DateTime.UtcNow;
-
+            RefreshDuration();
             OnStarted();
+        }
+
+        public void RefreshDuration()
+        {
+            _startedAt = DateTime.UtcNow;
         }
 
         protected abstract void OnPartialDecay(float decayState);
@@ -38,7 +42,7 @@ namespace WOTRMultiplayer.UnityBehaviours
             }
 
             var decay = (DateTime.UtcNow - _startedAt).TotalMilliseconds / _expiration.Value.TotalMilliseconds;
-            var decayState = decay < float.MinValue || decay > float.MaxValue || decay <= 0d ? 1f : (float)decay;
+            var decayState = decay < float.MinValue || decay > float.MaxValue ? 1f : (float)decay;
             if (decayState >= 1f)
             {
                 _expiration = null;
