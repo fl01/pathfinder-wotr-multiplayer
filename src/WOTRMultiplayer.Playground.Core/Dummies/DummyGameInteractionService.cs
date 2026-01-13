@@ -126,7 +126,7 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void CreatePing(string playerName, NetworkPing ping)
+        public void CreatePing(NetworkPlayer player, NetworkPing ping)
         {
         }
 

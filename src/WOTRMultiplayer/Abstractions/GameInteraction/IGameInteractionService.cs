@@ -207,7 +207,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         NetworkPing GetPing();
 
-        void CreatePing(string playerName, NetworkPing ping);
+        void CreatePing(NetworkPlayer player, NetworkPing ping);
 
         void SkipCutscene(string playerName);
 

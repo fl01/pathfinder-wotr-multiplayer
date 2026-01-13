@@ -304,7 +304,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     continue;
                 }
 
-                var portrait = _resourceProvider.GetSprite(ResourceBundleProvider.UIBundleName, "UI_Inventory_IconHeart");
+                var portrait = _resourceProvider.GetSprite(WellKnownSpriteBundles.UI, "UI_Inventory_IconHeart");
                 var maxIcons = Math.Min(3, suggestedAnswer.Players.Count);
                 for (int i = maxIcons; i > 0; i--)
                 {

@@ -205,7 +205,7 @@ namespace WOTRMultiplayer.UI.Controllers
                 GameTotalTime = TimeSpan.FromMilliseconds(1),
                 GameId = NewGameSequenceId,
                 PartyPortraits = [],
-                Screenshot = ResourceProvider.GetTexture2D(ResourceBundleProvider.UIBundleName, "UI_PFWOTR_NewGameMainStory")
+                Screenshot = ResourceProvider.GetTexture2D(WellKnownSpriteBundles.UI, "UI_PFWOTR_NewGameMainStory")
             };
             var saveSlot = new SaveSlotVM(saveInfo, saveLoadVM.Mode, null, null);
             saveSlot.SaveTime.Value = string.Empty;

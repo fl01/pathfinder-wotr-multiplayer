@@ -493,8 +493,7 @@ namespace WOTRMultiplayer.Services
             Logger.LogInformation("Sending {MessageType}. Type={Type}, WorldPosition={WorldPosition}, TargetUnitId={TargetUnitId}, MapObjectId={MapObjectId}, MapObjectPosition={MapObjectPosition}", nameof(NotifyPingedByPlayer), ping.Type, ping.WorldPosition, ping.UnitId, ping.MapObject?.Id, ping.MapObject?.Position);
             Send(message);
 
-            var localPlayer = GetPlayer(Game.LocalPlayerId);
-            GameInteraction.CreatePing(localPlayer.Name, ping);
+            GameInteraction.CreatePing(null, ping);
         }
 
 
@@ -2715,7 +2714,7 @@ namespace WOTRMultiplayer.Services
                 return;
             }
 
-            GameInteraction.CreatePing(player.Name, ping);
+            GameInteraction.CreatePing(player, ping);
 
             OnAfterNetworkMessageHandled(receivedFrom, pingedAt);
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using HarmonyLib;
@@ -72,10 +73,10 @@ namespace WOTRMultiplayer
                 entry.OnSaveGUI += OnSaveGui;
                 entry.OnUnload += OnUnload;
 
-                _logger.LogInformation("harmony patching");
-
                 var harmony = new Harmony(entry.Info.Id);
                 harmony.PatchAll(Assembly.GetExecutingAssembly());
+                var patchedMethods = harmony.GetPatchedMethods().Count();
+                _logger.LogInformation("Harmony patching has been finished. PatchedMethods={PatchedMethods}", patchedMethods);
 
                 AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
                 TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;

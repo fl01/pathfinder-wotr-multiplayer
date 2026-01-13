@@ -8,10 +8,6 @@ namespace WOTRMultiplayer.UI
 {
     public class ResourceBundleProvider : IResourceProvider
     {
-        public const string PlaceholderPortrait = "Mask_Portrait";
-        public const string PortraitsBundleName = "portraits";
-        public const string UIBundleName = "ui";
-
         private readonly ILogger _logger;
         private ConcurrentDictionary<string, ConcurrentDictionary<string, UnityEngine.Sprite>> _sprites;
         private ConcurrentDictionary<string, ConcurrentDictionary<string, UnityEngine.Texture2D>> _textures;
@@ -50,14 +46,14 @@ namespace WOTRMultiplayer.UI
             if (_sprites == null)
             {
                 _sprites = new ConcurrentDictionary<string, ConcurrentDictionary<string, UnityEngine.Sprite>>();
-                _sprites.TryAdd(PortraitsBundleName, LoadBundle<UnityEngine.Sprite>(PortraitsBundleName));
-                _sprites.TryAdd(UIBundleName, LoadBundle<UnityEngine.Sprite>(UIBundleName));
+                _sprites.TryAdd(WellKnownSpriteBundles.Portraits, LoadBundle<UnityEngine.Sprite>(WellKnownSpriteBundles.Portraits));
+                _sprites.TryAdd(WellKnownSpriteBundles.UI, LoadBundle<UnityEngine.Sprite>(WellKnownSpriteBundles.UI));
             }
 
             if (_textures == null)
             {
                 _textures = new ConcurrentDictionary<string, ConcurrentDictionary<string, UnityEngine.Texture2D>>();
-                _textures.TryAdd(UIBundleName, LoadBundle<UnityEngine.Texture2D>(UIBundleName));
+                _textures.TryAdd(WellKnownSpriteBundles.UI, LoadBundle<UnityEngine.Texture2D>(WellKnownSpriteBundles.UI));
             }
         }
 
@@ -65,8 +61,6 @@ namespace WOTRMultiplayer.UI
             where T : UnityEngine.Object
         {
             var bundle = BundlesLoadService.Instance.RequestBundle(bundleName);
-            // had no success to limit loading
-            // note: you can't delete (Object->Destroy or DestroyImmediate) redundant sprites as it causes texture errors later on
             var allSprites = bundle.LoadAllAssets<T>();
             var keyValuePairs = new ConcurrentDictionary<string, T>(StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < allSprites.Length; i++)

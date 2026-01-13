@@ -44,6 +44,7 @@ using Kingmaker.UI.MVVM._PCView.Settings.Entities.Difficulty;
 using Kingmaker.UI.MVVM._VM.Lockpick;
 using Kingmaker.UI.MVVM._VM.NewGame;
 using Kingmaker.UI.MVVM._VM.Settings.Entities;
+using Kingmaker.UI.PointMarker;
 using Kingmaker.UI.Selection;
 using Kingmaker.UI.SettingsUI;
 using Kingmaker.UI.UnitSettings;
@@ -56,13 +57,14 @@ using Kingmaker.Utility;
 using Kingmaker.View;
 using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
-using Owlcat.Runtime.Core.Utils;
 using Owlcat.Runtime.UI.Controls.Button;
+using Owlcat.Runtime.UI.Utility;
 using TMPro;
 using UniRx;
 using UnityEngine;
 using UnityModManagerNet;
 using WOTRMultiplayer.Abstractions.GameInteraction;
+using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.ActionBar;
@@ -83,7 +85,7 @@ using WOTRMultiplayer.Entities.Units;
 using WOTRMultiplayer.Entities.Vendor;
 using WOTRMultiplayer.Services.GameInteraction.Contexts;
 using WOTRMultiplayer.Services.Settings;
-using WOTRMultiplayer.UnityBehaviours;
+using WOTRMultiplayer.UI;
 using WOTRMultiplayer.UnityBehaviours.Ping;
 
 namespace WOTRMultiplayer.Services.GameInteraction
@@ -99,6 +101,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         private readonly IPlayerNotificationService _playerNotificationService;
         private readonly IUISyncCountersService _uiSyncCountersService;
         private readonly IGameStateLookupService _gameStateLookupService;
+        private readonly IResourceProvider _resourceProvider;
 
         public RemoteExecutionContext RemoteContext => _networkExecutionContext.Value;
 
@@ -111,7 +114,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
             IEquipmentDefinitions equipmentDefinitions,
             IPlayerNotificationService playerNotificationService,
             IUISyncCountersService uiSyncCountersService,
-            IGameStateLookupService gameStateLookupService)
+            IGameStateLookupService gameStateLookupService,
+            IResourceProvider resourceProvider)
         {
             _logger = logger;
             _uiAccessor = uiAccessor;
@@ -120,6 +124,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             _playerNotificationService = playerNotificationService;
             _uiSyncCountersService = uiSyncCountersService;
             _gameStateLookupService = gameStateLookupService;
+            _resourceProvider = resourceProvider;
         }
 
         public NetworkCampingState GetCampigState()
@@ -2342,7 +2347,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
-        public void CreatePing(string playerName, NetworkPing ping)
+        public void CreatePing(NetworkPlayer player, NetworkPing ping)
         {
             _mainThreadAccessor.Post(() =>
             {
@@ -2350,7 +2355,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 {
                     case NetworkPingType.WorldPosition:
                         var position = new Vector3(ping.WorldPosition.X, ping.WorldPosition.Y, ping.WorldPosition.Z);
-                        CreateWorldPositionPing(position);
+                        CreateWorldPositionPing(player, position);
                         break;
                     case NetworkPingType.Unit:
                         var unit = _gameStateLookupService.GetUnitEntity(ping.UnitId);
@@ -2360,8 +2365,22 @@ namespace WOTRMultiplayer.Services.GameInteraction
                             return;
                         }
 
-                        CreateWorldPositionPing(unit.Position);
-                        CreateUnitPing(unit);
+                        CreateWorldPositionPing(player, unit.Position);
+                        var unitGameObject = unit.View.gameObject;
+                        var isEnemy = unit.IsEnemy(Game.Instance.Player.MainCharacter);
+                        CreateWorldEntityPing(isEnemy, unitGameObject);
+                        break;
+                    case NetworkPingType.MapObject:
+                        var mapObject = _gameStateLookupService.GetMapObject(ping.MapObject.Id) ?? GetNeareastLootBagMapObject(ping.WorldPosition);
+                        if (mapObject == null)
+                        {
+                            _logger.LogWarning("Unable to enable ping highlighter for missing map object. MapObjectId={MapObjectId}", ping.UnitId);
+                            return;
+                        }
+
+                        CreateWorldPositionPing(player, mapObject.Position);
+                        var mapGameObject = mapObject.View.gameObject;
+                        CreateWorldEntityPing(false, mapGameObject);
                         break;
                     default:
                         return;
@@ -2369,40 +2388,47 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
-        private void CreateUnitPing(UnitEntityData unit)
+        private void CreateWorldEntityPing(bool isEnemy, GameObject gameObject)
         {
-            var existing = unit.View.gameObject.GetComponent<UnitPingHighlighterBehaviour>();
+            var existing = gameObject.GetComponent<WorldEntityHighlighterBehaviour>();
             if (existing != null)
             {
                 existing.RefreshDuration();
                 return;
             }
 
-            var pingHighlighter = unit.View.gameObject.AddComponent<UnitPingHighlighterBehaviour>();
-            pingHighlighter.Begin(TimeSpan.FromSeconds(2), null);
+            var pingHighlighter = gameObject.AddComponent<WorldEntityHighlighterBehaviour>();
+            pingHighlighter.Begin(isEnemy, TimeSpan.FromSeconds(2));
         }
 
-        private void CreateWorldPositionPing(Vector3 position)
+        private void CreateWorldPositionPing(NetworkPlayer player, Vector3 position)
         {
             // this is a placeholder that needs to be replaced with something good
             var pingObject = UnityEngine.Object.Instantiate(ClickPointerManager.Instance.PointerPrefab.gameObject);
-            var meshRenderers = pingObject.transform.Children().SelectMany(x => x.Children()).Select(x => x.GetComponent<MeshRenderer>()).ToList();
-            var even = new Color(0f, 0f, 0.6f, 1f);
-            var odd = new Color(0.887f, 0.273f, 0.263f, 1f);
-            for (int i = 0; i < meshRenderers.Count; i++)
+            var decayingBehaviour = pingObject.AddComponent<WorldPositionPingBehaviour>();
+            var markerDuration = TimeSpan.FromSeconds(2);
+            decayingBehaviour.Begin(markerDuration, position);
+            UISoundController.Instance.Play(UISoundType.GlobalMapLocationsSelect, pingObject);
+
+            // no need to create marker if there is no responsible player for it (local player)
+            if (player == null)
             {
-                var color = i % 2 == 0 ? even : odd;
-                var renderer = meshRenderers[i];
-                renderer.material.color = color;
+                return;
             }
 
-            var clickPointer = pingObject.GetComponent<ClickPointerPrefab>();
-            clickPointer.transform.SetParent(ClickPointerManager.Instance.transform);
-            clickPointer.transform.localPosition = position;
+            const string MarkerObjectName = "PingPointMarker";
+            var marker = PointMarkerController.Instance.transform.Find(MarkerObjectName)?.GetComponent<PointMarker>();
+            if (marker == null)
+            {
+                marker = WidgetFactory.GetWidget(PointMarkerController.Instance.MarkerPrefab, true, false);
+                marker.gameObject.name = MarkerObjectName;
+                var markerSprite = _resourceProvider.GetSprite(WellKnownSpriteBundles.UI, "UI_QuestNotification_IconNew");
+                marker.gameObject.AddComponent<WorldPositionPingOutsideOfCameraBehaviour>()
+                    .WithPortrait(markerSprite);
+            }
 
-            var decayingBehaviour = pingObject.AddComponent<DecayingMeshRenderersBehaviour>();
-            decayingBehaviour.Begin(TimeSpan.FromSeconds(2), UnityEngine.Object.DestroyImmediate, meshRenderers);
-            UISoundController.Instance.Play(UISoundType.GlobalMapLocationsSelect, pingObject);
+            var outsideOfCameraDuration = TimeSpan.FromMilliseconds(markerDuration.TotalMilliseconds * 2);
+            marker.gameObject.GetComponent<WorldPositionPingOutsideOfCameraBehaviour>().Begin(outsideOfCameraDuration, position);
         }
 
         private NetworkPing GetPingedGuiElement()
@@ -2828,7 +2854,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 default:
                     var mapObject = _gameStateLookupService.GetMapObject(lootableEntity.Id);
                     var lookupTargets = mapObject != null ? [mapObject]
-                        : GetNeareastLootableMapObjects(lootableEntity.Position);
+                        : _gameStateLookupService.GetNeareastLootableMapObjects(lootableEntity.Position);
 
                     var mapObjectContainers = lookupTargets.Select(x => ((InteractionLootPart)x.Interactions.FindOrDefault(i => i is InteractionLootPart)).Loot);
                     return mapObjectContainers;
@@ -3064,7 +3090,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private MapObjectEntityData GetNeareastLootBagMapObject(NetworkVector3 position)
         {
-            var allNearest = GetNeareastLootableMapObjects(position);
+            var allNearest = _gameStateLookupService.GetNeareastLootableMapObjects(position);
             var lootbag = allNearest.FirstOrDefault(o => o is DroppedLoot.EntityData);
             _logger.LogInformation("Using nearest lootbag as a map object. MapObjectId={MapObjectId}, Position={Position}", lootbag?.UniqueId, lootbag?.Position);
             return lootbag;
@@ -3102,17 +3128,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
             }
 
             _uiAccessor.LootPCView.ViewModel?.InventoryCollectionChanged();
-        }
-
-        private List<MapObjectEntityData> GetNeareastLootableMapObjects(NetworkVector3 position)
-        {
-            var targetPoint = new Vector3(position.X, position.Y, position.Z);
-            var orderedContainers = Game.Instance.State.MapObjects.All
-                .Where(o => o.Interactions.Any(i => i is InteractionLootPart))
-                .OrderBy(o => (o.Position - targetPoint).magnitude)
-                .ToList();
-
-            return orderedContainers;
         }
 
         private ActivatableAbility FindActivatableAbility(UnitEntityData caster, NetworkActivatableAbility activatableAbility)

@@ -123,8 +123,9 @@ The same rules apply
 works the same way as Group Changer due to same data storage reasons
 
 ## Area Transitions
-Changed behavior to only move characters you control. That means everyone must click on area transition icon (overtip) to move entire party to the exit.
-Although, clients cannot initiate area transition (they do transit once it happens on the host side), they still need to move characters near exit point. Otherwise, host will not be able to make area transition.
+Area transition movement now affects only the characters you directly control, but host still follows the default area transition requirement: entire party must be near the exit. As a result, every player has to click either the area transition icon (overtip) or manually move their characters to the exit.
+
+Clients cannot initiate an actual area transition themselves, but they are automatically transferred once the host triggers it. This makes it impossible to be in a desynced state where only one player is moved to the next area.
 
 ## Global Map
 Global map movement is controlled by the host. Client retains the ability to click different locations to see pop-ups/descriptions.
@@ -245,8 +246,9 @@ The game originally used a single counter to generate new entity IDs (for charac
 The tricky part is `Item.UniqueId` generation - stacking or splitting items creates new IDs locally. Fully syncing that (plus inventory positions) would be a lot of work for almost no benefit. Instead, any network item action (like dropping an item or looting a container) just falls back to matching the item by everything except its `UniqueId`. In short, the mod just looks for 'the exact same item' and applies the action to it.
 
 ## Ping system
-There is a configurable hotkey you can use to send pings (alerts) to other players. For now, support is pretty limited — you can only ping world position.
-More options are planned later, like pinging units, map objects, and different UI elements (should be useful during leveling).
+There is a configurable hotkey you can use to send pings (alerts) to other players. This includes position, unit and map object pings.
+
+More options are planned later, like pinging at different UI elements (should be useful during leveling).
 
 ## How to deal with desync
 If a roll doesn't come through for some reason, you will get a stutter and a popup warning. In that case, the roll will be rolled locally, which might lead to different results.

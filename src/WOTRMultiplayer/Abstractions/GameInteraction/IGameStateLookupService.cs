@@ -1,4 +1,6 @@
-﻿using Kingmaker.EntitySystem.Entities;
+﻿using System.Collections.Generic;
+using Kingmaker.EntitySystem.Entities;
+using WOTRMultiplayer.Entities;
 
 namespace WOTRMultiplayer.Abstractions.GameInteraction
 {
@@ -7,5 +9,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         UnitEntityData GetUnitEntity(string uniqueId);
 
         MapObjectEntityData GetMapObject(string uniqueId);
+
+        List<MapObjectEntityData> GetNeareastLootableMapObjects(NetworkVector3 position);
     }
 }

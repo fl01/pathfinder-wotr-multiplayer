@@ -6,13 +6,11 @@ namespace WOTRMultiplayer.UnityBehaviours
     public abstract class DecayingBehaviourBase : MonoBehaviour
     {
         private TimeSpan? _expiration;
-        private Action<GameObject> _onExpired;
         private DateTimeOffset _startedAt;
 
-        public void Begin(TimeSpan expiration, Action<GameObject> onExpired)
+        public void Begin(TimeSpan expiration)
         {
             _expiration = expiration;
-            _onExpired = onExpired;
             RefreshDuration();
             OnStarted();
         }
@@ -47,7 +45,6 @@ namespace WOTRMultiplayer.UnityBehaviours
             {
                 _expiration = null;
                 OnExpired();
-                _onExpired?.Invoke(this.gameObject);
                 return;
             }
 

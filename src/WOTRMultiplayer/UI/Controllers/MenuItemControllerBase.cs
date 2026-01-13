@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Kingmaker.Localization;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
@@ -10,7 +9,6 @@ using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Abstractions.Unity;
-using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.UI.Windows;
 
 namespace WOTRMultiplayer.UI.Controllers

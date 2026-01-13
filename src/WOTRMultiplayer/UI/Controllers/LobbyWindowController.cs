@@ -24,6 +24,8 @@ namespace WOTRMultiplayer.UI.Controllers
 {
     public class LobbyWindowController : ILobbyWindowController
     {
+        public const string PlaceholderPortrait = "Mask_Portrait";
+
         public const string LobbyScreenRootObjectName = "LobbyScreen";
         public const string LobbyContentObjectName = "LobbyContent";
 
@@ -312,7 +314,7 @@ namespace WOTRMultiplayer.UI.Controllers
             layoutElement.preferredHeight = size;
             layoutElement.preferredWidth = size;
             var image = iconObject.AddComponent<Image>();
-            var sprite = _resourceProvider.GetSprite(ResourceBundleProvider.UIBundleName, iconName);
+            var sprite = _resourceProvider.GetSprite(WellKnownSpriteBundles.UI, iconName);
             image.sprite = sprite;
             if (template != null)
             {
@@ -409,7 +411,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private Sprite GetPortraitSprite(string portraitName)
         {
-            var portrait = _resourceProvider.GetSprite(ResourceBundleProvider.PortraitsBundleName, portraitName) ?? _resourceProvider.GetSprite(ResourceBundleProvider.PortraitsBundleName, ResourceBundleProvider.PlaceholderPortrait);
+            var portrait = _resourceProvider.GetSprite(WellKnownSpriteBundles.Portraits, portraitName) ?? _resourceProvider.GetSprite(WellKnownSpriteBundles.Portraits, PlaceholderPortrait);
             if (portrait == null)
             {
                 _logger.LogWarning("Unable to load character portrait. PortraitName={PortraitName}", portraitName);

@@ -16,7 +16,7 @@ namespace WOTRMultiplayer.UnityBehaviours.DialogAnswers
             Duration = duration;
             _onExpired = onExpired;
 
-            base.Begin(TimeSpan.FromSeconds(duration), null);
+            base.Begin(TimeSpan.FromSeconds(duration));
         }
 
         private void Awake()
