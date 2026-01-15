@@ -1715,28 +1715,26 @@ namespace WOTRMultiplayer.Services
             UpdateGlobalMapEncounterMessageUIState();
         }
 
-        public void OnGlobalMapShown(NetworkGlobalMapTravelerMode travelerMode)
-        {
-            Game.GlobalMapTravelerMode = travelerMode;
-
-            var localPlayer = GetLocalPlayerId();
-            var tracker = Game.PlayersInGlobalMapMode.GetOrAdd(travelerMode, []);
-            AddPlayerToTracker(tracker, localPlayer);
-
-            UpdateGlobalMapUIState();
-
-            var message = new NotifyGlobalMapShown
-            {
-                PlayerId = localPlayer,
-                TravelerMode = travelerMode.ToString()
-            };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, TravelerMode={TravelerMode}", nameof(NotifyGlobalMapShown), message.PlayerId, message.TravelerMode);
-            Send(message);
-        }
-
         public void OnGlobalMapDisposed()
         {
             ResetGlobalMapCounters();
+        }
+
+        public void OnGlobalMapTravelerModeChanged(NetworkGlobalMapTravelerMode travelerMode)
+        {
+            var localPlayer = GetLocalPlayerId();
+            RegisterGlobalMapMode(localPlayer, travelerMode);
+
+            var message = new NotifyGlobalMapTravelerModeChanged
+            {
+                PlayerId = localPlayer,
+                TravelerMode = travelerMode.ToString(),
+                MustBeEnforced = HasControlOverUI
+            };
+            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, TravelerMode={TravelerMode}, MustBeEnforced={MustBeEnforced}", nameof(NotifyGlobalMapTravelerModeChanged), message.PlayerId, message.TravelerMode, message.MustBeEnforced);
+            Send(message);
+
+            UpdateGlobalMapUIState();
         }
 
         public void OnZoneLootCollectorButtonsUpdated()
@@ -1825,6 +1823,11 @@ namespace WOTRMultiplayer.Services
 
         protected virtual void OnLocalRestStarted()
         {
+        }
+
+        protected void RegisterGlobalMapMode(long playerId, NetworkGlobalMapTravelerMode travelerMode)
+        {
+            Game.PlayersInGlobalMapMode.AddOrUpdate(playerId, travelerMode, (key, existing) => travelerMode);
         }
 
         protected void InitiateLeveling(string unitId, NetworkLevelingType levelingType)
@@ -1959,14 +1962,36 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        protected int? GetPlayersCountWithSyncedGlobalMapMode()
+        {
+            lock (ActionLock)
+            {
+                var localPlayer = GetLocalPlayerId();
+                if (!Game.PlayersInGlobalMapMode.TryGetValue(localPlayer, out var localPlayerMode))
+                {
+                    Logger.LogWarning("Global map mode for local player is not set");
+                    return null;
+                }
+
+                var readyPlayers = Game.PlayersInGlobalMapMode.Count(x => x.Value == localPlayerMode);
+                return readyPlayers;
+            }
+        }
+
         protected void UpdateGlobalMapUIState()
         {
             lock (ActionLock)
             {
-                Game.PlayersInGlobalMapMode.TryGetValue(Game.GlobalMapTravelerMode, out var readyPlayers);
+                var readyPlayers = GetPlayersCountWithSyncedGlobalMapMode();
+                if (!readyPlayers.HasValue)
+                {
+                    Logger.LogError("Unable to update global map ui state due to invalid ready players count");
+                    return;
+                }
+
                 var totalPlayers = GetSyncedPlayersCount();
-                var canUse = HasControlOverUI && readyPlayers.Count >= totalPlayers;
-                GlobalMapInteraction.UpdateUIState(canUse, readyPlayers.Count, totalPlayers);
+                var canUse = HasControlOverUI && readyPlayers.Value >= totalPlayers;
+                GlobalMapInteraction.UpdateUIState(canUse, readyPlayers.Value, totalPlayers);
             }
         }
 
@@ -2542,11 +2567,7 @@ namespace WOTRMultiplayer.Services
 
         protected void ResetGlobalMapCounters()
         {
-            foreach (var mode in Game.PlayersInGlobalMapMode.Keys)
-            {
-                ResetPlayersTracker(Game.PlayersInGlobalMapMode[mode]);
-            }
-
+            Game.PlayersInGlobalMapMode.Clear();
             Logger.LogInformation("Global map counters have been reset");
         }
 
@@ -2718,7 +2739,6 @@ namespace WOTRMultiplayer.Services
                 .On<NotifyGlobalMapMessageBoxShown>(OnNotifyGlobalMapMessageBoxShown)
                 .On<NotifyGlobalMapIngredientCollectionShown>(OnNotifyGlobalMapIngredientCollectionShown)
                 .On<NotifyGlobalMapEncounterMessageShown>(OnNotifyGlobalMapEncounterMessageShown)
-                .On<NotifyGlobalMapShown>(OnNotifyGlobalMapShown)
 
                 // group management
                 .On<NotifyGroupChangerOpened>(OnNotifyGroupChangerOpened)
@@ -2736,19 +2756,6 @@ namespace WOTRMultiplayer.Services
                 // cutscenes
                 .On<NotifyCutsceneSkipped>(OnNotifyCutsceneSkipped)
                 ;
-        }
-
-        private void OnNotifyGlobalMapShown(long receivedFrom, NotifyGlobalMapShown globalMapShown)
-        {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, TravelerMode={TravelerMode}", nameof(NotifyGlobalMapShown), receivedFrom, globalMapShown.PlayerId, globalMapShown.TravelerMode);
-
-            var travelerMode = Mapper.Map<NetworkGlobalMapTravelerMode>(globalMapShown.TravelerMode);
-            var tracker = Game.PlayersInGlobalMapMode.GetOrAdd(travelerMode, []);
-            AddPlayerToTracker(tracker, globalMapShown.PlayerId);
-
-            UpdateGlobalMapUIState();
-
-            OnAfterNetworkMessageHandled(receivedFrom, globalMapShown);
         }
 
         private void OnNotifyPlayerReadyStatusChanged(long receivedFrom, NotifyPlayerReadyStatusChanged readyStatusChanged)

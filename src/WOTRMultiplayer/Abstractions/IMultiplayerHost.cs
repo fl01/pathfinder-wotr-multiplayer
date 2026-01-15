@@ -70,8 +70,6 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnGlobalMapSkipDay();
 
-        void OnGlobalMapTravelerModeChanged(NetworkGlobalMapTravelerMode travelerMode);
-
         void OnGlobalMapSelectedArmyChanged(string armyId);
 
         void OnGlobalMapAutoCrusadeCombatChanged(bool isEnabled);

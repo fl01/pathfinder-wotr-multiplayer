@@ -640,18 +640,6 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
-        public void OnGlobalMapTravelerModeChanged(NetworkGlobalMapTravelerMode travelerMode)
-        {
-            Game.GlobalMapTravelerMode = travelerMode;
-
-            var message = new NotifyGlobalMapTravelerModeChanged
-            {
-                TravelerMode = travelerMode.ToString()
-            };
-            Logger.LogInformation("Sending {MessageType}. TravelerMode={TravelerMode}", nameof(NotifyGlobalMapTravelerModeChanged), message.TravelerMode);
-            Send(message);
-        }
-
         public void OnGlobalMapSelectedArmyChanged(string armyId)
         {
             var message = new NotifyGlobalMapSelectedArmyChanged
@@ -700,9 +688,14 @@ namespace WOTRMultiplayer.Services
 
         public bool OnGlobalMapSelectLocation(NetworkGlobalMapLocation globalMapLocation)
         {
-            Game.PlayersInGlobalMapMode.TryGetValue(Game.GlobalMapTravelerMode, out var readyPlayers);
+            var readyPlayers = GetPlayersCountWithSyncedGlobalMapMode();
+            if (!readyPlayers.HasValue)
+            {
+                Logger.LogError("Global Map location select has been denied due to invalid ready players value");
+                return false;
+            }
 
-            var canSelect = Game.ForcedPause == null && readyPlayers.Count >= GetSyncedPlayersCount();
+            var canSelect = Game.ForcedPause == null && readyPlayers.Value >= GetSyncedPlayersCount();
             if (!canSelect)
             {
                 PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.ForcedPause.AreaLoading.Key);
@@ -1064,7 +1057,19 @@ namespace WOTRMultiplayer.Services
                // global map
                .On<NotifyGlobalMapMessageBoxClosed>(OnNotifyGlobalMapMessageBoxClosed)
                .On<NotifyGlobalMapIngredientCollectionClosed>(OnNotifyGlobalMapIngredientCollectionClosed)
+               .On<NotifyGlobalMapTravelerModeChanged>(OnNotifyGlobalMapTravelerModeChanged)
                ;
+        }
+
+        private void OnNotifyGlobalMapTravelerModeChanged(long receivedFrom, NotifyGlobalMapTravelerModeChanged globalMapTravelerModeChanged)
+        {
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, TravelerMode={TravelerMode}, MustBeEnforced={MustBeEnforced}", nameof(NotifyGlobalMapTravelerModeChanged), globalMapTravelerModeChanged.PlayerId, globalMapTravelerModeChanged.TravelerMode, globalMapTravelerModeChanged.MustBeEnforced);
+
+            var travelerMode = Mapper.Map<NetworkGlobalMapTravelerMode>(globalMapTravelerModeChanged.TravelerMode);
+            RegisterGlobalMapMode(globalMapTravelerModeChanged.PlayerId, travelerMode);
+            UpdateGlobalMapUIState();
+
+            OnAfterNetworkMessageHandled(receivedFrom, globalMapTravelerModeChanged);
         }
 
         private void OnNotifyGlobalMapIngredientCollectionClosed(long receivedFrom, NotifyGlobalMapIngredientCollectionClosed globalMapIngredientCollectionClosed)
@@ -1472,9 +1477,7 @@ namespace WOTRMultiplayer.Services
 
                 UpdateCharacterSelectionUIState();
 
-                Game.PlayersInGlobalMapMode.GetOrAdd(NetworkGlobalMapTravelerMode.Army, []).Remove(removedPlayer.Id);
-                Game.PlayersInGlobalMapMode.GetOrAdd(NetworkGlobalMapTravelerMode.Player, []).Remove(removedPlayer.Id);
-
+                Game.PlayersInGlobalMapMode.TryRemove(removedPlayer.Id, out _);
                 UpdateGlobalMapUIState();
 
                 TryEndForcedPause();

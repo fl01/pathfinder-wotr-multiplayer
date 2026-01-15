@@ -7,6 +7,12 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     public class NotifyGlobalMapTravelerModeChanged
     {
         [ProtoMember(1)]
+        public long PlayerId { get; set; }
+
+        [ProtoMember(2)]
         public string TravelerMode { get; set; }
+
+        [ProtoMember(3)]
+        public bool MustBeEnforced { get; set; }
     }
 }

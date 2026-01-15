@@ -265,8 +265,6 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnGlobalMapSkipDay();
 
-        void OnGlobalMapShown(NetworkGlobalMapTravelerMode travelerMode);
-
         void OnGlobalMapDisposed();
 
         void OnGlobalMapTravelerModeChanged(NetworkGlobalMapTravelerMode travelerMode);

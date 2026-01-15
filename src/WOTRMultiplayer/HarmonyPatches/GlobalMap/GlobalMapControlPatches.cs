@@ -66,13 +66,11 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
                 return;
             }
 
-            __instance.AddDisposable(__instance.CanSkipDay.Subscribe<bool>(value =>
+            __instance.AddDisposable(__instance.ViewModel.ArmyMode.Subscribe<bool>(value =>
             {
-                __instance.m_SkipDay.Interactable = value && Main.Multiplayer.CanNavigateOnGlobalMap();
+                var travelerMode = GetTravelerMode(value);
+                Main.Multiplayer.OnGlobalMapTravelerModeChanged(travelerMode);
             }));
-
-            var travelerMode = GetTravelerMode(__instance.ViewModel.ArmyMode.Value);
-            Main.Multiplayer.OnGlobalMapShown(travelerMode);
         }
 
         [HarmonyPatch(typeof(GlobalMapToolbarView<GlobalMapToolbarVM>), nameof(GlobalMapToolbarView<GlobalMapToolbarVM>.DestroyViewImplementation))]
@@ -97,19 +95,6 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             }
 
             Main.Multiplayer.OnGlobalMapSkipDay();
-        }
-
-        [HarmonyPatch(typeof(GlobalMapToolbarVM), nameof(GlobalMapToolbarVM.ChangeArmyMode), [typeof(bool)])]
-        [HarmonyPrefix]
-        public static void GlobalMapToolbarVM_ChangeArmyMode_Prefix(bool state)
-        {
-            if (!Main.Multiplayer.IsActive)
-            {
-                return;
-            }
-
-            var travelerMode = GetTravelerMode(state);
-            Main.Multiplayer.OnGlobalMapTravelerModeChanged(travelerMode);
         }
 
         [HarmonyPatch(typeof(GlobalMapToolbarSettingsPCView), nameof(GlobalMapToolbarSettingsPCView.BindViewImplementation))]

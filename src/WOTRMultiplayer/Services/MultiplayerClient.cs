@@ -512,12 +512,16 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapTravelerModeChanged(long receivedFrom, NotifyGlobalMapTravelerModeChanged globalMapTravelerModeChanged)
         {
-            Logger.LogInformation("Received {MessageType}. TravelerMode={TravelerMode}", nameof(NotifyGlobalMapTravelerModeChanged), globalMapTravelerModeChanged.TravelerMode);
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, TravelerMode={TravelerMode}, MustBeEnforced={MustBeEnforced}", nameof(NotifyGlobalMapTravelerModeChanged), globalMapTravelerModeChanged.PlayerId, globalMapTravelerModeChanged.TravelerMode, globalMapTravelerModeChanged.MustBeEnforced);
 
             var travelerMode = Mapper.Map<NetworkGlobalMapTravelerMode>(globalMapTravelerModeChanged.TravelerMode);
+            RegisterGlobalMapMode(globalMapTravelerModeChanged.PlayerId, travelerMode);
+            UpdateGlobalMapUIState();
 
-            Game.GlobalMapTravelerMode = travelerMode;
-            GlobalMapInteraction.ChangeArmyMode(travelerMode);
+            if (globalMapTravelerModeChanged.MustBeEnforced)
+            {
+                GlobalMapInteraction.ChangeArmyMode(travelerMode);
+            }
         }
 
         private void OnNotifyGlobalMapDaySkipped(long receivedFrom, NotifyGlobalMapDaySkipped globalMapDaySkipped)

@@ -220,9 +220,9 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnGlobalMapEncounterMessageShown();
 
-        void OnGlobalMapShown(NetworkGlobalMapTravelerMode travelerMode);
-
         void OnGlobalMapDisposed();
+
+        void OnGlobalMapTravelerModeChanged(NetworkGlobalMapTravelerMode travelerMode);
 
         bool OnSpawnCampPlace(NetworkVector3 position);
 

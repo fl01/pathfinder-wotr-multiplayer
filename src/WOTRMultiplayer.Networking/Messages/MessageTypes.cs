@@ -166,7 +166,6 @@
             NotifyPingedByPlayer,
             NotifyCutsceneSkipped,
             NotifyGlobalMapDaySkipped,
-            NotifyGlobalMapShown,
             NotifyGlobalMapSelectedArmyChanged,
             NotifyGlobalMapTravelerModeChanged,
             NotifyGlobalMapAutoCrusadeCombatChanged

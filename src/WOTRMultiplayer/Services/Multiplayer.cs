@@ -2475,24 +2475,6 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnGlobalMapShown(NetworkGlobalMapTravelerMode travelerMode)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Current.OnGlobalMapShown(travelerMode);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while showing global map. TravelerMode={TravelerMode}", travelerMode);
-                throw;
-            }
-        }
-
         public void OnGlobalMapDisposed()
         {
             try
@@ -2515,12 +2497,12 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnGlobalMapTravelerModeChanged(travelerMode);
+                _multiplayerActorAccessor.Current.OnGlobalMapTravelerModeChanged(travelerMode);
             }
             catch (Exception ex)
             {
