@@ -482,18 +482,19 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (Game.Combat == null || !SettingsService.GetSettings().SyncAICombatActions)
+                var aiActions = GetAIActions();
+                if (aiActions == null)
                 {
                     return null;
                 }
 
-                Game.Combat.AIActions.Add(action);
-                Logger.LogInformation("AI action selection has been stored. UnitId={UnitId}, ActionBlueprintId={ActionBlueprintId}, TargetId={TargetId}, Index={Index}", action.UnitId, action.ActionBlueprintId, action.TargetId, Game.Combat.AIActions.Count);
+                aiActions.Add(action);
+                Logger.LogInformation("AI action selection has been stored. UnitId={UnitId}, ActionBlueprintId={ActionBlueprintId}, TargetId={TargetId}, Index={Index}", action.UnitId, action.ActionBlueprintId, action.TargetId, aiActions.Count);
                 return null;
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Unable to store random encounter context");
+                Logger.LogError(ex, "Unable to store ai actions");
                 throw;
             }
         }
@@ -847,40 +848,21 @@ namespace WOTRMultiplayer.Services
 
         public bool OnCrusadeArmyCombatInitialization()
         {
-            if (Game.ArmyCombat != null && Game.ArmyCombat.IsInitialized)
-            {
-                Logger.LogWarning("Crusade Army combat initialziation has been confirmed");
-                return true;
-            }
-
-            if (Game.ArmyCombat != null)
-            {
-                Logger.LogWarning("Reinitializing already initialized crusade army combat");
-            }
-
-            Game.ArmyCombat = new NetworkArmyCombat()
-            {
-                Seed = CreateRandomSeed()
-            };
-
-            if (Game.ArmyCombat.PlayersCombatInitialization.TryAdd(Game.LocalPlayerId, true))
-            {
-                var message = new NotifyCrusadeArmyCombatInitializationRequired
-                {
-                    Seed = Game.ArmyCombat.Seed
-                };
-                Logger.LogInformation("Sending {MessageType}. Seed={Seed}", nameof(NotifyCrusadeArmyCombatInitializationRequired), message.Seed);
-                Send(message);
-            }
-
-            Game.ArmyCombat.IsInitialized = TryConfirmCrusadeArmyCombatInitialization();
-            return Game.ArmyCombat.IsInitialized;
+            Game.ArmyCombat = new NetworkArmyCombat { IsInitialized = false };
+            return true;
         }
 
         public void OnCrusadeArmyCombatInitialized()
         {
-            var message = new NotifyCrusadeArmyCombatInitialized();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyCrusadeArmyCombatInitialized));
+            Game.ArmyCombat.PlayersCombatInitialization.TryAdd(Game.LocalPlayerId, true);
+            Game.ArmyCombat.IsInitialized = TryConfirmCrusadeArmyCombatInitialization();
+
+            var seed = CombatInteraction.GetCrusadeArmyCombatSeed();
+            var message = new NotifyCrusadeArmyCombatInitialized()
+            {
+                Seed = seed
+            };
+            Logger.LogInformation("Sending {MessageType}. Seed={Seed}", nameof(NotifyCrusadeArmyCombatInitialized), message.Seed);
             Send(message);
         }
 
@@ -1112,12 +1094,7 @@ namespace WOTRMultiplayer.Services
 
             Game.ArmyCombat.PlayersCombatInitialization.TryAdd(crusadeArmyCombatInitializationConfirmed.PlayerId, true);
 
-            var isCrusadeArmyCombatInitialized = TryConfirmCrusadeArmyCombatInitialization();
-            if (isCrusadeArmyCombatInitialized)
-            {
-                Game.ArmyCombat.IsInitialized = true;
-                CombatInteraction.InitializeCrusadeArmyCombat();
-            }
+            Game.ArmyCombat.IsInitialized = TryConfirmCrusadeArmyCombatInitialization();
         }
 
         private void OnNotifyGlobalMapTravelerModeChanged(long receivedFrom, NotifyGlobalMapTravelerModeChanged globalMapTravelerModeChanged)
@@ -1209,7 +1186,7 @@ namespace WOTRMultiplayer.Services
                 NetworkAIAction networkAIAction = null;
                 do
                 {
-                    var turnActions = Game.Combat?.AIActions;
+                    var turnActions = Game.Combat?.AIActions ?? Game.ArmyCombat?.AIActions;
                     if (turnActions == null || turnActions.Count == 0 || turnActions.Count <= request.ActionIndex)
                     {
                         await Task.Delay(TimeSpan.FromMilliseconds(10));

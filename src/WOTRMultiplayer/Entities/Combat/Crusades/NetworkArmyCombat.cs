@@ -13,6 +13,8 @@ namespace WOTRMultiplayer.Entities.Combat.Crusades
 
         public ConcurrentDictionary<long, bool> PlayersCombatInitialization { get; set; } = new();
 
+        public ConcurrentDictionary<int, HashSet<long>> PlayersNextTurnInitialization { get; set; } = new();
+
         public List<NetworkAIAction> AIActions { get; set; } = [];
     }
 }

@@ -19,6 +19,7 @@ namespace WOTRMultiplayer.Services.Settings
 
             // combat
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Combat.AISync);
+            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Combat.CrusadeAISync);
 
             // networking
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Networking.HostPortRangeStart);
@@ -47,6 +48,7 @@ namespace WOTRMultiplayer.Services.Settings
                 PlayerName = _settingsControllerAccessor.GetValue(WellKnownSettings.General.PlayerName),
 
                 SyncAICombatActions = _settingsControllerAccessor.GetValue(WellKnownSettings.Combat.AISync),
+                SyncCrusadeArmyAICombatActions = _settingsControllerAccessor.GetValue(WellKnownSettings.Combat.CrusadeAISync),
 
                 HostPortRangeStart = _settingsControllerAccessor.GetValue(WellKnownSettings.Networking.HostPortRangeStart),
                 HostPortRangeEnd = _settingsControllerAccessor.GetValue(WellKnownSettings.Networking.HostPortRangeEnd),

@@ -783,8 +783,8 @@ namespace WOTRMultiplayer.Services
 
             switch (rule)
             {
-                //case RuleAttackRoll attackRoll:
-                //    return !attackRoll.IsFake;
+                case RuleAttackRoll attackRoll:
+                    return !attackRoll.IsFake;
                 case RuleCalculateDamage:
                 case RuleHealDamage:
                 case RuleDealDamage:

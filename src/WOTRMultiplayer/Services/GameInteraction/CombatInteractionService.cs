@@ -36,6 +36,12 @@ namespace WOTRMultiplayer.Services.GameInteraction
             _mainThreadAccessor = mainThreadAccessor;
         }
 
+        public int GetCrusadeArmyCombatSeed()
+        {
+            var seed = Game.Instance.TacticalCombat?.Data?.Seed ?? -1;
+            return seed;
+        }
+
         public void InitializeCrusadeArmyCombat()
         {
             _mainThreadAccessor.Post(() =>

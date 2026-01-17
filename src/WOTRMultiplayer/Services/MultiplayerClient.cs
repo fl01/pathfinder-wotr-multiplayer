@@ -252,8 +252,9 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                var settings = SettingsService.GetSettings();
-                if (!settings.SyncAICombatActions || string.IsNullOrEmpty(networkAIAction.ActionBlueprintId))
+
+                var aiActions = GetAIActions();
+                if (aiActions == null || string.IsNullOrEmpty(networkAIAction.ActionBlueprintId))
                 {
                     return null;
                 }
@@ -262,7 +263,7 @@ namespace WOTRMultiplayer.Services
                 {
                     Timeout = TimeSpan.FromSeconds(3),
                     UnitId = networkAIAction.UnitId,
-                    ActionIndex = Game.Combat.AIActions.Count
+                    ActionIndex = aiActions.Count
                 };
 
                 Logger.LogInformation("Retrieving AI action. UnitId={UnitId}, ActionIndex={ActionIndex}", networkAIAction.UnitId, message.ActionIndex);
@@ -281,11 +282,11 @@ namespace WOTRMultiplayer.Services
                     && string.Equals(action.TargetId, networkAIAction.TargetId, StringComparison.OrdinalIgnoreCase))
                 {
                     Logger.LogInformation("Host AI action is the same, nothing to do here. UnitId={UnitId}, ActionBlueprintId={ActionBlueprintId}, TargetUnitId={TargetUnitId}", networkAIAction.UnitId, networkAIAction.ActionBlueprintId, networkAIAction.TargetId);
-                    Game.Combat.AIActions.Add(networkAIAction);
+                    aiActions.Add(networkAIAction);
                     return null;
                 }
 
-                Game.Combat.AIActions.Add(action);
+                aiActions.Add(action);
                 return action;
             }
             catch (Exception ex)
@@ -370,18 +371,19 @@ namespace WOTRMultiplayer.Services
 
         public bool OnCrusadeArmyCombatInitialization()
         {
-            if (Game.ArmyCombat != null && Game.ArmyCombat.IsInitialized)
+            if (Game.ArmyCombat != null && !Game.ArmyCombat.IsInitialized)
             {
-                Logger.LogInformation("Crusade Army combat initialziation has been confirmed");
+                Game.ArmyCombat.IsInitialized = true;
+                var message = new NotifyCrusadeArmyCombatInitializationConfirmed
+                {
+                    PlayerId = Game.LocalPlayerId
+                };
+                Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyCrusadeArmyCombatInitializationConfirmed), message.PlayerId);
+                Send(message);
                 return true;
             }
 
-            if (Game.ArmyCombat != null)
-            {
-                Logger.LogWarning("Reinitializing already initialized crusade army combat");
-            }
-
-            Game.ArmyCombat = new NetworkArmyCombat();
+            Game.ArmyCombat = new NetworkArmyCombat() { IsInitialized = false };
 
             return false;
         }
@@ -467,7 +469,6 @@ namespace WOTRMultiplayer.Services
                .On<NotifyCombatTurnSynchronizationRequired>(OnNotifyCombatTurnSynchronizationRequired)
 
                // crusade army combat
-               .On<NotifyCrusadeArmyCombatInitializationRequired>(OnNotifyCrusadeArmyCombatInitializationRequested)
                .On<NotifyCrusadeArmyCombatInitialized>(OnNotifyCrusadeArmyCombatInitialized)
 
                // dialogs
@@ -521,28 +522,14 @@ namespace WOTRMultiplayer.Services
                ;
         }
 
-        private void OnNotifyCrusadeArmyCombatInitialized(long receivedFrom, NotifyCrusadeArmyCombatInitialized crusadeArmyCombatInitialized)
+        private async void OnNotifyCrusadeArmyCombatInitialized(long receivedFrom, NotifyCrusadeArmyCombatInitialized crusadeArmyCombatInitialized)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}", nameof(NotifyCrusadeArmyCombatInitialized), receivedFrom);
-
-            Game.ArmyCombat.IsInitialized = true;
-            CombatInteraction.InitializeCrusadeArmyCombat();
-        }
-
-        private async void OnNotifyCrusadeArmyCombatInitializationRequested(long receivedFrom, NotifyCrusadeArmyCombatInitializationRequired crusadeArmyCombatInitializationRequired)
-        {
-            Logger.LogInformation("Received {MessageType}. Seed={Seed}", nameof(NotifyCrusadeArmyCombatInitializationRequired), crusadeArmyCombatInitializationRequired.Seed);
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, Seed={Seed}", nameof(NotifyCrusadeArmyCombatInitialized), receivedFrom, crusadeArmyCombatInitialized.Seed);
 
             await WaitWhileTrue(() => Game.ArmyCombat == null, "Crusade army combat has not been started yet");
-            Game.ArmyCombat.Seed = crusadeArmyCombatInitializationRequired.Seed;
-            Logger.LogInformation("Crusade Army Combat seed has been updated. Seed={Seed}", Game.ArmyCombat.Seed);
 
-            var message = new NotifyCrusadeArmyCombatInitializationConfirmed
-            {
-                PlayerId = Game.LocalPlayerId
-            };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyCrusadeArmyCombatInitializationConfirmed), message.PlayerId);
-            Send(message);
+            Game.ArmyCombat.Seed = crusadeArmyCombatInitialized.Seed;
+            CombatInteraction.InitializeCrusadeArmyCombat();
         }
 
         private void OnNotifyGlobalMapAutoCrusadeCombatChanged(long receivedFrom, NotifyGlobalMapAutoCrusadeCombatChanged globalMapAutoCrusadeCombatChanged)

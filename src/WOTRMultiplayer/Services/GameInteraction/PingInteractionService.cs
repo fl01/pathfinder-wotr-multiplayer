@@ -273,7 +273,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             PlayPingSound(pingObject);
 
             // no need to create marker if there is no responsible player for it (local player)
-            if (player == null)
+            if (player == null || TacticalCombatHelper.IsActive)
             {
                 return;
             }

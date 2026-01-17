@@ -347,6 +347,22 @@ public static class WellKnownKeys
                     public static string Key { get; set; }
                 }
             }
+
+            [Description("crusadeAISync")]
+            public static class CrusadeAISync
+            {
+                [Description("title")]
+                public static class Title
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("tooltip")]
+                public static class Tooltip
+                {
+                    public static string Key { get; set; }
+                }
+            }
         }
 
         [Description("networking")]

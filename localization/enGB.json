@@ -93,6 +93,10 @@
                 "syncAI": {
                     "title": "Synchronize AI Actions",
                     "tooltip": "AI actions don't have any randomness, so their turns play out the same for everyone in multiplayer.\nIn rare cases, AI might attack a different target or make an extra attack after moving - usually because of position desync or low FPS (it's messing up with best AI action score calculation).\nEnable this if you want to get extra synchronization(stability) at the expense of extra stuttering"
+                },
+                "crusadeAISync": {
+                    "title": "Synchronize Crusade Army AI Actions",
+                    "tooltip": "AI actions during crusade tactical combat will be synchronized. Work the same way as regular combat AI synchronization"
                 }
             },
             "networking": {

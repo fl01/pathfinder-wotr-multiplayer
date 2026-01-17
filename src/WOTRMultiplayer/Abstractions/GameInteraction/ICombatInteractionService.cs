@@ -18,5 +18,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         Task UpdateCombatStateAsync(NetworkCombatState networkCombatState, bool requiresFullUpdate);
 
         void InitializeCrusadeArmyCombat();
+
+        int GetCrusadeArmyCombatSeed();
     }
 }

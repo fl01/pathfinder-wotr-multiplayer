@@ -6,5 +6,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyCrusadeArmyCombatInitialized)]
     public class NotifyCrusadeArmyCombatInitialized
     {
+        [ProtoMember(1)]
+        public int Seed { get; set; }
     }
 }

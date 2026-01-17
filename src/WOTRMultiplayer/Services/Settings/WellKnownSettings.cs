@@ -46,6 +46,9 @@ namespace WOTRMultiplayer.Services.Settings
         {
             [Description("ai-sync")]
             public static WellKnownSettingKey<bool> AISync { get; } = new(true);
+
+            [Description("crusade-ai-sync")]
+            public static WellKnownSettingKey<bool> CrusadeAISync { get; } = new(true);
         }
 
         [Description("networking")]

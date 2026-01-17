@@ -15,6 +15,7 @@ using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.ActionBar;
 using WOTRMultiplayer.Entities.Area;
 using WOTRMultiplayer.Entities.Combat;
+using WOTRMultiplayer.Entities.Combat.Crusades;
 using WOTRMultiplayer.Entities.Dialogs;
 using WOTRMultiplayer.Entities.Equipment;
 using WOTRMultiplayer.Entities.GlobalMap;
@@ -1007,6 +1008,26 @@ namespace WOTRMultiplayer.Services
         public int? GetSessionSeed()
         {
             return _multiplayerActorAccessor.Current?.SessionSeed;
+        }
+
+        public int? GetCrusadeArmyCombatSeed()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Host.IsActive)
+                {
+                    return null;
+                }
+
+                var seed = _multiplayerActorAccessor.Current.CrusadeArmyCombatSeed;
+                return seed;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while getting crusade army combat seed");
+                throw;
+            }
+
         }
 
         public void OnInterrupRestBanterBark(NetworkRestBanter networkRestBanter)
@@ -2925,6 +2946,43 @@ namespace WOTRMultiplayer.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while processing finished crusade army combat initialization");
+                throw;
+            }
+        }
+
+        public bool OnBeforeCrusadeArmyCombatTurnStart(int turnNumber)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return true;
+                }
+
+                var canContinue = _multiplayerActorAccessor.Current.OnBeforeCrusadeArmyCombatTurnStart(turnNumber);
+                return canContinue;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error before starting crusade army combat turn");
+                throw;
+            }
+        }
+
+        public void OnCrusadeArmyCombatTurnStarted(NetworkArmyCombatTurn armyCombatTurn)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnCrusadeArmyCombatTurnStarted(armyCombatTurn);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while starting crusade army combat turn");
                 throw;
             }
         }

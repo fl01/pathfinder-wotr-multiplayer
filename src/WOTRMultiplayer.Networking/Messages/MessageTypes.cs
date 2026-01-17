@@ -169,9 +169,9 @@
             NotifyGlobalMapSelectedArmyChanged,
             NotifyGlobalMapTravelerModeChanged,
             NotifyGlobalMapAutoCrusadeCombatChanged,
-            NotifyCrusadeArmyCombatInitializationRequired,
             NotifyCrusadeArmyCombatInitializationConfirmed,
-            NotifyCrusadeArmyCombatInitialized
+            NotifyCrusadeArmyCombatInitialized,
+            NotifyCrusadeArmyCombatTurnInitialized
         }
 
         public enum Request

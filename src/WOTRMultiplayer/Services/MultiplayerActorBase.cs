@@ -18,6 +18,7 @@ using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.ActionBar;
 using WOTRMultiplayer.Entities.Combat;
+using WOTRMultiplayer.Entities.Combat.Crusades;
 using WOTRMultiplayer.Entities.Content;
 using WOTRMultiplayer.Entities.Dialogs;
 using WOTRMultiplayer.Entities.Equipment;
@@ -50,6 +51,8 @@ namespace WOTRMultiplayer.Services
         public int SessionSeed => Game.SessionSeed;
 
         public int? CombatSeed => Game.Combat?.Seed;
+
+        public int? CrusadeArmyCombatSeed => Game.ArmyCombat?.Seed;
 
         public Action<NetworkLobbyStage, List<NetworkPlayer>> OnPlayersChanged { get; set; }
 
@@ -1795,6 +1798,36 @@ namespace WOTRMultiplayer.Services
         {
             Game.ArmyCombat = null;
             Logger.LogInformation("Crusade army combat has ended");
+            _valueGenerator.ResetSeedGenerators(SeedLifetime.Combat);
+        }
+
+        public bool OnBeforeCrusadeArmyCombatTurnStart(int turnNumber)
+        {
+            var playerId = Game.LocalPlayerId;
+            if (AddPlayerCrusadeArmyCombatTurnInitialization(turnNumber, playerId))
+            {
+                if (turnNumber == 0)
+                {
+                    Game.ArmyCombat.Turn = new NetworkArmyCombatTurn { Number = turnNumber };
+                }
+
+                var message = new NotifyCrusadeArmyCombatTurnInitialized
+                {
+                    PlayerId = playerId,
+                    TurnNumber = turnNumber
+                };
+                Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, TurnNumber={TurnNumber}", nameof(NotifyCrusadeArmyCombatTurnInitialized), message.PlayerId, message.TurnNumber);
+                Send(message);
+            }
+
+            var canContinue = IsCrusadeArmyCombatTurnInitialized();
+            return canContinue;
+        }
+
+        public void OnCrusadeArmyCombatTurnStarted(NetworkArmyCombatTurn armyCombatTurn)
+        {
+            Game.ArmyCombat.Turn = armyCombatTurn;
+            Logger.LogInformation("New Crusade Army combat turn started. TurnNumber={TurnNumber}, UnitId={UnitId}, IsAI={IsAI}", Game.ArmyCombat.Turn.Number, Game.ArmyCombat.Turn.UnitId, Game.ArmyCombat.Turn.IsAI);
         }
 
         protected abstract DiceRollValueResponse RetrieveRoll(DiceRollValueRequest rollRequest);
@@ -1804,6 +1837,50 @@ namespace WOTRMultiplayer.Services
         protected abstract void Send(object message);
 
         protected abstract void Send(long playerId, object message);
+
+        protected List<NetworkAIAction> GetAIActions()
+        {
+            var settings = SettingsService.GetSettings();
+            if (Game.Combat != null && settings.SyncAICombatActions)
+            {
+                return Game.Combat.AIActions;
+            }
+
+            if (Game.ArmyCombat != null && settings.SyncAICombatActions)
+            {
+                return Game.ArmyCombat.AIActions;
+            }
+
+            return null;
+        }
+
+        protected bool AddPlayerCrusadeArmyCombatTurnInitialization(int turnNumber, long playerId)
+        {
+            var isFirstAdd = true;
+            Game.ArmyCombat.PlayersNextTurnInitialization.AddOrUpdate(turnNumber, [playerId], (key, existing) =>
+            {
+                isFirstAdd = existing.Add(playerId);
+                return existing;
+            });
+
+            return isFirstAdd;
+        }
+
+        protected bool IsCrusadeArmyCombatTurnInitialized()
+        {
+            if (Game.ArmyCombat?.Turn == null || !Game.ArmyCombat.IsInitialized || !Game.ArmyCombat.PlayersNextTurnInitialization.TryGetValue(Game.ArmyCombat.Turn.Number, out var readyPlayers))
+            {
+                return false;
+            }
+
+            var isReady = readyPlayers.Count >= GetSyncedPlayersCount();
+            return isReady;
+        }
+
+        protected virtual void OnLocalCrusadeArmyCombatTurnInitialized(int turnNumber, long playerId)
+        {
+
+        }
 
         protected virtual void OnLocalRestGameModeEnded()
         {
@@ -2708,6 +2785,9 @@ namespace WOTRMultiplayer.Services
                 .On<NotifyUnitAttacked>(OnNotifyUnitAttacked)
                 .On<NotifyCombatTurnDelayed>(OnNotifyCombatTurnDelayed)
 
+                // crusade combat
+                .On<NotifyCrusadeArmyCombatTurnInitialized>(OnNotifyCrusadeArmyCombatTurnInitialized)
+
                 // overtips
                 .On<NotifyOvertipInteracted>(OnNotifyOvertipInteracted)
 
@@ -2767,6 +2847,15 @@ namespace WOTRMultiplayer.Services
                 // cutscenes
                 .On<NotifyCutsceneSkipped>(OnNotifyCutsceneSkipped)
                 ;
+        }
+
+        private void OnNotifyCrusadeArmyCombatTurnInitialized(long receivedFrom, NotifyCrusadeArmyCombatTurnInitialized crusadeArmyCombatTurnInitialized)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, TurnNumber={TurnNumber}", nameof(NotifyCrusadeArmyCombatTurnInitialized), receivedFrom, crusadeArmyCombatTurnInitialized.PlayerId, crusadeArmyCombatTurnInitialized.TurnNumber);
+
+            AddPlayerCrusadeArmyCombatTurnInitialization(crusadeArmyCombatTurnInitialized.TurnNumber, crusadeArmyCombatTurnInitialized.PlayerId);
+
+            OnAfterNetworkMessageHandled(receivedFrom, crusadeArmyCombatTurnInitialized);
         }
 
         private void OnNotifyPlayerReadyStatusChanged(long receivedFrom, NotifyPlayerReadyStatusChanged readyStatusChanged)

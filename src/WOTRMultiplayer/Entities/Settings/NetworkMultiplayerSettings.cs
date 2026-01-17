@@ -22,6 +22,8 @@ namespace WOTRMultiplayer.Entities.Settings
 
         public bool SyncAICombatActions { get; set; }
 
+        public bool SyncCrusadeArmyAICombatActions { get; set; }
+
         public TimeSpan RestEncounterSyncTimeout { get; set; }
 
         public bool HideServerAddress { get; set; }

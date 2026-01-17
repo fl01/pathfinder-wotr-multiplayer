@@ -5,6 +5,7 @@ using Kingmaker.GameModes;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.ActionBar;
 using WOTRMultiplayer.Entities.Combat;
+using WOTRMultiplayer.Entities.Combat.Crusades;
 using WOTRMultiplayer.Entities.Dialogs;
 using WOTRMultiplayer.Entities.Equipment;
 using WOTRMultiplayer.Entities.GlobalMap;
@@ -56,6 +57,8 @@ namespace WOTRMultiplayer.Abstractions
         int SessionSeed { get; }
 
         int? CombatSeed { get; }
+
+        int? CrusadeArmyCombatSeed { get; }
 
         bool IsControlledByLocalPlayer(string unitId);
 
@@ -297,6 +300,11 @@ namespace WOTRMultiplayer.Abstractions
         void OnCutsceneSkip();
 
         bool OnCrusadeArmyCombatInitialization();
+
         void OnCrusadeArmyCombatEnded();
+
+        bool OnBeforeCrusadeArmyCombatTurnStart(int turnNumber);
+
+        void OnCrusadeArmyCombatTurnStarted(NetworkArmyCombatTurn armyCombatTurn);
     }
 }

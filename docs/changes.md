@@ -188,8 +188,9 @@ AI actions don't have any randomness, so their turns play out the same for every
 In rare cases, AI might attack a different target or make an extra attack after moving - usually because of position desync or low FPS. There's a basic AI sync option that forces AI to attack the same target, but you can turn it off in 'Multiplayer Settings' if it causes issues
 
 ### Crusade Army Battles
-- Combat is fully controlled by the host. 
-- AI sync setting applies.
+Combat is fully controlled by the host.
+
+There is a dedicated 'Crusade AI sync' setting to enable AI combat actions sync. It works the same as for turn-based combat.
 
 ## Cutscenes
 Cutscene skip is synchronized, but, as of now, there are no additional checks to make sure it started/ended for everyone.

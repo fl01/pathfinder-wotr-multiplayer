@@ -575,6 +575,7 @@ namespace WOTRMultiplayer.UI
             // combat
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Combat.Title.Key });
             yield return CreateBoolSetting(WellKnownKeys.Settings.Combat.SyncAI.Title.Key, WellKnownKeys.Settings.Combat.SyncAI.Tooltip.Key, WellKnownSettings.Combat.AISync);
+            yield return CreateBoolSetting(WellKnownKeys.Settings.Combat.CrusadeAISync.Title.Key, WellKnownKeys.Settings.Combat.CrusadeAISync.Tooltip.Key, WellKnownSettings.Combat.CrusadeAISync);
 
             // networking
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Networking.Title.Key });

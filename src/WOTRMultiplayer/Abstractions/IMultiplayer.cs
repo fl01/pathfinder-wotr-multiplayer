@@ -7,6 +7,7 @@ using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.ActionBar;
 using WOTRMultiplayer.Entities.Area;
 using WOTRMultiplayer.Entities.Combat;
+using WOTRMultiplayer.Entities.Combat.Crusades;
 using WOTRMultiplayer.Entities.Dialogs;
 using WOTRMultiplayer.Entities.Equipment;
 using WOTRMultiplayer.Entities.GlobalMap;
@@ -350,7 +351,15 @@ namespace WOTRMultiplayer.Abstractions
         void OnAreaTransition(NetworkAreaTransition areaTransition);
 
         bool OnCrusadeArmyCombatInitialization();
+
         void OnCrusadeArmyCombatEnded();
+
         void OnCrusadeArmyCombatInitialized();
+
+        bool OnBeforeCrusadeArmyCombatTurnStart(int turnNumber);
+
+        void OnCrusadeArmyCombatTurnStarted(NetworkArmyCombatTurn armyCombatTurn);
+
+        int? GetCrusadeArmyCombatSeed();
     }
 }
