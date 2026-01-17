@@ -37,6 +37,7 @@ namespace WOTRMultiplayer.UnitTests.Services
         private IDialogInteractionService _dialogInteractionService;
         private IGlobalMapInteractionService _globalMapInteractionService;
         private IPingInteractionService _pingInteractionService;
+        private ICombatInteractionService _combatInteractionService;
         private IMultiplayerSettingsService _multiplayerSettingsProvider;
         private IFileSystemService _fileSystemService;
         private INetworkServer _networkServer;
@@ -59,6 +60,7 @@ namespace WOTRMultiplayer.UnitTests.Services
             _dialogInteractionService = A.Fake<IDialogInteractionService>();
             _globalMapInteractionService = A.Fake<IGlobalMapInteractionService>();
             _pingInteractionService = A.Fake<IPingInteractionService>();
+            _combatInteractionService = A.Fake<ICombatInteractionService>();
             _multiplayerSettingsProvider = A.Fake<IMultiplayerSettingsService>();
             _fileSystemService = A.Fake<IFileSystemService>();
 
@@ -76,6 +78,7 @@ namespace WOTRMultiplayer.UnitTests.Services
                 _dialogInteractionService,
                 _globalMapInteractionService,
                 _pingInteractionService,
+                _combatInteractionService,
                 _multiplayerSettingsProvider,
                 _fileSystemService,
                 _networkServer,

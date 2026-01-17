@@ -134,6 +134,12 @@ Random encounters are never rolled on the client side, but rather are sent by th
 
 Although the base game has no support for pausing while you are in the global map, we still need to sync loading times. As a result of this, host simply can't trigger movement until everyone is loaded.
 
+### Crusade
+Crusade is fully controlled by the host (army movement/recruiting/battles/etc...)
+
+#### Crusade automode
+Although this difficutly setting is not disabled, it has not been checked and there are no plans to implement it soon.
+
 ## Rolls
 Network communication to retrieve rolls requires blocking the main game loop. Basically, it means that a slow network would cause noticeable stutters. More about this in the [`Long Terms Plans`](#long-term-plans) section
 
@@ -180,6 +186,10 @@ The source of truth is the host. Position of units in combat is synchronized wit
 AI actions don't have any randomness, so their turns play out the same for everyone in multiplayer. AI rolls are handled by the host when out of combat, or by the `Turn Owner` during combat.
 
 In rare cases, AI might attack a different target or make an extra attack after moving - usually because of position desync or low FPS. There's a basic AI sync option that forces AI to attack the same target, but you can turn it off in 'Multiplayer Settings' if it causes issues
+
+### Crusade Army Battles
+- Combat is fully controlled by the host. 
+- AI sync setting applies.
 
 ## Cutscenes
 Cutscene skip is synchronized, but, as of now, there are no additional checks to make sure it started/ended for everyone.

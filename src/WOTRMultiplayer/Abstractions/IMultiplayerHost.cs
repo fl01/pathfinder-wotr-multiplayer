@@ -85,5 +85,7 @@ namespace WOTRMultiplayer.Abstractions
         void OnCharacterSelectionToggleChanged(string unitId);
 
         void OnNewGameDifficultyChanged(string difficulty);
+
+        void OnCrusadeArmyCombatInitialized();
     }
 }

@@ -168,7 +168,10 @@
             NotifyGlobalMapDaySkipped,
             NotifyGlobalMapSelectedArmyChanged,
             NotifyGlobalMapTravelerModeChanged,
-            NotifyGlobalMapAutoCrusadeCombatChanged
+            NotifyGlobalMapAutoCrusadeCombatChanged,
+            NotifyCrusadeArmyCombatInitializationRequired,
+            NotifyCrusadeArmyCombatInitializationConfirmed,
+            NotifyCrusadeArmyCombatInitialized
         }
 
         public enum Request

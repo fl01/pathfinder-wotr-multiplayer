@@ -38,6 +38,7 @@ namespace WOTRMultiplayer.Playground.Host
                 new DummyDialogInteractionService(),
                 new DummyGlobalMapInteractionService(),
                 new DummyPingInteractionService(),
+                new DummyCombatInteractionService(),
                 new MultiplayerSettingsProvider(new DummySettingsControllerAccessor()),
                 serviceProvider.GetService<IFileSystemService>(),
                 serviceProvider.GetService<INetworkServer>(),

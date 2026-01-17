@@ -75,6 +75,8 @@ namespace WOTRMultiplayer.Services
 
         protected IPingInteractionService PingInteraction { get; private set; }
 
+        protected ICombatInteractionService CombatInteraction { get; private set; }
+
         protected IDiceRollStorage DiceRollStorage { get; private set; }
 
         protected IFileSystemService FileSystem { get; private set; }
@@ -99,6 +101,7 @@ namespace WOTRMultiplayer.Services
             IDialogInteractionService dialogInteractionService,
             IGlobalMapInteractionService globalMapInteractionService,
             IPingInteractionService pingInteractionService,
+            ICombatInteractionService combatInteractionService,
             IDiceRollStorage diceRollStorage,
             IFileSystemService fileSystemService,
             IValueGenerator valueGenerator,
@@ -112,6 +115,7 @@ namespace WOTRMultiplayer.Services
             DialogInteraction = dialogInteractionService;
             GlobalMapInteraction = globalMapInteractionService;
             PingInteraction = pingInteractionService;
+            CombatInteraction = combatInteractionService;
             DiceRollStorage = diceRollStorage;
             FileSystem = fileSystemService;
             SettingsService = multiplayerSettingsService;
@@ -269,7 +273,7 @@ namespace WOTRMultiplayer.Services
         public void OnClickUnit(NetworkClick click)
         {
             if (Game.Combat == null && !IsControlledByLocalPlayer(click.SelectedUnits)
-                || Game.Combat != null && (!(Game.Combat.Turn?.IsLocalPlayer ?? false) || GameInteraction.CombatTurnHasBeenFinished()))
+                || Game.Combat != null && (!(Game.Combat.Turn?.IsLocalPlayer ?? false) || CombatInteraction.IsCombatTurnFinished()))
             {
                 return;
             }
@@ -285,7 +289,7 @@ namespace WOTRMultiplayer.Services
 
         public void OnClickGround(NetworkClick click)
         {
-            if (!(Game.Combat?.Turn?.IsLocalPlayer ?? false) || GameInteraction.CombatTurnHasBeenFinished())
+            if (!(Game.Combat?.Turn?.IsLocalPlayer ?? false) || CombatInteraction.IsCombatTurnFinished())
             {
                 return;
             }
@@ -1787,6 +1791,12 @@ namespace WOTRMultiplayer.Services
             return ReadyChanged(player, !player.IsReady);
         }
 
+        public void OnCrusadeArmyCombatEnded()
+        {
+            Game.ArmyCombat = null;
+            Logger.LogInformation("Crusade army combat has ended");
+        }
+
         protected abstract DiceRollValueResponse RetrieveRoll(DiceRollValueRequest rollRequest);
 
         protected abstract void OnLocalPlayerTurnStart();
@@ -2251,6 +2261,7 @@ namespace WOTRMultiplayer.Services
             Game.StartUp = null;
             Game.Combat = null;
             Game.LastCombatTurn = null;
+            Game.ArmyCombat = null;
             Game.Leveling = null;
             DiceRollStorage.Reset();
             _valueGenerator.ResetSeedGenerators(SeedLifetime.Area, SeedLifetime.Combat);
@@ -2300,7 +2311,7 @@ namespace WOTRMultiplayer.Services
                 return HasControlOverUI;
             }
 
-            return Game.Combat.Turn.IsLocalPlayer && !GameInteraction.CombatTurnHasBeenFinished();
+            return Game.Combat.Turn.IsLocalPlayer && !CombatInteraction.IsCombatTurnFinished();
         }
 
         protected TRollValue ResponseToRollValue<TRollValue>(DiceRollValueResponse rollResponse)
@@ -2431,7 +2442,7 @@ namespace WOTRMultiplayer.Services
         protected void EndLocalTurn()
         {
             Game.Combat.Turn.IsInProgress = false;
-            GameInteraction.EndTurnBasedCombatTurn();
+            CombatInteraction.EndTurnBasedCombatTurn();
         }
 
         protected bool IsGameModeAllowedToRun(GameModeType type)
@@ -3155,7 +3166,7 @@ namespace WOTRMultiplayer.Services
             Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, UnitId={Round}, TargetUnitId={TargetUnitId}", nameof(NotifyCombatTurnDelayed), playerId, combatTurnDelayed.UnitId, combatTurnDelayed.TargetUnitId);
 
             Game.Combat.Turn.IsInProgress = false;
-            GameInteraction.DelayCombatTurn(combatTurnDelayed.UnitId, combatTurnDelayed.TargetUnitId);
+            CombatInteraction.DelayCombatTurn(combatTurnDelayed.UnitId, combatTurnDelayed.TargetUnitId);
 
             OnAfterNetworkMessageHandled(playerId, combatTurnDelayed);
         }
@@ -3661,7 +3672,7 @@ namespace WOTRMultiplayer.Services
                     IsInProgress = false,
                     IsActingInSurpriseRound = actingInSurpriseRound,
                     IsLocalPlayer = IsControlledByLocalPlayer(unitId),
-                    IsAI = GameInteraction.IsUnitAI(unitId),
+                    IsAI = !GameInteraction.IsUnitInParty(unitId),
                 };
             }
 

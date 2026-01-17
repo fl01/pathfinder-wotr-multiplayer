@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
 using Kingmaker.EntitySystem;
 using Kingmaker.GameModes;
 using Kingmaker.Items.Slots;
@@ -126,10 +125,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void DelayCombatTurn(string unitId, string targetUnitId)
-        {
-        }
-
         public void DropItem(NetworkDropItem networkDropItem)
         {
         }
@@ -231,7 +226,7 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
             return false;
         }
 
-        public bool IsUnitAI(string unitId)
+        public bool IsUnitInParty(string unitId)
         {
             return false;
         }
@@ -347,10 +342,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void StartTurnBasedCombatTurn(string unitId)
-        {
-        }
-
         public void TerminateNewGameSequence()
         {
         }
@@ -377,11 +368,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
 
         public void UpdateCharacterSelectionUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
         {
-        }
-
-        public Task UpdateCombatStateAsync(NetworkCombatState networkCombatState, bool requiresFullUpdate)
-        {
-            return Task.CompletedTask;
         }
 
         public void UpdateEquipmentSlot(NetworkEquipmentSlot networkEquipmentSlot)

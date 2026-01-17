@@ -14,6 +14,7 @@ using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.Area;
 using WOTRMultiplayer.Entities.Combat;
+using WOTRMultiplayer.Entities.Combat.Crusades;
 using WOTRMultiplayer.Entities.Content;
 using WOTRMultiplayer.Entities.Dialogs;
 using WOTRMultiplayer.Entities.GlobalMap;
@@ -52,6 +53,7 @@ namespace WOTRMultiplayer.Services
             IDialogInteractionService dialogInteractionService,
             IGlobalMapInteractionService globalMapInteractionService,
             IPingInteractionService pingInteractionService,
+            ICombatInteractionService combatInteractionService,
             IMultiplayerSettingsService multiplayerSettingsProvider,
             IFileSystemService fileSystemService,
             INetworkServer networkServer,
@@ -67,6 +69,7 @@ namespace WOTRMultiplayer.Services
                   dialogInteractionService,
                   globalMapInteractionService,
                   pingInteractionService,
+                  combatInteractionService,
                   diceRollStorage,
                   fileSystemService,
                   valueGenerator,
@@ -337,7 +340,7 @@ namespace WOTRMultiplayer.Services
 
             if (Game.Combat.Round <= 1 && !Game.Combat.IsInitialized)
             {
-                var combatState = GameInteraction.GetCombatState();
+                var combatState = CombatInteraction.GetCombatState();
                 var message = new NotifyCombatInitialized
                 {
                     CombatState = Mapper.Map<Networking.Messages.Contracts.NetworkCombatState>(combatState),
@@ -842,6 +845,45 @@ namespace WOTRMultiplayer.Services
             return true;
         }
 
+        public bool OnCrusadeArmyCombatInitialization()
+        {
+            if (Game.ArmyCombat != null && Game.ArmyCombat.IsInitialized)
+            {
+                Logger.LogWarning("Crusade Army combat initialziation has been confirmed");
+                return true;
+            }
+
+            if (Game.ArmyCombat != null)
+            {
+                Logger.LogWarning("Reinitializing already initialized crusade army combat");
+            }
+
+            Game.ArmyCombat = new NetworkArmyCombat()
+            {
+                Seed = CreateRandomSeed()
+            };
+
+            if (Game.ArmyCombat.PlayersCombatInitialization.TryAdd(Game.LocalPlayerId, true))
+            {
+                var message = new NotifyCrusadeArmyCombatInitializationRequired
+                {
+                    Seed = Game.ArmyCombat.Seed
+                };
+                Logger.LogInformation("Sending {MessageType}. Seed={Seed}", nameof(NotifyCrusadeArmyCombatInitializationRequired), message.Seed);
+                Send(message);
+            }
+
+            Game.ArmyCombat.IsInitialized = TryConfirmCrusadeArmyCombatInitialization();
+            return Game.ArmyCombat.IsInitialized;
+        }
+
+        public void OnCrusadeArmyCombatInitialized()
+        {
+            var message = new NotifyCrusadeArmyCombatInitialized();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyCrusadeArmyCombatInitialized));
+            Send(message);
+        }
+
         protected override DiceRollValueResponse RetrieveRoll(DiceRollValueRequest rollRequest)
         {
             // the only case when host is retrieving rolls - he is not the turn owner + it's not AI turn
@@ -935,7 +977,7 @@ namespace WOTRMultiplayer.Services
                     if (Game.Combat.Turn.RequiresTurnEntitiesSynchronization)
                     {
                         Game.Combat.Turn.RequiresTurnEntitiesSynchronization = false;
-                        var combatState = GameInteraction.GetCombatState();
+                        var combatState = CombatInteraction.GetCombatState();
                         var syncMessage = new NotifyCombatTurnSynchronizationRequired
                         {
                             CombatState = Mapper.Map<Networking.Messages.Contracts.NetworkCombatState>(combatState),
@@ -964,7 +1006,7 @@ namespace WOTRMultiplayer.Services
 
                     Game.Combat.Turn.IsInProgress = true;
                 }
-                GameInteraction.StartTurnBasedCombatTurn(Game.Combat.Turn.UnitId);
+                CombatInteraction.StartTurnBasedCombatTurn(Game.Combat.Turn.UnitId);
             }
             catch (Exception ex)
             {
@@ -1043,6 +1085,9 @@ namespace WOTRMultiplayer.Services
                .On<ClientCombatTurnStarted>(OnClientCombatTurnStarted)
                .On<ClientCombatTurnSynchronized>(OnClientCombatTurnSynchronized)
 
+               // crusade combat
+               .On<NotifyCrusadeArmyCombatInitializationConfirmed>(OnNotifyCrusadeArmyCombatInitializationConfirmed)
+
                // dialogs
                .On<ClientDialogCueAnswerSuggested>(OnClientDialogCueAnswerSuggested)
                .On<ClientDialogStartRequested>(OnClientDialogStartRequested)
@@ -1059,6 +1104,20 @@ namespace WOTRMultiplayer.Services
                .On<NotifyGlobalMapIngredientCollectionClosed>(OnNotifyGlobalMapIngredientCollectionClosed)
                .On<NotifyGlobalMapTravelerModeChanged>(OnNotifyGlobalMapTravelerModeChanged)
                ;
+        }
+
+        private void OnNotifyCrusadeArmyCombatInitializationConfirmed(long receivedFrom, NotifyCrusadeArmyCombatInitializationConfirmed crusadeArmyCombatInitializationConfirmed)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapTravelerModeChanged), receivedFrom, crusadeArmyCombatInitializationConfirmed.PlayerId);
+
+            Game.ArmyCombat.PlayersCombatInitialization.TryAdd(crusadeArmyCombatInitializationConfirmed.PlayerId, true);
+
+            var isCrusadeArmyCombatInitialized = TryConfirmCrusadeArmyCombatInitialization();
+            if (isCrusadeArmyCombatInitialized)
+            {
+                Game.ArmyCombat.IsInitialized = true;
+                CombatInteraction.InitializeCrusadeArmyCombat();
+            }
         }
 
         private void OnNotifyGlobalMapTravelerModeChanged(long receivedFrom, NotifyGlobalMapTravelerModeChanged globalMapTravelerModeChanged)
@@ -1667,6 +1726,18 @@ namespace WOTRMultiplayer.Services
             });
 
             Logger.LogInformation("Cue witness has been added. CueName={CueName}, PlayerId={PlayerId}", cueName, playerId);
+        }
+
+        private bool TryConfirmCrusadeArmyCombatInitialization()
+        {
+            if (Game.ArmyCombat.IsInitialized)
+            {
+                return false;
+            }
+
+            var everyoneIsReady = Game.ArmyCombat.PlayersCombatInitialization.Count(x => x.Value) >= GetSyncedPlayersCount();
+            Logger.LogInformation("Checking crusade army combat initialziation. IsReady={IsReady}", everyoneIsReady);
+            return everyoneIsReady;
         }
 
         private List<NetworkPlayer> GetPlayersWhoHaveNotSeenCueYet(string cueName)

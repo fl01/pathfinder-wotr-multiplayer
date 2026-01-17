@@ -348,5 +348,9 @@ namespace WOTRMultiplayer.Abstractions
         void OnCutsceneSkip();
 
         void OnAreaTransition(NetworkAreaTransition areaTransition);
+
+        bool OnCrusadeArmyCombatInitialization();
+        void OnCrusadeArmyCombatEnded();
+        void OnCrusadeArmyCombatInitialized();
     }
 }

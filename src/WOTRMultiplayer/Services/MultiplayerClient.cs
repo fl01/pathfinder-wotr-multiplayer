@@ -13,6 +13,7 @@ using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.Area;
 using WOTRMultiplayer.Entities.Combat;
+using WOTRMultiplayer.Entities.Combat.Crusades;
 using WOTRMultiplayer.Entities.Dialogs;
 using WOTRMultiplayer.Entities.GlobalMap;
 using WOTRMultiplayer.Entities.Inspect;
@@ -58,6 +59,7 @@ namespace WOTRMultiplayer.Services
             IDialogInteractionService dialogInteractionService,
             IGlobalMapInteractionService globalMapInteractionService,
             IPingInteractionService pingInteractionService,
+            ICombatInteractionService combatInteractionService,
             IIPEndPointParser ipEndPointParser,
             IMultiplayerSettingsService multiplayerSettingsProvider,
             IFileSystemService fileSystemService,
@@ -74,6 +76,7 @@ namespace WOTRMultiplayer.Services
                   dialogInteractionService,
                   globalMapInteractionService,
                   pingInteractionService,
+                  combatInteractionService,
                   diceRollStorage,
                   fileSystemService,
                   valueGenerator,
@@ -365,6 +368,24 @@ namespace WOTRMultiplayer.Services
             return false;
         }
 
+        public bool OnCrusadeArmyCombatInitialization()
+        {
+            if (Game.ArmyCombat != null && Game.ArmyCombat.IsInitialized)
+            {
+                Logger.LogInformation("Crusade Army combat initialziation has been confirmed");
+                return true;
+            }
+
+            if (Game.ArmyCombat != null)
+            {
+                Logger.LogWarning("Reinitializing already initialized crusade army combat");
+            }
+
+            Game.ArmyCombat = new NetworkArmyCombat();
+
+            return false;
+        }
+
         protected override DiceRollValueResponse RetrieveRoll(DiceRollValueRequest rollRequest)
         {
             return _networkClient.SendAndWaitForAsync<DiceRollValueResponse>(rollRequest).Result;
@@ -445,6 +466,10 @@ namespace WOTRMultiplayer.Services
                .On<NotifyCombatTurnStarted>(OnNotifyCombatTurnStarted)
                .On<NotifyCombatTurnSynchronizationRequired>(OnNotifyCombatTurnSynchronizationRequired)
 
+               // crusade army combat
+               .On<NotifyCrusadeArmyCombatInitializationRequired>(OnNotifyCrusadeArmyCombatInitializationRequested)
+               .On<NotifyCrusadeArmyCombatInitialized>(OnNotifyCrusadeArmyCombatInitialized)
+
                // dialogs
                .On<NotifyDialogStarted>(OnNotifyDialogStarted)
                .On<NotifyDialogCueAnswerSuggested>(OnNotifyDialogCueAnswerSuggested)
@@ -494,6 +519,30 @@ namespace WOTRMultiplayer.Services
                // inventory
                .On<NotifyPolymorphicItemCreated>(OnNotifyPolymorphicItemCreated)
                ;
+        }
+
+        private void OnNotifyCrusadeArmyCombatInitialized(long receivedFrom, NotifyCrusadeArmyCombatInitialized crusadeArmyCombatInitialized)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}", nameof(NotifyCrusadeArmyCombatInitialized), receivedFrom);
+
+            Game.ArmyCombat.IsInitialized = true;
+            CombatInteraction.InitializeCrusadeArmyCombat();
+        }
+
+        private async void OnNotifyCrusadeArmyCombatInitializationRequested(long receivedFrom, NotifyCrusadeArmyCombatInitializationRequired crusadeArmyCombatInitializationRequired)
+        {
+            Logger.LogInformation("Received {MessageType}. Seed={Seed}", nameof(NotifyCrusadeArmyCombatInitializationRequired), crusadeArmyCombatInitializationRequired.Seed);
+
+            await WaitWhileTrue(() => Game.ArmyCombat == null, "Crusade army combat has not been started yet");
+            Game.ArmyCombat.Seed = crusadeArmyCombatInitializationRequired.Seed;
+            Logger.LogInformation("Crusade Army Combat seed has been updated. Seed={Seed}", Game.ArmyCombat.Seed);
+
+            var message = new NotifyCrusadeArmyCombatInitializationConfirmed
+            {
+                PlayerId = Game.LocalPlayerId
+            };
+            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyCrusadeArmyCombatInitializationConfirmed), message.PlayerId);
+            Send(message);
         }
 
         private void OnNotifyGlobalMapAutoCrusadeCombatChanged(long receivedFrom, NotifyGlobalMapAutoCrusadeCombatChanged globalMapAutoCrusadeCombatChanged)
@@ -783,7 +832,7 @@ namespace WOTRMultiplayer.Services
             Logger.LogInformation("Received {MessageType}. UnitId={UnitId}", nameof(NotifyInvalidCombatTurnStarted), started.UnitId);
             PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.ClientTurnOrderDesync.Key);
             ResetCombatTurn();
-            GameInteraction.StartTurnBasedCombatTurn(started.UnitId);
+            CombatInteraction.StartTurnBasedCombatTurn(started.UnitId);
         }
 
         private void OnNotifyRestStarted(long playerId, NotifyRestStarted started)
@@ -860,7 +909,7 @@ namespace WOTRMultiplayer.Services
                 }
 
                 var combatState = Mapper.Map<NetworkCombatState>(combatTurnSynchronization.CombatState);
-                await GameInteraction.UpdateCombatStateAsync(combatState, false);
+                await CombatInteraction.UpdateCombatStateAsync(combatState, false);
 
                 var message = new ClientCombatTurnSynchronized { UnitId = unitId };
                 Logger.LogInformation("Units have been synchronized. Sending {MessageType} confirmation. UnitId={UnitId}", nameof(NotifyCombatTurnSynchronizationRequired), unitId);
@@ -899,7 +948,7 @@ namespace WOTRMultiplayer.Services
             }
 
             Game.Combat.Turn.IsInProgress = true;
-            GameInteraction.StartTurnBasedCombatTurn(Game.Combat.Turn.UnitId);
+            CombatInteraction.StartTurnBasedCombatTurn(Game.Combat.Turn.UnitId);
         }
 
         private async void OnNotifyCombatInitialized(long playerId, NotifyCombatInitialized combatInitialized)
@@ -912,7 +961,7 @@ namespace WOTRMultiplayer.Services
             Logger.LogInformation("Combat seed has been configured. Seed={Seed}", Game.Combat.Seed);
 
             var combatState = Mapper.Map<NetworkCombatState>(combatInitialized.CombatState);
-            await GameInteraction.UpdateCombatStateAsync(combatState, true);
+            await CombatInteraction.UpdateCombatStateAsync(combatState, true);
 
             Logger.LogInformation("Sending {MessageType}", nameof(ClientCombatInitialized));
             var message = new ClientCombatInitialized();

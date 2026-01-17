@@ -295,5 +295,8 @@ namespace WOTRMultiplayer.Abstractions
         void OnPing(NetworkPing ping);
 
         void OnCutsceneSkip();
+
+        bool OnCrusadeArmyCombatInitialization();
+        void OnCrusadeArmyCombatEnded();
     }
 }

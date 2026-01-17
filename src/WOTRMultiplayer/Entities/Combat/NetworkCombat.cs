@@ -9,8 +9,6 @@ namespace WOTRMultiplayer.Entities.Combat
 
         public bool IsInitialized { get; set; }
 
-        public int CombatPreparedFrames { get; set; }
-
         public int Round { get; set; }
 
         public NetworkCombatTurn Turn { get; set; }

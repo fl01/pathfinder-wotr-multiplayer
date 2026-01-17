@@ -2874,6 +2874,61 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        public bool OnCrusadeArmyCombatInitialization()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return true;
+                }
+
+                var canContinue = _multiplayerActorAccessor.Current.OnCrusadeArmyCombatInitialization();
+                return canContinue;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while initializing crusade army combat");
+                throw;
+            }
+        }
+
+        public void OnCrusadeArmyCombatEnded()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnCrusadeArmyCombatEnded();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while ending crusade army combat");
+                throw;
+            }
+        }
+
+        public void OnCrusadeArmyCombatInitialized()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnCrusadeArmyCombatInitialized();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while processing finished crusade army combat initialization");
+                throw;
+            }
+        }
+
         private void ShowEscMenuMultiplayerLobby()
         {
             _logger.LogInformation("Show lobby window");

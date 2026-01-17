@@ -21,7 +21,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
     {
         [HarmonyPatch(typeof(GlobalMapArmyPointerMarkerEntityVM), nameof(GlobalMapArmyPointerMarkerEntityVM.OnLeftClick))]
         [HarmonyTranspiler]
-        public static IEnumerable<CodeInstruction> GlobalMapEnterMessagePCView_BindViewImplementation_Transpiler(IEnumerable<CodeInstruction> instructions)
+        public static IEnumerable<CodeInstruction> GlobalMapArmyPointerMarkerEntityVM_OnLeftClick_Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
             var lookFor = AccessTools.Method(typeof(GlobalMapController), nameof(GlobalMapController.SetSelectedArmy));

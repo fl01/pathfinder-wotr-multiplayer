@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Kingmaker.EntitySystem;
 using Kingmaker.GameModes;
 using Kingmaker.Items.Slots;
@@ -37,9 +36,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         List<NetworkCharacter> GetPartyPlayers();
 
-        bool IsUnitAI(string unitId);
-
-        NetworkCombatState GetCombatState();
+        bool IsUnitInParty(string unitId);
 
         string QuickLoadGame(string savePath);
 
@@ -49,19 +46,11 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         string GetPetOwnerId(string unitId);
 
-        void StartTurnBasedCombatTurn(string unitId);
-
-        void EndTurnBasedCombatTurn();
-
-        Task UpdateCombatStateAsync(NetworkCombatState networkCombatState, bool requiresFullUpdate);
-
         void ClickUnit(NetworkClick networkClick);
-
-        void ClickGroundInCombat(NetworkClick networkClick);
 
         void ClickMapObject(NetworkClick networkClick);
 
-        bool CombatTurnHasBeenFinished();
+        void ClickGroundInCombat(NetworkClick networkClick);
 
         void UseAbility(NetworkAbility networkAbility);
 
@@ -130,8 +119,6 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void LockpickMapObject(NetworkLockpickInteraction lockpickInteraction);
 
         void AttackUnit(NetworkUnitAttack attack);
-
-        void DelayCombatTurn(string unitId, string targetUnitId);
 
         void ChangeUnitStealth(string unitId, bool isEnabled, bool isForced);
 

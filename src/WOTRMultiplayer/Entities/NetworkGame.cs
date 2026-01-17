@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Kingmaker.GameModes;
 using WOTRMultiplayer.Entities.Combat;
+using WOTRMultiplayer.Entities.Combat.Crusades;
 using WOTRMultiplayer.Entities.Dialogs;
 using WOTRMultiplayer.Entities.GlobalMap;
 using WOTRMultiplayer.Entities.Leveling;
@@ -27,6 +28,8 @@ namespace WOTRMultiplayer.Entities
         public Dictionary<string, long> CharactersOwnershipHistory { get; set; } = [];
 
         public List<NetworkCharacter> Characters { get; set; } = [];
+
+        public NetworkArmyCombat ArmyCombat { get; set; }
 
         public NetworkCombat Combat { get; set; }
 
