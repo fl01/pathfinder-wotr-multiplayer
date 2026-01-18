@@ -238,9 +238,9 @@ namespace WOTRMultiplayer.Abstractions
 
         bool OnGlobalMapSelectLocation(NetworkGlobalMapLocation globalMapLocation);
 
-        void OnGlobalMapContinueTravel(NetworkGlobalMapState globalMapState);
+        void OnGlobalMapContinueTravel(NetworkGlobalMapTraveler globalMapTraveler);
 
-        void OnGlobalMapStopTravel(NetworkGlobalMapState globalMapState);
+        void OnGlobalMapStopTravel(NetworkGlobalMapTraveler globalMapTraveler);
 
         void OnGlobalMapMessageBoxShown();
 

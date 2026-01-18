@@ -779,17 +779,17 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapTravelContinued(long playerId, NotifyGlobalMapTravelContinued globalMapTravelContinued)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerEdge={PlayerEdge}", nameof(NotifyGlobalMapTravelContinued), globalMapTravelContinued.State.Player.Position?.Edge);
-            var globalMapState = Mapper.Map<NetworkGlobalMapState>(globalMapTravelContinued.State);
-            GlobalMapInteraction.ContinueTravel(globalMapState);
+            Logger.LogInformation("Received {MessageType}. EdgePosition={EdgePosition}", nameof(NotifyGlobalMapTravelContinued), globalMapTravelContinued.Traveler.Position?.EdgePosition);
+            var traveler = Mapper.Map<NetworkGlobalMapTraveler>(globalMapTravelContinued.Traveler);
+            GlobalMapInteraction.ContinueTravel(traveler);
         }
 
         private void OnNotifyGlobalMapTravelStopped(long playerId, NotifyGlobalMapTravelStopped globalMapTravelStopped)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerEdge={PlayerEdge}", nameof(NotifyGlobalMapTravelStopped), globalMapTravelStopped.State.Player.Position?.Edge);
+            Logger.LogInformation("Received {MessageType}. EdgePosition={EdgePosition}", nameof(NotifyGlobalMapTravelStopped), globalMapTravelStopped.Traveler.Position?.EdgePosition);
 
-            var globalMapState = Mapper.Map<NetworkGlobalMapState>(globalMapTravelStopped.State);
-            GlobalMapInteraction.StopTravel(globalMapState);
+            var traveler = Mapper.Map<NetworkGlobalMapTraveler>(globalMapTravelStopped.Traveler);
+            GlobalMapInteraction.StopTravel(traveler);
         }
 
         private void OnNotifySkipTimeStarted(long playerId, NotifySkipTimeStarted skipTimeStarted)
@@ -814,7 +814,7 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapTravelStarted(long playerId, NotifyGlobalMapTravelStarted globalMapTravelStarted)
         {
-            Logger.LogInformation("Received {MessageType}. Type={Type}, Mode={Mode}, FromClick={FromClick}, DestinationId={DestinationId}, DestinationName={DestinationName}", nameof(NotifyGlobalMapTravelStarted), globalMapTravelStarted.Travel.Type, globalMapTravelStarted.Travel.Mode, globalMapTravelStarted.Travel.FromClick, globalMapTravelStarted.Travel.Destination.Id, globalMapTravelStarted.Travel.Destination.Name);
+            Logger.LogInformation("Received {MessageType}. Type={Type}, MovementPoints={MovementPoints}, FromClick={FromClick}, DestinationId={DestinationId}, DestinationName={DestinationName}", nameof(NotifyGlobalMapTravelStarted), globalMapTravelStarted.Travel.Type, globalMapTravelStarted.Travel.Traveler.MovementPoints, globalMapTravelStarted.Travel.FromClick, globalMapTravelStarted.Travel.Destination.Id, globalMapTravelStarted.Travel.Destination.Name);
 
             var travel = Mapper.Map<NetworkGlobalMapTravel>(globalMapTravelStarted.Travel);
 

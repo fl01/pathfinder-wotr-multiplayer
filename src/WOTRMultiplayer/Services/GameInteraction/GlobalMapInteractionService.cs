@@ -79,6 +79,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 messageBoxView.ViewModel?.Close();
 
                 var traveler = Game.Instance.GlobalMapController.SelectedTraveler;
+                UpdateTraveler(traveler, travel.Traveler);
+
                 GlobalMapTravelData globalMapTravelData = travel.Type switch
                 {
                     NetworkGlobalMapPathType.Direction => GlobalMapView.Instance.State.PathManager.CalculatePathByDirection(traveler, point.Blueprint),
@@ -119,21 +121,20 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return targetPoint != null && GlobalMapView.Instance.State.Player.Location == targetPoint.Blueprint;
         }
 
-        public void ContinueTravel(NetworkGlobalMapState globalMapState)
+        public void ContinueTravel(NetworkGlobalMapTraveler travaler)
         {
             _mainThreadAccessor.Post(() =>
             {
-                UpdateGlobalMapState(globalMapState);
-
+                UpdateTraveler(travaler);
                 GlobalMapUI.Instance.OnContinue();
             });
         }
 
-        public void StopTravel(NetworkGlobalMapState globalMapState)
+        public void StopTravel(NetworkGlobalMapTraveler travaler)
         {
             _mainThreadAccessor.Post(() =>
             {
-                UpdateGlobalMapState(globalMapState);
+                UpdateTraveler(travaler);
 
                 GlobalMapUI.Instance.OnStop();
             });
@@ -542,12 +543,29 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
-        private void UpdateGlobalMapState(NetworkGlobalMapState globalMapState)
+        private void UpdateTraveler(NetworkGlobalMapTraveler traveler)
         {
-            // not sure if player position is unavailable while army is selected (act2+), need to check later
-            if (globalMapState.Player?.Position != null)
+            var selectedTraveler = Game.Instance.GlobalMapController.SelectedTraveler;
+            UpdateTraveler(selectedTraveler, traveler);
+        }
+
+        private void UpdateTraveler(IGlobalMapTraveler globalMapTraveler, NetworkGlobalMapTraveler traveler)
+        {
+            if (globalMapTraveler == null || traveler == null)
             {
-                GlobalMapView.Instance.State.Player.TravelData.EdgePosition = globalMapState.Player.Position.Edge;
+                return;
+            }
+
+            if (globalMapTraveler is GlobalMapArmyState armyState && traveler.MovementPoints.HasValue && armyState.MovementPoints != traveler.MovementPoints.Value)
+            {
+                _logger.LogInformation("Updated army movement points. ArmyId={ArmyId}, OldValue={OldValue}, NewValue={NewValue}", armyState.Id, armyState.MovementPoints, traveler.MovementPoints.Value);
+                armyState.MovementPoints = traveler.MovementPoints.Value;
+            }
+
+            if (globalMapTraveler.Position.EdgePosition != traveler.Position.EdgePosition)
+            {
+                _logger.LogInformation("Updated traveler edge position. OldValue={OldValue}, NewValue={NewValue}", globalMapTraveler.Position.EdgePosition, traveler.Position.EdgePosition);
+                globalMapTraveler.Position.EdgePosition = traveler.Position.EdgePosition;
             }
         }
     }

@@ -6,6 +6,6 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
     public class NetworkGlobalMapPosition
     {
         [ProtoMember(1)]
-        public float Edge { get; set; }
+        public float EdgePosition { get; set; }
     }
 }

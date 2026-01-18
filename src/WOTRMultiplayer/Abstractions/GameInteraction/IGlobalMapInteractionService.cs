@@ -6,9 +6,9 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
     {
         bool IsAtLocation(NetworkGlobalMapLocation globalMapLocation);
 
-        void ContinueTravel(NetworkGlobalMapState globalMapState);
+        void ContinueTravel(NetworkGlobalMapTraveler travaler);
 
-        void StopTravel(NetworkGlobalMapState globalMapState);
+        void StopTravel(NetworkGlobalMapTraveler travaler);
 
         void UpdateEnterMessageBoxUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
 

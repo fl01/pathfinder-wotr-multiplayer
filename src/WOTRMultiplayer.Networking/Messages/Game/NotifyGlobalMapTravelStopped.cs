@@ -8,6 +8,6 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     public class NotifyGlobalMapTravelStopped
     {
         [ProtoMember(1)]
-        public NetworkGlobalMapState State { get; set; }
+        public NetworkGlobalMapTraveler Traveler { get; set; }
     }
 }

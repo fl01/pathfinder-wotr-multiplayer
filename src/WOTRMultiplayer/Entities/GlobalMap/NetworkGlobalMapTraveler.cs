@@ -3,5 +3,7 @@
     public class NetworkGlobalMapTraveler
     {
         public NetworkGlobalMapPosition Position { get; set; }
+
+        public float? MovementPoints { get; set; }
     }
 }

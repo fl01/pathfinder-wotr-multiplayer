@@ -814,7 +814,7 @@ namespace WOTRMultiplayer.Services
                 return true;
             }
 
-            // tactical combat
+            // ignore damage ranges shown on hover
             return rule switch
             {
                 RuleAttackRoll attackRoll => !attackRoll.IsFake,

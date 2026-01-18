@@ -2261,7 +2261,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnGlobalMapContinueTravel(NetworkGlobalMapState globalMapState)
+        public void OnGlobalMapContinueTravel(NetworkGlobalMapTraveler globalMapTraveler)
         {
             try
             {
@@ -2270,7 +2270,7 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnGlobalMapContinueTravel(globalMapState);
+                _multiplayerActorAccessor.Host.OnGlobalMapContinueTravel(globalMapTraveler);
             }
             catch (Exception ex)
             {
@@ -2279,7 +2279,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnGlobalMapStopTravel(NetworkGlobalMapState globalMapState)
+        public void OnGlobalMapStopTravel(NetworkGlobalMapTraveler globalMapTraveler)
         {
             try
             {
@@ -2288,7 +2288,7 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnGlobalMapStopTravel(globalMapState);
+                _multiplayerActorAccessor.Host.OnGlobalMapStopTravel(globalMapTraveler);
             }
             catch (Exception ex)
             {

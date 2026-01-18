@@ -60,9 +60,9 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnSkipTimeStarted();
 
-        void OnGlobalMapContinueTravel(NetworkGlobalMapState globalMapState);
+        void OnGlobalMapContinueTravel(NetworkGlobalMapTraveler globalMapTraveler);
 
-        void OnGlobalMapStopTravel(NetworkGlobalMapState globalMapState);
+        void OnGlobalMapStopTravel(NetworkGlobalMapTraveler globalMapTraveler);
 
         void OnGlobalMapCommonPopupAccepted(NetworkGlobalMapCommonPopup globalMapCommonPopup);
 

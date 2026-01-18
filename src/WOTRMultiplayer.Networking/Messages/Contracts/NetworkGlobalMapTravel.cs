@@ -9,7 +9,7 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         public string Type { get; set; }
 
         [ProtoMember(2)]
-        public string Mode { get; set; }
+        public NetworkGlobalMapTraveler Traveler { get; set; }
 
         [ProtoMember(3)]
         public NetworkGlobalMapLocation Destination { get; set; }

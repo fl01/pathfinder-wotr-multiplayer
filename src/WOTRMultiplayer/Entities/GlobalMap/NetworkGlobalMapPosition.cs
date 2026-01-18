@@ -2,6 +2,6 @@
 {
     public class NetworkGlobalMapPosition
     {
-        public float Edge { get; set; }
+        public float EdgePosition { get; set; }
     }
 }

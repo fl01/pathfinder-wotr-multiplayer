@@ -29,7 +29,7 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void ContinueTravel(NetworkGlobalMapState globalMapState)
+        public void ContinueTravel(NetworkGlobalMapTraveler globalMapTraveler)
         {
         }
 
@@ -66,7 +66,7 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void StopTravel(NetworkGlobalMapState globalMapState)
+        public void StopTravel(NetworkGlobalMapTraveler globalMapTraveler)
         {
         }
 

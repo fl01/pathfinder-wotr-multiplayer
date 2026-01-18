@@ -4,7 +4,7 @@
     {
         public NetworkGlobalMapPathType Type { get; set; }
 
-        public NetworkGlobalMapTravelerMode Mode { get; set; }
+        public NetworkGlobalMapTraveler Traveler { get; set; }
 
         public NetworkGlobalMapLocation Destination { get; set; }
 

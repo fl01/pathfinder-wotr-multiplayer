@@ -329,8 +329,8 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
                 return;
             }
 
-            var globalMapState = GetGlobalMapState();
-            Main.Multiplayer.OnGlobalMapContinueTravel(globalMapState);
+            var traveler = GetGlobalMapTraveler(Game.Instance.GlobalMapController.SelectedTraveler);
+            Main.Multiplayer.OnGlobalMapContinueTravel(traveler);
         }
 
         [HarmonyPatch(typeof(GlobalMapUI), nameof(GlobalMapUI.OnStop))]
@@ -342,8 +342,8 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
                 return;
             }
 
-            var globalMapState = GetGlobalMapState();
-            Main.Multiplayer.OnGlobalMapStopTravel(globalMapState);
+            var traveler = GetGlobalMapTraveler(Game.Instance.GlobalMapController.SelectedTraveler);
+            Main.Multiplayer.OnGlobalMapStopTravel(traveler);
         }
 
         [HarmonyPatch(typeof(GlobalMapMovementUtility), nameof(GlobalMapMovementUtility.ShowCollectIngredientMessage))]
@@ -432,7 +432,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
         {
             var travel = new NetworkGlobalMapTravel
             {
-                Mode = Game.Instance.GlobalMapController.ArmyMode.Value ? NetworkGlobalMapTravelerMode.Army : NetworkGlobalMapTravelerMode.Player,
+                Traveler = GetGlobalMapTraveler(Game.Instance.GlobalMapController.SelectedTraveler),
                 Destination = GetNetworkGlobalMapLocation(globalMapPoint),
                 Type = pathType,
                 FromClick = fromClick
@@ -460,16 +460,19 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             return subscription;
         }
 
-        private static NetworkGlobalMapState GetGlobalMapState()
+        private static NetworkGlobalMapTraveler GetGlobalMapTraveler(IGlobalMapTraveler globalMapTraveler)
         {
-            var state = new NetworkGlobalMapState
+            if (globalMapTraveler == null)
             {
-                Player = new NetworkGlobalMapTraveler
-                {
-                    Position = GetGlobalMapPosition(GlobalMapView.Instance.State.Player?.Position),
-                },
+                return null;
+            }
+
+            var traveler = new NetworkGlobalMapTraveler
+            {
+                Position = GetGlobalMapPosition(globalMapTraveler.Position),
+                MovementPoints = globalMapTraveler is GlobalMapArmyState armyState ? armyState.MovementPoints : null
             };
-            return state;
+            return traveler;
         }
 
         private static NetworkGlobalMapPosition GetGlobalMapPosition(GlobalMapPosition globalMapPosition)
@@ -481,7 +484,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
 
             var position = new NetworkGlobalMapPosition
             {
-                Edge = globalMapPosition.EdgePosition
+                EdgePosition = globalMapPosition.EdgePosition
             };
             return position;
         }

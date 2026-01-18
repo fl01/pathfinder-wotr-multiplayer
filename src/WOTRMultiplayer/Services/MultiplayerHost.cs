@@ -640,7 +640,7 @@ namespace WOTRMultiplayer.Services
             {
                 Travel = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapTravel>(globalMapTravel)
             };
-            Logger.LogInformation("Sending {MessageType}. Type={Type}, Mode={Mode}, FromClick={FromClick}, DestinationId={DestinationId}, DestinationName={DestinationName}", nameof(NotifyGlobalMapTravelStarted), message.Travel.Type, message.Travel.Mode, message.Travel.FromClick, message.Travel.Destination.Id, message.Travel.Destination.Name);
+            Logger.LogInformation("Sending {MessageType}. Type={Type}, MovementPoints={MovementPoints}, FromClick={FromClick}, DestinationId={DestinationId}, DestinationName={DestinationName}", nameof(NotifyGlobalMapTravelStarted), message.Travel.Type, message.Travel.Traveler.MovementPoints, message.Travel.FromClick, message.Travel.Destination.Id, message.Travel.Destination.Name);
             Send(message);
         }
 
@@ -708,23 +708,23 @@ namespace WOTRMultiplayer.Services
             return canSelect;
         }
 
-        public void OnGlobalMapContinueTravel(NetworkGlobalMapState globalMapState)
+        public void OnGlobalMapContinueTravel(NetworkGlobalMapTraveler globalMapTraveler)
         {
             var message = new NotifyGlobalMapTravelContinued
             {
-                State = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapState>(globalMapState)
+                Traveler = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapTraveler>(globalMapTraveler)
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerEdge={PlayerEdge}", nameof(NotifyGlobalMapTravelContinued), message.State.Player.Position?.Edge);
+            Logger.LogInformation("Sending {MessageType}. EdgePosition={EdgePosition}", nameof(NotifyGlobalMapTravelContinued), message.Traveler.Position?.EdgePosition);
             Send(message);
         }
 
-        public void OnGlobalMapStopTravel(NetworkGlobalMapState globalMapState)
+        public void OnGlobalMapStopTravel(NetworkGlobalMapTraveler globalMapTraveler)
         {
             var message = new NotifyGlobalMapTravelStopped
             {
-                State = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapState>(globalMapState)
+                Traveler = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapTraveler>(globalMapTraveler)
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerEdge={PlayerEdge}", nameof(NotifyGlobalMapTravelStopped), message.State.Player.Position?.Edge);
+            Logger.LogInformation("Sending {MessageType}. EdgePosition={EdgePosition}", nameof(NotifyGlobalMapTravelStopped), message.Traveler.Position?.EdgePosition);
             Send(message);
         }
 
