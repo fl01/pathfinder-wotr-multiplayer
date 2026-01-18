@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Entities.Combat;
+using WOTRMultiplayer.Entities.Combat.Crusades;
 
 namespace WOTRMultiplayer.Playground.Core.Dummies
 {
@@ -40,6 +41,37 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public int GetCrusadeArmyCombatSeed()
         {
             return 0;
+        }
+
+        public void RunTacticalUnitAttackCommand(NetworkTacticalUnitAttackCommand tacticalUnitAttackCommand)
+        {
+        }
+
+        public void RunTacticalUnitUseAbilityCommand(NetworkTacticalUnitUseAbilityCommand tacticalUnitUseAbilityCommand)
+        {
+        }
+
+        public void RunTacticalUnitMoveToCommand(NetworkTacticalUnitMoveToCommand tacticalUnitMoveToCommand)
+        {
+        }
+
+        public bool IsInCombat()
+        {
+            return false;
+        }
+
+        public void UpdateIsInCombatStatus()
+        {
+        }
+
+        public bool IsControlledInTacticalCombat(string unitId)
+        {
+            return false;
+        }
+
+        public bool IsInCrusadeTacticalCombat()
+        {
+            return false;
         }
     }
 }

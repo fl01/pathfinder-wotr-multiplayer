@@ -90,7 +90,7 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void CloseCrusadeArmyAutoBattleResults()
+        public void CloseCrusadeArmyBattleResults()
         {
         }
 

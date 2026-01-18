@@ -41,6 +41,7 @@ namespace WOTRMultiplayer.Services
 
         private readonly ILobbyWindowController _lobbyWindowController;
         private readonly IGameInteractionService _gameInteractionService;
+        private readonly ICombatInteractionService _combatInteractionService;
         private readonly ILogger _logger;
         private readonly IMultiplayerActorAccessor _multiplayerActorAccessor;
         private readonly IHotkeysService _hotkeysService;
@@ -61,6 +62,7 @@ namespace WOTRMultiplayer.Services
             ILobbyWindowController lobbyWindowController,
             IMultiplayerActorAccessor multiplayerActorAccessor,
             IGameInteractionService gameInteractionService,
+            ICombatInteractionService combatInteractionService,
             IHotkeysService hotkeysService,
             IValueGenerator valueGenerator)
         {
@@ -69,6 +71,7 @@ namespace WOTRMultiplayer.Services
             _multiplayerActorAccessor = multiplayerActorAccessor;
             _lobbyWindowController = lobbyWindowController;
             _gameInteractionService = gameInteractionService;
+            _combatInteractionService = combatInteractionService;
             _hotkeysService = hotkeysService;
             ValueGenerator = valueGenerator;
         }
@@ -917,7 +920,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnBeforeTryRollRandomEncounter()
+        public void OnBeforeTryRollRestRandomEncounter()
         {
             try
             {
@@ -941,7 +944,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnAfterTryRollRandomEncounter()
+        public void OnAfterTryRollRestRandomEncounter()
         {
             try
             {
@@ -952,14 +955,15 @@ namespace WOTRMultiplayer.Services
 
                 if (_multiplayerActorAccessor.Host.IsActive)
                 {
-                    _multiplayerActorAccessor.Host.OnAfterTryRollRestRandomEncounter();
+                    var context = _gameInteractionService.RemoteContext?.RandomEncounter;
+                    _multiplayerActorAccessor.Host.OnAfterTryRollRestRandomEncounter(context);
                     return;
                 }
 
                 if (_gameInteractionService.RemoteContext?.RandomEncounter != null)
                 {
                     _gameInteractionService.RemoteContext.RandomEncounter = null;
-                    _gameInteractionService.UpdateIsInCombatStatus();
+                    _combatInteractionService.UpdateIsInCombatStatus();
                 }
             }
             catch (Exception ex)
@@ -2987,7 +2991,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnCrusadeArmyAutoBattleResultsShown()
+        public void OnCrusadeArmyBattleResultsShown()
         {
             try
             {
@@ -2996,16 +3000,16 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Current.OnCrusadeArmyAutoBattleResultsShown();
+                _multiplayerActorAccessor.Current.OnCrusadeArmyBattleResultsShown();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while showing crusade army auto battle results");
+                _logger.LogError(ex, "Error while showing crusade army battle results");
                 throw;
             }
         }
 
-        public void OnCrusadeArmyAutoBattleResultsClosed()
+        public void OnCrusadeArmyBattleResultsClosed()
         {
             try
             {
@@ -3014,16 +3018,16 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnCrusadeArmyAutoBattleResultsClosed();
+                _multiplayerActorAccessor.Host.OnCrusadeArmyBattleResultsClosed();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while closing crusade army auto battle results");
+                _logger.LogError(ex, "Error while closing crusade army battle results");
                 throw;
             }
         }
 
-        public void OnCrusadeArmyAutoBattleResultsManualCombatStarted()
+        public void OnCrusadeArmyBattleResultsManualCombatStarted()
         {
             try
             {
@@ -3032,11 +3036,11 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnCrusadeArmyAutoBattleResultsManualCombatStarted();
+                _multiplayerActorAccessor.Host.OnCrusadeArmyBattleResultsManualCombatStarted();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while starting manual combat via crusade army auto battle results");
+                _logger.LogError(ex, "Error while starting manual combat via crusade army battle results");
                 throw;
             }
         }
@@ -3073,6 +3077,60 @@ namespace WOTRMultiplayer.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while closing global map combat results");
+                throw;
+            }
+        }
+
+        public void OnCrusadeTacticalUnitMoveToCommand(NetworkTacticalUnitMoveToCommand tacticalUnitMoveToCommand)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnCrusadeTacticalUnitMoveToCommand(tacticalUnitMoveToCommand);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while processing crusade tactical moveTo command");
+                throw;
+            }
+        }
+
+        public void OnCrusadeTacticalUnitAttackCommand(NetworkTacticalUnitAttackCommand tacticalUnitAttackCommand)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnCrusadeTacticalUnitAttackCommand(tacticalUnitAttackCommand);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while processing crusade tactical unitAttack command");
+                throw;
+            }
+        }
+
+        public void OnCrusadeTacticalUnitUseAbilityCommand(NetworkTacticalUnitUseAbilityCommand tacticalUnitUseAbilityCommand)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnCrusadeTacticalUnitUseAbilityCommand(tacticalUnitUseAbilityCommand);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while processing crusade tactical unitUseAbility command");
                 throw;
             }
         }

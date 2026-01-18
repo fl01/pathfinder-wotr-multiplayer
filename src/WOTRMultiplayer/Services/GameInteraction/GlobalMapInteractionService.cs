@@ -218,7 +218,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                var view = _uiAccessor.GlobalMapPCView?.m_AutoCombatResultsPCView;
+                var view = _uiAccessor.TacticalCombatResultsPCView;
                 if (view?.ViewModel == null)
                 {
                     _logger.LogWarning("Unable to update crusade army battle results due to missing view");
@@ -233,11 +233,11 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
-        public void CloseCrusadeArmyAutoBattleResults()
+        public void CloseCrusadeArmyBattleResults()
         {
             _mainThreadAccessor.Post(() =>
             {
-                var view = _uiAccessor.GlobalMapPCView?.m_AutoCombatResultsPCView;
+                var view = _uiAccessor.TacticalCombatResultsPCView;
                 if (view?.ViewModel == null)
                 {
                     _logger.LogWarning("Unable to close crusade army battle results due to missing view");
@@ -253,7 +253,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                var view = _uiAccessor.GlobalMapPCView?.m_AutoCombatResultsPCView;
+                var view = _uiAccessor.TacticalCombatResultsPCView;
                 if (view?.ViewModel == null)
                 {
                     _logger.LogWarning("Unable to start crusade army battle results manual combat due to missing view");

@@ -3,6 +3,7 @@ using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.ActionBar;
 using WOTRMultiplayer.Entities.Area;
 using WOTRMultiplayer.Entities.Combat;
+using WOTRMultiplayer.Entities.Combat.Crusades;
 using WOTRMultiplayer.Entities.Content;
 using WOTRMultiplayer.Entities.Dialogs;
 using WOTRMultiplayer.Entities.Equipment;
@@ -263,6 +264,15 @@ namespace WOTRMultiplayer.Config.Mapping
                 .ReverseMap();
 
             CreateMap<NetworkGlobalMapCommonPopup, Networking.Messages.Contracts.NetworkGlobalMapCommonPopup>()
+                .ReverseMap();
+
+            CreateMap<NetworkTacticalUnitUseAbilityCommand, Networking.Messages.Contracts.NetworkTacticalUnitUseAbilityCommand>()
+                .ReverseMap();
+
+            CreateMap<NetworkTacticalUnitAttackCommand, Networking.Messages.Contracts.NetworkTacticalUnitAttackCommand>()
+                .ReverseMap();
+
+            CreateMap<NetworkTacticalUnitMoveToCommand, Networking.Messages.Contracts.NetworkTacticalUnitMoveToCommand>()
                 .ReverseMap();
         }
     }

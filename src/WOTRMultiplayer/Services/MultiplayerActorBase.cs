@@ -1761,19 +1761,19 @@ namespace WOTRMultiplayer.Services
             return ReadyChanged(player, !player.IsReady);
         }
 
-        public void OnCrusadeArmyAutoBattleResultsShown()
+        public void OnCrusadeArmyBattleResultsShown()
         {
             var localPlayer = GetLocalPlayerId();
             AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyAutoBattleResults, localPlayer);
 
-            var message = new NotifyCrusadeArmyAutoBattleResultsShown
+            var message = new NotifyCrusadeArmyBattleResultsShown
             {
                 PlayerId = localPlayer
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyCrusadeArmyAutoBattleResultsShown), message.PlayerId);
+            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyCrusadeArmyBattleResultsShown), message.PlayerId);
             Send(message);
 
-            UpdateGlobalMapCrusadeArmyAutoBattleResultsUIState();
+            UpdateGlobalMapCrusadeArmyBattleResultsUIState();
         }
 
         public void OnGlobalMapCombatResultsShown()
@@ -1990,7 +1990,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        protected void UpdateGlobalMapCrusadeArmyAutoBattleResultsUIState()
+        protected void UpdateGlobalMapCrusadeArmyBattleResultsUIState()
         {
             lock (ActionLock)
             {
@@ -2810,7 +2810,7 @@ namespace WOTRMultiplayer.Services
                 .On<NotifyGlobalMapEncounterMessageShown>(OnNotifyGlobalMapEncounterMessageShown)
                 .On<NotifyGlobalMapCombatResultsShown>(OnNotifyGlobalMapCombatResultsShown)
                 .On<NotifyCrusadeArmyCombatTurnInitialized>(OnNotifyCrusadeArmyCombatTurnInitialized)
-                .On<NotifyCrusadeArmyAutoBattleResultsShown>(OnNotifyCrusadeArmyAutoBattleResultsShown)
+                .On<NotifyCrusadeArmyBattleResultsShown>(OnNotifyCrusadeArmyAutoBattleResultsShown)
 
                 // overtips
                 .On<NotifyOvertipInteracted>(OnNotifyOvertipInteracted)
@@ -2878,19 +2878,21 @@ namespace WOTRMultiplayer.Services
             OnAfterNetworkMessageHandled(receivedFrom, globalMapCombatResultsShown);
         }
 
-        private void OnNotifyCrusadeArmyAutoBattleResultsShown(long receivedFrom, NotifyCrusadeArmyAutoBattleResultsShown crusadeArmyAutoBattleResultsShown)
+        private void OnNotifyCrusadeArmyAutoBattleResultsShown(long receivedFrom, NotifyCrusadeArmyBattleResultsShown crusadeArmyAutoBattleResultsShown)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyCrusadeArmyAutoBattleResultsShown), receivedFrom, crusadeArmyAutoBattleResultsShown.PlayerId);
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyCrusadeArmyBattleResultsShown), receivedFrom, crusadeArmyAutoBattleResultsShown.PlayerId);
             AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyAutoBattleResults, crusadeArmyAutoBattleResultsShown.PlayerId);
 
-            UpdateGlobalMapCrusadeArmyAutoBattleResultsUIState();
+            UpdateGlobalMapCrusadeArmyBattleResultsUIState();
 
             OnAfterNetworkMessageHandled(receivedFrom, crusadeArmyAutoBattleResultsShown);
         }
 
-        private void OnNotifyCrusadeArmyCombatTurnInitialized(long receivedFrom, NotifyCrusadeArmyCombatTurnInitialized crusadeArmyCombatTurnInitialized)
+        private async void OnNotifyCrusadeArmyCombatTurnInitialized(long receivedFrom, NotifyCrusadeArmyCombatTurnInitialized crusadeArmyCombatTurnInitialized)
         {
             Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, TurnNumber={TurnNumber}", nameof(NotifyCrusadeArmyCombatTurnInitialized), receivedFrom, crusadeArmyCombatTurnInitialized.PlayerId, crusadeArmyCombatTurnInitialized.TurnNumber);
+
+            await WaitWhileTrue(() => Game.ArmyCombat == null, "Crusade army combat has not been started yet");
 
             AddPlayerCrusadeArmyCombatTurnInitialization(crusadeArmyCombatTurnInitialized.TurnNumber, crusadeArmyCombatTurnInitialized.PlayerId);
 

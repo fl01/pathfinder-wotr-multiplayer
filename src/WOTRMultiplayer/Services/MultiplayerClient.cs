@@ -487,8 +487,11 @@ namespace WOTRMultiplayer.Services
                .On<NotifyGlobalMapAutoCrusadeCombatChanged>(OnNotifyGlobalMapAutoCrusadeCombatChanged)
                .On<NotifyGlobalMapCombatResultsClosed>(OnNotifyGlobalMapCombatResultsClosed)
                .On<NotifyCrusadeArmyCombatInitialized>(OnNotifyCrusadeArmyCombatInitialized)
-               .On<NotifyCrusadeArmyAutoBattleResultsManualCombatStarted>(OnNotifyCrusadeArmyAutoBattleResultsManualCombatStarted)
-               .On<NotifyCrusadeArmyAutoBattleResultsClosed>(OnNotifyCrusadeArmyAutoBattleResultsClosed)
+               .On<NotifyCrusadeArmyBattleResultsManualCombatStarted>(OnNotifyCrusadeArmyAutoBattleResultsManualCombatStarted)
+               .On<NotifyCrusadeArmyBattleResultsClosed>(OnNotifyCrusadeArmyAutoBattleResultsClosed)
+               .On<NotifyTacticalUnitAttackCommandExecuted>(OnNotifyTacticalUnitAttackCommandExecuted)
+               .On<NotifyTacticalUnitUseAbilityCommandExecuted>(OnNotifyTacticalUnitUseAbilityCommandExecuted)
+               .On<NotifyTacticalUnitMoveToCommandExecuted>(OnNotifyTacticalUnitMoveToCommandExecuted)
 
 
                // dialogs
@@ -525,6 +528,30 @@ namespace WOTRMultiplayer.Services
                ;
         }
 
+        private void OnNotifyTacticalUnitMoveToCommandExecuted(long receivedFrom, NotifyTacticalUnitMoveToCommandExecuted tacticalUnitMoveToCommandExecuted)
+        {
+            Logger.LogInformation("Received {MessageType}. UnitId={UnitId}, Path={Path}", nameof(NotifyTacticalUnitMoveToCommandExecuted), tacticalUnitMoveToCommandExecuted.Command.UnitId, tacticalUnitMoveToCommandExecuted.Command.Path);
+            var command = Mapper.Map<NetworkTacticalUnitMoveToCommand>(tacticalUnitMoveToCommandExecuted.Command);
+
+            CombatInteraction.RunTacticalUnitMoveToCommand(command);
+        }
+
+        private void OnNotifyTacticalUnitUseAbilityCommandExecuted(long receivedFrom, NotifyTacticalUnitUseAbilityCommandExecuted tacticalUnitUseAbilityCommandExecuted)
+        {
+            Logger.LogInformation("Received {MessageType}. UnitId={UnitId}, AbilityId={AbilityId}, Path={Path}", nameof(NotifyTacticalUnitUseAbilityCommandExecuted), tacticalUnitUseAbilityCommandExecuted.Command.Ability.CasterId, tacticalUnitUseAbilityCommandExecuted.Command.Ability.Id, tacticalUnitUseAbilityCommandExecuted.Command.Ability.VectorPath);
+            var command = Mapper.Map<NetworkTacticalUnitUseAbilityCommand>(tacticalUnitUseAbilityCommandExecuted.Command);
+
+            CombatInteraction.RunTacticalUnitUseAbilityCommand(command);
+        }
+
+        private void OnNotifyTacticalUnitAttackCommandExecuted(long receivedFrom, NotifyTacticalUnitAttackCommandExecuted tacticalUnitAttackCommandExecuted)
+        {
+            Logger.LogInformation("Received {MessageType}. UnitId={UnitId}, TargetId={TargetId}, Path={Path}", nameof(NotifyTacticalUnitAttackCommandExecuted), tacticalUnitAttackCommandExecuted.Command.UnitId, tacticalUnitAttackCommandExecuted.Command.TargetUnitId, tacticalUnitAttackCommandExecuted.Command.Path);
+            var command = Mapper.Map<NetworkTacticalUnitAttackCommand>(tacticalUnitAttackCommandExecuted.Command);
+
+            CombatInteraction.RunTacticalUnitAttackCommand(command);
+        }
+
         private void OnNotifyGlobalMapCombatResultsClosed(long receivedFrom, NotifyGlobalMapCombatResultsClosed globalMapCombatResultsClosed)
         {
             Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}", nameof(NotifyGlobalMapCombatResultsClosed), receivedFrom);
@@ -532,16 +559,16 @@ namespace WOTRMultiplayer.Services
             GlobalMapInteraction.CloseCombatBattleResults();
         }
 
-        private void OnNotifyCrusadeArmyAutoBattleResultsClosed(long receivedFrom, NotifyCrusadeArmyAutoBattleResultsClosed crusadeArmyAutoBattleResultsClosed)
+        private void OnNotifyCrusadeArmyAutoBattleResultsClosed(long receivedFrom, NotifyCrusadeArmyBattleResultsClosed crusadeArmyAutoBattleResultsClosed)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}", nameof(NotifyCrusadeArmyAutoBattleResultsClosed), receivedFrom);
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}", nameof(NotifyCrusadeArmyBattleResultsClosed), receivedFrom);
             ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyAutoBattleResults);
-            GlobalMapInteraction.CloseCrusadeArmyAutoBattleResults();
+            GlobalMapInteraction.CloseCrusadeArmyBattleResults();
         }
 
-        private void OnNotifyCrusadeArmyAutoBattleResultsManualCombatStarted(long receivedFrom, NotifyCrusadeArmyAutoBattleResultsManualCombatStarted crusadeArmyAutoBattleResultsManualCombatStarted)
+        private void OnNotifyCrusadeArmyAutoBattleResultsManualCombatStarted(long receivedFrom, NotifyCrusadeArmyBattleResultsManualCombatStarted crusadeArmyAutoBattleResultsManualCombatStarted)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}", nameof(NotifyCrusadeArmyAutoBattleResultsManualCombatStarted), receivedFrom);
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}", nameof(NotifyCrusadeArmyBattleResultsManualCombatStarted), receivedFrom);
             ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyAutoBattleResults);
 
             GlobalMapInteraction.StartCrusadeArmyAutoBattleResultsManualCombat();

@@ -16,7 +16,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat.Crusades
                 return;
             }
 
-            Main.Multiplayer.OnCrusadeArmyAutoBattleResultsShown();
+            Main.Multiplayer.OnCrusadeArmyBattleResultsShown();
         }
 
         [HarmonyPatch(typeof(TacticalCombatResultsVM), nameof(TacticalCombatResultsVM.Close))]
@@ -28,7 +28,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat.Crusades
                 return;
             }
 
-            Main.Multiplayer.OnCrusadeArmyAutoBattleResultsClosed();
+            Main.Multiplayer.OnCrusadeArmyBattleResultsClosed();
         }
 
         [HarmonyPatch(typeof(TacticalCombatResultsVM), nameof(TacticalCombatResultsVM.StartManualCombat))]
@@ -40,7 +40,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat.Crusades
                 return;
             }
 
-            Main.Multiplayer.OnCrusadeArmyAutoBattleResultsManualCombatStarted();
+            Main.Multiplayer.OnCrusadeArmyBattleResultsManualCombatStarted();
         }
     }
 }

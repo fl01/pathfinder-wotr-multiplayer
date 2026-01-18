@@ -172,11 +172,14 @@
             NotifyCrusadeArmyCombatInitializationConfirmed,
             NotifyCrusadeArmyCombatInitialized,
             NotifyCrusadeArmyCombatTurnInitialized,
-            NotifyCrusadeArmyAutoBattleResultsShown,
-            NotifyCrusadeArmyAutoBattleResultsClosed,
-            NotifyCrusadeArmyAutoBattleResultsManualCombatStarted,
+            NotifyCrusadeArmyBattleResultsShown,
+            NotifyCrusadeArmyBattleResultsClosed,
+            NotifyCrusadeArmyBattleResultsManualCombatStarted,
             NotifyGlobalMapCombatResultsShown,
-            NotifyGlobalMapCombatResultsClosed
+            NotifyGlobalMapCombatResultsClosed,
+            NotifyTacticalUnitMoveToCommandExecuted,
+            NotifyTacticalUnitAttackCommandExecuted,
+            NotifyTacticalUnitUseAbilityCommandExecuted
         }
 
         public enum Request

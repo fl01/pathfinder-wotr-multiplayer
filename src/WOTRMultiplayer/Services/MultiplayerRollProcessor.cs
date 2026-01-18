@@ -22,6 +22,7 @@ namespace WOTRMultiplayer.Services
     {
         private readonly ILogger<MultiplayerRollProcessor> _logger;
         private readonly IGameInteractionService _gameInteractionService;
+        private readonly ICombatInteractionService _combatInteractionService;
         private readonly IPlayerNotificationService _playerNotificationService;
         private readonly IDiceRollStorage _diceRollStorage;
         private readonly IHashService _hashService;
@@ -30,6 +31,7 @@ namespace WOTRMultiplayer.Services
         public MultiplayerRollProcessor(
             ILogger<MultiplayerRollProcessor> logger,
             IGameInteractionService gameInteractionService,
+            ICombatInteractionService combatInteractionService,
             IPlayerNotificationService playerNotificationService,
             IDiceRollStorage diceRollStorage,
             IHashService hashService,
@@ -37,6 +39,7 @@ namespace WOTRMultiplayer.Services
         {
             _logger = logger;
             _gameInteractionService = gameInteractionService;
+            _combatInteractionService = combatInteractionService;
             _playerNotificationService = playerNotificationService;
             _diceRollStorage = diceRollStorage;
             _hashService = hashService;
@@ -55,6 +58,11 @@ namespace WOTRMultiplayer.Services
                 var rollId = GetDamageRollId(ruleCalculateDamage);
                 if (rollId == null)
                 {
+                    if (_combatInteractionService.IsInCrusadeTacticalCombat())
+                    {
+                        return true;
+                    }
+
                     _logger.LogWarning("Damage Roll retrieving has been skipped due to unability to generate rollId. InitiatorName={InitiatorName}, InitiatorId={InitiatorId}", ruleCalculateDamage.Initiator?.CharacterName, ruleCalculateDamage.Initiator?.UniqueId);
                     return true;
                 }
@@ -107,6 +115,11 @@ namespace WOTRMultiplayer.Services
                 var rollId = GetDamageRollId(ruleCalculateDamage);
                 if (rollId == null)
                 {
+                    if (_combatInteractionService.IsInCrusadeTacticalCombat())
+                    {
+                        return;
+                    }
+
                     _logger.LogWarning("Damage Roll saving has been skipped due to unability to generate rollId. InitiatorName={InitiatorName}, InitiatorId={InitiatorId}", ruleCalculateDamage.Initiator?.CharacterName, ruleCalculateDamage.Initiator?.UniqueId);
                     return;
                 }
@@ -789,9 +802,11 @@ namespace WOTRMultiplayer.Services
                 case RuleHealDamage:
                 case RuleDealDamage:
                     var targetEvent = (RulebookTargetEvent)rule;
-                    return _gameInteractionService.IsInCombat()
+                    return _combatInteractionService.IsInCombat()
                             || _multiplayerActorAccessor.Current.IsControlledByPlayers(targetEvent.Initiator?.UniqueId)
-                            || _multiplayerActorAccessor.Current.IsControlledByPlayers(targetEvent.Target?.UniqueId);
+                            || _multiplayerActorAccessor.Current.IsControlledByPlayers(targetEvent.Target?.UniqueId)
+                            || (_combatInteractionService.IsInCrusadeTacticalCombat()
+                                    && (_combatInteractionService.IsControlledInTacticalCombat(targetEvent.Initiator?.UniqueId) || _combatInteractionService.IsControlledInTacticalCombat(targetEvent.Target?.UniqueId)));
                 // this one is used to detect stealth units. It's always rolled on the host and sent to the client as separate info to prevent sync issues (similar to other perception/inspection checks)
                 case RuleCachedPerceptionCheck:
                     return false;
@@ -848,7 +863,6 @@ namespace WOTRMultiplayer.Services
 
             if (roll == null)
             {
-                _logger.LogWarning("Unable to get damage roll id due to unhandled rule type. RuleType={RuleType} InitiatorId={InitiatorId}", ruleCalculateDamage.Reason.Rule?.GetType().Name, ruleCalculateDamage.Initiator?.UniqueId);
                 return null;
             }
 

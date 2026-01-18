@@ -2,7 +2,10 @@
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.Globalmap.State;
 using Kingmaker.Globalmap.View;
+using Kingmaker.UnitLogic;
+using Kingmaker.UnitLogic.Abilities;
 using WOTRMultiplayer.Entities;
+using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.GlobalMap;
 
 namespace WOTRMultiplayer.Abstractions.GameInteraction
@@ -22,5 +25,11 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         GlobalMapArmyPawn GetGlobalMapArmyPawn(NetworkGlobalMapArmyPawn globalMapArmyPawn);
 
         GlobalMapArmyState GetGlobalMapArmy(string id);
+
+        AbilityData GetKnownSpell(Spellbook spellbook, string abilityId, string abilityName);
+
+        AbilityData FindAbility(UnitEntityData unit, NetworkAbility abilityUse);
+
+        AbilityData FindAbility(NetworkAbility abilityUse);
     }
 }

@@ -48,7 +48,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void SetAutoCrusadeCombat(bool isEnabled);
 
-        void CloseCrusadeArmyAutoBattleResults();
+        void CloseCrusadeArmyBattleResults();
 
         void StartCrusadeArmyAutoBattleResultsManualCombat();
 

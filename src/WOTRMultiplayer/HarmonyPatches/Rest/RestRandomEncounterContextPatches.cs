@@ -26,7 +26,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
             }
 
 
-            Main.Multiplayer.OnBeforeTryRollRandomEncounter();
+            Main.Multiplayer.OnBeforeTryRollRestRandomEncounter();
         }
 
         [HarmonyPatch(typeof(RestController), nameof(RestController.StartSleepPhase))]
@@ -52,7 +52,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
             }
 
 
-            Main.Multiplayer.OnAfterTryRollRandomEncounter();
+            Main.Multiplayer.OnAfterTryRollRestRandomEncounter();
         }
 
         [HarmonyPatch(typeof(RestController), nameof(RestController.TryRollSpecialEncounter))]

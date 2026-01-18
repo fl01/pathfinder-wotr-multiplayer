@@ -25,6 +25,7 @@ namespace WOTRMultiplayer.UnitTests.Services
         private IMultiplayerHost _multiplayerHost;
         private IMultiplayerClient _multiplayerClient;
         private IGameInteractionService _gameInteractionService;
+        private ICombatInteractionService _combatInteractionService;
         private IValueGenerator _idGenerator;
         private IMultiplayerActorAccessor _multiplerActorAccessor;
         private IHotkeysService _hotkeysService;
@@ -38,6 +39,7 @@ namespace WOTRMultiplayer.UnitTests.Services
             _multiplayerHost = A.Fake<IMultiplayerHost>();
             _multiplayerClient = A.Fake<IMultiplayerClient>();
             _gameInteractionService = A.Fake<IGameInteractionService>();
+            _combatInteractionService = A.Fake<ICombatInteractionService>();
             _idGenerator = A.Fake<IValueGenerator>();
             _multiplerActorAccessor = A.Fake<IMultiplayerActorAccessor>();
             _hotkeysService = A.Fake<IHotkeysService>();
@@ -48,6 +50,7 @@ namespace WOTRMultiplayer.UnitTests.Services
                 _lobbyWindowController,
                 _multiplerActorAccessor,
                 _gameInteractionService,
+                _combatInteractionService,
                 _hotkeysService,
                 _idGenerator);
         }

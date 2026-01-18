@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.Area;
+using WOTRMultiplayer.Entities.Combat.Crusades;
 using WOTRMultiplayer.Entities.Dialogs;
 using WOTRMultiplayer.Entities.GlobalMap;
 using WOTRMultiplayer.Entities.Inspect;
 using WOTRMultiplayer.Entities.Rest;
+using WOTRMultiplayer.Services.GameInteraction.Contexts;
 
 namespace WOTRMultiplayer.Abstractions
 {
@@ -34,7 +36,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnCampingUnitsRoleChanged(List<NetworkCampingRole> roles);
 
-        void OnAfterTryRollRestRandomEncounter();
+        void OnAfterTryRollRestRandomEncounter(NetworkRandomEncounterContext encounterContext);
 
         void OnMakeVendorDeal();
 
@@ -93,8 +95,17 @@ namespace WOTRMultiplayer.Abstractions
         void OnNewGameDifficultyChanged(string difficulty);
 
         void OnCrusadeArmyCombatInitialized();
-        void OnCrusadeArmyAutoBattleResultsClosed();
-        void OnCrusadeArmyAutoBattleResultsManualCombatStarted();
+
+        void OnCrusadeArmyBattleResultsClosed();
+
+        void OnCrusadeArmyBattleResultsManualCombatStarted();
+
         void OnGlobalMapCombatResultsClosed();
+
+        void OnCrusadeTacticalUnitUseAbilityCommand(NetworkTacticalUnitUseAbilityCommand tacticalUnitUseAbilityCommand);
+
+        void OnCrusadeTacticalUnitAttackCommand(NetworkTacticalUnitAttackCommand tacticalUnitAttackCommand);
+
+        void OnCrusadeTacticalUnitMoveToCommand(NetworkTacticalUnitMoveToCommand tacticalUnitMoveToCommand);
     }
 }

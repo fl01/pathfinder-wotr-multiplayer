@@ -10,6 +10,7 @@ using Kingmaker.UI.MVVM._PCView.Loot;
 using Kingmaker.UI.MVVM._PCView.NewGame;
 using Kingmaker.UI.MVVM._PCView.Party;
 using Kingmaker.UI.MVVM._PCView.Rest;
+using Kingmaker.UI.MVVM._PCView.TacticalCombat.Result;
 using Kingmaker.UI.MVVM._VM.ServiceWindows;
 using Kingmaker.UI.MVVM._VM.ServiceWindows.Inventory;
 using Kingmaker.UI.MVVM._VM.ServiceWindows.Spellbook.MemorizingPanel;
@@ -54,5 +55,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         CombatLogPCView CombatLogPCView { get; }
 
         DialogContextPCView DialogContextPCView { get; }
+
+        TacticalCombatResultsPCView TacticalCombatResultsPCView { get; }
     }
 }

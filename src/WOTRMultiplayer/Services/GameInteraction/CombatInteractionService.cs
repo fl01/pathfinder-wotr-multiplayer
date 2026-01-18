@@ -4,10 +4,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Kingmaker;
+using Kingmaker.Armies.TacticalCombat;
 using Kingmaker.Armies.TacticalCombat.Blueprints;
+using Kingmaker.Armies.TacticalCombat.Commands;
 using Kingmaker.Armies.TacticalCombat.Controllers;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.GameModes;
+using Kingmaker.Pathfinding;
+using Kingmaker.UnitLogic.Commands;
 using Kingmaker.Utility;
 using Microsoft.Extensions.Logging;
 using UniRx;
@@ -16,6 +20,7 @@ using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.Combat;
+using WOTRMultiplayer.Entities.Combat.Crusades;
 using WOTRMultiplayer.Entities.Units;
 
 namespace WOTRMultiplayer.Services.GameInteraction
@@ -34,6 +39,25 @@ namespace WOTRMultiplayer.Services.GameInteraction
             _logger = logger;
             _gameStateLookupService = gameStateLookupService;
             _mainThreadAccessor = mainThreadAccessor;
+        }
+
+        public void UpdateIsInCombatStatus()
+        {
+            Game.Instance.Player.UpdateIsInCombat();
+            _mainThreadAccessor.Post(() =>
+            {
+                Game.Instance.Player.UpdateIsInCombat();
+            });
+        }
+
+        public bool IsInCombat()
+        {
+            return Game.Instance.Player.IsInCombat;
+        }
+
+        public bool IsInCrusadeTacticalCombat()
+        {
+            return TacticalCombatHelper.IsActive;
         }
 
         public int GetCrusadeArmyCombatSeed()
@@ -189,6 +213,123 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
 
             return taskCompletion.Task;
+        }
+
+        public void RunTacticalUnitAttackCommand(NetworkTacticalUnitAttackCommand tacticalUnitAttackCommand)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                if (!TacticalCombatHelper.IsActive)
+                {
+                    _logger.LogWarning("Unable to run {command} due to inactive tactical combat. UnitId={UnitId}", nameof(NetworkTacticalUnitAttackCommand), tacticalUnitAttackCommand.UnitId);
+                    return;
+                }
+
+                var unit = _gameStateLookupService.GetUnitEntity(tacticalUnitAttackCommand.UnitId);
+                if (unit == null)
+                {
+                    _logger.LogError("Unable to run {command} due to missing unit. UnitId={UnitId}", nameof(NetworkTacticalUnitAttackCommand), tacticalUnitAttackCommand.UnitId);
+                    return;
+                }
+
+                var targetUnit = _gameStateLookupService.GetUnitEntity(tacticalUnitAttackCommand.TargetUnitId);
+                if (targetUnit == null)
+                {
+                    _logger.LogError("Unable to run {command} due to missing target unit. UnitId={UnitId}, TargetUnitId={TargetUnitId}", nameof(NetworkTacticalUnitAttackCommand), tacticalUnitAttackCommand.UnitId, tacticalUnitAttackCommand.TargetUnitId);
+                    return;
+                }
+
+                var attackCommand = new TacticalCombatUnitAttack(targetUnit)
+                {
+                    ForcedPath = CreateForcedPath(tacticalUnitAttackCommand.Path),
+                    ShouldSkipAnimation = Game.Instance.TacticalCombat.Data.Accelerated
+                };
+                unit.Commands.Run(attackCommand);
+                _logger.LogWarning("Command {command} has been executed. UnitId={UnitId}", nameof(NetworkTacticalUnitAttackCommand), tacticalUnitAttackCommand.UnitId);
+            });
+        }
+
+        public void RunTacticalUnitUseAbilityCommand(NetworkTacticalUnitUseAbilityCommand tacticalUnitUseAbilityCommand)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                if (!TacticalCombatHelper.IsActive)
+                {
+                    _logger.LogWarning("Unable to run {command} due to inactive tactical combat. UnitId={UnitId}", nameof(NetworkTacticalUnitUseAbilityCommand), tacticalUnitUseAbilityCommand.Ability.CasterId);
+                    return;
+                }
+
+                var unit = _gameStateLookupService.GetUnitEntity(tacticalUnitUseAbilityCommand.Ability.CasterId);
+                if (unit == null)
+                {
+                    _logger.LogError("Unable to run {command} due to missing unit. UnitId={UnitId}", nameof(NetworkTacticalUnitUseAbilityCommand), tacticalUnitUseAbilityCommand.Ability.CasterId);
+                    return;
+                }
+
+                var ability = _gameStateLookupService.FindAbility(unit, tacticalUnitUseAbilityCommand.Ability);
+                if (ability == null)
+                {
+                    _logger.LogError("Unable to run {command} due to missing ability. UnitId={UnitId}, AbilityId={AbilityId}", nameof(NetworkTacticalUnitUseAbilityCommand), tacticalUnitUseAbilityCommand.Ability.CasterId, tacticalUnitUseAbilityCommand.Ability.Id);
+                    return;
+                }
+
+                var target = _gameStateLookupService.GetUnitEntity(tacticalUnitUseAbilityCommand.Ability.TargetId);
+                var point = new Vector3(tacticalUnitUseAbilityCommand.Ability.TargetPoint.X, tacticalUnitUseAbilityCommand.Ability.TargetPoint.Y, tacticalUnitUseAbilityCommand.Ability.TargetPoint.Z);
+                var targetWrapper = new TargetWrapper(point, null, target);
+                var useAbilityCommand = new TacticalCombatUnitUseAbility(ability, targetWrapper)
+                {
+                    ForcedPath = CreateForcedPath(tacticalUnitUseAbilityCommand.Ability.VectorPath),
+                    ShouldSkipAnimation = Game.Instance.TacticalCombat.Data.Accelerated
+                };
+
+                _logger.LogInformation("Command {command} has been executed. UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}", nameof(NetworkTacticalUnitUseAbilityCommand), tacticalUnitUseAbilityCommand.Ability.CasterId, tacticalUnitUseAbilityCommand.Ability.Id, tacticalUnitUseAbilityCommand.Ability.Name);
+            });
+        }
+
+        public void RunTacticalUnitMoveToCommand(NetworkTacticalUnitMoveToCommand tacticalUnitMoveToCommand)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                if (!TacticalCombatHelper.IsActive)
+                {
+                    _logger.LogWarning("Unable to run {command} due to inactive tactical combat. UnitId={UnitId}", nameof(NetworkTacticalUnitMoveToCommand), tacticalUnitMoveToCommand.UnitId);
+                    return;
+                }
+
+                var unit = _gameStateLookupService.GetUnitEntity(tacticalUnitMoveToCommand.UnitId);
+                if (unit == null)
+                {
+                    _logger.LogError("Unable to run {command} due to missing unit. UnitId={UnitId}", nameof(NetworkTacticalUnitMoveToCommand), tacticalUnitMoveToCommand.UnitId);
+                    return;
+                }
+
+                var forcedPath = CreateForcedPath(tacticalUnitMoveToCommand.Path);
+                var attackCommand = new UnitMoveTo(forcedPath.vectorPath.Last())
+                {
+                    ForcedPath = forcedPath,
+                };
+                unit.Commands.Run(attackCommand);
+                _logger.LogInformation("Command {command} has been executed. UnitId={UnitId}", nameof(NetworkTacticalUnitMoveToCommand), tacticalUnitMoveToCommand.UnitId);
+            });
+        }
+
+        public bool IsControlledInTacticalCombat(string unitId)
+        {
+            var unit = Game.Instance.TacticalCombat?.Data?.UnitRefs.FirstOrDefault(u => string.Equals(u.Id, unitId, StringComparison.OrdinalIgnoreCase)).Entity;
+            var isControlled = unit != null && unit.IsDirectlyControllable;
+            return isControlled;
+        }
+
+        private static ForcedPath CreateForcedPath(List<NetworkVector3> path)
+        {
+            if (path == null || path.Count == 0)
+            {
+                return null;
+            }
+
+            var vectorPath = path.Select(v => new Vector3(v.X, v.Y, v.Z)).ToList();
+            var forcedPath = new ForcedPath(vectorPath);
+            return forcedPath;
         }
 
         private List<NetworkUnit> GetUnitsInCombat()

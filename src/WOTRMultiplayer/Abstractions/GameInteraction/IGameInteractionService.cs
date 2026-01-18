@@ -98,8 +98,6 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void SetRandomEncounterContext(NetworkRandomEncounterContext networkRandomEncounterContext);
 
-        void UpdateIsInCombatStatus();
-
         void TryInterruptRestBanter(NetworkRestBanter networkRestBanter);
 
         void TransferVendorItem(NetworkVendorItemTransfer networkVendorItemTransfer);
@@ -149,8 +147,6 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void CompleteZoneLoot();
 
         NetworkContentState GetInstalledContent();
-
-        bool IsInCombat();
 
         bool CanRiderGetUp();
 

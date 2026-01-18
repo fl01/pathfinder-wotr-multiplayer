@@ -118,9 +118,9 @@ namespace WOTRMultiplayer.Abstractions
 
         bool CanUseCampingUI();
 
-        void OnBeforeTryRollRandomEncounter();
+        void OnBeforeTryRollRestRandomEncounter();
 
-        void OnAfterTryRollRandomEncounter();
+        void OnAfterTryRollRestRandomEncounter();
 
         int? GetNextRestBanter(int minInclusive, int maxExclusive);
 
@@ -362,14 +362,20 @@ namespace WOTRMultiplayer.Abstractions
 
         int? GetCrusadeArmyCombatSeed();
 
-        void OnCrusadeArmyAutoBattleResultsShown();
+        void OnCrusadeArmyBattleResultsShown();
 
-        void OnCrusadeArmyAutoBattleResultsClosed();
+        void OnCrusadeArmyBattleResultsClosed();
 
-        void OnCrusadeArmyAutoBattleResultsManualCombatStarted();
+        void OnCrusadeArmyBattleResultsManualCombatStarted();
 
         void OnGlobalMapCombatResultsShown();
 
         void OnGlobalMapCombatResultsClosed();
+
+        void OnCrusadeTacticalUnitMoveToCommand(NetworkTacticalUnitMoveToCommand tacticalUnitMoveToCommand);
+
+        void OnCrusadeTacticalUnitAttackCommand(NetworkTacticalUnitAttackCommand tacticalUnitAttackCommand);
+
+        void OnCrusadeTacticalUnitUseAbilityCommand(NetworkTacticalUnitUseAbilityCommand tacticalUnitUseAbilityCommand);
     }
 }

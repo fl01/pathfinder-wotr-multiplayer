@@ -28,6 +28,7 @@ using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
 using WOTRMultiplayer.Networking.Messages.Requests;
+using WOTRMultiplayer.Services.GameInteraction.Contexts;
 
 namespace WOTRMultiplayer.Services
 {
@@ -449,11 +450,10 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
-        public void OnAfterTryRollRestRandomEncounter()
+        public void OnAfterTryRollRestRandomEncounter(NetworkRandomEncounterContext encounterContext)
         {
             try
             {
-                var encounterContext = GameInteraction.RemoteContext?.RandomEncounter;
                 if (encounterContext == null)
                 {
                     Logger.LogError("Rest random encounter rolling is finished, but context has not been recorded");
@@ -467,7 +467,7 @@ namespace WOTRMultiplayer.Services
                 {
                     var settings = SettingsService.GetSettings();
                     EnsureForcePaused(WellKnownKeys.GameNotifications.ForcedPause.RestRandomEncounterLoading.Key, settings.ForcedPauseRandomEncounterTerminationDelay);
-                    GameInteraction.UpdateIsInCombatStatus();
+                    CombatInteraction.UpdateIsInCombatStatus();
                     GameInteraction.SetPause(true);
                 }
             }
@@ -846,19 +846,19 @@ namespace WOTRMultiplayer.Services
             return true;
         }
 
-        public void OnCrusadeArmyAutoBattleResultsClosed()
+        public void OnCrusadeArmyBattleResultsClosed()
         {
             ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyAutoBattleResults);
-            var message = new NotifyCrusadeArmyAutoBattleResultsClosed();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyCrusadeArmyAutoBattleResultsClosed));
+            var message = new NotifyCrusadeArmyBattleResultsClosed();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyCrusadeArmyBattleResultsClosed));
             Send(message);
         }
 
-        public void OnCrusadeArmyAutoBattleResultsManualCombatStarted()
+        public void OnCrusadeArmyBattleResultsManualCombatStarted()
         {
             ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyAutoBattleResults);
-            var message = new NotifyCrusadeArmyAutoBattleResultsManualCombatStarted();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyCrusadeArmyAutoBattleResultsManualCombatStarted));
+            var message = new NotifyCrusadeArmyBattleResultsManualCombatStarted();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyCrusadeArmyBattleResultsManualCombatStarted));
             Send(message);
         }
 
@@ -918,6 +918,36 @@ namespace WOTRMultiplayer.Services
                 Seed = seed
             };
             Logger.LogInformation("Sending {MessageType}. Seed={Seed}", nameof(NotifyCrusadeArmyCombatInitialized), message.Seed);
+            Send(message);
+        }
+
+        public void OnCrusadeTacticalUnitUseAbilityCommand(NetworkTacticalUnitUseAbilityCommand tacticalUnitUseAbilityCommand)
+        {
+            var message = new NotifyTacticalUnitUseAbilityCommandExecuted
+            {
+                Command = Mapper.Map<Networking.Messages.Contracts.NetworkTacticalUnitUseAbilityCommand>(tacticalUnitUseAbilityCommand)
+            };
+            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, AbilityId={AbilityId}, Path={Path}", nameof(NotifyTacticalUnitUseAbilityCommandExecuted), message.Command.Ability.CasterId, message.Command.Ability.Id, message.Command.Ability.VectorPath);
+            Send(message);
+        }
+
+        public void OnCrusadeTacticalUnitAttackCommand(NetworkTacticalUnitAttackCommand tacticalUnitAttackCommand)
+        {
+            var message = new NotifyTacticalUnitAttackCommandExecuted
+            {
+                Command = Mapper.Map<Networking.Messages.Contracts.NetworkTacticalUnitAttackCommand>(tacticalUnitAttackCommand)
+            };
+            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, TargetId={TargetId}, Path={Path}", nameof(NotifyTacticalUnitAttackCommandExecuted), message.Command.UnitId, message.Command.TargetUnitId, message.Command.Path);
+            Send(message);
+        }
+
+        public void OnCrusadeTacticalUnitMoveToCommand(NetworkTacticalUnitMoveToCommand tacticalUnitMoveToCommand)
+        {
+            var message = new NotifyTacticalUnitMoveToCommandExecuted
+            {
+                Command = Mapper.Map<Networking.Messages.Contracts.NetworkTacticalUnitMoveToCommand>(tacticalUnitMoveToCommand)
+            };
+            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, Path={Path}", nameof(NotifyTacticalUnitMoveToCommandExecuted), message.Command.UnitId, message.Command.Path);
             Send(message);
         }
 

@@ -301,7 +301,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnCrusadeArmyCombatTurnStarted(NetworkArmyCombatTurn armyCombatTurn);
 
-        void OnCrusadeArmyAutoBattleResultsShown();
+        void OnCrusadeArmyBattleResultsShown();
 
         void OnGlobalMapCombatResultsShown();
     }

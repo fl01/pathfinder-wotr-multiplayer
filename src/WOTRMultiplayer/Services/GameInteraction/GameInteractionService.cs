@@ -46,7 +46,6 @@ using Kingmaker.UI.Selection;
 using Kingmaker.UI.SettingsUI;
 using Kingmaker.UI.UnitSettings;
 using Kingmaker.UnitLogic;
-using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.UnitLogic.ActivatableAbilities;
 using Kingmaker.UnitLogic.Commands;
 using Kingmaker.UnitLogic.Commands.Base;
@@ -558,7 +557,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             try
             {
                 var caster = _gameStateLookupService.GetUnitEntity(networkAbility.CasterId);
-                var abilityData = FindAbility(caster, networkAbility);
+                var abilityData = _gameStateLookupService.FindAbility(caster, networkAbility);
                 if (abilityData == null)
                 {
                     _logger.LogError("Unable to find ability. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookBlueprintId={SpellbookBlueprintId}", caster.UniqueId, networkAbility.Id, networkAbility.SpellbookId);
@@ -1473,15 +1472,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
             _networkExecutionContext.Value = RemoteExecutionContext.Create(networkRandomEncounterContext);
         }
 
-        public void UpdateIsInCombatStatus()
-        {
-            Game.Instance.Player.UpdateIsInCombat();
-            _mainThreadAccessor.Post(() =>
-            {
-                Game.Instance.Player.UpdateIsInCombat();
-            });
-        }
-
         public void TryInterruptRestBanter(NetworkRestBanter networkRestBanter)
         {
             _mainThreadAccessor.Post(() =>
@@ -1633,7 +1623,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             _mainThreadAccessor.Post(() =>
             {
                 var spellSlot = GetSpellSlot(spellbook, networkSpellSlot);
-                var spell = GetKnownSpell(spellbook, networkSpellSlot.SpellId, networkSpellSlot.SpellName);
+                var spell = _gameStateLookupService.GetKnownSpell(spellbook, networkSpellSlot.SpellId, networkSpellSlot.SpellName);
                 spellbook.Memorize(spell, spellSlot);
                 _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.SpellBook.MemorizedSpell.Key, spell.Name, unit.CharacterName);
                 RefreshSpellbookUI();
@@ -2094,11 +2084,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return state;
         }
 
-        public bool IsInCombat()
-        {
-            return Game.Instance.Player.IsInCombat;
-        }
-
         public bool CanRiderGetUp()
         {
             var canGetUp = Game.Instance.TurnBasedCombatController.CurrentTurn?.UnitCanGetUpOnCommand.Value ?? false;
@@ -2470,7 +2455,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 return itemActionBarSlot;
             }
 
-            var ability = FindAbility(unit, networkActionBarSlot.Ability);
+            var ability = _gameStateLookupService.FindAbility(unit, networkActionBarSlot.Ability);
             if (ability == null)
             {
                 _logger.LogError("Unable to find ability/spell slot content. UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}", unit.UniqueId, networkActionBarSlot.Ability.Id, networkActionBarSlot.Ability.Name);
@@ -2710,137 +2695,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 || string.Equals(a.NameForAcronym, activatableAbility.Name, StringComparison.OrdinalIgnoreCase));
 
             return ability;
-        }
-
-        private AbilityData GetKnownSpell(Spellbook spellbook, string abilityId, string abilityName)
-        {
-            for (int level = 0; level < spellbook.m_KnownSpells.Length; level++)
-            {
-                var spellLevel = spellbook.m_KnownSpells[level];
-                var spellSlot = spellLevel.FirstOrDefault(s => string.Equals(s.UniqueId, abilityId, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(s.NameForAcronym, abilityName, StringComparison.OrdinalIgnoreCase));
-
-                if (spellSlot != null)
-                {
-                    return spellSlot;
-                }
-            }
-
-            return null;
-        }
-
-        private AbilityData GetMemorizedSpell(Spellbook spellbook, string abilityId, string abilityName)
-        {
-            for (int level = 0; level < spellbook.m_MemorizedSpells.Length; level++)
-            {
-                var spellLevel = spellbook.m_MemorizedSpells[level];
-                var spellSlot = spellLevel.FirstOrDefault(s => string.Equals(s.Spell?.UniqueId, abilityId, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(s.Spell?.NameForAcronym, abilityName, StringComparison.OrdinalIgnoreCase));
-
-                if (spellSlot != null)
-                {
-                    return spellSlot.Spell;
-                }
-            }
-
-            return null;
-        }
-
-        private AbilityData FindAbilityInSpellbook(UnitEntityData unit, NetworkAbility networkAbility)
-        {
-            var spellbook = unit.Spellbooks.FirstOrDefault(s => string.Equals(s.Blueprint.Name.Key, networkAbility.SpellbookId));
-            if (spellbook == null)
-            {
-                _logger.LogError("Unable to 4find ability due to missing spellbook. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookId={SpellbookId}", unit.UniqueId, networkAbility.Id, networkAbility.SpellbookId);
-                return null;
-            }
-
-            if (!string.IsNullOrEmpty(networkAbility.ConvertedFromId))
-            {
-                var spellConversionSource = GetKnownSpell(spellbook, networkAbility.ConvertedFromId, networkAbility.Name) ?? GetMemorizedSpell(spellbook, networkAbility.ConvertedFromId, networkAbility.Name);
-                if (spellConversionSource == null)
-                {
-                    _logger.LogError("Can't find spell conversion source for converted ability. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookName={SpellbookName}, ConvertedAbilityId={ConvertedAbilityId}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name, networkAbility.ConvertedFromId);
-                    return null;
-                }
-
-                var convertedSpell = GetConvertedAbility(spellConversionSource, networkAbility);
-                if (convertedSpell == null)
-                {
-                    _logger.LogError("Can't find target ability in spell conversion list. UnitId={UnitId}, AbilityId={abilityId}, SpellbookName={SpellbookName}, ConvertedAbilityId={ConvertedAbilityId}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name, networkAbility.ConvertedFromId);
-                    return null;
-                }
-
-                _logger.LogInformation("Converted spell has been found. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookName={SpellbookName}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name);
-                return convertedSpell;
-            }
-
-            var knownSpell = GetKnownSpell(spellbook, networkAbility.Id, networkAbility.Name);
-            if (knownSpell != null)
-            {
-                _logger.LogInformation("Spell has been found in known spells. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookName={SpellbookName}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name);
-                return knownSpell;
-            }
-
-            var memorizedSpell = GetMemorizedSpell(spellbook, networkAbility.Id, networkAbility.Name);
-            if (memorizedSpell != null)
-            {
-                _logger.LogInformation("Spell has been found in memorized spells. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookName={SpellbookName}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name);
-                return memorizedSpell;
-            }
-
-            return null;
-        }
-
-        private AbilityData GetConvertedAbility(AbilityData conversionSource, NetworkAbility networkAbility)
-        {
-            var convertedSpell = conversionSource.GetConversions().FirstOrDefault(
-                    c => string.Equals(c.UniqueId, networkAbility.Id, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(c.NameForAcronym, networkAbility.Name, StringComparison.OrdinalIgnoreCase));
-
-            return convertedSpell;
-        }
-
-        /// <summary>
-        /// I never thought it would be so rough to find casted ability
-        /// </summary>
-        /// <param name="unit"></param>
-        /// <param name="abilityUse"></param>
-        /// <returns></returns>
-        private AbilityData FindAbility(UnitEntityData unit, NetworkAbility abilityUse)
-        {
-            if (!string.IsNullOrEmpty(abilityUse.SpellbookId))
-            {
-                return FindAbilityInSpellbook(unit, abilityUse);
-            }
-
-            if (!string.IsNullOrEmpty(abilityUse.ConvertedFromId))
-            {
-                var conversionAbility = unit.Abilities.Enumerable.FirstOrDefault(a => string.Equals(a.Data.UniqueId, abilityUse.ConvertedFromId, StringComparison.OrdinalIgnoreCase));
-                if (conversionAbility == null)
-                {
-                    _logger.LogInformation("Unable to find ability for conversion. UnitId={UnitId}, AbilityId={AbilityId}", unit.UniqueId, abilityUse.ConvertedFromId);
-                    return null;
-                }
-                var convertedAbility = GetConvertedAbility(conversionAbility.Data, abilityUse);
-                if (convertedAbility == null)
-                {
-                    _logger.LogInformation("Unable to find ability in conversion list. UnitId={UnitId}, AbilityId={AbilityId}", unit.UniqueId, abilityUse.ConvertedFromId);
-                }
-
-                return convertedAbility;
-            }
-
-            var byAbilityId = unit.Abilities.Enumerable.FirstOrDefault(a => string.Equals(a.Data.UniqueId, abilityUse.Id, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(a.Data.NameForAcronym, abilityUse.Name, StringComparison.OrdinalIgnoreCase));
-
-            if (byAbilityId != null)
-            {
-                _logger.LogInformation("Ability has been found by abilityId. UnitId={UnitId}, AbilityId={AbilityId}", unit.UniqueId, abilityUse.Id);
-                return byAbilityId.Data;
-            }
-
-            return null;
         }
 
         private void ExecuteClickHandler(IClickEventHandler clickEventHandler, NetworkClick click)
