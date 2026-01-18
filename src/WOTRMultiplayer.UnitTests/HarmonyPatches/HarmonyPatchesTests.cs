@@ -26,13 +26,36 @@ namespace WOTRMultiplayer.UnitTests.HarmonyPatches
             {
                 var target = enumerated.Method.GetCustomAttribute<HarmonyPatch>();
 
-                var fullTargetName = $"{target.info.declaringType.FullName}.{target.info.methodName}.{target.info.methodType}.[{string.Join(",", (target.info.argumentTypes ?? []).Select(x => x.Name))}].{enumerated.PatchType}";
+                var fullTargetName = $"{enumerated.PatchedClass.FullName}.{target.info.methodName}.{target.info.methodType}.[{string.Join(",", (target.info.argumentTypes ?? []).Select(x => x.Name))}].{enumerated.PatchType}";
                 counter.AddOrUpdate(fullTargetName, 1, (key, value) => value + 1);
             }
             var duplicated = counter.Where(x => !_justifiedTargets.Contains(x.Key) && x.Value > 1).ToList();
 
             // Assert
             Assert.That(duplicated, Is.Empty, "Duplicate harmony patch targets detected");
+        }
+
+        [Test]
+        public void HarmonyPatch_CorrectInstanceTypeInjected()
+        {
+            // Arrange
+            var invalidMethods = new List<string>();
+            const string parameterName = "__instance";
+
+            // Act
+            foreach (var enumerated in EnumeratePatches())
+            {
+                var target = enumerated.Method.GetCustomAttribute<HarmonyPatch>();
+
+                var instanceParameter = enumerated.Method.GetParameters().FirstOrDefault(x => x.Name == parameterName);
+                if (instanceParameter != null && instanceParameter.ParameterType != enumerated.PatchedClass)
+                {
+                    invalidMethods.Add(enumerated.Method.Name);
+                }
+            }
+
+            // Assert
+            Assert.That(invalidMethods, Is.Empty, $"{invalidMethods.Count} invalid {parameterName} parameter(s) detected");
         }
 
         [Test]
@@ -64,14 +87,16 @@ namespace WOTRMultiplayer.UnitTests.HarmonyPatches
                         ?? method.GetCustomAttribute<HarmonyPostfix>()?.GetType().Name
                         ?? method.GetCustomAttribute<HarmonyTranspiler>()?.GetType().Name;
 
-                    yield return new EnumeratedHarmonyPatch { Class = classPatch, Method = method, PatchType = patchType };
+                    var patchedClass = method.GetCustomAttribute<HarmonyPatch>().info.declaringType;
+
+                    yield return new EnumeratedHarmonyPatch { PatchedClass = patchedClass, Method = method, PatchType = patchType };
                 }
             }
         }
 
         private class EnumeratedHarmonyPatch
         {
-            public Type Class { get; set; }
+            public Type PatchedClass { get; set; }
 
             public MethodInfo Method { get; set; }
 
