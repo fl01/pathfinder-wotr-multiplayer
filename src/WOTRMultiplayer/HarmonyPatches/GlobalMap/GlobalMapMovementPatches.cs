@@ -19,6 +19,7 @@ using Kingmaker.UI;
 using Kingmaker.UI.Common;
 using Kingmaker.UI.GlobalMap;
 using Kingmaker.UI.MVVM._PCView.GlobalMap.Message;
+using Kingmaker.UI.MVVM._VM.GlobalMap;
 using Kingmaker.UI.MVVM._VM.GlobalMap.Message;
 using Kingmaker.UI.MVVM._VM.GlobalMap.Movement;
 using Microsoft.Extensions.Logging;
@@ -30,6 +31,82 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
     [HarmonyPatch]
     public class GlobalMapMovementPatches
     {
+        [HarmonyPatch(typeof(GlobalMapCommonCanvas), nameof(GlobalMapCommonCanvas.Update))]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> GlobalMapCommonCanvas_Update_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var extraCall = AccessTools.Method(typeof(GlobalMapMovementPatches), nameof(GlobalMapMovementPatches.OnFatiguePopupShown));
+            var lookFor = AccessTools.Method(typeof(UIUtility), nameof(UIUtility.ShowMessageBox));
+            var matcher = new CodeMatcher(instructions);
+            var match = matcher.SearchForward(x => x.Calls(lookFor));
+
+            match = match.SearchForward(x => x.Calls(lookFor));
+            if (match.IsInvalid)
+            {
+                Main.GetLogger<GlobalMapMovementPatches>().LogError("Invalid transpiler position. Target={Target}, Position={Position}", target, match.Pos);
+                return instructions;
+            }
+
+            var newInstruction = new List<CodeInstruction>()
+            {
+                new(OpCodes.Call, extraCall),
+            };
+            match = match.Advance(1).Insert(newInstruction);
+            Main.GetLogger<GlobalMapMovementPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
+            return matcher.Instructions();
+        }
+
+        [HarmonyPatch(typeof(GlobalMapCommonCanvas), nameof(GlobalMapCommonCanvas.OnFatiqueClose))]
+        [HarmonyPrefix]
+        public static void GlobalMapCommonCanvas_OnFatiqueClose_Prefix(MessageModalBase.ButtonType btn)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            OnFatigueMessageActionChoosen(btn);
+        }
+
+        [HarmonyPatch(typeof(GlobalMapVM), nameof(GlobalMapVM.OnUpdateFatigueHandler))]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> GlobalMapVM_OnUpdateFatigueHandler_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var extraCall = AccessTools.Method(typeof(GlobalMapMovementPatches), nameof(GlobalMapMovementPatches.OnFatiguePopupShown));
+            var lookFor = AccessTools.Method(typeof(UIUtility), nameof(UIUtility.ShowMessageBox));
+            var matcher = new CodeMatcher(instructions);
+            var match = matcher.SearchForward(x => x.Calls(lookFor));
+
+            match = match.SearchForward(x => x.Calls(lookFor));
+            if (match.IsInvalid)
+            {
+                Main.GetLogger<GlobalMapMovementPatches>().LogError("Invalid transpiler position. Target={Target}, Position={Position}", target, match.Pos);
+                return instructions;
+            }
+
+            var newInstruction = new List<CodeInstruction>()
+            {
+                new(OpCodes.Call, extraCall),
+            };
+            match = match.Advance(1).Insert(newInstruction);
+            Main.GetLogger<GlobalMapMovementPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
+            return matcher.Instructions();
+        }
+
+        [HarmonyPatch(typeof(GlobalMapVM), nameof(GlobalMapVM.OnFatigueClose))]
+        [HarmonyPrefix]
+        public static void GlobalMapVM_OnFatigueClose_Prefix(MessageModalBase.ButtonType btn)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            OnFatigueMessageActionChoosen(btn);
+        }
+
         [HarmonyPatch(typeof(GlobalMapController), nameof(GlobalMapController.BeginCombat))]
         [HarmonyTranspiler]
         public static IEnumerable<CodeInstruction> GlobalMapController_BeginCombat_Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -54,65 +131,6 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             match = match.Advance(-19).RemoveInstructions(20).Insert(newExactInstructions);
             Main.GetLogger<GlobalMapMovementPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
-        }
-
-        /// <summary>
-        /// 1. loading fields via IL instructions requires to get type of anonymous class, but it's a really bad idea to have strict dependency on anonymous compiler-generated class
-        /// 2. 'dynamic' requires an extra dlls to be addeded and loaded by the game
-        /// All options above don't look likeable enough, so sticking to this temu 'dynamic at home' anon class representation for now
-        /// </summary>
-        private class CompilerGeneratedFleeMessageBoxData
-        {
-            // order must match order of the anonymous class fields
-            public GlobalMapController controller = null;
-            public TacticalCombatResults prediction = null;
-            public GlobalMapArmyState attacker = null;
-            public GlobalMapArmyState defender = null;
-
-            public bool IsValid()
-            {
-                return controller is not null and GlobalMapController
-                    && prediction is not null and TacticalCombatResults
-                    && attacker is not null and GlobalMapArmyState
-                    && defender is not null and GlobalMapArmyState
-                    && attacker != defender;
-            }
-        }
-
-        /// <summary>
-        /// modified copy-paste of GlobalMapController.BeginCombat (flee message box section)
-        /// </summary>
-        /// <param name="controller"></param>
-        /// <param name="fleeMessageBoxData"></param>
-        private static void OnShowFleeMessageBox(CompilerGeneratedFleeMessageBoxData fleeMessageBoxData)
-        {
-            if (!(fleeMessageBoxData?.IsValid() ?? false))
-            {
-                Main.GetLogger<GlobalMapMovementPatches>().LogError("Invalid compiler-generated flee message box data supplied.");
-                return;
-            }
-
-            GlobalMapController controller = fleeMessageBoxData.controller;
-            GlobalMapArmyState attacker = fleeMessageBoxData.attacker;
-            GlobalMapArmyState defender = fleeMessageBoxData.defender;
-            TacticalCombatResults prediction = fleeMessageBoxData.prediction;
-
-            var popup = new NetworkGlobalMapCommonPopup { Type = NetworkGlobalMapCommonPopupType.Flee };
-            Main.Multiplayer.OnGlobalMapCommonPopupShown(popup);
-            UIUtility.ShowMessageBox(UIStrings.Instance.CrusadeTexts.EnemyFleeText, MessageModalBase.ModalType.Dialog, delegate (MessageModalBase.ButtonType result)
-            {
-                if (result == MessageModalBase.ButtonType.Yes)
-                {
-                    Main.Multiplayer.OnGlobalMapCommonPopupAccepted(popup);
-                    controller.OpenAutoBattleResults(prediction, attacker, defender);
-                    return;
-                }
-
-                Main.Multiplayer.OnGlobalMapCommonPopupDeclined(popup);
-                prediction.Units?.Clear();
-                prediction.ToResurrect?.Clear();
-                controller.StartManualCombat(attacker, defender);
-            }, null, 0, UIStrings.Instance.CrusadeTexts.EnemyFleeAccept, UIStrings.Instance.CrusadeTexts.EnemyFleeDecline, null);
         }
 
         [HarmonyPatch(typeof(GlobalMapMovementVM), nameof(GlobalMapMovementVM.TryEnterLocation))]
@@ -498,6 +516,88 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             };
 
             return location;
+        }
+
+        private static void OnFatigueMessageActionChoosen(MessageModalBase.ButtonType btn)
+        {
+            var popup = new NetworkGlobalMapCommonPopup { Type = NetworkGlobalMapCommonPopupType.Fatigue };
+            if (btn == MessageModalBase.ButtonType.Yes)
+            {
+                Main.Multiplayer.OnGlobalMapCommonPopupAccepted(popup);
+                return;
+            }
+
+            Main.Multiplayer.OnGlobalMapCommonPopupDeclined(popup);
+        }
+
+        private static void OnFatiguePopupShown()
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            var popup = new NetworkGlobalMapCommonPopup { Type = NetworkGlobalMapCommonPopupType.Fatigue };
+            Main.Multiplayer.OnGlobalMapCommonPopupShown(popup);
+        }
+
+        /// <summary>
+        /// 1. loading fields via IL instructions requires to get type of anonymous class, but it's a really bad idea to have strict dependency on that anonymous compiler-generated class
+        /// 2. 'dynamic' requires an extra dlls to be addeded and loaded by the game
+        /// All options above don't look likeable enough, so sticking to this temu 'dynamic at home' anonymous class representation for now
+        /// </summary>
+        private class CompilerGeneratedFleeMessageBoxData
+        {
+            // order must match order of the anonymous class fields
+            public GlobalMapController controller = null;
+            public TacticalCombatResults prediction = null;
+            public GlobalMapArmyState attacker = null;
+            public GlobalMapArmyState defender = null;
+
+            public bool IsValid()
+            {
+                return controller is not null and GlobalMapController
+                    && prediction is not null and TacticalCombatResults
+                    && attacker is not null and GlobalMapArmyState
+                    && defender is not null and GlobalMapArmyState
+                    && attacker != defender;
+            }
+        }
+
+        /// <summary>
+        /// modified copy-paste of GlobalMapController.BeginCombat (flee message box section)
+        /// </summary>
+        /// <param name="controller"></param>
+        /// <param name="fleeMessageBoxData"></param>
+        private static void OnShowFleeMessageBox(CompilerGeneratedFleeMessageBoxData fleeMessageBoxData)
+        {
+            if (!(fleeMessageBoxData?.IsValid() ?? false))
+            {
+                Main.GetLogger<GlobalMapMovementPatches>().LogError("Invalid compiler-generated flee message box data supplied.");
+                return;
+            }
+
+            GlobalMapController controller = fleeMessageBoxData.controller;
+            GlobalMapArmyState attacker = fleeMessageBoxData.attacker;
+            GlobalMapArmyState defender = fleeMessageBoxData.defender;
+            TacticalCombatResults prediction = fleeMessageBoxData.prediction;
+
+            var popup = new NetworkGlobalMapCommonPopup { Type = NetworkGlobalMapCommonPopupType.Flee };
+            Main.Multiplayer.OnGlobalMapCommonPopupShown(popup);
+            UIUtility.ShowMessageBox(UIStrings.Instance.CrusadeTexts.EnemyFleeText, MessageModalBase.ModalType.Dialog, delegate (MessageModalBase.ButtonType result)
+            {
+                if (result == MessageModalBase.ButtonType.Yes)
+                {
+                    Main.Multiplayer.OnGlobalMapCommonPopupAccepted(popup);
+                    controller.OpenAutoBattleResults(prediction, attacker, defender);
+                    return;
+                }
+
+                Main.Multiplayer.OnGlobalMapCommonPopupDeclined(popup);
+                prediction.Units?.Clear();
+                prediction.ToResurrect?.Clear();
+                controller.StartManualCombat(attacker, defender);
+            }, null, 0, UIStrings.Instance.CrusadeTexts.EnemyFleeAccept, UIStrings.Instance.CrusadeTexts.EnemyFleeDecline, null);
         }
     }
 }

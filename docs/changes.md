@@ -220,7 +220,7 @@ Rest can't start until everyone is in 'rest mode' (aka opened the rest window). 
 Banter (small talk) is randomly picked in a way that stays consistent - host and clients roll separately but still get the same results without extra network syncing. Each multiplayer session has its own "random seed", so rehosting the game gives different banter. Skipping banter lines is synced for all players.
 
 ### Random encounter
-Everything about random encounters is synced from the host. That synchronization comes to play after banter has ended.
+The host rolls encounters. Clients communicate with the host after each sleep phase to receive rolled results.
 
 ## Memorizing spells
 You can only change spells for characters you control. Trying to change someone else's spells will show a warning.
@@ -241,7 +241,7 @@ same rules apply for everything (including path selection).
 Character selection for respec is always controlled by host, but respec/leveling windows themselves follow the default leveling rules
 
 #### Toybox (Party => Respec)
-Synchronization will start working at the moment of opening respec window, but everyone still needs to press that button to start respec process as there is no automated respec startup in this case. As an alternative, you can always respec character in single player mode/
+Synchronization will start working at the moment of opening respec window, but everyone still needs to press that button to start respec process as there is no automated respec startup in this case. As an alternative, you can always respec character in single player mode
 
 Same leveling/respec rules apply
 
@@ -271,7 +271,7 @@ You can either ignore it (if the outcome is more or less the same for everyone) 
 ### Rolls
 Current roll syncing has a fairly obvious issue: the game freezes while it waits for rolls to return. That happens because the network request is done right when the game wants to roll the dice. We don't really have a clean way around this - the game expects the roll result immediately, so the mod hijacks the roll and fetches it over the network instead. Making the game "wait" for rolls properly is extremely hard to justify from a reverse-engineering standpoint.
 
-The plan is to switch to determenistic rolls. Both host and clients will use the same RNG seed, so they all generate the same "random" results locally. That removes the need for extra network calls during rolls. These seeds can be shared at safe points that don't block the game, like combat start, round start, area load, or with an attack/ability usage notification.
+The plan is to switch to deterministic rolls. Both host and clients will use the same RNG seed, so they all generate the same "random" results locally. That removes the need for extra network calls during rolls. These seeds can be shared at safe points that don't block the game, like combat start, round start, area load, or with an attack/ability usage notification.
 
 The downside is that if the roll order ever gets out of sync, the sequence breaks until the next seed update (for example, the next round or the next attack command).
 
