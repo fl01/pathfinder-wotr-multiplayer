@@ -79,7 +79,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
 
         [HarmonyPatch(typeof(ArmyInfoArmyCartPCView), nameof(ArmyInfoArmyCartPCView.BindViewImplementation))]
         [HarmonyPostfix]
-        public static void ArmyInfoHUDPCView_BindViewImplementation_Postfix(ArmyInfoArmyCartPCView __instance)
+        public static void ArmyInfoArmyCartPCView_BindViewImplementation_Postfix(ArmyInfoArmyCartPCView __instance)
         {
             if (!Main.Multiplayer.IsActive)
             {
