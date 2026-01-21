@@ -43,28 +43,6 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             return matcher.Instructions();
         }
 
-        private static void OnArmySquadSplitRequest(ArmySquadsVM armySquadsVM, ArmyInfoSquadVM sourceVm, ArmyInfoSquadVM targetVm)
-        {
-            armySquadsVM.SplitVM.Value = new ArmySquadsSplitVM(sourceVm, count =>
-            {
-                if (count > 0)
-                {
-                    var errors = armySquadsVM.m_State.Data.MergeSquads(sourceVm.SquadPosition, targetVm.SquadPosition, count);
-                    if (Main.Multiplayer.IsActive && errors == SquadErrors.None)
-                    {
-                        var sourceSquadSlot = CreateSquadSlot(sourceVm);
-                        var targetSquadSlot = CreateSquadSlot(targetVm);
-                        Main.Multiplayer.OnGlobalMapCrusadeArmySquadSplitRequested(sourceSquadSlot, targetSquadSlot, count);
-                    }
-
-                    armySquadsVM.SquadErrorsTrigger.Execute(errors);
-                }
-                ArmySquadsSplitVM value = armySquadsVM.SplitVM.Value;
-                value?.Dispose();
-                armySquadsVM.SplitVM.Value = null;
-            });
-        }
-
         [HarmonyPatch(typeof(ArmySquadsVM), nameof(ArmySquadsVM.SwitchSquads))]
         [HarmonyPrefix]
         public static void ArmySquadsVM_SwitchSquads_Prefix(ArmyInfoSquadVM sourceVm, ArmyInfoSquadVM targetVm)
@@ -121,10 +99,9 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             return canContinue;
         }
 
-
         [HarmonyPatch(typeof(ArmyDismissManager), nameof(ArmyDismissManager.DismissSquad))]
         [HarmonyPrefix]
-        public static void ArmyDismissManager_Dismiss_Prefix(ArmyData army, SquadState squad)
+        public static void ArmyDismissManager_DismissSquad_Prefix(ArmyData army, SquadState squad)
         {
             if (!Main.Multiplayer.IsActive)
             {
@@ -132,14 +109,27 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             }
 
             var position = army.GetSquadPosition(squad);
-            if (position == null)
+            if (!position.HasValue)
             {
                 // should never happen?
                 Main.GetLogger<ArmyDataPatches>().LogError("ArmyDismissManager_Dismiss_Prefix - Squad position is null");
                 return;
             }
             var squadSlot = CreateSquadSlot(army, squad, position.Value);
-            Main.Multiplayer.OnGlobalMapCrusadeArmyDismissSquad(squadSlot);
+            Main.Multiplayer.OnGlobalMapCrusadeArmySquadDismiss(squadSlot);
+        }
+
+        [HarmonyPatch(typeof(ArmyDismissManager), nameof(ArmyDismissManager.DismissArmy))]
+        [HarmonyPrefix]
+        public static void ArmyDismissManager_DismissArmy_Prefix(ArmyData army)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            var globalMapArmy = new NetworkGlobalMapArmy { Id = army.ArmyStateId };
+            Main.Multiplayer.OnGlobalMapCrusadeArmyDismiss(globalMapArmy);
         }
 
         [HarmonyPatch(typeof(ArmyInfoSquadPCView), nameof(ArmyInfoSquadPCView.BindViewImplementation))]
@@ -191,6 +181,28 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
 
             var canContinue = Main.Multiplayer.CanNavigateOnGlobalMap();
             return canContinue;
+        }
+
+        private static void OnArmySquadSplitRequest(ArmySquadsVM armySquadsVM, ArmyInfoSquadVM sourceVm, ArmyInfoSquadVM targetVm)
+        {
+            armySquadsVM.SplitVM.Value = new ArmySquadsSplitVM(sourceVm, count =>
+            {
+                if (count > 0)
+                {
+                    var errors = armySquadsVM.m_State.Data.MergeSquads(sourceVm.SquadPosition, targetVm.SquadPosition, count);
+                    if (Main.Multiplayer.IsActive && errors == SquadErrors.None)
+                    {
+                        var sourceSquadSlot = CreateSquadSlot(sourceVm);
+                        var targetSquadSlot = CreateSquadSlot(targetVm);
+                        Main.Multiplayer.OnGlobalMapCrusadeArmySquadSplitRequested(sourceSquadSlot, targetSquadSlot, count);
+                    }
+
+                    armySquadsVM.SquadErrorsTrigger.Execute(errors);
+                }
+                ArmySquadsSplitVM value = armySquadsVM.SplitVM.Value;
+                value?.Dispose();
+                armySquadsVM.SplitVM.Value = null;
+            });
         }
 
         private static NetworkGlobalMapArmySquadSlot CreateSquadSlot(ArmyInfoSquadVM armyInfoSquadVM)

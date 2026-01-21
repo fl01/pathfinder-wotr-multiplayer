@@ -550,29 +550,22 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                var view = _uiAccessor.ArmySquadsPCView;
-                if (view?.ViewModel == null)
-                {
-                    _logger.LogWarning("Unable to run split request for crusade army squad due to missing view");
-                    return;
-                }
-
-                var sourceSquadVM = GetArmyInfoSquadVM(view, sourceSquadSlot);
+                var (sourceView, sourceSquadVM) = GetArmyInfoSquadVM(sourceSquadSlot);
                 if (sourceSquadVM == null)
                 {
                     _logger.LogWarning("Unable to run split request for crusade army squad due to missing source squad vm. ArmyId={ArmyId}, SquadPosition={SquadPosition}", sourceSquadSlot.ArmyId, sourceSquadSlot.Position);
                     return;
                 }
 
-                var targetSquadVM = GetArmyInfoSquadVM(view, targetSquadSlot);
+                var (targetView, targetSquadVM) = GetArmyInfoSquadVM(targetSquadSlot);
                 if (targetSquadVM == null)
                 {
                     _logger.LogWarning("Unable to run split request for crusade army squad due to missing target squad vm. ArmyId={ArmyId}, SquadPosition={SquadPosition}", targetSquadSlot.ArmyId, targetSquadSlot.Position);
                     return;
                 }
 
-                var errros = view.ViewModel.m_State.Data.MergeSquads(sourceSquadVM.SquadPosition, targetSquadVM.SquadPosition, count);
-                view.ViewModel.SquadErrorsTrigger.Execute(errros);
+                var errros = sourceView.ViewModel.m_State.Data.MergeSquads(sourceSquadVM.SquadPosition, targetSquadVM.SquadPosition, count);
+                sourceView.ViewModel.SquadErrorsTrigger.Execute(errros);
                 _logger.LogInformation("Split request for crusade army squad completed. SourceArmyId={SourceArmyId}, SourceSquadPosition={SourceSquadPosition}, TargetArmyId={TargetArmyId}, TargetSquadPosition={TargetSquadPosition}, Count={Count}", sourceSquadSlot.ArmyId, sourceSquadSlot.Position, targetSquadSlot.ArmyId, targetSquadSlot.Position, count);
             });
         }
@@ -581,28 +574,21 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                var view = _uiAccessor.ArmySquadsPCView;
-                if (view?.ViewModel == null)
-                {
-                    _logger.LogWarning("Unable to switch crusade army squads due to missing view");
-                    return;
-                }
-
-                var sourceSquadVM = GetArmyInfoSquadVM(view, sourceSquadSlot);
+                var (sourceView, sourceSquadVM) = GetArmyInfoSquadVM(sourceSquadSlot);
                 if (sourceSquadVM == null)
                 {
                     _logger.LogWarning("Unable to switch crusade army squads due to missing source squad vm. ArmyId={ArmyId}, SquadPosition={SquadPosition}", sourceSquadSlot.ArmyId, sourceSquadSlot.Position);
                     return;
                 }
 
-                var targetSquadVM = GetArmyInfoSquadVM(view, targetSquadSlot);
+                var (targetView, targetSquadVM) = GetArmyInfoSquadVM(targetSquadSlot);
                 if (targetSquadVM == null)
                 {
                     _logger.LogWarning("Unable to switch crusade army squads due to missing target squad vm. ArmyId={ArmyId}, SquadPosition={SquadPosition}", targetSquadSlot.ArmyId, targetSquadSlot.Position);
                     return;
                 }
 
-                view.ViewModel.SwitchSquads(sourceSquadVM, targetSquadVM);
+                sourceView.ViewModel.SwitchSquads(sourceSquadVM, targetSquadVM);
                 _logger.LogInformation("Crusade army squads have been switched. SourceArmyId={SourceArmyId}, SourceSquadPosition={SourceSquadPosition}, TargetArmyId={TargetArmyId}, TargetSquadPosition={TargetSquadPosition}", sourceSquadSlot.ArmyId, sourceSquadSlot.Position, targetSquadSlot.ArmyId, targetSquadSlot.Position);
             });
         }
@@ -611,28 +597,21 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                var view = _uiAccessor.ArmySquadsPCView;
-                if (view?.ViewModel == null)
-                {
-                    _logger.LogWarning("Unable to merge crusade army squads due to missing view");
-                    return;
-                }
-
-                var sourceSquadVM = GetArmyInfoSquadVM(view, sourceSquadSlot);
+                var (sourceView, sourceSquadVM) = GetArmyInfoSquadVM(sourceSquadSlot);
                 if (sourceSquadVM == null)
                 {
                     _logger.LogWarning("Unable to merge crusade army squads due to missing source squad vm. ArmyId={ArmyId}, SquadPosition={SquadPosition}", sourceSquadSlot.ArmyId, sourceSquadSlot.Position);
                     return;
                 }
 
-                var targetSquadVM = GetArmyInfoSquadVM(view, targetSquadSlot);
+                var (targetView, targetSquadVM) = GetArmyInfoSquadVM(targetSquadSlot);
                 if (targetSquadVM == null)
                 {
                     _logger.LogWarning("Unable to merge crusade army squads due to missing target squad vm. ArmyId={ArmyId}, SquadPosition={SquadPosition}", targetSquadSlot.ArmyId, targetSquadSlot.Position);
                     return;
                 }
 
-                view.ViewModel.MergeSquads(sourceSquadVM, targetSquadVM, count);
+                sourceView.ViewModel.MergeSquads(sourceSquadVM, targetSquadVM, count);
                 _logger.LogInformation("Crusade army squads have been merged. SourceArmyId={SourceArmyId}, SourceSquadPosition={SourceSquadPosition}, TargetArmyId={TargetArmyId}, TargetSquadPosition={TargetSquadPosition}, Count={Count}", sourceSquadSlot.ArmyId, sourceSquadSlot.Position, targetSquadSlot.ArmyId, targetSquadSlot.Position, count);
             });
         }
@@ -641,14 +620,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                var view = _uiAccessor.ArmySquadsPCView;
-                if (view?.ViewModel == null)
-                {
-                    _logger.LogWarning("Unable to split crusade army squads due to missing view");
-                    return;
-                }
-
-                var sourceSquadVM = GetArmyInfoSquadVM(view, globalMapArmySquadSlot);
+                var (sourceView, sourceSquadVM) = GetArmyInfoSquadVM(globalMapArmySquadSlot);
                 if (sourceSquadVM == null)
                 {
                     _logger.LogWarning("Unable to split crusade army squads due to missing squad vm. ArmyId={ArmyId}, SquadPosition={SquadPosition}", globalMapArmySquadSlot.ArmyId, globalMapArmySquadSlot.Position);
@@ -664,14 +636,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                var view = _uiAccessor.ArmySquadsPCView;
-                if (view?.ViewModel == null)
-                {
-                    _logger.LogWarning("Unable to merge in one crusade army squads due to missing view");
-                    return;
-                }
-
-                var sourceSquadVM = GetArmyInfoSquadVM(view, globalMapArmySquadSlot);
+                var (sourceView, sourceSquadVM) = GetArmyInfoSquadVM(globalMapArmySquadSlot);
                 if (sourceSquadVM == null)
                 {
                     _logger.LogWarning("Unable to merge in one crusade army squads due to missing squad vm. ArmyId={ArmyId}, SquadPosition={SquadPosition}", globalMapArmySquadSlot.ArmyId, globalMapArmySquadSlot.Position);
@@ -687,14 +652,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                var view = _uiAccessor.ArmySquadsPCView;
-                if (view?.ViewModel == null)
-                {
-                    _logger.LogWarning("Unable to dismiss crusade army squads due to missing view");
-                    return;
-                }
-
-                var sourceSquadVM = GetArmyInfoSquadVM(view, globalMapArmySquadSlot);
+                var (sourceView, sourceSquadVM) = GetArmyInfoSquadVM(globalMapArmySquadSlot);
                 if (sourceSquadVM == null)
                 {
                     _logger.LogWarning("Unable to dismiss crusade army squads due to missing source squad vm. ArmyId={ArmyId}, SquadPosition={SquadPosition}", globalMapArmySquadSlot.ArmyId, globalMapArmySquadSlot.Position);
@@ -706,11 +664,379 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
-        private ArmyInfoSquadVM GetArmyInfoSquadVM(ArmySquadsPCView armySquadsView, NetworkGlobalMapArmySquadSlot mapArmySquadSlot)
+        public void DismissCrusadeArmy(NetworkGlobalMapArmy globalMapArmy)
         {
+            _mainThreadAccessor.Post(() =>
+            {
+                var army = _gameStateLookupService.GetGlobalMapArmy(globalMapArmy.Id);
+                if (army == null)
+                {
+                    _logger.LogWarning("Unable to dismiss missing crusade army. ArmyId={ArmyId}", globalMapArmy.Id);
+                    return;
+                }
+
+                ArmyDismissManager.Instance.DismissArmy(army.Data);
+                _logger.LogInformation("Crusade army has been dismissed. ArmyId={ArmyId}", army.Id);
+            });
+        }
+
+        public void UpdateCrusadeArmyInfoUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to update crusade army info due to missing view");
+                    return;
+                }
+
+                view.m_NextMergeArmy.Interactable = view.ViewModel.HaveNextArmyMerge.Value && isInteractable;
+                view.m_PrevMergeArmy.Interactable = view.ViewModel.HavePrevArmyMerge.Value && isInteractable;
+                view.m_CreateArmyButton.Interactable = isInteractable;
+                view.m_RecruitArmyButton.Interactable = isInteractable;
+                view.m_MoveSquadsToMainButton.Interactable = isInteractable;
+                view.m_MoveSquadsToSecondButton.Interactable = isInteractable;
+
+                var setLeaderView = view.m_SetLeaderView.m_LeaderInfoView;
+                UpdateLeaderInfoUIState((ArmyLeaderInfoPCView)setLeaderView, isInteractable, readyPlayersCount, totalPlayersCount);
+
+                var mainCartView = view.m_MainArmyCartView;
+                UpdateArmyCartView(mainCartView, isInteractable, readyPlayersCount, totalPlayersCount);
+
+                var mergeCartView = view.m_MergeArmyCartView;
+                UpdateArmyCartView(mergeCartView, isInteractable, readyPlayersCount, totalPlayersCount);
+
+                _logger.LogInformation("Crusade army info ui has been updated. IsInteractable={IsInteractable}, ReadyPlayers={ReadyPlayers}, TotalPlayers={TotalPlayers}", isInteractable, readyPlayersCount, totalPlayersCount);
+            });
+        }
+
+        private void UpdateArmyCartView(ArmyInfoArmyCartView armyInfoArmyCartView, bool isInteractable, int readyPlayersCount, int totalPlayersCount)
+        {
+            if (armyInfoArmyCartView?.ViewModel == null)
+            {
+                return;
+            }
+
+            var view = (ArmyInfoArmyCartPCView)armyInfoArmyCartView;
+            if (armyInfoArmyCartView?.ViewModel != null)
+            {
+                view.m_CloseButton.Interactable = isInteractable;
+                view.m_DismissButton.Interactable = isInteractable;
+
+                UpdateLeaderInfoUIState((ArmyLeaderInfoPCView)view.m_LeaderInfoView, isInteractable, readyPlayersCount, totalPlayersCount);
+            }
+        }
+
+        public void CloseCrusadeArmyInfo()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to close crusade army info due to missing view");
+                    return;
+                }
+
+                view.ViewModel.OnClose();
+                _logger.LogInformation("Crusade army info close handler has been executed");
+            });
+        }
+
+        public void CloseCrusadeArmyMainInfo()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView?.m_MainArmyCartView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to close crusade army main info due to missing view");
+                    return;
+                }
+
+                view.ViewModel.OnClose();
+                _logger.LogInformation("Crusade army main info close handler has been executed");
+            });
+        }
+
+        public void CloseCrusadeArmyMergeInfo()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView?.m_MergeArmyCartView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to close crusade army merge info due to missing view");
+                    return;
+                }
+
+                view.ViewModel.OnClose();
+                _logger.LogInformation("Crusade army info close handler has been executed");
+            });
+        }
+
+        public void OpenCrusadeArmyInfo()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView.m_ArmyInfoHUDPCView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to open crusade army info due to missing view");
+                    return;
+                }
+
+                if (_uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView?.ViewModel != null)
+                {
+                    _logger.LogWarning("Army info is already opened");
+                    return;
+                }
+
+                view.ViewModel.OnInfoRequest();
+                _logger.LogInformation("Crusade army info has been opened");
+            });
+        }
+
+        public void MoveCrusadeArmySquadsToMainArmy()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to move crusade army squads to main army due to missing view");
+                    return;
+                }
+
+                view.ViewModel.MoveSquadsToMainArmy();
+                _logger.LogInformation("Crusade army squads have been moved to main army");
+            });
+        }
+
+        public void MoveCrusadeArmySquadsToSecondArmy()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to move crusade army squads to second army due to missing view");
+                    return;
+                }
+
+                view.ViewModel.MoveSquadsToSecondArmy();
+                _logger.LogInformation("Crusade army squads have been moved to second army");
+            });
+        }
+
+        public void SelectPrevCrusadeArmyInfoMergeArmy()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to select prev crusade army merge due to missing view");
+                    return;
+                }
+
+                view.ViewModel.PrevMergeArmy();
+                _logger.LogInformation("Prev army for crusade army merge has been selected");
+            });
+        }
+
+        public void SelectNextCrusadeArmyInfoMergeArmy()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to select next crusade army merge due to missing view");
+                    return;
+                }
+
+                view.ViewModel.NextMergeArmy();
+                _logger.LogInformation("Next army for crusade army merge has been selected");
+            });
+        }
+
+        public void RunMainLeaderAction()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView.m_MainArmyCartView?.m_LeaderInfoView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to run main leader action due to missing view");
+                    return;
+                }
+
+                view.ViewModel.OnClick();
+                _logger.LogInformation("Main leader action has been executed");
+            });
+        }
+
+        public void RunMergeLeaderAction()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView.m_MergeArmyCartView?.m_LeaderInfoView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to run merge leader action due to missing view");
+                    return;
+                }
+
+                view.ViewModel.OnClick();
+                _logger.LogInformation("Merge leader action has been executed");
+            });
+        }
+
+        public void LevelUpMergeLeader()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView.m_MergeArmyCartView?.m_LeaderInfoView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to levelup merge leader due to missing view");
+                    return;
+                }
+
+                view.ViewModel.OnLevelUp();
+                _logger.LogInformation("Merge leader has started leveling process");
+            });
+        }
+
+        public void LevelUpMainLeader()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView.m_MainArmyCartView?.m_LeaderInfoView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to levelup main leader due to missing view");
+                    return;
+                }
+
+                view.ViewModel.OnLevelUp();
+                _logger.LogInformation("Main leader has started leveling process");
+            });
+        }
+
+        public void LookAtPoolForMainLeader()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView.m_MainArmyCartView?.m_LeaderInfoView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to look at pool for main leader due to missing view");
+                    return;
+                }
+
+                view.ViewModel.OnLookAtLeaderPool();
+                _logger.LogInformation("Main leader pool has been opened");
+            });
+        }
+
+        public void LookAtPoolForMergeLeader()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView.m_MainArmyCartView?.m_LeaderInfoView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to look at pool for merge leader due to missing view");
+                    return;
+                }
+
+                view.ViewModel.OnLookAtLeaderPool();
+                _logger.LogInformation("Merge leader pool has been opened");
+            });
+        }
+
+        public void OpenCrusadeArmiesMergeScreen()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to open merge screen due to missing global map view");
+                    return;
+                }
+
+                view.ViewModel.GlobalMapArmyOvertipsVM.MergeArmies();
+                _logger.LogInformation("Merge armies screen has been opened");
+            });
+        }
+
+        public void CreateArmyAtCrusadeArmyInfo()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to create army at crusade info due to missing view");
+                    return;
+                }
+
+                // view call to play sound
+                view.CreateArmy();
+                _logger.LogInformation("Crusade army has been created at crusade info screen");
+            });
+        }
+
+        private void UpdateLeaderInfoUIState(ArmyLeaderInfoPCView view, bool isInteractable, int readyPlayersCount, int totalPlayersCount)
+        {
+            if (view?.ViewModel == null)
+            {
+                return;
+            }
+
+            view.m_LevelUpButton.Interactable = isInteractable;
+            view.m_Button.Interactable = isInteractable;
+            _uiSyncCountersService.UpdateButtonTextCounter(view.m_ButtonText, readyPlayersCount, totalPlayersCount);
+
+            view.m_EmptyButton.Interactable = isInteractable;
+            _uiSyncCountersService.UpdateButtonTextCounter(view.m_EmptyButtonText, readyPlayersCount, totalPlayersCount);
+        }
+
+        private (ArmySquadsPCView view, ArmyInfoSquadVM squadVM)? GetArmyInfoSquadVM(ArmySquadsPCView armySquadsView, NetworkGlobalMapArmySquadSlot mapArmySquadSlot)
+        {
+            if (armySquadsView?.ViewModel == null)
+            {
+                return null;
+            }
+
             var position = new Vector2Int(mapArmySquadSlot.Position.X, mapArmySquadSlot.Position.Y);
             var squadView = armySquadsView?.m_Squads.FirstOrDefault(v => v.ViewModel != null && string.Equals(v.ViewModel.Army.ArmyStateId, mapArmySquadSlot.ArmyId, StringComparison.OrdinalIgnoreCase) && v.ViewModel.SquadPosition == position);
-            return squadView?.ViewModel;
+            if (squadView?.ViewModel == null)
+            {
+                return null;
+            }
+
+            return (armySquadsView, squadView.ViewModel);
+        }
+
+        private (ArmySquadsPCView view, ArmyInfoSquadVM) GetArmyInfoSquadVM(NetworkGlobalMapArmySquadSlot mapArmySquadSlot)
+        {
+            var globalMapView = _uiAccessor.GlobalMapPCView;
+
+            var squad = GetArmyInfoSquadVM((ArmySquadsPCView)globalMapView.m_ArmyInfoPCView?.m_MainArmyCartView?.m_SquadsView, mapArmySquadSlot)
+                ?? GetArmyInfoSquadVM((ArmySquadsPCView)globalMapView.m_ArmyInfoPCView?.m_MergeArmyCartView?.m_SquadsView, mapArmySquadSlot)
+                ?? GetArmyInfoSquadVM((ArmySquadsPCView)globalMapView.m_ArmyInfoHUDPCView?.m_SquadView, mapArmySquadSlot);
+
+            if (squad == null)
+            {
+                return (null, null);
+            }
+
+            return squad.Value;
         }
 
         private void UpdateTraveler(NetworkGlobalMapTraveler traveler)

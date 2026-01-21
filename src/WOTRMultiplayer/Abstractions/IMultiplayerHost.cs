@@ -124,6 +124,36 @@ namespace WOTRMultiplayer.Abstractions
 
         bool OnGlobalMapCrusadeArmyMergedInOne(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot);
 
-        void OnGlobalMapCrusadeArmyDismissSquad(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot);
+        void OnGlobalMapCrusadeArmySquadDismiss(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot);
+
+        void OnGlobalMapCrusadeArmyDismiss(NetworkGlobalMapArmy globalMapArmy);
+
+        void OnGlobalMapCrusadeArmyInfoClosed();
+
+        void OnGlobalMapCrusadeArmyMoveSquadsToMainArmy();
+
+        void OnGlobalMapCrusadeArmyMoveSquadsToSecondArmy();
+
+        void OnGlobalMapCrusadeArmyInfoNextMergeArmy();
+
+        void OnGlobalMapCrusadeArmyInfoPrevMergeArmy();
+
+        void OnGlobalMapCrusadeArmyMainLeaderAction();
+
+        void OnGlobalMapCrusadeArmyMergeLeaderAction();
+
+        void OnGlobalMapCrusadeArmyMainLeaderLevelUp();
+
+        void OnGlobalMapCrusadeArmyMergeLeaderLevelUp();
+
+        void OnGlobalMapCrusadeArmyMainLeaderLookAtPool();
+
+        void OnGlobalMapCrusadeArmyMergeLeaderLookAtPool();
+
+        void OnGlobalMapMergeArmies();
+
+        void OnGlobalMapCrusadeArmyInfoCreateArmy();
+
+        void OnGlobalMapCrusadeArmyInfoMainClosed();
     }
 }

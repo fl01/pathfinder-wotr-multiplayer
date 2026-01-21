@@ -65,5 +65,41 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void MergeInOneCrusadeArmySquad(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot);
 
         void DismissCrusadeArmySquad(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot);
+
+        void DismissCrusadeArmy(NetworkGlobalMapArmy globalMapArmy);
+
+        void UpdateCrusadeArmyInfoUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
+
+        void CloseCrusadeArmyInfo();
+
+        void CloseCrusadeArmyMergeInfo();
+
+        void MoveCrusadeArmySquadsToMainArmy();
+
+        void MoveCrusadeArmySquadsToSecondArmy();
+
+        void SelectPrevCrusadeArmyInfoMergeArmy();
+
+        void SelectNextCrusadeArmyInfoMergeArmy();
+
+        void RunMainLeaderAction();
+
+        void RunMergeLeaderAction();
+
+        void LevelUpMergeLeader();
+
+        void LevelUpMainLeader();
+
+        void LookAtPoolForMainLeader();
+
+        void LookAtPoolForMergeLeader();
+
+        void OpenCrusadeArmiesMergeScreen();
+
+        void OpenCrusadeArmyInfo();
+
+        void CreateArmyAtCrusadeArmyInfo();
+
+        void CloseCrusadeArmyMainInfo();
     }
 }

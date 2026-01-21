@@ -30,7 +30,7 @@ namespace WOTRMultiplayer.Logging
             var fileStream = new FileStream(safeFileHandle, FileAccess.Write);
             var standardOutput = new StreamWriter(fileStream, Encoding.UTF8)
             {
-                AutoFlush = true,
+                AutoFlush = true
             };
 
             return standardOutput;

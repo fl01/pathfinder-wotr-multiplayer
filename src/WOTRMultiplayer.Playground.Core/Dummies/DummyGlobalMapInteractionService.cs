@@ -129,5 +129,77 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void DismissCrusadeArmySquad(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot)
         {
         }
+
+        public void UpdateCrusadeArmyInfoUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
+        {
+        }
+
+        public void CloseCrusadeArmyInfo()
+        {
+        }
+
+        public void DismissCrusadeArmy(NetworkGlobalMapArmy globalMapArmy)
+        {
+        }
+
+        public void MoveCrusadeArmySquadsToMainArmy()
+        {
+        }
+
+        public void MoveCrusadeArmySquadsToSecondArmy()
+        {
+        }
+
+        public void SelectPrevCrusadeArmyInfoMergeArmy()
+        {
+        }
+
+        public void SelectNextCrusadeArmyInfoMergeArmy()
+        {
+        }
+
+        public void RunMainLeaderAction()
+        {
+        }
+
+        public void RunMergeLeaderAction()
+        {
+        }
+
+        public void LevelUpMergeLeader()
+        {
+        }
+
+        public void LevelUpMainLeader()
+        {
+        }
+
+        public void LookAtPoolForMainLeader()
+        {
+        }
+
+        public void LookAtPoolForMergeLeader()
+        {
+        }
+
+        public void OpenCrusadeArmiesMergeScreen()
+        {
+        }
+
+        public void OpenCrusadeArmyInfo()
+        {
+        }
+
+        public void CreateArmyAtCrusadeArmyInfo()
+        {
+        }
+
+        public void CloseCrusadeArmyMergeInfo()
+        {
+        }
+
+        public void CloseCrusadeArmyMainInfo()
+        {
+        }
     }
 }

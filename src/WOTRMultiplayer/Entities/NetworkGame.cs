@@ -59,6 +59,10 @@ namespace WOTRMultiplayer.Entities
 
         public HashSet<long> PlayersInGlobalMapCombatResults { get; set; } = [];
 
+        public HashSet<long> PlayersInGlobalMapCrusadeArmyInfo { get; set; } = [];
+
+        public HashSet<long> PlayersInGlobalMapCrusadeArmyInfoMerge { get; set; } = [];
+
         public HashSet<long> PlayersInGlobalMapEncounterMessage { get; set; } = [];
 
         public HashSet<long> PlayersInZoneLoot { get; set; } = [];

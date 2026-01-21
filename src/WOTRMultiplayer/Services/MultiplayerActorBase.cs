@@ -1791,6 +1791,51 @@ namespace WOTRMultiplayer.Services
             UpdateGlobalMapCombatResultsUIState();
         }
 
+        public void OnGlobalMapCrusadeArmyInfoShown()
+        {
+            var localPlayer = GetLocalPlayerId();
+            AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyInfo, localPlayer);
+
+            var message = new NotifyGlobalMapCrusadeArmyInfoShown
+            {
+                PlayerId = localPlayer
+            };
+            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyInfoShown), message.PlayerId);
+            Send(message);
+
+            UpdateGlobalMapCrusadeArmyInfoUIState();
+        }
+
+        public void OnGlobalMapCrusadeArmyInfoMergeClosed()
+        {
+            var localPlayer = GetLocalPlayerId();
+            RemovePlayerFromTracker(Game.PlayersInGlobalMapCrusadeArmyInfoMerge, localPlayer);
+
+            var message = new NotifyGlobalMapCrusadeArmyInfoMergeClosed
+            {
+                PlayerId = localPlayer
+            };
+            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyInfoMergeClosed), message.PlayerId);
+            Send(message);
+
+            UpdateGlobalMapCrusadeArmyInfoUIStateAfterMerge();
+        }
+
+        public void OnGlobalMapCrusadeArmyInfoMergeShown()
+        {
+            var localPlayer = GetLocalPlayerId();
+            AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyInfoMerge, localPlayer);
+
+            var message = new NotifyGlobalMapCrusadeArmyInfoMergeShown
+            {
+                PlayerId = localPlayer
+            };
+            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyInfoMergeShown), message.PlayerId);
+            Send(message);
+
+            UpdateGlobalMapCrusadeArmyInfoUIStateOnMerge();
+        }
+
         public void OnTacticalCombatEnded()
         {
             Game.ArmyCombat = null;
@@ -1987,6 +2032,39 @@ namespace WOTRMultiplayer.Services
                 var totalPlayers = GetSyncedPlayersCount();
                 var canUse = HasControlOverUI && readyPlayers >= totalPlayers;
                 GlobalMapInteraction.UpdateCombatResultsUI(canUse, readyPlayers, totalPlayers);
+            }
+        }
+
+        protected void UpdateGlobalMapCrusadeArmyInfoUIState()
+        {
+            lock (ActionLock)
+            {
+                var readyPlayers = Game.PlayersInGlobalMapCrusadeArmyInfo.Count;
+                var totalPlayers = GetSyncedPlayersCount();
+                var canUse = HasControlOverUI && readyPlayers >= totalPlayers;
+                GlobalMapInteraction.UpdateCrusadeArmyInfoUI(canUse, readyPlayers, totalPlayers);
+            }
+        }
+
+        protected void UpdateGlobalMapCrusadeArmyInfoUIStateOnMerge()
+        {
+            lock (ActionLock)
+            {
+                var readyPlayers = Game.PlayersInGlobalMapCrusadeArmyInfoMerge.Count;
+                var totalPlayers = GetSyncedPlayersCount();
+                var canUse = HasControlOverUI && readyPlayers >= totalPlayers;
+                GlobalMapInteraction.UpdateCrusadeArmyInfoUI(canUse, readyPlayers, totalPlayers);
+            }
+        }
+
+        protected void UpdateGlobalMapCrusadeArmyInfoUIStateAfterMerge()
+        {
+            lock (ActionLock)
+            {
+                var readyPlayers = GetSyncedPlayersCount() - Game.PlayersInGlobalMapCrusadeArmyInfoMerge.Count;
+                var totalPlayers = GetSyncedPlayersCount();
+                var canUse = HasControlOverUI && Game.PlayersInGlobalMapCrusadeArmyInfoMerge.Count == 0;
+                GlobalMapInteraction.UpdateCrusadeArmyInfoUI(canUse, readyPlayers, totalPlayers);
             }
         }
 
@@ -2371,6 +2449,7 @@ namespace WOTRMultiplayer.Services
             ResetPlayersTracker(Game.PlayersInDialogPopup);
             ResetPlayersTracker(Game.PlayersInCharacterSelectionWindow);
             ResetPlayersTracker(Game.PlayersInRespecWindow);
+            ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyInfo);
         }
 
         protected string StoreSaveGameContent(byte[] content)
@@ -2675,7 +2754,6 @@ namespace WOTRMultiplayer.Services
             UpdateGlobalMapCrusadeArmyBattleResultsUIState();
 
             RemovePlayerFromTracker(Game.PlayersInGlobalMapCommonPopup, playerId);
-            UpdateGlobalMapCommonPopupUIState(null);
 
             RemovePlayerFromTracker(Game.PlayersInGlobalMapCombatResults, playerId);
             UpdateGlobalMapCombatResultsUIState();
@@ -2847,6 +2925,7 @@ namespace WOTRMultiplayer.Services
                 .On<NotifyGlobalMapCombatResultsShown>(OnNotifyGlobalMapCombatResultsShown)
                 .On<NotifyTacticalCombatTurnInitialized>(OnNotifyTacticalCombatTurnInitialized)
                 .On<NotifyCrusadeArmyBattleResultsShown>(OnNotifyCrusadeArmyBattleResultsShown)
+                .On<NotifyGlobalMapCrusadeArmyInfoMergeShown>(OnNotifyGlobalMapCrusadeArmyInfoMergeShown)
 
                 // overtips
                 .On<NotifyOvertipInteracted>(OnNotifyOvertipInteracted)
@@ -2902,6 +2981,15 @@ namespace WOTRMultiplayer.Services
                 // cutscenes
                 .On<NotifyCutsceneSkipped>(OnNotifyCutsceneSkipped)
                 ;
+        }
+
+        private void OnNotifyGlobalMapCrusadeArmyInfoMergeShown(long receivedFrom, NotifyGlobalMapCrusadeArmyInfoMergeShown globalMapCrusadeArmyInfoMergeShown)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyInfoMergeShown), receivedFrom, globalMapCrusadeArmyInfoMergeShown.PlayerId);
+            AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyInfoMerge, globalMapCrusadeArmyInfoMergeShown.PlayerId);
+            UpdateGlobalMapCrusadeArmyInfoUIStateOnMerge();
+
+            OnAfterNetworkMessageHandled(receivedFrom, globalMapCrusadeArmyInfoMergeShown);
         }
 
         private void OnNotifyGlobalMapCombatResultsShown(long receivedFrom, NotifyGlobalMapCombatResultsShown globalMapCombatResultsShown)

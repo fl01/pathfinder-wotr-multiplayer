@@ -974,13 +974,123 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
-        public void OnGlobalMapCrusadeArmyDismissSquad(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot)
+        public void OnGlobalMapCrusadeArmyInfoClosed()
+        {
+            ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyInfo);
+
+            var message = new NotifyGlobalMapCrusadeArmyInfoClosed();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyInfoClosed));
+            Send(message);
+        }
+
+        public void OnGlobalMapCrusadeArmyMoveSquadsToMainArmy()
+        {
+            var message = new NotifyGlobalMapCrusadeArmySquadsMovedToMainArmy();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmySquadsMovedToMainArmy));
+            Send(message);
+        }
+
+        public void OnGlobalMapCrusadeArmyMoveSquadsToSecondArmy()
+        {
+            var message = new NotifyGlobalMapCrusadeArmySquadsMovedToSecondArmy();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmySquadsMovedToSecondArmy));
+            Send(message);
+        }
+
+        public void OnGlobalMapCrusadeArmyInfoNextMergeArmy()
+        {
+            var message = new NotifyGlobalMapCrusadeArmyInfoNextMergeArmySelected();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyInfoNextMergeArmySelected));
+            Send(message);
+        }
+
+        public void OnGlobalMapCrusadeArmyInfoPrevMergeArmy()
+        {
+            var message = new NotifyGlobalMapCrusadeArmyInfoPrevMergeArmySelected();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyInfoPrevMergeArmySelected));
+            Send(message);
+        }
+
+        public void OnGlobalMapCrusadeArmyMainLeaderAction()
+        {
+            var message = new NotifyGlobalMapCrusadeArmyMainLeaderActionExecuted();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyMainLeaderActionExecuted));
+            Send(message);
+        }
+
+        public void OnGlobalMapCrusadeArmyMergeLeaderAction()
+        {
+            var message = new NotifyGlobalMapCrusadeArmyMergeLeaderActionExecuted();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyMergeLeaderActionExecuted));
+            Send(message);
+        }
+
+        public void OnGlobalMapCrusadeArmyMainLeaderLevelUp()
+        {
+            var message = new NotifyGlobalMapCrusadeArmyMainLeaderLevelUp();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyMainLeaderLevelUp));
+            Send(message);
+        }
+
+        public void OnGlobalMapCrusadeArmyMergeLeaderLevelUp()
+        {
+            var message = new NotifyGlobalMapCrusadeArmyMergeLeaderLevelUp();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyMergeLeaderLevelUp));
+            Send(message);
+        }
+
+        public void OnGlobalMapCrusadeArmyMainLeaderLookAtPool()
+        {
+            var message = new NotifyGlobalMapCrusadeArmyMainLeaderLookAtPool();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyMainLeaderLookAtPool));
+            Send(message);
+        }
+
+        public void OnGlobalMapCrusadeArmyMergeLeaderLookAtPool()
+        {
+            var message = new NotifyGlobalMapCrusadeArmyMergeLeaderLookAtPool();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyMergeLeaderLookAtPool));
+            Send(message);
+        }
+
+        public void OnGlobalMapMergeArmies()
+        {
+            var message = new NotifyGlobalMapCrusadeArmiesMerging();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmiesMerging));
+            Send(message);
+        }
+
+        public void OnGlobalMapCrusadeArmyInfoCreateArmy()
+        {
+            var message = new NotifyGlobalMapCrusadeArmyInfoArmyCreated();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyInfoArmyCreated));
+            Send(message);
+        }
+
+        public void OnGlobalMapCrusadeArmyInfoMainClosed()
+        {
+            var message = new NotifyGlobalMapCrusadeArmyInfoMainClosed();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyInfoMainClosed));
+            Send(message);
+        }
+
+        public void OnGlobalMapCrusadeArmySquadDismiss(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot)
         {
             var message = new NotifyGlobalMapCrusadeArmySquadDismissed
             {
                 SquadSlot = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapArmySquadSlot>(globalMapArmySquadSlot),
             };
             Logger.LogInformation("Sending {MessageType}. ArmyId={SourceArmyId}, SquadId={SourceSquadId}, Position={SourcePosition}", nameof(NotifyGlobalMapCrusadeArmySquadDismissed), message.SquadSlot.ArmyId, message.SquadSlot.SquadId, message.SquadSlot.Position);
+            Send(message);
+        }
+
+        public void OnGlobalMapCrusadeArmyDismiss(NetworkGlobalMapArmy globalMapArmy)
+        {
+            var message = new NotifyGlobalMapCrusadeArmyDismissed
+            {
+                Army = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapArmy>(globalMapArmy),
+            };
+            Logger.LogInformation("Sending {MessageType}. ArmyId={SourceArmyId}", nameof(NotifyGlobalMapCrusadeArmyDismissed), message.Army.Id);
             Send(message);
         }
 
@@ -1249,6 +1359,8 @@ namespace WOTRMultiplayer.Services
                // global map & crusade combat
                .On<NotifyGlobalMapTravelerModeChanged>(OnNotifyGlobalMapTravelerModeChanged)
                .On<NotifyTacticalCombatInitializationConfirmed>(OnNotifyTacticalCombatInitializationConfirmed)
+               .On<NotifyGlobalMapCrusadeArmyInfoMergeClosed>(OnNotifyGlobalMapCrusadeArmyInfoMergeClosed)
+               .On<NotifyGlobalMapCrusadeArmyInfoShown>(OnNotifyGlobalMapCrusadeArmyInfoShown)
 
                // dialogs
                .On<ClientDialogCueAnswerSuggested>(OnClientDialogCueAnswerSuggested)
@@ -1261,6 +1373,23 @@ namespace WOTRMultiplayer.Services
                // inventory
                .On<NotifyPolymorphicItemCreationRequested>(OnNotifyPolymorphicItemCreationRequested)
                ;
+        }
+
+        private void OnNotifyGlobalMapCrusadeArmyInfoShown(long receivedFrom, NotifyGlobalMapCrusadeArmyInfoShown globalMapCrusadeArmyInfoShown)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapCombatResultsShown), receivedFrom, globalMapCrusadeArmyInfoShown.PlayerId);
+            AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyInfo, globalMapCrusadeArmyInfoShown.PlayerId);
+
+            UpdateGlobalMapCrusadeArmyInfoUIState();
+
+            OnAfterNetworkMessageHandled(receivedFrom, globalMapCrusadeArmyInfoShown);
+        }
+
+        private void OnNotifyGlobalMapCrusadeArmyInfoMergeClosed(long receivedFrom, NotifyGlobalMapCrusadeArmyInfoMergeClosed globalMapCrusadeArmyInfoMergeClosed)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapTravelerModeChanged), receivedFrom, globalMapCrusadeArmyInfoMergeClosed.PlayerId);
+            RemovePlayerFromTracker(Game.PlayersInGlobalMapCrusadeArmyInfoMerge, globalMapCrusadeArmyInfoMergeClosed.PlayerId);
+            UpdateGlobalMapCrusadeArmyInfoUIStateAfterMerge();
         }
 
         private void OnNotifyTacticalCombatInitializationConfirmed(long receivedFrom, NotifyTacticalCombatInitializationConfirmed tacticalCombatInitializationConfirmed)

@@ -188,7 +188,25 @@
             NotifyGlobalMapCrusadeArmySquadsMerged,
             NotifyGlobalMapCrusadeArmySquadSplitted,
             NotifyGlobalMapCrusadeArmyMergedInOne,
-            NotifyGlobalMapCrusadeArmySquadDismissed
+            NotifyGlobalMapCrusadeArmySquadDismissed,
+            NotifyGlobalMapCrusadeArmyInfoShown,
+            NotifyGlobalMapCrusadeArmyInfoClosed,
+            NotifyGlobalMapCrusadeArmyDismissed,
+            NotifyGlobalMapCrusadeArmySquadsMovedToMainArmy,
+            NotifyGlobalMapCrusadeArmySquadsMovedToSecondArmy,
+            NotifyGlobalMapCrusadeArmyInfoMergeShown,
+            NotifyGlobalMapCrusadeArmyInfoMergeClosed,
+            NotifyGlobalMapCrusadeArmyInfoNextMergeArmySelected,
+            NotifyGlobalMapCrusadeArmyInfoPrevMergeArmySelected,
+            NotifyGlobalMapCrusadeArmyMainLeaderActionExecuted,
+            NotifyGlobalMapCrusadeArmyMergeLeaderActionExecuted,
+            NotifyGlobalMapCrusadeArmyMainLeaderLevelUp,
+            NotifyGlobalMapCrusadeArmyMergeLeaderLevelUp,
+            NotifyGlobalMapCrusadeArmyMainLeaderLookAtPool,
+            NotifyGlobalMapCrusadeArmyMergeLeaderLookAtPool,
+            NotifyGlobalMapCrusadeArmiesMerging,
+            NotifyGlobalMapCrusadeArmyInfoArmyCreated,
+            NotifyGlobalMapCrusadeArmyInfoMainClosed
         }
 
         public enum Request

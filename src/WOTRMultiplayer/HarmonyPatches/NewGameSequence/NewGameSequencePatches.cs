@@ -27,7 +27,7 @@ namespace WOTRMultiplayer.HarmonyPatches.NewGameSequence
         {
             var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
             var lookFor = AccessTools.Field(typeof(UIAccess), nameof(UIAccess.EscManager));
-            var replaceWith = AccessTools.Method(typeof(NewGameSequencePatches), nameof(ConfigureCloseHandlers));
+            var replaceWith = AccessTools.Method(typeof(NewGameSequencePatches), nameof(NewGameSequencePatches.ConfigureCloseHandlers));
             var matcher = new CodeMatcher(instructions);
             var match = matcher.SearchForward(x => x.LoadsField(lookFor));
             if (match.IsInvalid)
@@ -46,11 +46,6 @@ namespace WOTRMultiplayer.HarmonyPatches.NewGameSequence
 
             Main.GetLogger<NewGameSequencePatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
-        }
-
-        public static void ConfigureCloseHandlers(NewGamePCView __instance)
-        {
-            __instance.AddDisposable(Game.Instance.UI.EscManager.Subscribe(() => OnCloseNewGameView(__instance)));
         }
 
         [HarmonyPatch(typeof(DifficultySettingsController), nameof(DifficultySettingsController.WantChangeGameDifficulty))]
@@ -159,6 +154,17 @@ namespace WOTRMultiplayer.HarmonyPatches.NewGameSequence
             __instance.SettingOnlyActiveCompanionsReceiveExperienceVM.ModificationAllowed.Value = false;
         }
 
+        private static void ConfigureCloseHandlers(NewGamePCView __instance)
+        {
+            __instance.AddDisposable(Game.Instance.UI.EscManager.Subscribe(() =>
+            {
+                if (!Main.Multiplayer.IsActive || __instance.m_CloseButton.Interactable)
+                {
+                    __instance.ViewModel.OnClose();
+                }
+            }));
+        }
+
         private static void SetSettingState(SettingsEntityWithValueVM valueSettingVM, bool isEnabled)
         {
             var field = GetField(valueSettingVM.m_UISettingsEntity);
@@ -170,14 +176,6 @@ namespace WOTRMultiplayer.HarmonyPatches.NewGameSequence
         {
             var field = settingEntity.GetType().GetField(nameof(UISettingsEntityWithValueBase<object>.ManualModificationLock));
             return field;
-        }
-
-        private static void OnCloseNewGameView(NewGamePCView __instance)
-        {
-            if (!Main.Multiplayer.IsActive || __instance.m_CloseButton.Interactable)
-            {
-                __instance.ViewModel.OnClose();
-            }
         }
     }
 }

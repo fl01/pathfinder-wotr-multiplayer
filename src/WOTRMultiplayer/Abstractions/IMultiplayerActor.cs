@@ -304,5 +304,11 @@ namespace WOTRMultiplayer.Abstractions
         void OnCrusadeArmyBattleResultsShown();
 
         void OnGlobalMapCombatResultsShown();
+
+        void OnGlobalMapCrusadeArmyInfoShown();
+
+        void OnGlobalMapCrusadeArmyInfoMergeClosed();
+
+        void OnGlobalMapCrusadeArmyInfoMergeShown();
     }
 }

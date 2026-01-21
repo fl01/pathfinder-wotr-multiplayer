@@ -58,7 +58,5 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         DialogContextPCView DialogContextPCView { get; }
 
         TacticalCombatResultsPCView TacticalCombatResultsPCView { get; }
-
-        ArmySquadsPCView ArmySquadsPCView { get; }
     }
 }

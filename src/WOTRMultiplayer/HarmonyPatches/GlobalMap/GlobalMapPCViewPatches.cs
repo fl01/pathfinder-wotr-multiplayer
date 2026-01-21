@@ -7,10 +7,12 @@ using Kingmaker.Globalmap.State;
 using Kingmaker.UI.MVVM._PCView.GlobalMap;
 using Microsoft.Extensions.Logging;
 using UniRx;
-using WOTRMultiplayer.Entities.GlobalMap;
 
 namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
 {
+    /// <summary>
+    /// TODO: delete once army management is done
+    /// </summary>
     [HarmonyPatch]
     public class GlobalMapPCViewPatches
     {
