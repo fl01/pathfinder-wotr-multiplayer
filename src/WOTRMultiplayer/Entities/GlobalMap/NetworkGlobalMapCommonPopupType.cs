@@ -6,5 +6,6 @@
         Flee,
         Fatigue,
         ClearLeader,
+        BuyLeader,
     }
 }

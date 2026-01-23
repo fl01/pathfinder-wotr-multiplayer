@@ -187,19 +187,14 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
         {
             return Game.Instance.UI.EscManager.Subscribe(() =>
             {
-                if (!Main.Multiplayer.IsActive || view.m_MainArmyCartView is not ArmyInfoArmyCartPCView pcView)
+                if (!Main.Multiplayer.IsActive)
                 {
                     action?.Invoke();
                     return;
                 }
 
-                if (pcView.m_CloseButton.Interactable)
+                if (((ArmyInfoArmyCartPCView)view.m_MainArmyCartView).m_CloseButton.Interactable)
                 {
-                    if (view.m_MergeArmyCartView?.ViewModel != null)
-                    {
-                        Main.Multiplayer.OnGlobalMapCrusadeArmyInfoMergeClosed();
-                    }
-
                     Main.Multiplayer.OnGlobalMapCrusadeArmyInfoClosed();
                     action?.Invoke();
                 }

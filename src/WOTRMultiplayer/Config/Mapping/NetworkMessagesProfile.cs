@@ -277,6 +277,9 @@ namespace WOTRMultiplayer.Config.Mapping
 
             CreateMap<NetworkTacticalUnitMoveToCommand, Networking.Messages.Contracts.NetworkTacticalUnitMoveToCommand>()
                 .ReverseMap();
+
+            CreateMap<NetworkGlobalMapArmyLeader, Networking.Messages.Contracts.NetworkGlobalMapArmyLeader>()
+                .ReverseMap();
         }
     }
 }

@@ -82,17 +82,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void SelectNextCrusadeArmyInfoMergeArmy();
 
-        void RunMainLeaderAction();
-
-        void RunMergeLeaderAction();
-
-        void LevelUpMergeLeader();
-
-        void LevelUpMainLeader();
-
-        void LookAtPoolForMainLeader();
-
-        void LookAtPoolForMergeLeader();
+        void RunLeaderAction(NetworkGlobalMapArmyLeader globalMapArmyLeader, NetworkGlobalMapArmyLeaderActionType actionType);
 
         void OpenCrusadeArmiesMergeScreen();
 

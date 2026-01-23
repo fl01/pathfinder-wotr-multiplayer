@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Kingmaker;
 using Kingmaker.Assets.Controllers.GlobalMap;
@@ -112,6 +113,10 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     _logger.LogWarning("Global map common popup is missing");
                     return;
                 }
+
+                // reset state
+                modalMessage.m_AcceptButton.Interactable = true;
+                modalMessage.m_DeclineButton.Interactable = true;
 
                 modalMessage.m_DeclineButton.OnLeftClick.Invoke();
                 _logger.LogInformation("Global map common popup has been closed");
@@ -368,7 +373,12 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 var modalMessage = _uiAccessor.CommonPCView?.m_MessageModalPCView;
                 if (modalMessage?.ViewModel != null)
                 {
+                    // reset state
+                    modalMessage.m_AcceptButton.Interactable = true;
+                    modalMessage.m_DeclineButton.Interactable = true;
+
                     modalMessage.m_AcceptButton.OnLeftClick?.Invoke();
+
                     _logger.LogInformation("Global map common popup has been accepted");
                     return;
                 }
@@ -709,6 +719,10 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     _uiSyncCountersService.UpdateButtonTextCounter(setLeaderView.m_RecruitNewLeaderButtonText, readyPlayersCount, totalPlayersCount);
 
                     UpdateLeaderInfoUIState((ArmyLeaderInfoPCView)setLeaderView.m_LeaderInfoView, isInteractable, readyPlayersCount, totalPlayersCount);
+                    foreach (var leader in setLeaderView.Leaders)
+                    {
+                        UpdateLeaderInfoUIState((ArmyLeaderInfoPCView)leader, isInteractable, readyPlayersCount, totalPlayersCount);
+                    }
                 }
 
                 var mainCartView = view.m_MainArmyCartView;
@@ -973,99 +987,34 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
-        public void RunMainLeaderAction()
+        public void RunLeaderAction(NetworkGlobalMapArmyLeader globalMapArmyLeader, NetworkGlobalMapArmyLeaderActionType armyLeaderActionType)
         {
             _mainThreadAccessor.Post(() =>
             {
-                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView.m_MainArmyCartView?.m_LeaderInfoView;
+                var view = GetArmyLeaderView(globalMapArmyLeader, armyLeaderActionType);
                 if (view?.ViewModel == null)
                 {
-                    _logger.LogWarning("Unable to run main leader action due to missing view");
+                    _logger.LogWarning("Unable to run leader action due to missing view. LeaderId={LeaderId}, ActionType={ActionType}", globalMapArmyLeader?.Id, armyLeaderActionType);
                     return;
                 }
 
-                view.ViewModel.OnClick();
-                _logger.LogInformation("Main leader action has been executed");
-            });
-        }
-
-        public void RunMergeLeaderAction()
-        {
-            _mainThreadAccessor.Post(() =>
-            {
-                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView.m_MergeArmyCartView?.m_LeaderInfoView;
-                if (view?.ViewModel == null)
+                switch (armyLeaderActionType)
                 {
-                    _logger.LogWarning("Unable to run merge leader action due to missing view");
-                    return;
+                    case NetworkGlobalMapArmyLeaderActionType.Main:
+                        view.ViewModel.OnClick();
+                        break;
+                    case NetworkGlobalMapArmyLeaderActionType.LevelUp:
+                        view.ViewModel.OnLevelUp();
+                        break;
+                    case NetworkGlobalMapArmyLeaderActionType.MainLookAtPool:
+                    case NetworkGlobalMapArmyLeaderActionType.MergeLookAtPool:
+                        view.ViewModel.OnLookAtLeaderPool();
+                        break;
+                    default:
+                        _logger.LogWarning("Unknown leader action type. ActionType={ActionType}", armyLeaderActionType);
+                        return;
                 }
-
-                view.ViewModel.OnClick();
-                _logger.LogInformation("Merge leader action has been executed");
-            });
-        }
-
-        public void LevelUpMergeLeader()
-        {
-            _mainThreadAccessor.Post(() =>
-            {
-                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView.m_MergeArmyCartView?.m_LeaderInfoView;
-                if (view?.ViewModel == null)
-                {
-                    _logger.LogWarning("Unable to levelup merge leader due to missing view");
-                    return;
-                }
-
-                view.ViewModel.OnLevelUp();
-                _logger.LogInformation("Merge leader has started leveling process");
-            });
-        }
-
-        public void LevelUpMainLeader()
-        {
-            _mainThreadAccessor.Post(() =>
-            {
-                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView.m_MainArmyCartView?.m_LeaderInfoView;
-                if (view?.ViewModel == null)
-                {
-                    _logger.LogWarning("Unable to levelup main leader due to missing view");
-                    return;
-                }
-
-                view.ViewModel.OnLevelUp();
-                _logger.LogInformation("Main leader has started leveling process");
-            });
-        }
-
-        public void LookAtPoolForMainLeader()
-        {
-            _mainThreadAccessor.Post(() =>
-            {
-                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView.m_MainArmyCartView?.m_LeaderInfoView;
-                if (view?.ViewModel == null)
-                {
-                    _logger.LogWarning("Unable to look at pool for main leader due to missing view");
-                    return;
-                }
-
-                view.ViewModel.OnLookAtLeaderPool();
-                _logger.LogInformation("Main leader pool has been opened");
-            });
-        }
-
-        public void LookAtPoolForMergeLeader()
-        {
-            _mainThreadAccessor.Post(() =>
-            {
-                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView.m_MainArmyCartView?.m_LeaderInfoView;
-                if (view?.ViewModel == null)
-                {
-                    _logger.LogWarning("Unable to look at pool for merge leader due to missing view");
-                    return;
-                }
-
-                view.ViewModel.OnLookAtLeaderPool();
-                _logger.LogInformation("Merge leader pool has been opened");
+                _logger.LogInformation("Army leader action has been executed. LeaderId={LeaderId}, ActionType={ActionType}", globalMapArmyLeader?.Id, armyLeaderActionType);
             });
         }
 
@@ -1166,6 +1115,45 @@ namespace WOTRMultiplayer.Services.GameInteraction
             }
 
             return squad.Value;
+        }
+
+        /// <summary>
+        /// It's impossible to have same leader on multiple views, so it's fine to loop through every view
+        /// </summary>
+        /// <param name="globalMapArmyLeader"></param>
+        /// <returns></returns>
+        private ArmyLeaderInfoView GetArmyLeaderView(NetworkGlobalMapArmyLeader globalMapArmyLeader, NetworkGlobalMapArmyLeaderActionType armyLeaderActionType)
+        {
+            var armyInfo = _uiAccessor.GlobalMapPCView.m_ArmyInfoPCView;
+            var mainCartView = armyInfo?.m_MainArmyCartView?.m_LeaderInfoView;
+            var mergeCartView = armyInfo?.m_MergeArmyCartView?.m_LeaderInfoView;
+            if (globalMapArmyLeader == null)
+            {
+                switch (armyLeaderActionType)
+                {
+                    case NetworkGlobalMapArmyLeaderActionType.MainLookAtPool:
+                        return mainCartView;
+                    case NetworkGlobalMapArmyLeaderActionType.MergeLookAtPool:
+                        return mergeCartView;
+                    default:
+                        _logger.LogError("GlobalMapArmyLeader is null. Type={Type}", armyLeaderActionType);
+                        return null;
+                }
+            }
+
+            // BuyLeaders screen is always on top
+            List<ArmyLeaderInfoView> viewsToSearch = [.. _uiAccessor.GlobalMapPCView.m_BuyLeaderPCView.m_Leaders, mainCartView, mergeCartView, .. armyInfo.m_SetLeaderView.Leaders];
+
+            var view = viewsToSearch.FirstOrDefault(v => IsArmyLeaderViewMatched(v, globalMapArmyLeader));
+            return view;
+        }
+
+        private bool IsArmyLeaderViewMatched(ArmyLeaderInfoView view, NetworkGlobalMapArmyLeader globalMapArmyLeader)
+        {
+            return view?.ViewModel != null
+                && view.ViewModel.m_Leader != null
+                && string.Equals(view.ViewModel.m_Leader.Guid, globalMapArmyLeader.Id, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(view.ViewModel.m_Leader.Blueprint.AssetGuid.ToString(), globalMapArmyLeader.BlueprintId, StringComparison.OrdinalIgnoreCase);
         }
 
         private void UpdateTraveler(NetworkGlobalMapTraveler traveler)

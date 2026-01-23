@@ -158,30 +158,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void RunMainLeaderAction()
-        {
-        }
-
-        public void RunMergeLeaderAction()
-        {
-        }
-
-        public void LevelUpMergeLeader()
-        {
-        }
-
-        public void LevelUpMainLeader()
-        {
-        }
-
-        public void LookAtPoolForMainLeader()
-        {
-        }
-
-        public void LookAtPoolForMergeLeader()
-        {
-        }
-
         public void OpenCrusadeArmiesMergeScreen()
         {
         }
@@ -227,6 +203,10 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         }
 
         public void UpdateBuyLeaderUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
+        {
+        }
+
+        public void RunLeaderAction(NetworkGlobalMapArmyLeader globalMapArmyLeader, NetworkGlobalMapArmyLeaderActionType actionType)
         {
         }
     }

@@ -3525,7 +3525,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnGlobalMapCrusadeArmyMainLeaderAction()
+        public void OnGlobalMapCrusadeArmyLeaderAction(NetworkGlobalMapArmyLeader globalMapArmyLeader, NetworkGlobalMapArmyLeaderActionType armyLeaderActionType)
         {
             try
             {
@@ -3534,101 +3534,11 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmyMainLeaderAction();
+                _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmyLeaderAction(globalMapArmyLeader, armyLeaderActionType);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while executing crusade army main leader action");
-                throw;
-            }
-        }
-
-        public void OnGlobalMapCrusadeArmyMergeLeaderAction()
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmyMergeLeaderAction();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while executing crusade army merge leader action");
-                throw;
-            }
-        }
-
-        public void OnGlobalMapCrusadeArmyMainLeaderLevelUp()
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmyMainLeaderLevelUp();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while leveling crusade army main leader");
-                throw;
-            }
-        }
-
-        public void OnGlobalMapCrusadeArmyMergeLeaderLevelUp()
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmyMergeLeaderLevelUp();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while leveling crusade army merge leader");
-                throw;
-            }
-        }
-
-        public void OnGlobalMapCrusadeArmyMainLeaderLookAtPool()
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmyMainLeaderLookAtPool();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while looking at pool for crusade army main leader");
-                throw;
-            }
-        }
-
-        public void OnGlobalMapCrusadeArmyMergeLeaderLookAtPool()
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmyMergeLeaderLookAtPool();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while looking at pool for crusade army merge leader");
+                _logger.LogError(ex, "Error while executing crusade army leader action");
                 throw;
             }
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -102,6 +103,32 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             }
 
             Main.GetLogger<RandomIdGenerationPatches>().LogError("Player.GetNewUniqueId should never be called, Result={Result}, StackTrace={StackTrace}", __result, Environment.StackTrace);
+        }
+
+        [HarmonyPatch(typeof(ArmyLeader), MethodType.Constructor, [typeof(BlueprintArmyLeader), typeof(ArmyFaction)])]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> ArmyLeader_Constructor_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var lookFor = AccessTools.Method(typeof(Guid), nameof(Guid.NewGuid));
+            var replaceWith = AccessTools.Method(typeof(RandomIdGenerationPatches), nameof(RandomIdGenerationPatches.GetNewArmyLeaderId));
+            var matcher = new CodeMatcher(instructions);
+            var match = matcher.SearchForward(x => x.Calls(lookFor));
+            if (match.IsInvalid)
+            {
+                Main.GetLogger<RandomIdGenerationPatches>().LogError("Unable to find Guid.NewGuid() call. Target={Target}", target);
+                return matcher.Instructions();
+            }
+
+            var newInstructions = new List<CodeInstruction>
+            {
+                new(OpCodes.Ldarg_1),
+                new(OpCodes.Ldarg_2),
+                new(OpCodes.Call, replaceWith),
+            };
+            match = match.RemoveInstructions(5).Insert(newInstructions);
+            Main.GetLogger<RandomIdGenerationPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
+            return matcher.Instructions();
         }
 
         [HarmonyPatch(typeof(GlobalMapState), nameof(GlobalMapState.CreateArmy), [typeof(ArmyFaction), typeof(BlueprintArmyPreset), typeof(GlobalMapPosition), typeof(bool), typeof(bool)])]
@@ -522,6 +549,41 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             catch (Exception ex)
             {
                 Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating new army unit Id");
+                throw;
+            }
+        }
+
+        public static string GetNewArmyLeaderId(BlueprintArmyLeader blueprint, ArmyFaction faction)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return Guid.NewGuid().ToString();
+            }
+
+            try
+            {
+                string id = null;
+                var sessionSeed = Main.Multiplayer.GetSessionSeed();
+                var identifier = $"{GetCommonIdPart()}:{blueprint.AssetGuid}:{faction}:{sessionSeed.Value}";
+                while (string.IsNullOrEmpty(id))
+                {
+                    id = Main.Multiplayer.ValueGenerator.CreateGuid(SeedLifetime.Area, identifier).ToString();
+                    var army = Game.Instance.Player.ArmyLeadersManager.m_Leaders.FirstOrDefault(a => string.Equals(a.Guid, id, StringComparison.OrdinalIgnoreCase))
+                        ?? (Main.UIAccessor.GlobalMapPCView?.m_BuyLeaderPCView?.m_Leaders?.Select(x => x.ViewModel?.m_Leader) ?? []).FirstOrDefault(a => string.Equals(a.Guid, id, StringComparison.OrdinalIgnoreCase));
+
+                    if (army != null)
+                    {
+                        id = null;
+                        continue;
+                    }
+                }
+
+                Main.GetLogger<RandomIdGenerationPatches>().LogInformation("Army LeaderId has been generated. GameId={GameId}, Identifier={Identifier}, Id={Id}", Game.Instance.Player.GameId, identifier, id);
+                return id;
+            }
+            catch (Exception ex)
+            {
+                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating new army Id");
                 throw;
             }
         }

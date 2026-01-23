@@ -1,6 +1,7 @@
-﻿using System;
-using HarmonyLib;
+﻿using HarmonyLib;
+using Kingmaker.Armies;
 using Kingmaker.UI.MVVM._VM.Crusade.ArmyInfo;
+using WOTRMultiplayer.Entities.GlobalMap;
 
 namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
 {
@@ -16,15 +17,8 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
                 return;
             }
 
-            OnArmyInfoArmyLeaderAction(__instance,
-            () =>
-            {
-                Main.Multiplayer.OnGlobalMapCrusadeArmyMainLeaderAction();
-            },
-            () =>
-            {
-                Main.Multiplayer.OnGlobalMapCrusadeArmyMergeLeaderAction();
-            });
+            var leader = CreateLeader(__instance.m_Leader);
+            Main.Multiplayer.OnGlobalMapCrusadeArmyLeaderAction(leader, NetworkGlobalMapArmyLeaderActionType.Main);
         }
 
         [HarmonyPatch(typeof(ArmyLeaderInfoVM), nameof(ArmyLeaderInfoVM.OnLevelUp))]
@@ -36,15 +30,8 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
                 return;
             }
 
-            OnArmyInfoArmyLeaderAction(__instance,
-            () =>
-            {
-                Main.Multiplayer.OnGlobalMapCrusadeArmyMainLeaderLevelUp();
-            },
-            () =>
-            {
-                Main.Multiplayer.OnGlobalMapCrusadeArmyMergeLeaderLevelUp();
-            });
+            var leader = CreateLeader(__instance.m_Leader);
+            Main.Multiplayer.OnGlobalMapCrusadeArmyLeaderAction(leader, NetworkGlobalMapArmyLeaderActionType.LevelUp);
         }
 
         [HarmonyPatch(typeof(ArmyLeaderInfoVM), nameof(ArmyLeaderInfoVM.OnLookAtLeaderPool))]
@@ -56,29 +43,26 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
                 return;
             }
 
-            OnArmyInfoArmyLeaderAction(__instance,
-            () =>
-            {
-                Main.Multiplayer.OnGlobalMapCrusadeArmyMainLeaderLookAtPool();
-            },
-            () =>
-            {
-                Main.Multiplayer.OnGlobalMapCrusadeArmyMergeLeaderLookAtPool();
-            });
+            var armyInfo = Main.UIAccessor.GlobalMapPCView?.m_ArmyInfoPCView;
+            var actionType = armyInfo?.m_MainArmyCartView?.m_LeaderInfoView?.ViewModel == __instance ? NetworkGlobalMapArmyLeaderActionType.MainLookAtPool : NetworkGlobalMapArmyLeaderActionType.MergeLookAtPool;
+            var leader = CreateLeader(__instance.m_Leader);
+            Main.Multiplayer.OnGlobalMapCrusadeArmyLeaderAction(leader, actionType);
         }
 
-        private static void OnArmyInfoArmyLeaderAction(ArmyLeaderInfoVM __instance, Action onMainCart, Action onMergeCart)
+        private static NetworkGlobalMapArmyLeader CreateLeader(ArmyLeader armyLeader)
         {
-            var armyInfo = Main.UIAccessor.GlobalMapPCView?.m_ArmyInfoPCView;
-            if (armyInfo?.m_MainArmyCartView?.m_LeaderInfoView?.ViewModel == __instance)
+            if (armyLeader == null)
             {
-                onMainCart?.Invoke();
-            }
-            else if (armyInfo?.m_MergeArmyCartView?.m_LeaderInfoView?.ViewModel == __instance)
-            {
-                onMergeCart?.Invoke();
+                return null;
             }
 
+            var globalMapArmyLeader = new NetworkGlobalMapArmyLeader
+            {
+                Id = armyLeader.Guid,
+                BlueprintId = armyLeader.Blueprint.AssetGuid.ToString(),
+            };
+
+            return globalMapArmyLeader;
         }
     }
 }

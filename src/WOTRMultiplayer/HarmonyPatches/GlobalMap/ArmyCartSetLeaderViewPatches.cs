@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Kingmaker;
+using Kingmaker.Armies;
 using Kingmaker.Blueprints.Root.Strings;
 using Kingmaker.UI;
 using Kingmaker.UI.Common;
@@ -39,6 +40,34 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
                 new(OpCodes.Call, replaceWith),
             };
             match = match.RemoveInstructions(1).Insert(newInstructions);
+            Main.GetLogger<ArmyInfoViewPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
+            return matcher.Instructions();
+        }
+
+        [HarmonyPatch(typeof(ArmyCartSetLeaderVM), nameof(ArmyCartSetLeaderVM.SetLeader))]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> ArmyCartSetLeaderVM_SetLeader_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var lookFor = AccessTools.Method(typeof(UIUtility), nameof(UIUtility.ShowMessageBox));
+            var replaceWith = AccessTools.Method(typeof(ArmyCartSetLeaderViewPatches), nameof(ArmyCartSetLeaderViewPatches.OnSetLeader));
+            var matcher = new CodeMatcher(instructions);
+
+            var match = matcher.End().Advance(-15);
+            if (match.IsInvalid || match.Instruction?.opcode != OpCodes.Ret)
+            {
+                Main.GetLogger<ArmyInfoViewPatches>().LogError("Transpiler has not been applied. Target={Target}, OpCode={OpCode}", target, match.Instruction?.opcode);
+                return instructions;
+            }
+            match = match.Advance(1);
+            var labels = match.Instruction.ExtractLabels();
+            var newInstructions = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Ldarg_0).WithLabels(labels),
+                new(OpCodes.Ldarg_1),
+                new(OpCodes.Call, replaceWith),
+            };
+            match = match.RemoveInstructions(14).Insert(newInstructions);
             Main.GetLogger<ArmyInfoViewPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
@@ -90,21 +119,37 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
 
             Main.Multiplayer.OnGlobalMapCrusadeArmySetLeaderClear();
 
+            OnClearLeaderRequestPopup(() =>
+            {
+                __instance.m_State.Data.Leader.DetachFromArmy();
+                __instance.UpdateLeaders();
+            });
+            return false;
+        }
+
+        private static void OnSetLeader(ArmyCartSetLeaderVM viewModel, ArmyLeader leader)
+        {
+            OnClearLeaderRequestPopup(() =>
+            {
+                ArmyLeader.SwitchArmyLeader(viewModel.m_State.Data, leader);
+                viewModel.OnClose();
+            });
+        }
+
+        private static void OnClearLeaderRequestPopup(Action onAccepted)
+        {
             var popup = new NetworkGlobalMapCommonPopup { Type = NetworkGlobalMapCommonPopupType.ClearLeader };
             UIUtility.ShowMessageBox(UIStrings.Instance.CrusadeTexts.ClearCurrentLeaderRequest, MessageModalBase.ModalType.Dialog, type =>
             {
                 if (type == MessageModalBase.ButtonType.Yes)
                 {
                     Main.Multiplayer.OnGlobalMapCommonPopupAccepted(popup);
-                    __instance.m_State.Data.Leader.DetachFromArmy();
-                    __instance.UpdateLeaders();
+                    onAccepted?.Invoke();
                     return;
                 }
                 Main.Multiplayer.OnGlobalMapCommonPopupDeclined(popup);
             }, null, 0, null, null, null);
             Main.Multiplayer.OnGlobalMapCommonPopupShown(popup);
-
-            return false;
         }
 
         private IDisposable SubscribeEnterMessageEscPress(Action action, ArmyCartSetLeaderPCView view)

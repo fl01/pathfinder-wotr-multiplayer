@@ -138,17 +138,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnGlobalMapCrusadeArmyInfoPrevMergeArmy();
 
-        void OnGlobalMapCrusadeArmyMainLeaderAction();
-
-        void OnGlobalMapCrusadeArmyMergeLeaderAction();
-
-        void OnGlobalMapCrusadeArmyMainLeaderLevelUp();
-
-        void OnGlobalMapCrusadeArmyMergeLeaderLevelUp();
-
-        void OnGlobalMapCrusadeArmyMainLeaderLookAtPool();
-
-        void OnGlobalMapCrusadeArmyMergeLeaderLookAtPool();
+        void OnGlobalMapCrusadeArmyLeaderAction(NetworkGlobalMapArmyLeader globalMapArmyLeader, NetworkGlobalMapArmyLeaderActionType armyLeaderActionType);
 
         void OnGlobalMapMergeArmies();
 

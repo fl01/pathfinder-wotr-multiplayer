@@ -1016,45 +1016,14 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
-        public void OnGlobalMapCrusadeArmyMainLeaderAction()
+        public void OnGlobalMapCrusadeArmyLeaderAction(NetworkGlobalMapArmyLeader globalMapArmyLeader, NetworkGlobalMapArmyLeaderActionType armyLeaderActionType)
         {
-            var message = new NotifyGlobalMapCrusadeArmyMainLeaderActionExecuted();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyMainLeaderActionExecuted));
-            Send(message);
-        }
-
-        public void OnGlobalMapCrusadeArmyMergeLeaderAction()
-        {
-            var message = new NotifyGlobalMapCrusadeArmyMergeLeaderActionExecuted();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyMergeLeaderActionExecuted));
-            Send(message);
-        }
-
-        public void OnGlobalMapCrusadeArmyMainLeaderLevelUp()
-        {
-            var message = new NotifyGlobalMapCrusadeArmyMainLeaderLevelUp();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyMainLeaderLevelUp));
-            Send(message);
-        }
-
-        public void OnGlobalMapCrusadeArmyMergeLeaderLevelUp()
-        {
-            var message = new NotifyGlobalMapCrusadeArmyMergeLeaderLevelUp();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyMergeLeaderLevelUp));
-            Send(message);
-        }
-
-        public void OnGlobalMapCrusadeArmyMainLeaderLookAtPool()
-        {
-            var message = new NotifyGlobalMapCrusadeArmyMainLeaderLookAtPool();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyMainLeaderLookAtPool));
-            Send(message);
-        }
-
-        public void OnGlobalMapCrusadeArmyMergeLeaderLookAtPool()
-        {
-            var message = new NotifyGlobalMapCrusadeArmyMergeLeaderLookAtPool();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyMergeLeaderLookAtPool));
+            var message = new NotifyGlobalMapCrusadeArmyLeaderActionExecuted()
+            {
+                Type = armyLeaderActionType.ToString(),
+                Leader = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapArmyLeader>(globalMapArmyLeader)
+            };
+            Logger.LogInformation("Sending {MessageType}. LeaderId={LeaderId}, BlueprintId={BlueprintId}, Type={Type}", nameof(NotifyGlobalMapCrusadeArmyLeaderActionExecuted), message.Leader?.Id, message.Leader?.BlueprintId, message.Type);
             Send(message);
         }
 
