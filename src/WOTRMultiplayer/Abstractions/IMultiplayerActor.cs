@@ -309,7 +309,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnGlobalMapCrusadeArmyInfoShown();
 
-        void OnGlobalMapCrusadeArmyInfoMergeClosed();
+        void OnGlobalMapCrusadeArmyMergeCartClosed();
 
         void OnGlobalMapCrusadeArmyInfoMergeShown();
 

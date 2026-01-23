@@ -119,19 +119,6 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             Main.Multiplayer.OnGlobalMapCrusadeArmySquadDismiss(squadSlot);
         }
 
-        [HarmonyPatch(typeof(ArmyDismissManager), nameof(ArmyDismissManager.DismissArmy))]
-        [HarmonyPrefix]
-        public static void ArmyDismissManager_DismissArmy_Prefix(ArmyData army)
-        {
-            if (!Main.Multiplayer.IsActive)
-            {
-                return;
-            }
-
-            var globalMapArmy = new NetworkGlobalMapArmy { Id = army.ArmyStateId };
-            Main.Multiplayer.OnGlobalMapCrusadeArmyDismiss(globalMapArmy);
-        }
-
         [HarmonyPatch(typeof(ArmyInfoSquadPCView), nameof(ArmyInfoSquadPCView.BindViewImplementation))]
         [HarmonyPostfix]
         public static void ArmyInfoSquadPCView_BindViewImplementation_Postfix(ArmyInfoSquadPCView __instance)

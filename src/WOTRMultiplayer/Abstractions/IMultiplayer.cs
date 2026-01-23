@@ -398,8 +398,6 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnGlobalMapCrusadeArmySquadDismiss(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot);
 
-        void OnGlobalMapCrusadeArmyDismiss(NetworkGlobalMapArmy globalMapArmy);
-
         void OnGlobalMapCrusadeArmyInfoShown();
 
         void OnGlobalMapCrusadeArmyInfoClosed();
@@ -408,9 +406,11 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnGlobalMapCrusadeArmyMoveSquadsToSecondArmy();
 
-        void OnGlobalMapCrusadeArmyInfoMainClosed();
+        void OnGlobalMapCrusadeArmyMainCartClosed();
 
-        void OnGlobalMapCrusadeArmyInfoMergeClosed();
+        void OnGlobalMapCrusadeArmyMergeCartClosed();
+
+        void OnGlobalMapCrusadeArmyRecruitCartClosed();
 
         void OnGlobalMapCrusadeArmyInfoMergeShown();
 
@@ -422,9 +422,11 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnGlobalMapMergeArmies();
 
-        void OnGlobalMapCrusadeArmyInfoCreateArmy();
+        void OnGlobalMapCreateCrusadeArmy();
 
-        void OnGlobalMapCrusadeArmyInfoCartNameChanged(NetworkGlobalMapArmy globalMapArmy);
+        void OnGlobalMapCrusadeArmyDismiss(NetworkGlobalMapArmy globalMapArmy);
+
+        void OnGlobalMapCrusadeArmyCartNameChanged(NetworkGlobalMapArmy globalMapArmy);
 
         void OnGlobalMapCrusadeArmySetLeaderShown();
 

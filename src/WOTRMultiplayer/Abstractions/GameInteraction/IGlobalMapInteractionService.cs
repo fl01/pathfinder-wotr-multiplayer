@@ -66,8 +66,6 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void DismissCrusadeArmySquad(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot);
 
-        void DismissCrusadeArmy(NetworkGlobalMapArmy globalMapArmy);
-
         void UpdateCrusadeArmyInfoUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
 
         void CloseCrusadeArmyInfo();
@@ -88,7 +86,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void OpenCrusadeArmyInfo();
 
-        void CreateArmyAtCrusadeArmyInfo();
+        void CreateCrusadeArmy();
 
         void CloseCrusadeArmyMainInfo();
 
@@ -119,5 +117,9 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void BuyUnits(NetworkGlobalMapUnitRecruitmentOrder globalMapUnitRecruitmentOrder);
 
         void OpenRecruitments();
+
+        void CloseRecruitments();
+
+        void DismissCrusadeArmy(NetworkGlobalMapArmy globalMapArmy);
     }
 }

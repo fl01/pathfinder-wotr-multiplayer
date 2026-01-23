@@ -51,7 +51,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
                 return;
             }
 
-            Main.Multiplayer.OnGlobalMapCrusadeArmyInfoCreateArmy();
+            Main.Multiplayer.OnGlobalMapCreateCrusadeArmy();
         }
 
         [HarmonyPatch(typeof(ArmyInfoPCView), nameof(ArmyInfoPCView.BindViewImplementation))]
@@ -76,55 +76,6 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             }
 
             __instance.m_InfoButton.Interactable = Main.Multiplayer.CanNavigateOnGlobalMap();
-        }
-
-        [HarmonyPatch(typeof(ArmyInfoArmyCartView), nameof(ArmyInfoArmyCartView.SetArmyName))]
-        [HarmonyPrefix]
-        public static void ArmyInfoArmyCartView_SetArmyName_Prefix(ArmyInfoArmyCartView __instance, string armyName)
-        {
-            if (!Main.Multiplayer.IsActive)
-            {
-                return;
-            }
-
-            var globalMapArmy = new NetworkGlobalMapArmy { Id = __instance.ViewModel.State?.Id, Name = armyName };
-            Main.Multiplayer.OnGlobalMapCrusadeArmyInfoCartNameChanged(globalMapArmy);
-        }
-
-        [HarmonyPatch(typeof(ArmyInfoArmyCartPCView), nameof(ArmyInfoArmyCartPCView.BindViewImplementation))]
-        [HarmonyPostfix]
-        public static void ArmyInfoArmyCartPCView_BindViewImplementation_Postfix(ArmyInfoArmyCartPCView __instance)
-        {
-            if (!Main.Multiplayer.IsActive)
-            {
-                return;
-            }
-
-            var armyInfo = Main.UIAccessor.GlobalMapPCView?.m_ArmyInfoPCView;
-            if (armyInfo?.m_MergeArmyCartView == __instance)
-            {
-                Main.Multiplayer.OnGlobalMapCrusadeArmyInfoMergeShown();
-            }
-        }
-
-        [HarmonyPatch(typeof(ArmyInfoArmyCartVM), nameof(ArmyInfoArmyCartVM.OnClose))]
-        [HarmonyPrefix]
-        public static void ArmyInfoArmyCartVM_OnClose_Prefix(ArmyInfoArmyCartVM __instance)
-        {
-            if (!Main.Multiplayer.IsActive)
-            {
-                return;
-            }
-
-            var armyInfo = Main.UIAccessor.GlobalMapPCView?.m_ArmyInfoPCView;
-            if (armyInfo?.m_MainArmyCartView?.ViewModel == __instance)
-            {
-                Main.Multiplayer.OnGlobalMapCrusadeArmyInfoMainClosed();
-            }
-            else if (armyInfo?.m_MergeArmyCartView?.ViewModel == __instance)
-            {
-                Main.Multiplayer.OnGlobalMapCrusadeArmyInfoMergeClosed();
-            }
         }
 
         [HarmonyPatch(typeof(ArmyInfoVM), nameof(ArmyInfoVM.NextMergeArmy))]

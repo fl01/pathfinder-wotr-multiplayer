@@ -679,22 +679,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
-        public void DismissCrusadeArmy(NetworkGlobalMapArmy globalMapArmy)
-        {
-            _mainThreadAccessor.Post(() =>
-            {
-                var army = _gameStateLookupService.GetGlobalMapArmy(globalMapArmy.Id);
-                if (army == null)
-                {
-                    _logger.LogWarning("Unable to dismiss missing crusade army. ArmyId={ArmyId}", globalMapArmy.Id);
-                    return;
-                }
-
-                ArmyDismissManager.Instance.DismissArmy(army.Data);
-                _logger.LogInformation("Crusade army has been dismissed. ArmyId={ArmyId}", army.Id);
-            });
-        }
-
         public void UpdateCrusadeArmyInfoUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
         {
             _mainThreadAccessor.Post(() =>
@@ -764,12 +748,16 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView?.m_SetLeaderView;
                 if (view?.ViewModel == null)
                 {
-                    _logger.LogWarning("Unable to close crusade army info set leader due to missing view");
-                    return;
+                    view = _uiAccessor.GlobalMapPCView?.m_RecruitPCView?.m_LeaderSetView;
+                    if (view?.ViewModel == null)
+                    {
+                        _logger.LogWarning("Unable to close crusade army info set leader due to missing view");
+                        return;
+                    }
                 }
 
                 view.ViewModel.OnClose();
-                _logger.LogInformation("Crusade army info set leader close handler has been executed");
+                _logger.LogInformation("Crusade army set leader close handler has been executed");
             });
         }
 
@@ -979,6 +967,22 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                 view.m_GlobalMapMenuPCView.ViewModel.OnRecruitClick();
                 _logger.LogInformation("Recruitment UI has been opened");
+            });
+        }
+
+        public void CloseRecruitments()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_RecruitPCView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Recruitments is already closed");
+                    return;
+                }
+
+                view.ViewModel.Close();
+                _logger.LogInformation("Recruitment UI has been closed");
             });
         }
 
@@ -1200,20 +1204,43 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
-        public void CreateArmyAtCrusadeArmyInfo()
+        public void DismissCrusadeArmy(NetworkGlobalMapArmy globalMapArmy)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = GetArmyInfoCart(globalMapArmy);
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to dismiss crusade army due to missing view. ArmyId={ArmyId}", globalMapArmy.Id);
+                    return;
+                }
+
+                view.ViewModel.DismissAll();
+                _logger.LogInformation("Crusade army dismiss request has been opened. ArmyId={ArmyId}", globalMapArmy.Id);
+            });
+        }
+
+        public void CreateCrusadeArmy()
         {
             _mainThreadAccessor.Post(() =>
             {
                 var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView;
                 if (view?.ViewModel == null)
                 {
-                    _logger.LogWarning("Unable to create army at crusade info due to missing view");
+                    var recruitView = _uiAccessor.GlobalMapPCView?.m_RecruitPCView;
+                    if (recruitView?.ViewModel == null)
+                    {
+                        _logger.LogWarning("Unable to create army at crusade info due to missing view");
+                        return;
+                    }
+
+                    recruitView.CreateArmy();
                     return;
                 }
 
                 // view call to play sound
                 view.CreateArmy();
-                _logger.LogInformation("Crusade army has been created at crusade info screen");
+                _logger.LogInformation("Crusade army has been created");
             });
         }
 

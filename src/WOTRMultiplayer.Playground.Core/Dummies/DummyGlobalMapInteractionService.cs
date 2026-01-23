@@ -166,7 +166,7 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void CreateArmyAtCrusadeArmyInfo()
+        public void CreateCrusadeArmy()
         {
         }
 
@@ -235,6 +235,10 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         }
 
         public void OpenRecruitments()
+        {
+        }
+
+        public void CloseRecruitments()
         {
         }
     }

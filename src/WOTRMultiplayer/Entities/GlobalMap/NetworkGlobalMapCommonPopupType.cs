@@ -7,5 +7,6 @@
         Fatigue,
         ClearLeader,
         BuyLeader,
+        DismissArmy
     }
 }

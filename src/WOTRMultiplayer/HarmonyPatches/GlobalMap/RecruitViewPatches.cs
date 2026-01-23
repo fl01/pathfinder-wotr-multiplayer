@@ -8,6 +8,7 @@ using Kingmaker.Armies.State;
 using Kingmaker.Blueprints;
 using Kingmaker.Kingdom.Armies;
 using Kingmaker.UI;
+using Kingmaker.UI.MVVM._PCView.Crusade.ArmyInfo;
 using Kingmaker.UI.MVVM._PCView.Crusade.Recruit;
 using Kingmaker.UI.MVVM._VM.Crusade.Recruit;
 using Microsoft.Extensions.Logging;
@@ -134,26 +135,6 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             Main.Multiplayer.OnGlobalMapRecruitmentBuyUnits(globalMapUnitRecruitmentOrder);
         }
 
-        [HarmonyPatch(typeof(ArmyMercenariesManager), nameof(ArmyMercenariesManager.Recruit))]
-        [HarmonyPrefix]
-        public static void ArmyMercenariesManager_Recruit_Prefix(ArmyData target, MercenarySlot slot)
-        {
-            if (!Main.Multiplayer.IsActive)
-            {
-                return;
-            }
-
-            var globalMapUnitRecruitmentOrder = new NetworkGlobalMapUnitRecruitmentOrder
-            {
-                ArmyId = target.ArmyStateId,
-                BlueprintId = slot.Recruits.Unit.AssetGuid.ToString(),
-                Count = slot.Recruits.Count,
-                Type = NetworkGlobalMapUnitRecruitmentType.Mercenary,
-            };
-
-            Main.Multiplayer.OnGlobalMapRecruitmentBuyUnits(globalMapUnitRecruitmentOrder);
-        }
-
         [HarmonyPatch(typeof(RecruitBuyResourcesVM), nameof(RecruitBuyResourcesVM.Buy))]
         [HarmonyPrefix]
         public static void RecruitBuyResourcesVM_Buy_Prefix(RecruitBuyResourcesVM __instance)
@@ -170,6 +151,18 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
                 FinanceCount = __instance.m_FinanceCount.Value,
             };
             Main.Multiplayer.OnGlobalMapRecruitmentBuyResources(globalMapResourceOrder);
+        }
+
+        [HarmonyPatch(typeof(RecruitView), nameof(RecruitView.CreateArmy))]
+        [HarmonyPrefix]
+        public static void RecruitPCView_CreateArmy_Prefix()
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            Main.Multiplayer.OnGlobalMapCreateCrusadeArmy();
         }
 
         private IDisposable SubscribeEnterMessageEscPress(Action action, RecruitPCView view)

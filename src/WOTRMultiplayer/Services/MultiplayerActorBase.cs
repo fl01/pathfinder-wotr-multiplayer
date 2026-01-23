@@ -1808,16 +1808,16 @@ namespace WOTRMultiplayer.Services
             UpdateGlobalMapCrusadeArmyInfoUIState();
         }
 
-        public void OnGlobalMapCrusadeArmyInfoMergeClosed()
+        public void OnGlobalMapCrusadeArmyMergeCartClosed()
         {
             var localPlayer = GetLocalPlayerId();
             RemovePlayerFromTracker(Game.PlayersInGlobalMapCrusadeArmyInfoMerge, localPlayer);
 
-            var message = new NotifyGlobalMapCrusadeArmyInfoMergeClosed
+            var message = new NotifyGlobalMapCrusadeArmyMergeCartClosed
             {
                 PlayerId = localPlayer
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyInfoMergeClosed), message.PlayerId);
+            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyMergeCartClosed), message.PlayerId);
             Send(message);
 
             UpdateGlobalMapCrusadeArmyInfoUIStateAfterMerge();
@@ -1828,11 +1828,11 @@ namespace WOTRMultiplayer.Services
             var localPlayer = GetLocalPlayerId();
             AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyInfoMerge, localPlayer);
 
-            var message = new NotifyGlobalMapCrusadeArmyInfoMergeShown
+            var message = new NotifyGlobalMapCrusadeArmyMergeCartShown
             {
                 PlayerId = localPlayer
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyInfoMergeShown), message.PlayerId);
+            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyMergeCartShown), message.PlayerId);
             Send(message);
 
             UpdateGlobalMapCrusadeArmyInfoUIStateOnMerge();
@@ -3080,7 +3080,7 @@ namespace WOTRMultiplayer.Services
                 .On<NotifyGlobalMapCombatResultsShown>(OnNotifyGlobalMapCombatResultsShown)
                 .On<NotifyTacticalCombatTurnInitialized>(OnNotifyTacticalCombatTurnInitialized)
                 .On<NotifyCrusadeArmyBattleResultsShown>(OnNotifyCrusadeArmyBattleResultsShown)
-                .On<NotifyGlobalMapCrusadeArmyInfoMergeShown>(OnNotifyGlobalMapCrusadeArmyInfoMergeShown)
+                .On<NotifyGlobalMapCrusadeArmyMergeCartShown>(OnNotifyGlobalMapCrusadeArmyInfoMergeShown)
                 .On<NotifyGlobalMapCrusadeArmySetLeaderShown>(OnNotifyGlobalMapCrusadeArmySetLeaderShown)
                 .On<NotifyGlobalMapCrusadeArmyBuyLeaderShown>(OnNotifyGlobalMapCrusadeArmyBuyLeaderShown)
 
@@ -3142,7 +3142,7 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapCrusadeArmyBuyLeaderShown(long receivedFrom, NotifyGlobalMapCrusadeArmyBuyLeaderShown globalMapCrusadeArmyBuyLeaderShown)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyInfoMergeShown), receivedFrom, globalMapCrusadeArmyBuyLeaderShown.PlayerId);
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyMergeCartShown), receivedFrom, globalMapCrusadeArmyBuyLeaderShown.PlayerId);
             AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyBuyLeader, globalMapCrusadeArmyBuyLeaderShown.PlayerId);
 
             UpdateGlobalMapCrusadeArmyBuyLeaderUIState();
@@ -3152,16 +3152,16 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapCrusadeArmySetLeaderShown(long receivedFrom, NotifyGlobalMapCrusadeArmySetLeaderShown globalMapCrusadeArmyInfoSetLeaderShown)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyInfoMergeShown), receivedFrom, globalMapCrusadeArmyInfoSetLeaderShown.PlayerId);
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyMergeCartShown), receivedFrom, globalMapCrusadeArmyInfoSetLeaderShown.PlayerId);
             AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmySetLeader, globalMapCrusadeArmyInfoSetLeaderShown.PlayerId);
             UpdateGlobalMapCrusadeArmyInfoUIStateOnSetLeader();
 
             OnAfterNetworkMessageHandled(receivedFrom, globalMapCrusadeArmyInfoSetLeaderShown);
         }
 
-        private void OnNotifyGlobalMapCrusadeArmyInfoMergeShown(long receivedFrom, NotifyGlobalMapCrusadeArmyInfoMergeShown globalMapCrusadeArmyInfoMergeShown)
+        private void OnNotifyGlobalMapCrusadeArmyInfoMergeShown(long receivedFrom, NotifyGlobalMapCrusadeArmyMergeCartShown globalMapCrusadeArmyInfoMergeShown)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyInfoMergeShown), receivedFrom, globalMapCrusadeArmyInfoMergeShown.PlayerId);
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyMergeCartShown), receivedFrom, globalMapCrusadeArmyInfoMergeShown.PlayerId);
             AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyInfoMerge, globalMapCrusadeArmyInfoMergeShown.PlayerId);
             UpdateGlobalMapCrusadeArmyInfoUIStateOnMerge();
 

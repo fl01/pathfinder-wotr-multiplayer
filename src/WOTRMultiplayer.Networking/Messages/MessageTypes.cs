@@ -191,17 +191,16 @@
             NotifyGlobalMapCrusadeArmySquadDismissed,
             NotifyGlobalMapCrusadeArmyInfoShown,
             NotifyGlobalMapCrusadeArmyInfoClosed,
-            NotifyGlobalMapCrusadeArmyDismissed,
             NotifyGlobalMapCrusadeArmySquadsMovedToMainArmy,
             NotifyGlobalMapCrusadeArmySquadsMovedToSecondArmy,
-            NotifyGlobalMapCrusadeArmyInfoMergeShown,
-            NotifyGlobalMapCrusadeArmyInfoMergeClosed,
+            NotifyGlobalMapCrusadeArmyMergeCartShown,
+            NotifyGlobalMapCrusadeArmyMergeCartClosed,
             NotifyGlobalMapCrusadeArmyInfoNextMergeArmySelected,
             NotifyGlobalMapCrusadeArmyInfoPrevMergeArmySelected,
             NotifyGlobalMapCrusadeArmyLeaderActionExecuted,
             NotifyGlobalMapCrusadeArmiesMerging,
-            NotifyGlobalMapCrusadeArmyInfoArmyCreated,
-            NotifyGlobalMapCrusadeArmyInfoMainClosed,
+            NotifyGlobalMapCrusadeArmyCreated,
+            NotifyGlobalMapCrusadeArmyMainCartClosed,
             NotifyGlobalMapCrusadeArmyInfoCartNameChanged,
             NotifyGlobalMapCrusadeArmySetLeaderShown,
             NotifyGlobalMapCrusadeArmySetLeaderClosed,
@@ -215,7 +214,9 @@
             NotifyGlobalMapRecruitmentNextArmySelected,
             NotifyGlobalMapRecruitmentMercenariesRerolled,
             NotifyGlobalMapUnitsRecruited,
-            NotifyGlobalMapResourcesBought
+            NotifyGlobalMapResourcesBought,
+            NotifyGlobalMapCrusadeArmyDismissed,
+            NotifyGlobalMapCrusadeArmyRecruitCartClosed
         }
 
         public enum Request

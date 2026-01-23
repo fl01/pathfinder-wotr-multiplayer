@@ -62,7 +62,7 @@ namespace WOTRMultiplayer.Services.Random
         {
             var actualSeed = _hashService.Murmur3(seed);
             var generator = GetSeed(seedLifetime, actualSeed);
-            var result = minInclusive + (float)generator.Random.NextDouble() * (maxExclusive - minInclusive);
+            var result = generator.Random.NextFloat(minInclusive, maxExclusive);
             return result;
         }
 

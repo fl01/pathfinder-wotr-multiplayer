@@ -29,7 +29,6 @@ using WOTRMultiplayer.Entities.Rest;
 using WOTRMultiplayer.Entities.Spells;
 using WOTRMultiplayer.Entities.Vendor;
 using WOTRMultiplayer.Services.GameInteraction.Contexts;
-using WOTRMultiplayer.Services.Random;
 using WOTRMultiplayer.UI.Windows;
 
 namespace WOTRMultiplayer.Services
@@ -3324,24 +3323,6 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnGlobalMapCrusadeArmyDismiss(NetworkGlobalMapArmy globalMapArmy)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmyDismiss(globalMapArmy);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while dismissing crusade army. ArmyId={ArmyId}", globalMapArmy.Id);
-                throw;
-            }
-        }
-
         public void OnGlobalMapCrusadeArmyInfoShown()
         {
             try
@@ -3360,7 +3341,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnGlobalMapCrusadeArmyInfoMainClosed()
+        public void OnGlobalMapCrusadeArmyMainCartClosed()
         {
             try
             {
@@ -3369,7 +3350,7 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmyInfoMainClosed();
+                _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmyMainCartClosed();
             }
             catch (Exception ex)
             {
@@ -3378,7 +3359,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnGlobalMapCrusadeArmyInfoMergeClosed()
+        public void OnGlobalMapCrusadeArmyMergeCartClosed()
         {
             try
             {
@@ -3387,11 +3368,29 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Current.OnGlobalMapCrusadeArmyInfoMergeClosed();
+                _multiplayerActorAccessor.Current.OnGlobalMapCrusadeArmyMergeCartClosed();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while closing crusade army info merge window");
+                throw;
+            }
+        }
+
+        public void OnGlobalMapCrusadeArmyRecruitCartClosed()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmyRecruitCartClosed();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while closing crusade army recruit cart");
                 throw;
             }
         }
@@ -3540,7 +3539,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnGlobalMapCrusadeArmyInfoCreateArmy()
+        public void OnGlobalMapCrusadeArmyDismiss(NetworkGlobalMapArmy globalMapArmy)
         {
             try
             {
@@ -3549,7 +3548,25 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmyInfoCreateArmy();
+                _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmyDismiss(globalMapArmy);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while dismissing crusade army. ArmyId={ArmyId}", globalMapArmy.Id);
+                throw;
+            }
+        }
+
+        public void OnGlobalMapCreateCrusadeArmy()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnGlobalMapCreateCrusadeArmy();
             }
             catch (Exception ex)
             {
@@ -3558,7 +3575,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnGlobalMapCrusadeArmyInfoCartNameChanged(NetworkGlobalMapArmy globalMapArmy)
+        public void OnGlobalMapCrusadeArmyCartNameChanged(NetworkGlobalMapArmy globalMapArmy)
         {
             try
             {
@@ -3567,7 +3584,7 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmyInfoCartNameChanged(globalMapArmy);
+                _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmyCartNameChanged(globalMapArmy);
             }
             catch (Exception ex)
             {
