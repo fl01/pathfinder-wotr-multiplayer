@@ -24,7 +24,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat.Crusades
             var match = matcher.SearchForward(x => x.Calls(lookFor));
             if (match.IsInvalid)
             {
-                Main.GetLogger<TacticalCombatControllerPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
+                Main.GetLogger<UnitPartTacticalMoralePatches>().LogError("Transpiler has not been applied. Target={Target}", target);
                 return instructions;
             }
 
@@ -34,7 +34,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat.Crusades
                 new(OpCodes.Call, replaceWith),
             };
             match = match.RemoveInstruction().Insert(newInstructions);
-            Main.GetLogger<TacticalCombatControllerPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
+            Main.GetLogger<UnitPartTacticalMoralePatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
