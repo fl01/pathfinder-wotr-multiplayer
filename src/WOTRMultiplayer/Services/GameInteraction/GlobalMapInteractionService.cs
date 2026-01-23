@@ -9,14 +9,19 @@ using Kingmaker.Controllers.Rest;
 using Kingmaker.Globalmap;
 using Kingmaker.Globalmap.State;
 using Kingmaker.Globalmap.View;
+using Kingmaker.Kingdom;
 using Kingmaker.Kingdom.Armies;
+using Kingmaker.PubSubSystem;
 using Kingmaker.RandomEncounters;
 using Kingmaker.RandomEncounters.Settings;
+using Kingmaker.UI;
 using Kingmaker.UI.MVVM._PCView.Crusade.Armies;
 using Kingmaker.UI.MVVM._PCView.Crusade.ArmyInfo;
+using Kingmaker.UI.MVVM._PCView.Crusade.Recruit;
 using Kingmaker.UI.MVVM._VM.Crusade.ArmyInfo;
 using Microsoft.Extensions.Logging;
 using TMPro;
+using UniRx;
 using UnityEngine;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.Unity;
@@ -704,26 +709,11 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 view.m_NextMergeArmy.Interactable = view.ViewModel.HaveNextArmyMerge.Value && isInteractable;
                 view.m_PrevMergeArmy.Interactable = view.ViewModel.HavePrevArmyMerge.Value && isInteractable;
                 view.m_CreateArmyButton.Interactable = isInteractable;
-                view.m_RecruitArmyButton.Interactable = isInteractable;
+                view.m_RecruitArmyButton.Interactable = view.ViewModel.CanRecruit.Value && isInteractable;
                 view.m_MoveSquadsToMainButton.Interactable = isInteractable;
                 view.m_MoveSquadsToSecondButton.Interactable = isInteractable;
 
-                var setLeaderView = view.m_SetLeaderView;
-                if (setLeaderView?.ViewModel != null)
-                {
-                    var pcView = (ArmyCartSetLeaderPCView)setLeaderView;
-                    pcView.m_CloseButton.Interactable = isInteractable;
-                    pcView.m_ClearLeaderButton.Interactable = isInteractable;
-                    pcView.m_RecruitNewLeaderButton.Interactable = isInteractable;
-                    _uiSyncCountersService.UpdateButtonTextCounter(setLeaderView.m_ClearLeaderButtonText, readyPlayersCount, totalPlayersCount);
-                    _uiSyncCountersService.UpdateButtonTextCounter(setLeaderView.m_RecruitNewLeaderButtonText, readyPlayersCount, totalPlayersCount);
-
-                    UpdateLeaderInfoUIState((ArmyLeaderInfoPCView)setLeaderView.m_LeaderInfoView, isInteractable, readyPlayersCount, totalPlayersCount);
-                    foreach (var leader in setLeaderView.Leaders)
-                    {
-                        UpdateLeaderInfoUIState((ArmyLeaderInfoPCView)leader, isInteractable, readyPlayersCount, totalPlayersCount);
-                    }
-                }
+                UpdateCrusadeArmySetLeaderUI(view.m_SetLeaderView, isInteractable, readyPlayersCount, totalPlayersCount);
 
                 var mainCartView = view.m_MainArmyCartView;
                 UpdateArmyCartView(mainCartView, isInteractable, readyPlayersCount, totalPlayersCount);
@@ -806,8 +796,12 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView?.m_SetLeaderView;
                 if (view?.ViewModel == null)
                 {
-                    _logger.LogWarning("Unable to open leader recruitment on crusade army info due to missing view");
-                    return;
+                    view = _uiAccessor.GlobalMapPCView?.m_RecruitPCView?.m_LeaderSetView;
+                    if (view?.ViewModel == null)
+                    {
+                        _logger.LogWarning("Unable to open leader recruitment due to missing view");
+                        return;
+                    }
                 }
 
                 view.ViewModel.OnBuyLeader();
@@ -828,6 +822,194 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                 view.ViewModel.OnClose();
                 _logger.LogInformation("Buy leader screen has been closed");
+            });
+        }
+
+        public void UpdateSharedCrusadeManagementUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                if (_uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView?.ViewModel != null)
+                {
+                    UpdateCrusadeArmyInfoUI(isInteractable, readyPlayersCount, totalPlayersCount);
+                }
+                else if (_uiAccessor.GlobalMapPCView?.m_RecruitPCView?.ViewModel != null)
+                {
+                    UpdateRecruitmentUI(isInteractable, readyPlayersCount, totalPlayersCount);
+                }
+            });
+        }
+
+        public void SelectNextRecruitmentArmy()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_RecruitPCView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to select next recruitment army due to missing view");
+                    return;
+                }
+
+                view.ViewModel.NextArmy();
+                _logger.LogInformation("Next recruitment army has been selected");
+            });
+        }
+
+        public void SelectPrevRecruitmentArmy()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_RecruitPCView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to select prev recruitment army due to missing view");
+                    return;
+                }
+
+                view.ViewModel.PrevArmy();
+                _logger.LogInformation("Prev recruitment army has been selected");
+            });
+        }
+
+        public void RerollRecruitmentMercenaries()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_RecruitPCView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to reroll recruitment mercenaries due to missing view");
+                    return;
+                }
+
+                view.OnMercReroll();
+                _logger.LogInformation("Recruitment mercenaries have been rerolled");
+            });
+        }
+
+        /// <summary>
+        /// RecruitBuyResourcesVM.Buy
+        /// </summary>
+        /// <param name="globalMapResourceOrder"></param>
+        public void BuyResources(NetworkGlobalMapResourceOrder globalMapResourceOrder)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                if (!Game.Instance.Player.SpendMoney(globalMapResourceOrder.FinalCost))
+                {
+                    _logger.LogError("Failed to spend money on resoures.");
+                    return;
+                }
+
+                var changes = new KingdomStats.Changes();
+                KingdomResourcesAmount delta = KingdomResourcesAmount.FromFinances(globalMapResourceOrder.FinanceCount) + KingdomResourcesAmount.FromMaterials(globalMapResourceOrder.MaterialCount);
+                changes.ResourcesOneTime += delta;
+                changes.Apply(null, true);
+                UISoundController.Instance.Play(UISoundType.ArmyManagementBuyResourcesPlay);
+                EventBus.RaiseEvent<IKingdomResourcesHandler>(x => x.OnResourcesChanged(delta), true);
+            });
+        }
+
+        public void BuyUnits(NetworkGlobalMapUnitRecruitmentOrder globalMapUnitRecruitmentOrder)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView.m_RecruitPCView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogError("Unable to buy units due to missing view");
+                    return;
+                }
+
+                switch (globalMapUnitRecruitmentOrder.Type)
+                {
+                    case NetworkGlobalMapUnitRecruitmentType.Unit:
+                        var unit = view.ViewModel.m_Shop.FirstOrDefault(s => string.Equals(s.Recruit.Unit.AssetGuid.ToString(), globalMapUnitRecruitmentOrder.BlueprintId, StringComparison.OrdinalIgnoreCase) && s.Recruit.Count >= globalMapUnitRecruitmentOrder.Count);
+                        if (unit == null)
+                        {
+                            _logger.LogError("Unable to find valid unit to buy. UnitId={UnitId}, Count={Count}", globalMapUnitRecruitmentOrder.BlueprintId, globalMapUnitRecruitmentOrder.Count);
+                            return;
+                        }
+                        view.ViewModel.BuyRecruit(unit.Recruit.Unit, globalMapUnitRecruitmentOrder.Count);
+                        break;
+                    case NetworkGlobalMapUnitRecruitmentType.Mercenary:
+                        var mercenary = view.ViewModel.m_MercShop.FirstOrDefault(s => string.Equals(s.Recruit.Unit.AssetGuid.ToString(), globalMapUnitRecruitmentOrder.BlueprintId, StringComparison.OrdinalIgnoreCase) && s.Recruit.Count == globalMapUnitRecruitmentOrder.Count);
+                        if (mercenary == null)
+                        {
+                            _logger.LogError("Unable to find valid mercenary to buy. UnitId={UnitId}, Count={Count}", globalMapUnitRecruitmentOrder.BlueprintId, globalMapUnitRecruitmentOrder.Count);
+                            return;
+                        }
+                        var army = _gameStateLookupService.GetGlobalMapArmy(globalMapUnitRecruitmentOrder.ArmyId);
+                        if (army == null)
+                        {
+                            _logger.LogError("Unable to find valid army to buy mercenary for. ArmyId={ArmyId}", globalMapUnitRecruitmentOrder.ArmyId);
+                            return;
+                        }
+                        bool isOk = KingdomState.Instance.MercenariesManager.Recruit(army.Data, mercenary.MercenarySlot);
+                        view.ViewModel.m_AvailableResources.Value = KingdomState.Instance.Resources;
+                        if (!isOk)
+                        {
+                            _logger.LogError("Failed to buy mercenary. ArmyId={ArmyId}, UnitId={UnitId}, Count={Count}", globalMapUnitRecruitmentOrder.ArmyId, globalMapUnitRecruitmentOrder.BlueprintId, globalMapUnitRecruitmentOrder.Count);
+                            return;
+                        }
+
+                        UISoundController.Instance.Play(UISoundType.ArmyManagementHireTroopsPlay);
+                        view.ViewModel.m_MercShop.ForEach(mercVM => mercVM.UpdateMercenarySlot());
+                        break;
+                    default:
+                        _logger.LogError("Unsupported unit recruitment type. Type={Type}", globalMapUnitRecruitmentOrder.Type);
+                        return;
+                }
+
+                _logger.LogInformation("Mercenaries have been bought. ArmyId={ArmyId}, UnitId={UnitId}, Count={Count}", globalMapUnitRecruitmentOrder.ArmyId, globalMapUnitRecruitmentOrder.BlueprintId, globalMapUnitRecruitmentOrder.Count);
+            });
+        }
+
+        public void OpenRecruitments()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView;
+                if (view?.m_RecruitPCView?.ViewModel != null)
+                {
+                    _logger.LogWarning("Recruitments is already opened");
+                    return;
+                }
+
+                view.m_GlobalMapMenuPCView.ViewModel.OnRecruitClick();
+                _logger.LogInformation("Recruitment UI has been opened");
+            });
+        }
+
+        public void UpdateRecruitmentUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.GlobalMapPCView?.m_RecruitPCView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to update recruitment due to missing view");
+                    return;
+                }
+
+                view.m_Close.Interactable = isInteractable;
+                view.m_CreateArmyButton.Interactable = view.ViewModel.CanCreateArmy.Value && isInteractable;
+                view.m_BuyResourceButton.Interactable = isInteractable;
+                view.m_MercRerollButton.Interactable = view.CanMercReroll.Value && isInteractable;
+                _uiSyncCountersService.UpdateButtonTextCounter(view.m_BuyResourceLabel, readyPlayersCount, totalPlayersCount);
+                _uiSyncCountersService.UpdateButtonTextCounter(view.m_MercRerollText, readyPlayersCount, totalPlayersCount);
+
+                view.m_NextArmy.Interactable = view.ViewModel.HaveNextArmy.Value && isInteractable;
+                view.m_PrevArmy.Interactable = view.ViewModel.HavePrevArmy.Value && isInteractable;
+
+                UpdateRecruitmentUnits(view.m_ShopUnits, isInteractable);
+                UpdateRecruitmentUnits(view.m_MercUnits, isInteractable);
+
+                UpdateCrusadeArmySetLeaderUI(view.m_LeaderSetView, isInteractable, readyPlayersCount, totalPlayersCount);
+                UpdateArmyCartView(view.m_ArmyView, isInteractable, readyPlayersCount, totalPlayersCount);
+
+                _logger.LogInformation("Recruitment UI has been updated. IsInteractable={IsInteractable}, ReadyPlayers={ReadyPlayers}, TotalPlayers={TotalPlayers}", isInteractable, readyPlayersCount, totalPlayersCount);
             });
         }
 
@@ -853,38 +1035,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
-        public void SetCrusadeArmyInfoMergeName(NetworkGlobalMapArmy army)
-        {
-            _mainThreadAccessor.Post(() =>
-            {
-                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView?.m_MergeArmyCartView;
-                if (view?.ViewModel == null)
-                {
-                    _logger.LogWarning("Unable to change crusade army merge name due to missing view");
-                    return;
-                }
-
-                view.ViewModel.SetArmyName(army.Name);
-                _logger.LogInformation("Crusade army info merge name has been set. Name={Name}", army.Name);
-            });
-        }
-
-        public void SetCrusadeArmyInfoMainName(NetworkGlobalMapArmy army)
-        {
-            _mainThreadAccessor.Post(() =>
-            {
-                var view = _uiAccessor.GlobalMapPCView?.m_ArmyInfoPCView?.m_MainArmyCartView;
-                if (view?.ViewModel == null)
-                {
-                    _logger.LogWarning("Unable to change crusade army main name due to missing view");
-                    return;
-                }
-
-                view.ViewModel.SetArmyName(army.Name);
-                _logger.LogInformation("Crusade army info main name has been set. Name={Name}", army.Name);
-            });
-        }
-
         public void CloseCrusadeArmyMergeInfo()
         {
             _mainThreadAccessor.Post(() =>
@@ -898,6 +1048,22 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                 view.ViewModel.OnClose();
                 _logger.LogInformation("Crusade army info close handler has been executed");
+            });
+        }
+
+        public void SetCrusadeArmyInfoCartName(NetworkGlobalMapArmy globalMapArmy)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = GetArmyInfoCart(globalMapArmy);
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to change crusade army name due to missing view. ArmyId={ArmyId}", globalMapArmy.Id);
+                    return;
+                }
+
+                view.ViewModel.SetArmyName(globalMapArmy.Name);
+                _logger.LogInformation("Crusade army name has been set. ArmyId={ArmyId}, Name={Name}", view.ViewModel.State.Id, globalMapArmy.Name);
             });
         }
 
@@ -1051,6 +1217,54 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
+        private void UpdateRecruitmentUnits(List<RecruitShopUnitView> recruitUnits, bool isInteractable)
+        {
+            foreach (var unit in recruitUnits)
+            {
+                if (!isInteractable)
+                {
+                    unit.ViewModel.CanBuy.Value = false;
+                    continue;
+                }
+
+                unit.ViewModel.UpdateValues(unit.ViewModel.Recruit);
+            }
+        }
+
+        private ArmyInfoArmyCartView GetArmyInfoCart(NetworkGlobalMapArmy globalMapArmy)
+        {
+            var globalView = _uiAccessor.GlobalMapPCView;
+            List<ArmyInfoArmyCartView> views = [globalView?.m_ArmyInfoPCView?.m_MainArmyCartView, globalView?.m_ArmyInfoPCView?.m_MergeArmyCartView, globalView?.m_RecruitPCView?.m_ArmyView];
+            var view = views.FirstOrDefault(x => x?.ViewModel != null && string.Equals(x.ViewModel.State.Id, globalMapArmy.Id, StringComparison.OrdinalIgnoreCase));
+            return view;
+        }
+
+        private void UpdateCrusadeArmySetLeaderUI(ArmyCartSetLeaderView view, bool isInteractable, int readyPlayersCount, int totalPlayersCount)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                if (view?.ViewModel == null)
+                {
+                    return;
+                }
+
+                var pcView = (ArmyCartSetLeaderPCView)view;
+                pcView.m_CloseButton.Interactable = isInteractable;
+                pcView.m_ClearLeaderButton.Interactable = isInteractable;
+                pcView.m_RecruitNewLeaderButton.Interactable = isInteractable;
+                _uiSyncCountersService.UpdateButtonTextCounter(view.m_ClearLeaderButtonText, readyPlayersCount, totalPlayersCount);
+                _uiSyncCountersService.UpdateButtonTextCounter(view.m_RecruitNewLeaderButtonText, readyPlayersCount, totalPlayersCount);
+
+                UpdateLeaderInfoUIState((ArmyLeaderInfoPCView)view.m_LeaderInfoView, isInteractable, readyPlayersCount, totalPlayersCount);
+                foreach (var leader in view.Leaders)
+                {
+                    UpdateLeaderInfoUIState((ArmyLeaderInfoPCView)leader, isInteractable, readyPlayersCount, totalPlayersCount);
+                }
+
+                _logger.LogInformation("Crusade army info ui has been updated. IsInteractable={IsInteractable}, ReadyPlayers={ReadyPlayers}, TotalPlayers={TotalPlayers}", isInteractable, readyPlayersCount, totalPlayersCount);
+            });
+        }
+
         private void UpdateLeaderInfoUIState(ArmyLeaderInfoPCView view, bool isInteractable, int readyPlayersCount, int totalPlayersCount)
         {
             if (view?.ViewModel == null)
@@ -1127,14 +1341,17 @@ namespace WOTRMultiplayer.Services.GameInteraction
             var armyInfo = _uiAccessor.GlobalMapPCView.m_ArmyInfoPCView;
             var mainCartView = armyInfo?.m_MainArmyCartView?.m_LeaderInfoView;
             var mergeCartView = armyInfo?.m_MergeArmyCartView?.m_LeaderInfoView;
+            var recruitmentView = _uiAccessor.GlobalMapPCView.m_RecruitPCView;
             if (globalMapArmyLeader == null)
             {
                 switch (armyLeaderActionType)
                 {
-                    case NetworkGlobalMapArmyLeaderActionType.MainLookAtPool:
+                    case NetworkGlobalMapArmyLeaderActionType.MainLookAtPool when mainCartView?.ViewModel != null:
                         return mainCartView;
-                    case NetworkGlobalMapArmyLeaderActionType.MergeLookAtPool:
+                    case NetworkGlobalMapArmyLeaderActionType.MergeLookAtPool when mergeCartView?.ViewModel != null:
                         return mergeCartView;
+                    case NetworkGlobalMapArmyLeaderActionType.MergeLookAtPool when recruitmentView?.m_ArmyView?.m_LeaderInfoView?.ViewModel != null:
+                        return recruitmentView.m_ArmyView.m_LeaderInfoView;
                     default:
                         _logger.LogError("GlobalMapArmyLeader is null. Type={Type}", armyLeaderActionType);
                         return null;
@@ -1142,7 +1359,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
             }
 
             // BuyLeaders screen is always on top
-            List<ArmyLeaderInfoView> viewsToSearch = [.. _uiAccessor.GlobalMapPCView.m_BuyLeaderPCView.m_Leaders, mainCartView, mergeCartView, .. armyInfo.m_SetLeaderView.Leaders];
+            List<ArmyLeaderInfoView> viewsToSearch = [.. _uiAccessor.GlobalMapPCView.m_BuyLeaderPCView.m_Leaders, mainCartView, mergeCartView, .. armyInfo.m_SetLeaderView.Leaders,
+                recruitmentView.m_ArmyView.m_LeaderInfoView, .. recruitmentView.m_LeaderSetView.Leaders];
 
             var view = viewsToSearch.FirstOrDefault(v => IsArmyLeaderViewMatched(v, globalMapArmyLeader));
             return view;

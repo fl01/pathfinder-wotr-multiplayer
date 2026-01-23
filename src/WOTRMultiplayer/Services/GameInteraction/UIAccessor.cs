@@ -3,7 +3,6 @@ using Kingmaker.UI.MVVM._PCView.CharGen;
 using Kingmaker.UI.MVVM._PCView.CombatLog;
 using Kingmaker.UI.MVVM._PCView.Common;
 using Kingmaker.UI.MVVM._PCView.Common.MessageModal;
-using Kingmaker.UI.MVVM._PCView.Crusade.ArmyInfo;
 using Kingmaker.UI.MVVM._PCView.Dialog;
 using Kingmaker.UI.MVVM._PCView.EscMenu;
 using Kingmaker.UI.MVVM._PCView.GlobalMap;

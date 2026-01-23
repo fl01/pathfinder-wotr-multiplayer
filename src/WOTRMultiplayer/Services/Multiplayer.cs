@@ -973,27 +973,6 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public int? GetNextRestBanter(int minInclusive, int maxExclusive)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return null;
-                }
-
-                var banterSeed = _multiplayerActorAccessor.Current.SessionSeed;
-                var nextBanter = ValueGenerator.Range(SeedLifetime.Persistent, banterSeed, minInclusive, maxExclusive);
-                _logger.LogInformation("Next rest banter has been selected. Seed={Seed}, Index={Index}", banterSeed, nextBanter);
-                return nextBanter;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while getting next rest banter");
-                throw;
-            }
-        }
-
         public int? GetCombatSeed()
         {
             // SessionSeed is a fallback in case we rely on combat seed outside of the combat.
@@ -3579,7 +3558,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnGlobalMapCrusadeArmyInfoMainNameChanged(NetworkGlobalMapArmy globalMapArmy)
+        public void OnGlobalMapCrusadeArmyInfoCartNameChanged(NetworkGlobalMapArmy globalMapArmy)
         {
             try
             {
@@ -3588,29 +3567,11 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmyInfoMainNameChanged(globalMapArmy);
+                _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmyInfoCartNameChanged(globalMapArmy);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while changing main army info name");
-                throw;
-            }
-        }
-
-        public void OnGlobalMapCrusadeArmyInfoMergeNameChanged(NetworkGlobalMapArmy globalMapArmy)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmyInfoMergeNameChanged(globalMapArmy);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while changing merge army info name");
                 throw;
             }
         }
@@ -3720,6 +3681,150 @@ namespace WOTRMultiplayer.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while closing buy leader screen");
+                throw;
+            }
+        }
+
+        public void OnGlobalMapRecruitmentShown()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnGlobalMapRecruitmentShown();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while showing global map recruitment");
+                throw;
+            }
+        }
+
+        public void OnGlobalMapRecruitmentClosed()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnGlobalMapRecruitmentClosed();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while closing global map recruitment");
+                throw;
+            }
+        }
+
+        public void OnGlobalMapRecruitmentMercReroll()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnGlobalMapRecruitmentMercReroll();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while rerolling global map recruitment mercs");
+                throw;
+            }
+        }
+
+        public void OnGlobalMapRecruitmentNextArmy()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnGlobalMapRecruitmentNextArmy();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while setting next global map recruitment army");
+                throw;
+            }
+        }
+
+        public void OnGlobalMapRecruitmentPrevArmy()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnGlobalMapRecruitmentPrevArmy();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while setting prev global map recruitment army");
+                throw;
+            }
+        }
+
+        public void OnGlobalMapRecruitmentSlotsRerolled()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnGlobalMapRecruitmentSlotsRerolled();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while handling rerolled recruitment slots");
+                throw;
+            }
+        }
+
+        public void OnGlobalMapRecruitmentBuyResources(NetworkGlobalMapResourceOrder globalMapResourceOrder)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnGlobalMapRecruitmentBuyResources(globalMapResourceOrder);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while buying global map resources");
+                throw;
+            }
+        }
+
+        public void OnGlobalMapRecruitmentBuyUnits(NetworkGlobalMapUnitRecruitmentOrder globalMapUnitRecruitmentOrder)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnGlobalMapRecruitmentBuyUnits(globalMapUnitRecruitmentOrder);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while buying global map units");
                 throw;
             }
         }

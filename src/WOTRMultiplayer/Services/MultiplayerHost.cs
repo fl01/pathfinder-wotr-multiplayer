@@ -1048,23 +1048,33 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
-        public void OnGlobalMapCrusadeArmyInfoMainNameChanged(NetworkGlobalMapArmy globalMapArmy)
+        public void OnGlobalMapRecruitmentBuyUnits(NetworkGlobalMapUnitRecruitmentOrder globalMapUnitRecruitmentOrder)
         {
-            var message = new NotifyGlobalMapCrusadeArmyInfoMainNameChanged
+            var message = new NotifyGlobalMapUnitsRecruited
             {
-                Army = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapArmy>(globalMapArmy)
+                Order = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapUnitRecruitmentOrder>(globalMapUnitRecruitmentOrder)
             };
-            Logger.LogInformation("Sending {MessageType}. ArmyId={ArmyId}, Name={Name}", nameof(NotifyGlobalMapCrusadeArmyInfoMainNameChanged), message.Army.Id, message.Army.Name);
+            Logger.LogInformation("Sending {MessageType}. UnitBlueprintId={UnitBlueprintId}, Count={Count}, ArmyId={ArmyId}, Type={Type}", nameof(NetworkGlobalMapUnitRecruitmentOrder), message.Order.BlueprintId, message.Order.Count, message.Order.ArmyId, message.Order.Type);
             Send(message);
         }
 
-        public void OnGlobalMapCrusadeArmyInfoMergeNameChanged(NetworkGlobalMapArmy globalMapArmy)
+        public void OnGlobalMapRecruitmentBuyResources(NetworkGlobalMapResourceOrder globalMapResourceOrder)
         {
-            var message = new NotifyGlobalMapCrusadeArmyInfoMergeNameChanged
+            var message = new NotifyGlobalMapResourcesBought
+            {
+                Order = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapResourceOrder>(globalMapResourceOrder)
+            };
+            Logger.LogInformation("Sending {MessageType}. FinalCost={FinalCost}, FinanceCount={FinanceCount}, MaterialsCount={MaterialsCount}", nameof(NotifyGlobalMapResourcesBought), message.Order.FinalCost, message.Order.FinanceCount, message.Order.MaterialCount);
+            Send(message);
+        }
+
+        public void OnGlobalMapCrusadeArmyInfoCartNameChanged(NetworkGlobalMapArmy globalMapArmy)
+        {
+            var message = new NotifyGlobalMapCrusadeArmyInfoCartNameChanged
             {
                 Army = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapArmy>(globalMapArmy)
             };
-            Logger.LogInformation("Sending {MessageType}. ArmyId={ArmyId}, Name={Name}", nameof(NotifyGlobalMapCrusadeArmyInfoMergeNameChanged), message.Army.Id, message.Army.Name);
+            Logger.LogInformation("Sending {MessageType}. ArmyId={ArmyId}, Name={Name}", nameof(NotifyGlobalMapCrusadeArmyInfoCartNameChanged), message.Army.Id, message.Army.Name);
             Send(message);
         }
 
@@ -1079,6 +1089,27 @@ namespace WOTRMultiplayer.Services
         {
             var message = new NotifyGlobalMapCrusadeArmySetLeaderRecruitClicked();
             Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmySetLeaderRecruitClicked));
+            Send(message);
+        }
+
+        public void OnGlobalMapRecruitmentMercReroll()
+        {
+            var message = new NotifyGlobalMapRecruitmentMercenariesRerolled();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapRecruitmentMercenariesRerolled));
+            Send(message);
+        }
+
+        public void OnGlobalMapRecruitmentNextArmy()
+        {
+            var message = new NotifyGlobalMapRecruitmentNextArmySelected();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapRecruitmentNextArmySelected));
+            Send(message);
+        }
+
+        public void OnGlobalMapRecruitmentPrevArmy()
+        {
+            var message = new NotifyGlobalMapRecruitmentPrevArmySelected();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapRecruitmentPrevArmySelected));
             Send(message);
         }
 
@@ -1371,6 +1402,7 @@ namespace WOTRMultiplayer.Services
                .On<NotifyGlobalMapCrusadeArmyInfoShown>(OnNotifyGlobalMapCrusadeArmyInfoShown)
                .On<NotifyGlobalMapCrusadeArmySetLeaderClosed>(OnNotifyGlobalMapCrusadeArmySetLeaderClosed)
                .On<NotifyGlobalMapCrusadeArmyBuyLeaderClosed>(OnNotifyGlobalMapCrusadeArmyBuyLeaderClosed)
+               .On<NotifyGlobalMapRecruitmentShown>(OnNotifyGlobalMapRecruitmentShown)
 
                // dialogs
                .On<ClientDialogCueAnswerSuggested>(OnClientDialogCueAnswerSuggested)
@@ -1385,32 +1417,40 @@ namespace WOTRMultiplayer.Services
                ;
         }
 
-        private void OnNotifyGlobalMapCrusadeArmyBuyLeaderClosed(long receivedFrom, NotifyGlobalMapCrusadeArmyBuyLeaderClosed globalMapCrusadeArmyBuyLeaderClosed)
+        private void OnNotifyGlobalMapRecruitmentShown(long receivedFrom, NotifyGlobalMapRecruitmentShown message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapTravelerModeChanged), receivedFrom, globalMapCrusadeArmyBuyLeaderClosed.PlayerId);
-            RemovePlayerFromTracker(Game.PlayersInGlobalMapCrusadeArmyBuyLeader, globalMapCrusadeArmyBuyLeaderClosed.PlayerId);
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapRecruitmentShown), receivedFrom, message.PlayerId);
+
+            AddPlayerToTracker(Game.PlayersInGlobalMapRecruitment, message.PlayerId);
+            UpdateGlobalMapRecruitmentUIState();
+        }
+
+        private void OnNotifyGlobalMapCrusadeArmyBuyLeaderClosed(long receivedFrom, NotifyGlobalMapCrusadeArmyBuyLeaderClosed message)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapTravelerModeChanged), receivedFrom, message.PlayerId);
+            RemovePlayerFromTracker(Game.PlayersInGlobalMapCrusadeArmyBuyLeader, message.PlayerId);
             UpdateGlobalMapCrusadeArmyInfoUIStateAfterBuyLeader();
 
-            OnAfterNetworkMessageHandled(receivedFrom, globalMapCrusadeArmyBuyLeaderClosed);
+            OnAfterNetworkMessageHandled(receivedFrom, message);
         }
 
-        private void OnNotifyGlobalMapCrusadeArmySetLeaderClosed(long receivedFrom, NotifyGlobalMapCrusadeArmySetLeaderClosed globalMapCrusadeArmyInfoSetLeaderClosed)
+        private void OnNotifyGlobalMapCrusadeArmySetLeaderClosed(long receivedFrom, NotifyGlobalMapCrusadeArmySetLeaderClosed message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapTravelerModeChanged), receivedFrom, globalMapCrusadeArmyInfoSetLeaderClosed.PlayerId);
-            RemovePlayerFromTracker(Game.PlayersInGlobalMapCrusadeArmySetLeader, globalMapCrusadeArmyInfoSetLeaderClosed.PlayerId);
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapTravelerModeChanged), receivedFrom, message.PlayerId);
+            RemovePlayerFromTracker(Game.PlayersInGlobalMapCrusadeArmySetLeader, message.PlayerId);
             UpdateGlobalMapCrusadeArmyInfoUIStateAfterSetLeader();
 
-            OnAfterNetworkMessageHandled(receivedFrom, globalMapCrusadeArmyInfoSetLeaderClosed);
+            OnAfterNetworkMessageHandled(receivedFrom, message);
         }
 
-        private void OnNotifyGlobalMapCrusadeArmyInfoShown(long receivedFrom, NotifyGlobalMapCrusadeArmyInfoShown globalMapCrusadeArmyInfoShown)
+        private void OnNotifyGlobalMapCrusadeArmyInfoShown(long receivedFrom, NotifyGlobalMapCrusadeArmyInfoShown message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapCombatResultsShown), receivedFrom, globalMapCrusadeArmyInfoShown.PlayerId);
-            AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyInfo, globalMapCrusadeArmyInfoShown.PlayerId);
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapCombatResultsShown), receivedFrom, message.PlayerId);
+            AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyInfo, message.PlayerId);
 
             UpdateGlobalMapCrusadeArmyInfoUIState();
 
-            OnAfterNetworkMessageHandled(receivedFrom, globalMapCrusadeArmyInfoShown);
+            OnAfterNetworkMessageHandled(receivedFrom, message);
         }
 
         private void OnNotifyGlobalMapCrusadeArmyInfoMergeClosed(long receivedFrom, NotifyGlobalMapCrusadeArmyInfoMergeClosed globalMapCrusadeArmyInfoMergeClosed)

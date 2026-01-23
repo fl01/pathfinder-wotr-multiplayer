@@ -280,6 +280,12 @@ namespace WOTRMultiplayer.Config.Mapping
 
             CreateMap<NetworkGlobalMapArmyLeader, Networking.Messages.Contracts.NetworkGlobalMapArmyLeader>()
                 .ReverseMap();
+
+            CreateMap<NetworkGlobalMapResourceOrder, Networking.Messages.Contracts.NetworkGlobalMapResourceOrder>()
+                .ReverseMap();
+
+            CreateMap<NetworkGlobalMapUnitRecruitmentOrder, Networking.Messages.Contracts.NetworkGlobalMapUnitRecruitmentOrder>()
+                 .ReverseMap();
         }
     }
 }

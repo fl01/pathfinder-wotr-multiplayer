@@ -320,5 +320,11 @@ namespace WOTRMultiplayer.Abstractions
         void OnGlobalMapCrusadeArmyBuyLeaderShown();
 
         void OnGlobalMapCrusadeArmyBuyLeaderClosed();
+
+        void OnGlobalMapRecruitmentShown();
+
+        void OnGlobalMapRecruitmentClosed();
+
+        void OnGlobalMapRecruitmentSlotsRerolled();
     }
 }

@@ -9,6 +9,7 @@ using Kingmaker.Blueprints.Root;
 using Kingmaker.Controllers.Rest.State;
 using Kingmaker.Utility;
 using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.Rest
 {
@@ -53,10 +54,14 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 return null;
             }
 
-            var banterIndex = Main.Multiplayer.GetNextRestBanter(0, allBanters.Count + 1).Value;
+            var sessionSeed = Main.Multiplayer.GetSessionSeed();
+            var minInclusive = 0;
+            var maxExclusive = allBanters.Count;
+            var seed = $"{nameof(BarkBanterHelper)}:{nameof(SelectBanter)}:{sessionSeed.Value}";
+            var banterIndex = Main.Multiplayer.ValueGenerator.Range(SeedLifetime.Persistent, seed, minInclusive, maxExclusive);
             var selectedBanter = allBanters[banterIndex];
             var firstPhraseKey = selectedBanter?.FirstPhrase?.FirstOrDefault()?.Key;
-            Main.GetLogger<BarkBanterHelperPatches>().LogInformation("Selected camping banter. Id={banterId}, FirstPhraseKey={firstPhraseKey}", selectedBanter?.AssetGuid, firstPhraseKey);
+            Main.GetLogger<BarkBanterHelperPatches>().LogInformation("Selected camping banter. Id={Id}, FirstPhraseKey={FirstPhraseKey}, Seed={Seed}, Index={Index}, MinInclusive={MinInclusive}, MaxExclusive={MaxExclusive}", selectedBanter?.AssetGuid, firstPhraseKey, seed, banterIndex, minInclusive, maxExclusive);
             return selectedBanter;
         }
     }

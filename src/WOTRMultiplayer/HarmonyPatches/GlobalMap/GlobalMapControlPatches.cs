@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Reflection;
-using System.Reflection.Emit;
-using HarmonyLib;
+﻿using HarmonyLib;
 using Kingmaker;
 using Kingmaker.Globalmap;
 using Kingmaker.Globalmap.State;
@@ -10,7 +7,6 @@ using Kingmaker.UI.MVVM._PCView.GlobalMap.Toolbar;
 using Kingmaker.UI.MVVM._VM.Crusade.PointerMarker;
 using Kingmaker.UI.MVVM._VM.GlobalMap;
 using Kingmaker.UI.MVVM._VM.GlobalMap.Toolbar;
-using Microsoft.Extensions.Logging;
 using UniRx;
 using WOTRMultiplayer.Entities.GlobalMap;
 
@@ -20,29 +16,16 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
     public class GlobalMapControlPatches
     {
         [HarmonyPatch(typeof(GlobalMapArmyPointerMarkerEntityVM), nameof(GlobalMapArmyPointerMarkerEntityVM.OnLeftClick))]
-        [HarmonyTranspiler]
-        public static IEnumerable<CodeInstruction> GlobalMapArmyPointerMarkerEntityVM_OnLeftClick_Transpiler(IEnumerable<CodeInstruction> instructions)
+        [HarmonyPrefix]
+        public static bool GlobalMapArmyPointerMarkerEntityVM_OnLeftClick_Prefix(GlobalMapArmyPointerMarkerEntityVM __instance)
         {
-            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
-            var lookFor = AccessTools.Method(typeof(GlobalMapController), nameof(GlobalMapController.SetSelectedArmy));
-            var extraCall = AccessTools.Method(typeof(GlobalMapControlPatches), nameof(GlobalMapControlPatches.OnSelectMarkerArmy));
-            var matcher = new CodeMatcher(instructions);
-
-            var match = matcher.SearchForward(x => x.Calls(lookFor));
-            if (match.IsInvalid)
+            if (!Main.Multiplayer.IsActive || Main.Multiplayer.CanNavigateOnGlobalMap())
             {
-                Main.GetLogger<GlobalMapControlPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
-                return instructions;
+                return true;
             }
 
-            var newInstructions = new List<CodeInstruction>()
-            {
-                new(OpCodes.Ldarg_0),
-                new(OpCodes.Call, extraCall),
-            };
-            match = match.Advance(-4).RemoveInstructions(5).Insert(newInstructions);
-            Main.GetLogger<GlobalMapControlPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
-            return matcher.Instructions();
+            Game.Instance.UI.GetCameraRig().ScrollTo(__instance.Position.Value, false);
+            return false;
         }
 
         [HarmonyPatch(typeof(GlobalMapSelectController), nameof(GlobalMapSelectController.HandleClick), [typeof(GlobalMapPawn)])]
@@ -144,15 +127,6 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             }
 
             return NetworkGlobalMapTravelerMode.Player;
-        }
-
-        private static void OnSelectMarkerArmy(GlobalMapArmyPointerMarkerEntityVM pointerMarkerEntityVM)
-        {
-            if (!Main.Multiplayer.IsActive || Main.Multiplayer.CanNavigateOnGlobalMap())
-            {
-                var army = pointerMarkerEntityVM.ArmyState;
-                Game.Instance.GlobalMapController.SetSelectedArmy(army);
-            }
         }
 
         private static NetworkGlobalMapArmy Create(GlobalMapArmyState army)

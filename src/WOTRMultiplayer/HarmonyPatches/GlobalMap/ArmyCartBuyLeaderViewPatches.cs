@@ -9,6 +9,8 @@ using Kingmaker.Blueprints.Root.Strings;
 using Kingmaker.UI;
 using Kingmaker.UI.Common;
 using Kingmaker.UI.MVVM._PCView.Crusade.ArmyInfo;
+using Kingmaker.UI.MVVM._PCView.Crusade.Recruit;
+using Kingmaker.UI.MVVM._VM.Crusade.Recruit;
 using Microsoft.Extensions.Logging;
 using UniRx;
 using WOTRMultiplayer.Entities.GlobalMap;
@@ -51,7 +53,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
 
         [HarmonyPatch(typeof(ArmyCartBuyLeaderPCView), nameof(ArmyCartBuyLeaderPCView.BindViewImplementation))]
         [HarmonyPostfix]
-        public static void ArmyCartBuyLeaderPCView_BindViewImplementation_Postfix(ArmyCartBuyLeaderPCView __instance)
+        public static void ArmyCartBuyLeaderPCView_BindViewImplementation_Postfix()
         {
             if (!Main.Multiplayer.IsActive)
             {

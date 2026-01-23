@@ -122,8 +122,6 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnAfterTryRollRestRandomEncounter();
 
-        int? GetNextRestBanter(int minInclusive, int maxExclusive);
-
         void OnInterrupRestBanterBark(NetworkRestBanter networkRestBanter);
 
         NetworkAIAction OnAfterAISelectedAction(NetworkAIAction networkAIAction);
@@ -426,9 +424,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnGlobalMapCrusadeArmyInfoCreateArmy();
 
-        void OnGlobalMapCrusadeArmyInfoMainNameChanged(NetworkGlobalMapArmy globalMapArmy);
-
-        void OnGlobalMapCrusadeArmyInfoMergeNameChanged(NetworkGlobalMapArmy globalMapArmy);
+        void OnGlobalMapCrusadeArmyInfoCartNameChanged(NetworkGlobalMapArmy globalMapArmy);
 
         void OnGlobalMapCrusadeArmySetLeaderShown();
 
@@ -441,5 +437,21 @@ namespace WOTRMultiplayer.Abstractions
         void OnGlobalMapCrusadeArmyBuyLeaderShown();
 
         void OnGlobalMapCrusadeArmyBuyLeaderClosed();
+
+        void OnGlobalMapRecruitmentShown();
+
+        void OnGlobalMapRecruitmentClosed();
+
+        void OnGlobalMapRecruitmentMercReroll();
+
+        void OnGlobalMapRecruitmentNextArmy();
+
+        void OnGlobalMapRecruitmentPrevArmy();
+
+        void OnGlobalMapRecruitmentSlotsRerolled();
+
+        void OnGlobalMapRecruitmentBuyResources(NetworkGlobalMapResourceOrder globalMapResourceOrder);
+
+        void OnGlobalMapRecruitmentBuyUnits(NetworkGlobalMapUnitRecruitmentOrder globalMapUnitRecruitmentOrder);
     }
 }

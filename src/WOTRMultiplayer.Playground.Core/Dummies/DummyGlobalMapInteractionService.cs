@@ -178,11 +178,7 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void SetCrusadeArmyInfoMergeName(NetworkGlobalMapArmy army)
-        {
-        }
-
-        public void SetCrusadeArmyInfoMainName(NetworkGlobalMapArmy army)
+        public void SetCrusadeArmyInfoCartName(NetworkGlobalMapArmy army)
         {
         }
 
@@ -207,6 +203,38 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         }
 
         public void RunLeaderAction(NetworkGlobalMapArmyLeader globalMapArmyLeader, NetworkGlobalMapArmyLeaderActionType actionType)
+        {
+        }
+
+        public void UpdateRecruitmentUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
+        {
+        }
+
+        public void UpdateSharedCrusadeManagementUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
+        {
+        }
+
+        public void SelectNextRecruitmentArmy()
+        {
+        }
+
+        public void SelectPrevRecruitmentArmy()
+        {
+        }
+
+        public void RerollRecruitmentMercenaries()
+        {
+        }
+
+        public void BuyResources(NetworkGlobalMapResourceOrder globalMapResourceOrder)
+        {
+        }
+
+        public void BuyUnits(NetworkGlobalMapUnitRecruitmentOrder globalMapUnitRecruitmentOrder)
+        {
+        }
+
+        public void OpenRecruitments()
         {
         }
     }

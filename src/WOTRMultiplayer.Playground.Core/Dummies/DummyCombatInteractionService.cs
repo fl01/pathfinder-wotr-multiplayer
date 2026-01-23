@@ -64,11 +64,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public bool IsControlledInTacticalCombat(string unitId)
-        {
-            return false;
-        }
-
         public bool IsInCrusadeTacticalCombat()
         {
             return false;

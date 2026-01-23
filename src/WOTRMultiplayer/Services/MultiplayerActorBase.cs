@@ -1898,6 +1898,39 @@ namespace WOTRMultiplayer.Services
             UpdateGlobalMapCrusadeArmyInfoUIStateAfterBuyLeader();
         }
 
+        public void OnGlobalMapRecruitmentShown()
+        {
+            var localPlayer = GetLocalPlayerId();
+            AddPlayerToTracker(Game.PlayersInGlobalMapRecruitment, localPlayer);
+
+            var message = new NotifyGlobalMapRecruitmentShown
+            {
+                PlayerId = localPlayer
+            };
+            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapRecruitmentShown), message.PlayerId);
+            Send(message);
+
+            UpdateGlobalMapRecruitmentUIState();
+        }
+
+        public void OnGlobalMapRecruitmentClosed()
+        {
+            var localPlayer = GetLocalPlayerId();
+            RemovePlayerFromTracker(Game.PlayersInGlobalMapRecruitment, localPlayer);
+
+            var message = new NotifyGlobalMapRecruitmentClosed
+            {
+                PlayerId = localPlayer
+            };
+            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapRecruitmentClosed), message.PlayerId);
+            Send(message);
+        }
+
+        public void OnGlobalMapRecruitmentSlotsRerolled()
+        {
+            UpdateGlobalMapRecruitmentUIState();
+        }
+
         public void OnTacticalCombatEnded()
         {
             Game.ArmyCombat = null;
@@ -2126,7 +2159,18 @@ namespace WOTRMultiplayer.Services
                 var readyPlayers = Game.PlayersInGlobalMapCrusadeArmySetLeader.Count;
                 var totalPlayers = GetSyncedPlayersCount();
                 var canUse = HasControlOverUI && readyPlayers >= totalPlayers;
-                GlobalMapInteraction.UpdateCrusadeArmyInfoUI(canUse, readyPlayers, totalPlayers);
+                GlobalMapInteraction.UpdateSharedCrusadeManagementUI(canUse, readyPlayers, totalPlayers);
+            }
+        }
+
+        protected void UpdateGlobalMapRecruitmentUIState()
+        {
+            lock (ActionLock)
+            {
+                var readyPlayers = Game.PlayersInGlobalMapRecruitment.Count;
+                var totalPlayers = GetSyncedPlayersCount();
+                var canUse = HasControlOverUI && readyPlayers >= totalPlayers;
+                GlobalMapInteraction.UpdateRecruitmentUI(canUse, readyPlayers, totalPlayers);
             }
         }
 
@@ -2159,7 +2203,7 @@ namespace WOTRMultiplayer.Services
                 var totalPlayers = GetSyncedPlayersCount();
                 var readyPlayers = totalPlayers - Game.PlayersInGlobalMapCrusadeArmyBuyLeader.Count;
                 var canUse = HasControlOverUI && Game.PlayersInGlobalMapCrusadeArmyBuyLeader.Count == 0;
-                GlobalMapInteraction.UpdateCrusadeArmyInfoUI(canUse, readyPlayers, totalPlayers);
+                GlobalMapInteraction.UpdateSharedCrusadeManagementUI(canUse, readyPlayers, totalPlayers);
             }
         }
 
@@ -2170,7 +2214,7 @@ namespace WOTRMultiplayer.Services
                 var totalPlayers = GetSyncedPlayersCount();
                 var readyPlayers = totalPlayers - Game.PlayersInGlobalMapCrusadeArmySetLeader.Count;
                 var canUse = HasControlOverUI && Game.PlayersInGlobalMapCrusadeArmySetLeader.Count == 0;
-                GlobalMapInteraction.UpdateCrusadeArmyInfoUI(canUse, readyPlayers, totalPlayers);
+                GlobalMapInteraction.UpdateSharedCrusadeManagementUI(canUse, readyPlayers, totalPlayers);
             }
         }
 
@@ -2560,6 +2604,7 @@ namespace WOTRMultiplayer.Services
             ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyInfoMerge);
             ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmySetLeader);
             ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyBuyLeader);
+            ResetPlayersTracker(Game.PlayersInGlobalMapRecruitment);
         }
 
         protected string StoreSaveGameContent(byte[] content)

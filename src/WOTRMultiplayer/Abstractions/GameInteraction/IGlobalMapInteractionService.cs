@@ -92,9 +92,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void CloseCrusadeArmyMainInfo();
 
-        void SetCrusadeArmyInfoMergeName(NetworkGlobalMapArmy army);
-
-        void SetCrusadeArmyInfoMainName(NetworkGlobalMapArmy army);
+        void SetCrusadeArmyInfoCartName(NetworkGlobalMapArmy army);
 
         void CloseCrusadeArmySetLeaderInfo();
 
@@ -105,5 +103,21 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void CloseBuyLeaderScreen();
 
         void UpdateBuyLeaderUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
+
+        void UpdateRecruitmentUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
+
+        void UpdateSharedCrusadeManagementUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
+
+        void SelectNextRecruitmentArmy();
+
+        void SelectPrevRecruitmentArmy();
+
+        void RerollRecruitmentMercenaries();
+
+        void BuyResources(NetworkGlobalMapResourceOrder globalMapResourceOrder);
+
+        void BuyUnits(NetworkGlobalMapUnitRecruitmentOrder globalMapUnitRecruitmentOrder);
+
+        void OpenRecruitments();
     }
 }

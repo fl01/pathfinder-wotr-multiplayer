@@ -88,15 +88,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             }
 
             var globalMapArmy = new NetworkGlobalMapArmy { Id = __instance.ViewModel.State?.Id, Name = armyName };
-            var armyInfo = Main.UIAccessor.GlobalMapPCView?.m_ArmyInfoPCView;
-            if (armyInfo?.m_MainArmyCartView == __instance)
-            {
-                Main.Multiplayer.OnGlobalMapCrusadeArmyInfoMainNameChanged(globalMapArmy);
-            }
-            else if (armyInfo?.m_MergeArmyCartView == __instance)
-            {
-                Main.Multiplayer.OnGlobalMapCrusadeArmyInfoMergeNameChanged(globalMapArmy);
-            }
+            Main.Multiplayer.OnGlobalMapCrusadeArmyInfoCartNameChanged(globalMapArmy);
         }
 
         [HarmonyPatch(typeof(ArmyInfoArmyCartPCView), nameof(ArmyInfoArmyCartPCView.BindViewImplementation))]
