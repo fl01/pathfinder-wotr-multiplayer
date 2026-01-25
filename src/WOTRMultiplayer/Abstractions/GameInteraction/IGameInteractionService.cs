@@ -52,8 +52,6 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void ClickGroundInCombat(NetworkClick networkClick);
 
-        void UseAbility(NetworkAbility networkAbility);
-
         void ToggleActivatableAbility(NetworkActivatableAbility networkActivatableAbility);
 
         void TransferInventoryItems(NetworkItemsTransfer networkItemsTransfer);
@@ -115,8 +113,6 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void ClearActionBarSlot(NetworkActionBarSlot actionBarSlot);
 
         void LockpickMapObject(NetworkLockpickInteraction lockpickInteraction);
-
-        void AttackUnit(NetworkUnitAttack attack);
 
         void ChangeUnitStealth(string unitId, bool isEnabled, bool isForced);
 

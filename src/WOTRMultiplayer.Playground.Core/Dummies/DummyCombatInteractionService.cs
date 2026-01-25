@@ -80,5 +80,13 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void RetreatFromTacticalCombat()
         {
         }
+
+        public void AttackUnit(NetworkUnitAttack attack)
+        {
+        }
+
+        public void UseAbility(NetworkAbility networkAbility)
+        {
+        }
     }
 }

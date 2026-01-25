@@ -59,10 +59,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void AttackUnit(NetworkUnitAttack attack)
-        {
-        }
-
         public void AvoidGlobalMapEncounter()
         {
         }
@@ -403,10 +399,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         }
 
         public void UpdateZoneLootUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
-        {
-        }
-
-        public void UseAbility(NetworkAbility networkAbility)
         {
         }
 

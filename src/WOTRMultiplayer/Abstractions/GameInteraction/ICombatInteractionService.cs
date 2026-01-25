@@ -39,5 +39,9 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void PostponeTacticalCombatTurn();
 
         void RetreatFromTacticalCombat();
+
+        void AttackUnit(NetworkUnitAttack attack);
+
+        void UseAbility(NetworkAbility networkAbility);
     }
 }

@@ -19,5 +19,7 @@ namespace WOTRMultiplayer.Entities.Combat
         public string Name { get; set; }
 
         public string ConvertedFromId { get; set; }
+
+        public string MovementLimit { get; set; }
     }
 }

@@ -48,8 +48,8 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 }
 
                 var cd = __instance.Executor.CombatState.Cooldown;
-                Main.GetLogger<UnitCommandsPatches>().LogDebug("Starting unit attack command. ExecutorUnitId={ExecutorUnitId}, TargetUnitId={TargetUnitId}, IsFullAttack={IsFullAttack}, StandardCD={StandardAction}, MoveCD={MoveAction}, SwiftCD={SwiftAction}, InitiativeCD={Initiative}",
-                    __instance.Executor.UniqueId, __instance.Target.UniqueId, __instance.IsFullAttack(), cd.StandardAction, cd.MoveAction, cd.SwiftAction, cd.Initiative);
+                Main.GetLogger<UnitCommandsPatches>().LogWarning("Starting unit attack command. ExecutorUnitId={ExecutorUnitId}, TargetUnitId={TargetUnitId}, IsFullAttack={IsFullAttack}, ShouldUnitApproach={ShouldUnitApproach}, Limit={limit}, IsIgnoreCooldown={IsIgnoreCooldown}, StandardCD={StandardAction}, MoveCD={MoveAction}, SwiftCD={SwiftAction}, InitiativeCD={Initiative}",
+                    __instance.Executor.UniqueId, __instance.Target.UniqueId, __instance.IsFullAttack(), __instance.ShouldUnitApproach, __instance.IsIgnoreCooldown, cd.StandardAction, cd.MoveAction, cd.SwiftAction, cd.Initiative);
 
                 OnUnitAttack(__instance, forceMount: false);
             }
@@ -61,7 +61,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
         }
 
         /// <summary>
-        /// UnitAttack command which did not result in actual attack, i.e. clicking unit to approach
+        /// UnitAttack/Ability command which did not result in actual attack/spell use, i.e. clicking unit to approach
         /// </summary>
         /// <param name="__instance"></param>
         /// <param name="result"></param>
@@ -69,22 +69,31 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
         [HarmonyPrefix]
         public static void UnitCommand_ForceFinishForTurnBased_Prefix(UnitCommand __instance, ResultType result)
         {
-            if (!Main.Multiplayer.IsActive || result != ResultType.Success || __instance.IsStarted || __instance is not UnitAttack unitAttack || __instance.Executor.SaddledPart != null)
+            if (!Main.Multiplayer.IsActive || result != ResultType.Success || __instance.IsStarted || __instance.Executor.SaddledPart != null)
             {
                 return;
             }
 
             try
             {
-                var cd = unitAttack.Executor.CombatState.Cooldown;
-                Main.GetLogger<UnitCommandsPatches>().LogInformation("Sending forcefinished unit attack command. ExecutorUnitId={ExecutorUnitId}, TargetUnitId={TargetUnitId}, IsFullAttack={IsFullAttack}, StandardCD={StandardAction}, MoveCD={MoveAction}, SwiftCD={SwiftAction}, InitiativeCD={Initiative}",
-                    unitAttack.Executor.UniqueId, unitAttack.Target.UniqueId, unitAttack.IsFullAttack(), cd.StandardAction, cd.MoveAction, cd.SwiftAction, cd.Initiative);
-
-                OnUnitAttack(unitAttack, forceMount: __instance.Executor.RiderPart != null);
+                var cd = __instance.Executor.CombatState.Cooldown;
+                switch (__instance)
+                {
+                    case UnitAttack unitAttack:
+                        Main.GetLogger<UnitCommandsPatches>().LogInformation("Forcefinished unit attack command. ExecutorUnitId={ExecutorUnitId}, TargetUnitId={TargetUnitId}, IsFullAttack={IsFullAttack}, StandardCD={StandardAction}, MoveCD={MoveAction}, SwiftCD={SwiftAction}, InitiativeCD={Initiative}",
+                            unitAttack.Executor.UniqueId, unitAttack.Target.UniqueId, unitAttack.IsFullAttack(), cd.StandardAction, cd.MoveAction, cd.SwiftAction, cd.Initiative);
+                        OnUnitAttack(unitAttack, forceMount: __instance.Executor.RiderPart != null);
+                        break;
+                    case UnitUseAbility unitUseAbility:
+                        Main.GetLogger<UnitCommandsPatches>().LogInformation("Forcefinished unit useability command. ExecutorUnitId={ExecutorUnitId}, TargetUnitId={TargetUnitId}, StandardCD={StandardAction}, MoveCD={MoveAction}, SwiftCD={SwiftAction}, InitiativeCD={Initiative}",
+                            __instance.Executor.UniqueId, unitUseAbility.TargetUnit?.UniqueId, cd.StandardAction, cd.MoveAction, cd.SwiftAction, cd.Initiative);
+                        OnAbilityUse(unitUseAbility);
+                        break;
+                }
             }
             catch (Exception ex)
             {
-                Main.GetLogger<UnitCommandsPatches>().LogError(ex, "Unable to handle UnitAttack ForceFinishForTurnBased");
+                Main.GetLogger<UnitCommandsPatches>().LogError(ex, "Unable to handle ForceFinishForTurnBased. CommandType={CommandType}", __instance.GetType().Name);
                 throw;
             }
         }
@@ -131,11 +140,11 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 Name = command.Ability.NameForAcronym,
                 SpellbookId = command.Ability.Spellbook?.Blueprint.Name.Key,
                 CasterId = command.Executor.UniqueId,
+                VectorPath = networkPath,
                 Target = new NetworkTargetWrapper(
                     command.Target.Point.ToNetworkVector3(),
                     command.Target.Orientation,
                     command.Target.Unit?.UniqueId),
-                VectorPath = networkPath,
                 CommandType = command.Type.ToString(),
                 ConvertedFromId = command.Ability.ConvertedFrom?.UniqueId
             };
@@ -148,13 +157,16 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             var path = PathVisualizer.Instance?.CurrentPathForUnit(command.Executor.View);
             var networkPath = path?.vectorPath.Select(v => v.ToNetworkVector3()).ToList();
             var executor = forceMount ? command.Executor.RiderPart.SaddledUnit.UniqueId : command.Executor.UniqueId;
+            var movementLimit = Game.Instance.TurnBasedCombatController.CurrentTurn?.CurrentMovementLimit;
+
             var networkAbility = new NetworkUnitAttack
             {
                 ExecutorUnitId = executor,
                 TargetUnitId = command.TargetUnit?.UniqueId,
                 IsFullAttack = command.IsAttackFull,
                 IsSingleAttack = command.IsSingleAttack,
-                VectorPath = networkPath
+                VectorPath = networkPath,
+                MovementLimit = movementLimit?.ToString()
             };
 
             Main.Multiplayer.OnUnitAttackCommandStarted(networkAbility);

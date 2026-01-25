@@ -16,21 +16,21 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         public string CasterId { get; set; }
 
         [ProtoMember(4)]
-        public string TargetId { get; set; }
+        public NetworkTargetWrapper Target { get; set; }
 
         [ProtoMember(5)]
-        public NetworkVector3 TargetPoint { get; set; }
-
-        [ProtoMember(6)]
         public List<NetworkVector3> VectorPath { get; set; }
 
-        [ProtoMember(7)]
+        [ProtoMember(6)]
         public string CommandType { get; set; }
 
-        [ProtoMember(8)]
+        [ProtoMember(7)]
         public string Name { get; set; }
 
-        [ProtoMember(9)]
+        [ProtoMember(8)]
         public string ConvertedFromId { get; set; }
+
+        [ProtoMember(9)]
+        public string MovementLimit { get; set; }
     }
 }

@@ -231,7 +231,6 @@ namespace WOTRMultiplayer.Services
             var isLocal = IsControlledByLocalPlayer(networkUnitAttack.ExecutorUnitId);
             if (!isLocal || (Game.Combat.Turn?.IsAI ?? false))
             {
-                Logger.LogInformation("Skipping UnitAttack notification as executor is not controlled by local player. UnitId={UnitId}", networkUnitAttack.ExecutorUnitId);
                 return;
             }
 
@@ -3703,20 +3702,21 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyAbilityUsed(long playerId, NotifyAbilityUsed abilityUse)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, CasterId={CasterId}, AbilityId={AbilityId}", nameof(NotifyAbilityUsed), playerId, abilityUse.Ability.CasterId, abilityUse.Ability.Id);
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, CasterId={CasterId}, AbilityId={AbilityId}, TargetUnitId={TargetUnitId}, TargetPoint={TargetPoint}", nameof(NotifyAbilityUsed), playerId, abilityUse.Ability.CasterId, abilityUse.Ability.Id, abilityUse.Ability.Target.UnitId, abilityUse.Ability.Target.Point);
 
             var ability = Mapper.Map<NetworkAbility>(abilityUse.Ability);
-            GameInteraction.UseAbility(ability);
+            CombatInteraction.UseAbility(ability);
 
             OnAfterNetworkMessageHandled(playerId, abilityUse);
         }
 
         private void OnNotifyUnitAttacked(long playerId, NotifyUnitAttacked unitAttacked)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, ExecutorUnitId={ExecutorUnitId}, TargetUnitId={TargetUnitId}, IsFullAttack={IsFullAttack}", nameof(NotifyUnitAttacked), playerId, unitAttacked.Attack.ExecutorUnitId, unitAttacked.Attack.TargetUnitId, unitAttacked.Attack.IsFullAttack);
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, ExecutorUnitId={ExecutorUnitId}, TargetUnitId={TargetUnitId}, IsFullAttack={IsFullAttack}, IsSingleAttack={IsSingleAttack}, MovementLimit={MovementLimit}",
+                nameof(NotifyUnitAttacked), playerId, unitAttacked.Attack.ExecutorUnitId, unitAttacked.Attack.TargetUnitId, unitAttacked.Attack.IsFullAttack, unitAttacked.Attack.IsSingleAttack, unitAttacked.Attack.MovementLimit);
 
             var attack = Mapper.Map<NetworkUnitAttack>(unitAttacked.Attack);
-            GameInteraction.AttackUnit(attack);
+            CombatInteraction.AttackUnit(attack);
 
             OnAfterNetworkMessageHandled(playerId, unitAttacked);
         }

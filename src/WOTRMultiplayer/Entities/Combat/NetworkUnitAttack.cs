@@ -10,8 +10,10 @@ namespace WOTRMultiplayer.Entities.Combat
 
         public bool IsFullAttack { get; set; }
 
-        public List<NetworkVector3> VectorPath { get; set; } = [];
+        public List<NetworkVector3> VectorPath { get; set; }
 
         public bool IsSingleAttack { get; set; }
+
+        public string MovementLimit { get; set; }
     }
 }

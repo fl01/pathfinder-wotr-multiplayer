@@ -16,9 +16,12 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         public bool IsFullAttack { get; set; }
 
         [ProtoMember(4)]
-        public List<NetworkVector3> VectorPath { get; set; } = [];
+        public List<NetworkVector3> VectorPath { get; set; }
 
         [ProtoMember(5)]
         public bool IsSingleAttack { get; set; }
+
+        [ProtoMember(6)]
+        public string MovementLimit { get; set; }
     }
 }

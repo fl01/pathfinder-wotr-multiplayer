@@ -1,4 +1,6 @@
-﻿namespace WOTRMultiplayer.Entities.Units
+﻿using WOTRMultiplayer.Entities.Combat;
+
+namespace WOTRMultiplayer.Entities.Units
 {
     public class NetworkUnit
     {
@@ -11,5 +13,9 @@
         public NetworkUnitTurnBasedInfo TurnBasedInfo { get; set; }
 
         public NetworkUnitCombatState CombatState { get; set; }
+
+        public NetworkUnitAttack CurrentAttack { get; set; }
+
+        public NetworkAbility CurrentAbility { get; set; }
     }
 }
