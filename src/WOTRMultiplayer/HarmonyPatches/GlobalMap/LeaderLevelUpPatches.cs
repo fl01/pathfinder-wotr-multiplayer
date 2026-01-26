@@ -17,7 +17,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
     {
         [HarmonyPatch(typeof(LeaderLevelUpPCView), nameof(LeaderLevelUpPCView.BindViewImplementation))]
         [HarmonyTranspiler]
-        public static IEnumerable<CodeInstruction> ArmyCartBuyLeaderPCView_BindViewImplementation_Transpiler(IEnumerable<CodeInstruction> instructions)
+        public static IEnumerable<CodeInstruction> LeaderLevelUpPCView_BindViewImplementation_Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
             var lookFor = AccessTools.Method(typeof(EscHotkeyManager), nameof(EscHotkeyManager.Subscribe));
