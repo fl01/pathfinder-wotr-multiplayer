@@ -218,6 +218,9 @@
             },
             "cutscenes": {
                 "skipped": "Cutscene has been skipped by {0}"
+            },
+            "globalMap": {
+                "disabledActionBar": "Global map spells are restricted to the host"
             }
         }
     }

@@ -1077,6 +1077,16 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
+        public void OnGlobalMapMagicSpellUsed(NetworkGlobalMapMagicSpell globalMagicSpell)
+        {
+            var message = new NotifyGlobalMapMagicSpellUsed
+            {
+                Spell = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapMagicSpell>(globalMagicSpell),
+            };
+            Logger.LogInformation("Sending {MessageType}. SpellId={SpellId}, SpellName={SpellName}, TargetArmies={TargetArmies}, LocationId={LocationId}", nameof(NotifyGlobalMapMagicSpellUsed), message.Spell.Id, message.Spell.Name, message.Spell.TargetArmies, message.Spell.Location?.Id);
+            Send(message);
+        }
+
         public void OnGlobalMapRecruitmentBuyResources(NetworkGlobalMapResourceOrder globalMapResourceOrder)
         {
             var message = new NotifyGlobalMapResourcesBought

@@ -455,5 +455,7 @@ namespace WOTRMultiplayer.Abstractions
         void OnGlobalMapRecruitmentBuyResources(NetworkGlobalMapResourceOrder globalMapResourceOrder);
 
         void OnGlobalMapRecruitmentBuyUnits(NetworkGlobalMapUnitRecruitmentOrder globalMapUnitRecruitmentOrder);
+
+        void OnGlobalMapMagicSpellUsed(NetworkGlobalMapMagicSpell globalMagicSpell);
     }
 }

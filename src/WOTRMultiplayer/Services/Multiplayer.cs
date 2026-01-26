@@ -3846,6 +3846,24 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        public void OnGlobalMapMagicSpellUsed(NetworkGlobalMapMagicSpell globalMagicSpell)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnGlobalMapMagicSpellUsed(globalMagicSpell);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while using global map magic spell. SpellId={SpellId}, SpellName={SpellName}, TargetArmies={TargetArmies}, LocationId={LocationId}", globalMagicSpell.Id, globalMagicSpell.Name, globalMagicSpell.TargetArmies, globalMagicSpell.Location?.Id);
+                throw;
+            }
+        }
+
         private void ShowEscMenuMultiplayerLobby()
         {
             _logger.LogInformation("Show lobby window");

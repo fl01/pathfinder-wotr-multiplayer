@@ -526,6 +526,7 @@ namespace WOTRMultiplayer.Services
                .On<NotifyGlobalMapRecruitmentClosed>(OnNotifyGlobalMapRecruitmentClosed)
                .On<NotifyGlobalMapCrusadeArmyDismissed>(OnNotifyGlobalMapCrusadeArmyDismissed)
                .On<NotifyGlobalMapCrusadeArmyRecruitCartClosed>(OnNotifyGlobalMapCrusadeArmyRecruitCartClosed)
+               .On<NotifyGlobalMapMagicSpellUsed>(OnNotifyGlobalMapMagicSpellUsed)
 
                // dialogs
                .On<NotifyDialogStarted>(OnNotifyDialogStarted)
@@ -559,6 +560,14 @@ namespace WOTRMultiplayer.Services
                // inventory
                .On<NotifyPolymorphicItemCreated>(OnNotifyPolymorphicItemCreated)
                ;
+        }
+
+        private void OnNotifyGlobalMapMagicSpellUsed(long receivedFrom, NotifyGlobalMapMagicSpellUsed message)
+        {
+            Logger.LogInformation("Received {MessageType}. SpellId={SpellId}, SpellName={SpellName}, TargetArmies={TargetArmies}", nameof(NotifyGlobalMapMagicSpellUsed), message.Spell.Id, message.Spell.Name, message.Spell.TargetArmies);
+            var spell = Mapper.Map<NetworkGlobalMapMagicSpell>(message.Spell);
+
+            GlobalMapInteraction.UseSpell(spell);
         }
 
         private void OnNotifyGlobalMapCrusadeArmyRecruitCartClosed(long receivedFrom, NotifyGlobalMapCrusadeArmyRecruitCartClosed message)

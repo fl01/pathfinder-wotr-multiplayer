@@ -62,6 +62,11 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         public GlobalMapPointView GetGlobalMapPoint(NetworkGlobalMapLocation globalMapLocation)
         {
+            if (globalMapLocation == null)
+            {
+                return null;
+            }
+
             var point = GlobalMapView.Instance?
                 .Points
                 .FirstOrDefault(p => string.Equals(p.Blueprint.AssetGuid.ToString(), globalMapLocation.Id, StringComparison.OrdinalIgnoreCase));

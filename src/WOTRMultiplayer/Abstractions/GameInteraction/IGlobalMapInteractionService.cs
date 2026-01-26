@@ -121,5 +121,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void CloseRecruitments();
 
         void DismissCrusadeArmy(NetworkGlobalMapArmy globalMapArmy);
+
+        void UseSpell(NetworkGlobalMapMagicSpell globalMapMagicSpell);
     }
 }

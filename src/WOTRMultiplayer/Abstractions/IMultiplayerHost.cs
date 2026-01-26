@@ -163,5 +163,7 @@ namespace WOTRMultiplayer.Abstractions
         void OnGlobalMapRecruitmentBuyResources(NetworkGlobalMapResourceOrder globalMapResourceOrder);
 
         void OnGlobalMapCrusadeArmyDismiss(NetworkGlobalMapArmy globalMapArmy);
+
+        void OnGlobalMapMagicSpellUsed(NetworkGlobalMapMagicSpell globalMagicSpell);
     }
 }

@@ -216,7 +216,8 @@
             NotifyGlobalMapUnitsRecruited,
             NotifyGlobalMapResourcesBought,
             NotifyGlobalMapCrusadeArmyDismissed,
-            NotifyGlobalMapCrusadeArmyRecruitCartClosed
+            NotifyGlobalMapCrusadeArmyRecruitCartClosed,
+            NotifyGlobalMapMagicSpellUsed
         }
 
         public enum Request

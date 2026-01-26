@@ -269,7 +269,7 @@ You can either ignore it (if the outcome is more or less the same for everyone) 
 ## Long term plans
 
 ### Rolls
-Current roll syncing has a fairly obvious issue: the game freezes while it waits for rolls to return. That happens because the network request is done right when the game wants to roll the dice. We don't really have a clean way around this - the game expects the roll result immediately, so the mod hijacks the roll and fetches it over the network instead. Making the game "wait" for rolls properly is extremely hard to justify from a reverse-engineering standpoint.
+Current roll syncing has a fairly obvious issue: the game freezes while mod retrieves roll results over the network. There is no clean way around this - the game expects the roll result immediately, so the mod hijacks the roll and fetches it over the network instead. Making the game "wait" for rolls properly is extremely hard to justify from a reverse-engineering standpoint.
 
 The plan is to switch to deterministic rolls. Both host and clients will use the same RNG seed, so they all generate the same "random" results locally. That removes the need for extra network calls during rolls. These seeds can be shared at safe points that don't block the game, like combat start, round start, area load, or with an attack/ability usage notification.
 

@@ -241,5 +241,9 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void CloseRecruitments()
         {
         }
+
+        public void UseSpell(NetworkGlobalMapMagicSpell globalMapMagicSpell)
+        {
+        }
     }
 }

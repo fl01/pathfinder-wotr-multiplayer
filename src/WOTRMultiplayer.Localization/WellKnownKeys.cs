@@ -844,5 +844,15 @@ public static class WellKnownKeys
                 public static string Key { get; set; }
             }
         }
+
+        [Description("globalMap")]
+        public static class GlobalMap
+        {
+            [Description("disabledActionBar")]
+            public static class DisabledActionBar
+            {
+                public static string Key { get; set; }
+            }
+        }
     }
 }

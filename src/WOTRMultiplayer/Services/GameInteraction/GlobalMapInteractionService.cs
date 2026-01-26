@@ -6,6 +6,8 @@ using Kingmaker.Assets.Controllers.GlobalMap;
 using Kingmaker.Blueprints;
 using Kingmaker.Blueprints.Root;
 using Kingmaker.Controllers.Rest;
+using Kingmaker.Crusade.GlobalMagic;
+using Kingmaker.ElementsSystem;
 using Kingmaker.Globalmap;
 using Kingmaker.Globalmap.State;
 using Kingmaker.Globalmap.View;
@@ -1243,6 +1245,67 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 view.CreateArmy();
                 _logger.LogInformation("Crusade army has been created");
             });
+        }
+
+        public void UseSpell(NetworkGlobalMapMagicSpell globalMapMagicSpell)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var spellState = Game.Instance.Player.GlobalMapSpellsManager.SpellBook.FirstOrDefault(x => string.Equals(x.Blueprint.AssetGuid.ToString(), globalMapMagicSpell.Id, StringComparison.OrdinalIgnoreCase));
+                if (spellState == null)
+                {
+                    _logger.LogError("Unable to use global magic spell due to missing spell. SpellId={SpellId}", globalMapMagicSpell.Id);
+                    return;
+                }
+
+                var pointState = _gameStateLookupService.GetGlobalMapPoint(globalMapMagicSpell.Location)?.State;
+                var spellWasUsed = UseSpell(spellState.Blueprint, globalMapMagicSpell.TargetArmies, pointState);
+                if (spellWasUsed)
+                {
+                    Game.Instance.Player.GlobalMapSpellsManager.SpellWasUsed(spellState.Blueprint, false);
+                }
+
+                _logger.LogInformation("Global map magic spell usage has been processed. SpellId={SpellId}, SpellName={SpellName}, SpellWasActuallyUsed={SpellWasActuallyUsed}, TargetArmies={TargetArmies}, PointId={PointId}", globalMapMagicSpell.Id, globalMapMagicSpell.Name, spellWasUsed, globalMapMagicSpell.TargetArmies, globalMapMagicSpell.Location?.Id);
+            });
+        }
+
+        private bool UseSpell(BlueprintGlobalMagicSpell spell, List<string> armies, GlobalMapPointState pointState)
+        {
+            using var context = ContextData<BlueprintGlobalMagicSpell.GlobalMagicData>.Request();
+            if (armies == null || armies.Count == 0)
+            {
+                UseSpell(context, spell, armyState: null, pointState);
+                return true;
+            }
+
+            var spellWasUsed = false;
+            foreach (var armyId in armies)
+            {
+                var army = _gameStateLookupService.GetGlobalMapArmy(armyId);
+                if (army == null)
+                {
+                    _logger.LogError("Unable to use global magic spell due to missing target army. ArmyId={ArmyId}", armyId);
+                    continue;
+                }
+
+                UseSpell(context, spell, army, pointState);
+                spellWasUsed = true;
+            }
+
+            return spellWasUsed;
+        }
+
+        private void UseSpell(BlueprintGlobalMagicSpell.GlobalMagicData context, BlueprintGlobalMagicSpell spell, GlobalMapArmyState armyState, GlobalMapPointState pointState)
+        {
+            // unified logic of Kingmaker.Crusade.GlobalMagic.Executors
+            context.Setup(spell, armyState, pointState);
+            context.Actions.Run();
+            var fxTarget = context.TargetArmy?.View.gameObject ?? GlobalMapView.Instance.PlayerPawn.gameObject;
+            context.BlueprintSpell.Executor.ApplyFX(fxTarget);
+            if (context.TargetPoint != null)
+            {
+                context.BlueprintSpell.Executor.ApplyFX(context.TargetPoint.View.gameObject);
+            }
         }
 
         private void UpdateRecruitmentUnits(List<RecruitShopUnitView> recruitUnits, bool isInteractable)
