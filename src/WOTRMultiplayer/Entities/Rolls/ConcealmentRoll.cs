@@ -9,7 +9,9 @@ namespace WOTRMultiplayer.Entities.Rolls
         public int MissChance { get; set; }
 
         public int ConcealmentValue { get; set; }
+
         public string TargetId { get; set; }
+
         public bool IsAttack { get; set; }
 
         public ConcealmentRoll(string initiatorId, string ruleName, NetworkDiceRollType networkDiceRollType, int totalModifierBonus)

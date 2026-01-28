@@ -806,6 +806,51 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        public bool OnBeforeRuleDrainEnergyRoll(RuleDrainEnergy ruleDrainEnergy, RuleRollDice ruleRollDice)
+        {
+            try
+            {
+                if (!ShouldRetrieveRoll(ruleDrainEnergy))
+                {
+                    return true;
+                }
+
+                var roll = CreateDrainEnergyRoll(NetworkDiceRollType.Damage, ruleDrainEnergy, ruleRollDice);
+                var d100 = RetrieveRoll<RuleRollD100>(roll, ruleDrainEnergy.Initiator);
+                if (d100 == null)
+                {
+                    return true;
+                }
+
+                ruleRollDice.m_Result = d100.m_Result;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
+        }
+
+        public void OnAfterRuleDrainEnergyRoll(RuleDrainEnergy ruleDrainEnergy, RuleRollDice ruleRollDice)
+        {
+            try
+            {
+                if (!ShouldStoreRoll(ruleDrainEnergy))
+                {
+                    return;
+                }
+
+                var roll = CreateDrainEnergyRoll(NetworkDiceRollType.Damage, ruleDrainEnergy, ruleRollDice);
+                SaveIntRollValue(roll, ruleRollDice);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
+        }
+
         public int? OnBeforeRuleDealStatDamageRoll(RuleDealStatDamage ruleDealStatDamage, int criticalModifier)
         {
             try
@@ -1370,6 +1415,21 @@ namespace WOTRMultiplayer.Services
                 IsDrain = ruleDealStatDamage.IsDrain,
                 Empower = ruleDealStatDamage.Empower,
                 MinStatScoreAfterDamage = ruleDealStatDamage.MinStatScoreAfterDamage
+            };
+
+            return roll;
+        }
+
+        private DrainEnergyRoll CreateDrainEnergyRoll(NetworkDiceRollType diceRollType, RuleDrainEnergy ruleDrainEnergy, RuleRollDice ruleRollDice)
+        {
+            var roll = new DrainEnergyRoll(ruleDrainEnergy.Initiator.UniqueId, ruleDrainEnergy.GetType().Name, diceRollType, 0)
+            {
+                DiceRolls = ruleRollDice.DiceFormula.Rolls,
+                DiceFormulaType = ruleRollDice.DiceFormula.Dice.ToString(),
+                CriticalModifierName = ruleDrainEnergy.CriticalModifier?.ToString(),
+                TargetIsImmune = ruleDrainEnergy.TargetIsImmune,
+                Empower = ruleDrainEnergy.Empower,
+                DrainValue = ruleDrainEnergy.DrainValue,
             };
 
             return roll;
