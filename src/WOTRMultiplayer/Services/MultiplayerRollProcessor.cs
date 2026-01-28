@@ -716,6 +716,52 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        public bool OnBeforeRuleEnterStealthRoll(RuleEnterStealth ruleEnterStealth)
+        {
+            try
+            {
+                if (!ShouldRetrieveRoll(ruleEnterStealth))
+                {
+                    return true;
+                }
+
+                var roll = CreateEnterStealthRoll(NetworkDiceRollType.Hit, ruleEnterStealth);
+                var d20 = RetrieveRoll<RuleRollD20>(roll, ruleEnterStealth.Initiator);
+                if (d20 == null)
+                {
+                    return true;
+                }
+
+                // need to preserve original D20.ResultOverride value (UnitStealthController.TickUnit)
+                ruleEnterStealth.D20.m_Result = d20;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
+        }
+
+        public void OnAfterRuleEnterStealthTrigger(RuleEnterStealth ruleEnterStealth)
+        {
+            try
+            {
+                if (!ShouldStoreRoll(ruleEnterStealth))
+                {
+                    return;
+                }
+
+                var roll = CreateEnterStealthRoll(NetworkDiceRollType.Hit, ruleEnterStealth);
+                SaveIntRollValue(roll, ruleEnterStealth.D20);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
+        }
+
         public bool OnBeforeRuleCastSpellRoll(RuleCastSpell ruleCastSpell, bool isSpellFailure)
         {
             try
@@ -1195,6 +1241,17 @@ namespace WOTRMultiplayer.Services
                 ArcaneSpellFailureChance = ruleCastSpell.ArcaneSpellFailureChance,
                 SpellFailureChance = ruleCastSpell.SpellFailureChance,
                 IsSpellFailure = isSpellFailure
+            };
+
+            return roll;
+        }
+
+        private EnterStealthRoll CreateEnterStealthRoll(NetworkDiceRollType diceRollType, RuleEnterStealth ruleEnterStealth)
+        {
+            var roll = new EnterStealthRoll(ruleEnterStealth.Initiator.UniqueId, ruleEnterStealth.GetType().Name, diceRollType, 0)
+            {
+                IsFullSpeed = ruleEnterStealth.FullSpeed,
+                ResultOverride = ruleEnterStealth.D20.ResultOverride
             };
 
             return roll;

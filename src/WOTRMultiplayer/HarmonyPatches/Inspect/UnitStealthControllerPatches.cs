@@ -19,7 +19,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Inspect
         public static IEnumerable<CodeInstruction> UnitStealthController_TickUnit_Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
-            var replaceWith = AccessTools.Method(typeof(UnitStealthControllerPatches), nameof(TriggerRuleCachedPerceptionCheck));
+            var replaceWith = AccessTools.Method(typeof(UnitStealthControllerPatches), nameof(UnitStealthControllerPatches.TriggerRuleCachedPerceptionCheck));
             var matcher = new CodeMatcher(instructions);
             // TODO: need to check how to properly find a call to generic method. Sticking to shitty lookup for now :/
             //var lookFor = AccessTools.FirstMethod(typeof(Rulebook), x => x.Name == nameof(Rulebook.Trigger) && x.GetParameters().Length == 1);
@@ -43,7 +43,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Inspect
             return matcher.Instructions();
         }
 
-        public static RuleCachedPerceptionCheck TriggerRuleCachedPerceptionCheck(RuleCachedPerceptionCheck ruleCachedPerceptionCheck, UnitEntityData unitInStealth)
+        private static RuleCachedPerceptionCheck TriggerRuleCachedPerceptionCheck(RuleCachedPerceptionCheck ruleCachedPerceptionCheck, UnitEntityData unitInStealth)
         {
             if (!Main.Multiplayer.IsActive || ruleCachedPerceptionCheck.Initiator.CachedPerceptionRoll > 0)
             {

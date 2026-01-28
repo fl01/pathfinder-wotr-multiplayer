@@ -47,5 +47,8 @@ namespace WOTRMultiplayer.Abstractions
 
         bool OnBeforeRuleCastSpellRoll(RuleCastSpell ruleCastSpell, bool isSpellFailure);
         void OnAfterRuleCastSpellTrigger(RuleCastSpell ruleCastSpell);
+
+        bool OnBeforeRuleEnterStealthRoll(RuleEnterStealth ruleEnterStealth);
+        void OnAfterRuleEnterStealthTrigger(RuleEnterStealth ruleEnterStealth);
     }
 }
