@@ -53,7 +53,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             return matcher.Instructions();
         }
 
-        public static RuleRollD100 ConcealmentRollD100(RuleConcealmentCheck ruleConcealmentCheck)
+        private static RuleRollD100 ConcealmentRollD100(RuleConcealmentCheck ruleConcealmentCheck)
         {
             if (!Main.Multiplayer.IsActive
                 || PatchesUtils.IsHelperUnit(ruleConcealmentCheck.Initiator.UniqueId)

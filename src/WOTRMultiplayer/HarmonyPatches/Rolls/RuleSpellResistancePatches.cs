@@ -51,7 +51,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             Main.Rolls.OnAfterRuleSpellResistanceCheckTrigger(__instance);
         }
 
-        public static RuleRollD20 SpellResistanceRollD20(RuleSpellResistanceCheck ruleSpellResistanceCheck)
+        private static RuleRollD20 SpellResistanceRollD20(RuleSpellResistanceCheck ruleSpellResistanceCheck)
         {
             if (!Main.Multiplayer.IsActive)
             {

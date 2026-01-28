@@ -73,7 +73,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             return matcher.Instructions();
         }
 
-        public static RuleRollD20 SkillCheckRollD20(RuleSkillCheck ruleSkillCheck, int minRoll, int maxRoll)
+        private static RuleRollD20 SkillCheckRollD20(RuleSkillCheck ruleSkillCheck, int minRoll, int maxRoll)
         {
             try
             {

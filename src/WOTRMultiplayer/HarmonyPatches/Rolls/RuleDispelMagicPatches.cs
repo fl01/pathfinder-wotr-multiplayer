@@ -56,7 +56,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             Main.Rolls.OnAfterRuleDispelMagicTrigger(__instance);
         }
 
-        public static RuleRollD20 DispelMagicRollD20(RuleDispelMagic ruleDispelMagic)
+        private static RuleRollD20 DispelMagicRollD20(RuleDispelMagic ruleDispelMagic)
         {
             if (!Main.Multiplayer.IsActive)
             {

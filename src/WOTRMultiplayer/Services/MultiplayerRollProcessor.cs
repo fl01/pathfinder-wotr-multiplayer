@@ -716,6 +716,66 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        public bool OnBeforeRuleCastSpellRoll(RuleCastSpell ruleCastSpell, bool isSpellFailure)
+        {
+            try
+            {
+                if (!ShouldRetrieveRoll(ruleCastSpell))
+                {
+                    return true;
+                }
+
+                var roll = CreateCastSpellRoll(NetworkDiceRollType.Hit, ruleCastSpell, isSpellFailure);
+                var d100 = RetrieveRoll<RuleRollD100>(roll, ruleCastSpell.Initiator);
+                if (d100 == null)
+                {
+                    return true;
+                }
+
+                if (isSpellFailure)
+                {
+                    ruleCastSpell.SpellFailureRoll = d100;
+                }
+                else
+                {
+                    ruleCastSpell.ArcaneSpellFailureRoll = d100;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
+        }
+
+        public void OnAfterRuleCastSpellTrigger(RuleCastSpell ruleCastSpell)
+        {
+            try
+            {
+                if (!ShouldStoreRoll(ruleCastSpell))
+                {
+                    return;
+                }
+
+                if (ruleCastSpell.SpellFailureRoll != null)
+                {
+                    var roll = CreateCastSpellRoll(NetworkDiceRollType.Hit, ruleCastSpell, true);
+                    SaveIntRollValue(roll, ruleCastSpell.SpellFailureRoll);
+                }
+
+                if (ruleCastSpell.ArcaneSpellFailureRoll != null)
+                {
+                    var roll = CreateCastSpellRoll(NetworkDiceRollType.Hit, ruleCastSpell, false);
+                    SaveIntRollValue(roll, ruleCastSpell.ArcaneSpellFailureRoll);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
+        }
 
         public bool OnBeforeRuleCheckCastingDefensivelyRoll(RuleCheckCastingDefensively ruleCheckCastingDefensively)
         {
@@ -1123,6 +1183,18 @@ namespace WOTRMultiplayer.Services
                 AbilityName = ruleCheckCastingDefensively.Reason.Ability?.StickyTouch?.NameForAcronym ?? ruleCheckCastingDefensively.Reason.Ability?.NameForAcronym ?? ruleCheckCastingDefensively.Spell?.NameForAcronym,
                 Concentration = ruleCheckCastingDefensively.Concentration,
                 DC = ruleCheckCastingDefensively.DC
+            };
+
+            return roll;
+        }
+
+        private CastSpellRoll CreateCastSpellRoll(NetworkDiceRollType diceRollType, RuleCastSpell ruleCastSpell, bool isSpellFailure)
+        {
+            var roll = new CastSpellRoll(ruleCastSpell.Initiator.UniqueId, ruleCastSpell.GetType().Name, diceRollType, 0)
+            {
+                ArcaneSpellFailureChance = ruleCastSpell.ArcaneSpellFailureChance,
+                SpellFailureChance = ruleCastSpell.SpellFailureChance,
+                IsSpellFailure = isSpellFailure
             };
 
             return roll;

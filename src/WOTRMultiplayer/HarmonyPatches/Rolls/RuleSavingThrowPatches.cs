@@ -62,7 +62,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             return matcher.Instructions();
         }
 
-        public static void SavingThrowRollD20(RuleSavingThrow savingThrow)
+        private static void SavingThrowRollD20(RuleSavingThrow savingThrow)
         {
             if (!Main.Multiplayer.IsActive)
             {

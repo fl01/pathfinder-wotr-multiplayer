@@ -44,5 +44,8 @@ namespace WOTRMultiplayer.Abstractions
 
         bool OnBeforeRollRuleHealDamage(RuleHealDamage ruleHealDamage, int unitsCount, bool isTacticalCombat);
         void OnAfterRollRuleHealDamage(RuleHealDamage ruleHealDamage, int unitsCount, int result, bool isTacticalCombat);
+
+        bool OnBeforeRuleCastSpellRoll(RuleCastSpell ruleCastSpell, bool isSpellFailure);
+        void OnAfterRuleCastSpellTrigger(RuleCastSpell ruleCastSpell);
     }
 }

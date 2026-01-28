@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Kingmaker;
 using Kingmaker.Armies.TacticalCombat;
@@ -47,10 +46,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
         public void UpdateIsInCombatStatus()
         {
             Game.Instance.Player.UpdateIsInCombat();
-            _mainThreadAccessor.Post(() =>
-            {
-                Game.Instance.Player.UpdateIsInCombat();
-            });
         }
 
         public bool IsInCombat()
@@ -147,12 +142,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         public void EndTurnBasedCombatTurn()
         {
-            // TODO: proper command queue
-            while ((Game.Instance.TurnBasedCombatController?.CurrentTurn?.Rider?.Commands?.Queue?.Count ?? 0) > 0)
-            {
-                Thread.Sleep(50);
-            }
-
             _mainThreadAccessor.Post(() =>
             {
                 var turnStatus = Game.Instance.TurnBasedCombatController.CurrentTurn?.Status ?? null;
@@ -712,6 +701,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                 unit.CombatState.m_EngagedBy.Clear();
                 unit.CombatState.m_EngagedUnits.Clear();
+                unit.CombatState.DisengageAttackTargets.Clear();
             }
 
             foreach (var (networkUnit, unit) in unitsToUpdate)

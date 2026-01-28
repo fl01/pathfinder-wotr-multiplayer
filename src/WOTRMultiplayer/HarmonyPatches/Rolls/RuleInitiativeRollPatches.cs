@@ -51,8 +51,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             return matcher.Instructions();
         }
 
-
-        public static RuleRollD20 InitiativeRollD20(RuleInitiativeRoll ruleInitiativeRoll)
+        private static RuleRollD20 InitiativeRollD20(RuleInitiativeRoll ruleInitiativeRoll)
         {
             if (!Main.Multiplayer.IsActive)
             {

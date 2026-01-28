@@ -132,7 +132,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             return true;
         }
 
-        public static RuleRollD20 AttackRollD20(bool isFake, RuleAttackRoll ruleAttackRoll)
+        private static RuleRollD20 AttackRollD20(bool isFake, RuleAttackRoll ruleAttackRoll)
         {
             if (!Main.Multiplayer.IsActive || PatchesUtils.IsHelperUnit(ruleAttackRoll.Initiator.UniqueId) || PatchesUtils.IsHelperUnit(ruleAttackRoll.Target.UniqueId))
             {
@@ -149,7 +149,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             return roll;
         }
 
-        public static RuleRollD100 ForitifactionRollD100(RuleAttackRoll ruleAttackRoll)
+        private static RuleRollD100 ForitifactionRollD100(RuleAttackRoll ruleAttackRoll)
         {
             if (!Main.Multiplayer.IsActive || PatchesUtils.IsHelperUnit(ruleAttackRoll.Initiator.UniqueId) || PatchesUtils.IsHelperUnit(ruleAttackRoll.Target.UniqueId))
             {
@@ -166,7 +166,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             return roll;
         }
 
-        public static RuleRollD100 OvercomeConcealmentRollD100(RuleAttackRoll ruleAttackRoll)
+        private static RuleRollD100 OvercomeConcealmentRollD100(RuleAttackRoll ruleAttackRoll)
         {
             if (!Main.Multiplayer.IsActive || PatchesUtils.IsHelperUnit(ruleAttackRoll.Initiator.UniqueId) || PatchesUtils.IsHelperUnit(ruleAttackRoll.Target.UniqueId))
             {

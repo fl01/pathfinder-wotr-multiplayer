@@ -51,7 +51,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             Main.Rolls.OnAfterParryDataTrigger(__instance);
         }
 
-        public static RuleRollD20 ParryDataRollD20(RuleAttackRoll.ParryData parryData)
+        private static RuleRollD20 ParryDataRollD20(RuleAttackRoll.ParryData parryData)
         {
             if (!Main.Multiplayer.IsActive)
             {

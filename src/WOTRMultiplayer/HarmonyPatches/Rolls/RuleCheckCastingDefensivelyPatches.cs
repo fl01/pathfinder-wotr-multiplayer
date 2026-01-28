@@ -52,7 +52,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             Main.Rolls.OnAfterRuleCheckCastingDefensivelyTrigger(__instance);
         }
 
-        public static RuleRollD20 CheckCastingDefensivelyRollD20(RuleCheckCastingDefensively ruleCheckCastingDefensively)
+        private static RuleRollD20 CheckCastingDefensivelyRollD20(RuleCheckCastingDefensively ruleCheckCastingDefensively)
         {
             if (!Main.Multiplayer.IsActive)
             {

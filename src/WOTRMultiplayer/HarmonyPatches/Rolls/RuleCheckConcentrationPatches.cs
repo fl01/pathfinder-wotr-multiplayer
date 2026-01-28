@@ -52,7 +52,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             return matcher.Instructions();
         }
 
-        public static RuleRollD20 CheckConcentrationRollD20(RuleCheckConcentration ruleCheckConcentration)
+        private static RuleRollD20 CheckConcentrationRollD20(RuleCheckConcentration ruleCheckConcentration)
         {
             if (!Main.Multiplayer.IsActive)
             {

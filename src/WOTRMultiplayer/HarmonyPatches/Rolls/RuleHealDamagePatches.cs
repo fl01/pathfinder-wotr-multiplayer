@@ -29,6 +29,18 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             return matcher.Instructions();
         }
 
+        [HarmonyPatch(typeof(RuleHealDamage), nameof(RuleHealDamage.Roll))]
+        [HarmonyPostfix]
+        public static void RuleHealDamage_Roll_Postfix(RuleHealDamage __instance, int unitsCount, ref int __result)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            Main.Rolls.OnAfterRollRuleHealDamage(__instance, unitsCount, __result, TacticalCombatHelper.IsActive);
+        }
+
         private static bool ReplaceNonTacticalCombat(CodeMatcher matcher, string target)
         {
             var lookFor = AccessTools.Method(typeof(Dice), nameof(Dice.D), [typeof(DiceFormula)]);
@@ -76,20 +88,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             return true;
         }
 
-
-        [HarmonyPatch(typeof(RuleHealDamage), nameof(RuleHealDamage.Roll))]
-        [HarmonyPostfix]
-        public static void RuleHealDamage_Roll_Postfix(RuleHealDamage __instance, int unitsCount, ref int __result)
-        {
-            if (!Main.Multiplayer.IsActive)
-            {
-                return;
-            }
-
-            Main.Rolls.OnAfterRollRuleHealDamage(__instance, unitsCount, __result, TacticalCombatHelper.IsActive);
-        }
-
-        public static int HealDamageRoll(DiceFormula diceFormula, int unitsCount, bool isTacticalCombat, RuleHealDamage ruleHealDamage)
+        private static int HealDamageRoll(DiceFormula diceFormula, int unitsCount, bool isTacticalCombat, RuleHealDamage ruleHealDamage)
         {
             if (!Main.Multiplayer.IsActive)
             {
