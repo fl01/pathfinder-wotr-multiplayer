@@ -58,6 +58,7 @@ namespace WOTRMultiplayer.UI
         private GameObject _dropdownPrefab;
         private GameObject _inputPrefab;
         private GameObject _buttonPrefab;
+        private GameObject _closeButtonPrefab;
         private GameObject _backgroundArtPrefab;
         private SaveLoadPCView _saveLoadPCView;
         private GameObject _defaultGameObject;
@@ -323,6 +324,10 @@ namespace WOTRMultiplayer.UI
                 .WithCloseHandler(() => windowContainer.SetActive(false))
                 .Initialize(LobbyWindowOwner.EscMenu);
 
+            var closeButtonObject = CreateCloseButton(background.transform);
+            var closeButton = closeButtonObject.GetComponent<OwlcatButton>();
+            closeButton.OnLeftClick.AddListener(lobbyWindow.Close);
+
             var multiplayerLobbyButton = multiplayerLobbyMenuItem.GetComponent<OwlcatButton>();
             multiplayerLobbyButton.OnLeftClick.RemoveAllListeners();
             multiplayerLobbyButton.OnLeftClick.AddListener(() =>
@@ -351,6 +356,12 @@ namespace WOTRMultiplayer.UI
             return _defaultTextMesh;
         }
 
+        public GameObject CreateCloseButton(Transform parent)
+        {
+            var closeButtonObject = UnityEngine.Object.Instantiate(_closeButtonPrefab, parent);
+            return closeButtonObject;
+        }
+
         public void StoreInputPrefab(GameObject inputObject)
         {
             if (inputObject == null || _inputPrefab != null)
@@ -369,6 +380,25 @@ namespace WOTRMultiplayer.UI
             }
 
             UnityEngine.Object.DontDestroyOnLoad(_inputPrefab);
+        }
+
+        public void StoreCloseButtonPrefab(GameObject closeButtonPrefab)
+        {
+            if (closeButtonPrefab == null || _closeButtonPrefab != null)
+            {
+                return;
+            }
+
+            _logger.LogInformation("Storing CloseButton prefab");
+
+            _closeButtonPrefab = UnityEngine.Object.Instantiate(closeButtonPrefab);
+            var button = _buttonPrefab.GetComponent<OwlcatButton>();
+            for (var i = 0; i < button.OnLeftClick.GetPersistentEventCount(); i++)
+            {
+                button.OnLeftClick.SetPersistentListenerState(i, UnityEngine.Events.UnityEventCallState.Off);
+            }
+            button.m_OnLeftClick.RemoveAllListeners();
+            UnityEngine.Object.DontDestroyOnLoad(_closeButtonPrefab);
         }
 
         public void StoreButtonPrefab(GameObject buttonObject)

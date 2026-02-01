@@ -56,5 +56,9 @@ namespace WOTRMultiplayer.Abstractions.UI
         IVirtualListElementView InitializeInputSettingTemplate(GameObject settingPrefab);
 
         void CreateMultiplayerSettingsMenu(SettingsVM settingsVM);
+
+        void StoreCloseButtonPrefab(GameObject closeButtonObject);
+
+        GameObject CreateCloseButton(Transform parent);
     }
 }

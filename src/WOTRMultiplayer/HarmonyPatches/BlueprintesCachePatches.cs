@@ -27,8 +27,9 @@ namespace WOTRMultiplayer.HarmonyPatches
         private static void SavePrefabsFromCommonPcView()
         {
             var bundle = BundlesLoadService.Instance.RequestBundle("commonpcview.res");
-            var commonPcViewGameObject = bundle.LoadAllAssets<UnityEngine.GameObject>().First();
-            var saveLoad = commonPcViewGameObject.GetComponent<CommonPCView>().m_SaveLoadPCView;
+            var commonViewGameObject = bundle.LoadAllAssets<UnityEngine.GameObject>().First();
+            var commonView = commonViewGameObject.GetComponent<CommonPCView>();
+            var saveLoad = commonView.m_SaveLoadPCView;
             Main.Multiplayer.Factory.StoreSaveLoadPCViewPrefab(saveLoad);
 
             var screen = saveLoad.gameObject.transform.Find("SaveLoadScreen");
@@ -40,6 +41,10 @@ namespace WOTRMultiplayer.HarmonyPatches
             var title = screen.Find("SaveLoadDetails").Find("Title");
             var defaultTextMesh = title.GetComponentInChildren<TextMeshProUGUI>();
             Main.Multiplayer.Factory.StoreDefaultTextMesh(defaultTextMesh);
+
+            var escMenuView = commonView.m_EscMenuContextPCView.m_EscMenuPCView;
+            var closeButtonObject = escMenuView.gameObject.transform.Find("Window/Close").gameObject;
+            Main.Multiplayer.Factory.StoreCloseButtonPrefab(closeButtonObject);
         }
 
         private static void SavePrefabsFromMainMenu()
