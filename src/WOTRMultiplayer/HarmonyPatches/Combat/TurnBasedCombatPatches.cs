@@ -9,6 +9,7 @@ using Kingmaker.Controllers.Combat;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.EntitySystem.Persistence.JsonUtility;
 using Kingmaker.TurnBasedMode;
+using Kingmaker.UI;
 using Microsoft.Extensions.Logging;
 using TurnBased.Controllers;
 
@@ -17,6 +18,18 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
     [HarmonyPatch]
     public class TurnBasedCombatPatches
     {
+        [HarmonyPatch(typeof(PlayerUISettings), nameof(PlayerUISettings.DoSpeedUp))]
+        [HarmonyPrefix]
+        public static bool PlayerUISettings_DoSpeedUp_Prefix()
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         [HarmonyPatch(typeof(TurnController), nameof(TurnController.CanEndTurn))]
         [HarmonyTranspiler]
         public static IEnumerable<CodeInstruction> TurnController_CanEndTurn_Transpiler(IEnumerable<CodeInstruction> instructions)
