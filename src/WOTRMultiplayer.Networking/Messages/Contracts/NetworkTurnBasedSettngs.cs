@@ -9,10 +9,10 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         public bool IsTurnBasedModeEnabled { get; set; }
 
         [ProtoMember(2)]
-        public float TimeScaleInNonPlayerTurn { get; set; }
+        public float? TimeScaleInNonPlayerTurn { get; set; }
 
         [ProtoMember(3)]
-        public float TimeScaleInPlayerTurn { get; set; }
+        public float? TimeScaleInPlayerTurn { get; set; }
 
         [ProtoMember(4)]
         public bool AutoEndTurn { get; set; }

@@ -1033,8 +1033,14 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     SettingsRoot.Game.TurnBased.EnableTurnBasedMode.SetValueAndConfirm(networkGameSettings.TurnBased.IsTurnBasedModeEnabled);
                     SettingsRoot.Game.TurnBased.AutoEndTurn.SetValueAndConfirm(networkGameSettings.TurnBased.AutoEndTurn);
                     SettingsRoot.Game.TurnBased.AutoStopAfterFirstMoveAction.SetValueAndConfirm(networkGameSettings.TurnBased.AutoStopAfterFirstMoveAction);
-                    SettingsRoot.Game.TurnBased.TimeScaleInPlayerTurn.SetValueAndConfirm(networkGameSettings.TurnBased.TimeScaleInPlayerTurn);
-                    SettingsRoot.Game.TurnBased.TimeScaleInNonPlayerTurn.SetValueAndConfirm(networkGameSettings.TurnBased.TimeScaleInNonPlayerTurn);
+                    if (networkGameSettings.TurnBased.TimeScaleInPlayerTurn.HasValue)
+                    {
+                        SettingsRoot.Game.TurnBased.TimeScaleInPlayerTurn.SetValueAndConfirm(networkGameSettings.TurnBased.TimeScaleInPlayerTurn.Value);
+                    }
+                    if (networkGameSettings.TurnBased.TimeScaleInNonPlayerTurn.HasValue)
+                    {
+                        SettingsRoot.Game.TurnBased.TimeScaleInNonPlayerTurn.SetValueAndConfirm(networkGameSettings.TurnBased.TimeScaleInNonPlayerTurn.Value);
+                    }
                 }
 
                 if (networkGameSettings.Main != null)
