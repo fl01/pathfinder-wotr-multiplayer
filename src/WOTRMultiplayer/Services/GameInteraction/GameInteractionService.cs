@@ -301,20 +301,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
             _mainThreadAccessor.Post(() =>
             {
-                var currentFullScreenUI = _uiAccessor.ServiceWindowsVM?.m_FullScreenUIType ?? Kingmaker.UI.FullScreenUITypes.FullScreenUIType.Unknown;
-                switch (currentFullScreenUI)
-                {
-                    case Kingmaker.UI.FullScreenUITypes.FullScreenUIType.SaveLoad:
-                        _uiAccessor.CommonPCView?.m_SaveLoadPCView?.ViewModel?.OnClose();
-                        break;
-                    case Kingmaker.UI.FullScreenUITypes.FullScreenUIType.Settings:
-                        _uiAccessor.CommonPCView?.m_SettingsPCView?.ViewModel?.m_CloseAction?.Invoke();
-                        break;
-                    case Kingmaker.UI.FullScreenUITypes.FullScreenUIType.CharacterScreen:
-                        _uiAccessor.CharGenView?.ViewModel.m_CloseAction?.Invoke();
-                        break;
-                }
-
+                _uiAccessor.CloseAllWindows();
                 Game.Instance.LoadGame(save);
             });
             return save.GameId;
