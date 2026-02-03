@@ -40,7 +40,7 @@ namespace WOTRMultiplayer.HarmonyPatches
                     return unit.IsDirectlyControllable;
                 }
 
-                return unit.IsDirectlyControllable && Main.Multiplayer.IsControlledByLocalPlayer(unit.UniqueId);
+                return unit != null && unit.IsDirectlyControllable && Main.Multiplayer.IsControlledByLocalPlayer(unit.UniqueId);
             }
             catch (System.Exception ex)
             {
