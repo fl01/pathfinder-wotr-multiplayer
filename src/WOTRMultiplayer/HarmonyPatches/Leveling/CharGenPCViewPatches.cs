@@ -20,9 +20,17 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
             Main.Multiplayer.OnLevelingTerminated();
         }
 
+        [HarmonyPatch(typeof(CharGenContextVM), nameof(CharGenContextVM.TryGetPetNeedChargen))]
+        [HarmonyPrefix]
+        public static bool CharGenContextVM_TryGetPetNeedChargen_Prefix()
+        {
+            // autopening pet leveling is not needed
+            return !Main.Multiplayer.IsActive;
+        }
+
         [HarmonyPatch(typeof(CharGenVM), nameof(CharGenVM.Complete))]
-        [HarmonyPostfix]
-        public static void CharGenVM_Complete_Postfix(CharGenVM __instance)
+        [HarmonyPrefix]
+        public static void CharGenVM_Complete_Prefix(CharGenVM __instance)
         {
             if (!Main.Multiplayer.IsActive)
             {
