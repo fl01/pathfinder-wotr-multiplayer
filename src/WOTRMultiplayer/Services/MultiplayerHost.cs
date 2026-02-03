@@ -1355,8 +1355,7 @@ namespace WOTRMultiplayer.Services
                         var combatState = CombatInteraction.GetCombatState();
                         var syncMessage = new NotifyCombatTurnSynchronizationRequired
                         {
-                            CombatState = Mapper.Map<Networking.Messages.Contracts.NetworkCombatState>(combatState),
-                            UnitId = Game.Combat.Turn.UnitId
+                            CombatState = Mapper.Map<Networking.Messages.Contracts.NetworkCombatState>(combatState)
                         };
                         Send(syncMessage);
                     }

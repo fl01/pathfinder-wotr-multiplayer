@@ -1310,23 +1310,18 @@ namespace WOTRMultiplayer.Services
 
         private async void OnNotifyCombatTurnSynchronizationRequired(long playerId, NotifyCombatTurnSynchronizationRequired combatTurnSynchronization)
         {
+            Logger.LogInformation("Received {MessageType}. Units={Units}", nameof(NotifyCombatTurnSynchronizationRequired), combatTurnSynchronization.CombatState.Units.Count);
+
             try
             {
-                Logger.LogInformation("Received {MessageType}. Units={Units}, UnitTurn={UnitTurn}", nameof(NotifyCombatTurnSynchronizationRequired), combatTurnSynchronization.CombatState.Units.Count, combatTurnSynchronization.UnitId);
-
-                var unitId = Game.Combat.Turn.UnitId;
-                if (!string.Equals(unitId, combatTurnSynchronization.UnitId, StringComparison.OrdinalIgnoreCase))
-                {
-                    Logger.LogWarning("Synchronization request contains mismatched unit. LocalUnitId={LocalUnitId}, RemoteRound={RemoteRound}, RemoteUnitId={RemoteUnitId}", unitId, combatTurnSynchronization.UnitId);
-                    return;
-                }
+                await WaitWhileTrue(() => Game.Combat?.Turn == null, "Turn has not been initialized yet");
 
                 var combatState = Mapper.Map<NetworkCombatState>(combatTurnSynchronization.CombatState);
                 await CombatInteraction.UpdateCombatStateAsync(combatState, false);
 
-                var message = new ClientCombatTurnSynchronized { UnitId = unitId };
-                Logger.LogInformation("Units have been synchronized. Sending {MessageType} confirmation. UnitId={UnitId}", nameof(NotifyCombatTurnSynchronizationRequired), unitId);
-                Send(message);
+                var confirmationMessage = new ClientCombatTurnSynchronized { UnitId = Game.Combat.Turn.UnitId };
+                Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}", nameof(ClientCombatTurnSynchronized), confirmationMessage.UnitId);
+                Send(confirmationMessage);
             }
             catch (Exception ex)
             {
