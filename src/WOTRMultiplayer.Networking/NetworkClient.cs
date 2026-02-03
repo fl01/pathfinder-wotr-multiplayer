@@ -44,6 +44,7 @@ namespace WOTRMultiplayer.Networking
             _client.ClientError = OnClientError;
             _client.Connected = OnClientConnected;
             _client.PacketReceive = OnPackedReceived;
+
             IsConnecting = true;
             await _client.Connect();
         }
@@ -78,7 +79,7 @@ namespace WOTRMultiplayer.Networking
 
         public void Send(object message)
         {
-            _client.Send(message).Wait();
+            _client.SendAsync(message).Wait();
         }
 
         public async Task<T> SendAndWaitForAsync<T>(IAwaitableRequest message)
@@ -89,7 +90,7 @@ namespace WOTRMultiplayer.Networking
 
             var awaiterKey = message.GetKey();
             _awaiters.TryAdd(awaiterKey, taskCompletion);
-            _client.Send(message).Wait();
+            await _client.SendAsync(message).ConfigureAwait(false);
 
             await Task.WhenAny(timeoutTask, taskCompletion.Task).ConfigureAwait(false);
 

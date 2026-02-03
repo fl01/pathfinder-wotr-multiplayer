@@ -7,7 +7,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="BeetleX" Version="1.8.24.435" />
-		<PackageReference Include="protobuf-net" Version="3.2.52" />
+		<PackageReference Include="protobuf-net" Version="3.2.56" />
 	</ItemGroup>
 
 	<ItemGroup>

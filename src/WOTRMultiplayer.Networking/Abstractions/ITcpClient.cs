@@ -14,7 +14,7 @@ namespace WOTRMultiplayer.Networking.Abstractions
 
         EventClientConnected Connected { get; set; }
 
-        Task Send(object message);
+        Task SendAsync(object message);
 
         Task<ConnectStatus> Connect();
     }

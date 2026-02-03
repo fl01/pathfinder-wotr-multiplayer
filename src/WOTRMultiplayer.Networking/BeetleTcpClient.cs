@@ -6,7 +6,7 @@ namespace WOTRMultiplayer.Networking
 {
     public class BeetleTcpClient : AsyncTcpClient, ITcpClient
     {
-        Task ITcpClient.Send(object message)
+        Task ITcpClient.SendAsync(object message)
         {
             return Send(message);
         }
