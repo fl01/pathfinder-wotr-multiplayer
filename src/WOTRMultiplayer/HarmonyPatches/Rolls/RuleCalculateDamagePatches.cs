@@ -50,7 +50,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
 
         private static void OnCalculateDamage(RuleCalculateDamage ruleCalculateDamage)
         {
-            if (Main.Multiplayer.IsActive)
+            if (Main.Multiplayer.IsActive && !PatchesUtils.IsHelperUnit(ruleCalculateDamage.Target.UniqueId))
             {
                 var shouldRunOriginalLogic = Main.Rolls.OnBeforeRuleCalculateDamageTrigger(ruleCalculateDamage);
                 if (!shouldRunOriginalLogic)
