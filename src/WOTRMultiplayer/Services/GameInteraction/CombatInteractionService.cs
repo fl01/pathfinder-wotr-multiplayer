@@ -691,26 +691,24 @@ namespace WOTRMultiplayer.Services.GameInteraction
         private void UpdateCombatUnitState(Dictionary<NetworkUnit, UnitEntityData> unitsToUpdate)
         {
             // engagement is configured for units pair so we need to clear existing lists before syncing
-            foreach (var (_, unit) in unitsToUpdate)
+            // also EngagedX lists could contain units that are not in combat right now - therefore not present in the base list
+            var engagedUnits = new Dictionary<string, UnitEntityData>();
+            foreach (var (networkUnit, unit) in unitsToUpdate)
             {
-                if (unit?.CombatState == null)
-                {
-                    continue;
-                }
+                AddUnitForEngagementClearence([unit.UniqueId], engagedUnits);
+                AddUnitForEngagementClearence(networkUnit.CombatState?.EngagedBy ?? [], engagedUnits);
+                AddUnitForEngagementClearence(networkUnit.CombatState?.EngagedUnits ?? [], engagedUnits);
+            }
 
-                unit.CombatState.m_EngagedBy.Clear();
-                unit.CombatState.m_EngagedUnits.Clear();
-                unit.CombatState.DisengageAttackTargets.Clear();
+            foreach (var (_, unitToClear) in engagedUnits)
+            {
+                unitToClear.CombatState.m_EngagedBy.Clear();
+                unitToClear.CombatState.m_EngagedUnits.Clear();
+                unitToClear.CombatState.DisengageAttackTargets.Clear();
             }
 
             foreach (var (networkUnit, unit) in unitsToUpdate)
             {
-                if (networkUnit.CombatState == null)
-                {
-                    _logger.LogWarning("Unable to update missing combat unit state. UnitId={UnitId}", networkUnit.Id);
-                    continue;
-                }
-
                 foreach (var engageTargetId in networkUnit.CombatState.EngagedUnits)
                 {
                     var engageTarget = _gameStateLookupService.GetUnitEntity(engageTargetId);
@@ -724,6 +722,23 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 }
 
                 _logger.LogInformation("Unit engagement has been updated. UnitId={UnitId}, EngagedWith={EngagedWith}, EngagedBy={EngagedBy}, HostEngagedWith={HostEngagedWith}, HostEngagedBy={HostEngagedBy}", unit.UniqueId, string.Join(";", unit.CombatState.m_EngagedUnits.Select(x => x.Key.UniqueId)), string.Join(";", unit.CombatState.m_EngagedBy.Select(x => x.Key.UniqueId)), networkUnit.CombatState.EngagedUnits, networkUnit.CombatState.EngagedBy);
+            }
+        }
+
+        private void AddUnitForEngagementClearence(List<string> units, Dictionary<string, UnitEntityData> unitsToClear)
+        {
+            foreach (var unitId in units)
+            {
+                if (unitsToClear.ContainsKey(unitId))
+                {
+                    continue;
+                }
+
+                var unitData = _gameStateLookupService.GetUnitEntity(unitId);
+                if (unitData != null)
+                {
+                    unitsToClear.Add(unitId, unitData);
+                }
             }
         }
 
