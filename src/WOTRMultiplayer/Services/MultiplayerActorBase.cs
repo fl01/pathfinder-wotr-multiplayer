@@ -261,7 +261,7 @@ namespace WOTRMultiplayer.Services
             Logger.LogInformation("Retrieving roll over network. RollId={RollId}, UnitId={UnitId}, RuleName={RuleName}", networkDiceRollId, unitId, ruleName);
 
             var waitForRollTimeout = SettingsService.GetSettings().RemoteRollRetrievalTimeout;
-            var request = new DiceRollValueRequest { RollId = networkDiceRollId, Timeout = waitForRollTimeout, UnitId = unitId, PlayerId = Game.LocalPlayerId, RuleName = ruleName, IsCombatRoll = Game.Combat != null };
+            var request = new DiceRollValueRequest { RollId = networkDiceRollId, Timeout = waitForRollTimeout, UnitId = unitId, PlayerId = Game.LocalPlayerId, RuleName = ruleName, CombatTurnUnitId = Game.Combat?.Turn?.UnitId };
             // it's important to block current thread since we cannot proceed without response
             // yeah most likely it will cause the game to freeze in case of bad network
             var response = RetrieveRoll(request);

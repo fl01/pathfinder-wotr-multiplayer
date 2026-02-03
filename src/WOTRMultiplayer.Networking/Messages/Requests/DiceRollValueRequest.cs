@@ -21,7 +21,7 @@ namespace WOTRMultiplayer.Networking.Messages.Requests
         public long PlayerId { get; set; }
 
         [ProtoMember(5)]
-        public bool IsCombatRoll { get; set; }
+        public string CombatTurnUnitId { get; set; }
 
         [ProtoMember(6)]
         public string RuleName { get; set; }

@@ -2715,7 +2715,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     {
                         Enum.TryParse<TurnBased.Controllers.TurnController.MovementLimit>(click.MovementLimit, true, out var limit);
                         Game.Instance.TurnBasedCombatController.CurrentTurn.SetMovementLimit(limit);
-                        _logger.LogInformation("Movement limit has been updated. UnitId={UnitId}, Limit={Limit}", Game.Instance.TurnBasedCombatController.CurrentTurn.Rider.UniqueId, limit);
+                        _logger.LogInformation("Movement limit has been updated. UnitId={UnitId}, Limit={Limit}", Game.Instance.TurnBasedCombatController.CurrentTurn.Rider?.UniqueId, limit);
                     }
 
                     if (click.VectorPath != null && click.VectorPath.Count > 0 && PathVisualizer.Instance != null)

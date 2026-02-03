@@ -1772,7 +1772,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, RollId={RollId}, UnitId={UnitId}, RuleName={RuleName}, IsCombatRoll={IsCombatRoll}", nameof(DiceRollValueRequest), playerId, request.RollId, request.UnitId, request.RuleName, request.IsCombatRoll);
+                Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, RollId={RollId}, UnitId={UnitId}, RuleName={RuleName}, CombatTurnUnitId={CombatTurnUnitId}", nameof(DiceRollValueRequest), playerId, request.RollId, request.UnitId, request.RuleName, request.CombatTurnUnitId);
                 // roll storage (location) is dynamic in combat and depends on TurnOwner
                 var (shouldBeProxied, playerToAsk) = ShouldRollBeProxied(playerId, request);
                 if (!shouldBeProxied)
@@ -1803,15 +1803,33 @@ namespace WOTRMultiplayer.Services
         private (bool, long?) ShouldRollBeProxied(long playerId, DiceRollValueRequest diceRollValueRequest)
         {
             // either combat has already ended on the client (last turn action) or it's a mid combat unit join which rolls initiative
-            if (!diceRollValueRequest.IsCombatRoll || string.Equals(diceRollValueRequest.RuleName, "RuleInitiativeRoll", StringComparison.OrdinalIgnoreCase))
+            if (diceRollValueRequest.CombatTurnUnitId == null || string.Equals(diceRollValueRequest.RuleName, "RuleInitiativeRoll", StringComparison.OrdinalIgnoreCase))
             {
                 return (false, null);
             }
 
-            var turn = Game.Combat?.Turn ?? Game.LastCombatTurn;
+            var turn = SelectValidTurn(diceRollValueRequest.UnitId);
             var characterTurn = GetPartyCharacter(turn?.UnitId);
             var shouldRollBeProxied = (Game.Combat == null || Game.Combat.IsInitialized) && turn != null && !turn.IsLocalPlayer && !turn.IsAI && characterTurn != null && characterTurn.Owner.Id != playerId && characterTurn.Owner.Id != Game.LocalPlayerId;
             return (shouldRollBeProxied, characterTurn?.Owner?.Id);
+        }
+
+        private NetworkCombatTurn SelectValidTurn(string unitId)
+        {
+            // LastCombatTurn is valid only when:
+            // - combat is already ended locally
+            // - AI turn is already ended locally
+            return CheckTurnValidity(Game.Combat?.Turn, unitId) ?? CheckTurnValidity(Game.LastCombatTurn, unitId);
+        }
+
+        private NetworkCombatTurn CheckTurnValidity(NetworkCombatTurn turn, string unitId)
+        {
+            if (turn == null || !string.Equals(turn.UnitId, unitId, StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            return turn;
         }
 
         private void OnNotifyLobbySyncStatusChanged(long receivedFrom, NotifyLobbySyncStatusChanged lobbySyncStatusChanged)
