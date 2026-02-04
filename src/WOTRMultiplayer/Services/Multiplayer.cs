@@ -3970,6 +3970,24 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        public void OnUnitDeath(string unitId)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnUnitDeath(unitId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while processing combat unit death. UnitId={UnitId}", unitId);
+                throw;
+            }
+        }
+
         public void CloseMultiplayerLobbyWindow()
         {
             if (_lobbyWindow != null && _lobbyWindow.IsVisible)

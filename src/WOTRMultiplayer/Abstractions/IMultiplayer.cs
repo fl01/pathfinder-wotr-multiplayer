@@ -473,5 +473,7 @@ namespace WOTRMultiplayer.Abstractions
         void OnGlobalMapCrusadeArmyLeaderLevelingConfirmed();
 
         void OnGlobalMapCrusadeArmyLeaderLevelingSkillSelected(string skillId);
+
+        void OnUnitDeath(string unitId);
     }
 }

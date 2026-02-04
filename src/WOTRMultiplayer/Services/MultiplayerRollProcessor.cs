@@ -1224,7 +1224,7 @@ namespace WOTRMultiplayer.Services
 
         private SkillCheckRoll CreateSkillCheckRoll(NetworkDiceRollType diceRollType, RuleSkillCheck ruleSkillCheck)
         {
-            var roll = new SkillCheckRoll(ruleSkillCheck.Initiator.UniqueId, ruleSkillCheck.GetType().Name, diceRollType, ruleSkillCheck.TotalBonus)
+            var roll = new SkillCheckRoll(ruleSkillCheck.Initiator.UniqueId, ruleSkillCheck.GetType().Name, diceRollType, ruleSkillCheck.StatValue)
             {
                 EnsureSuccess = ruleSkillCheck.EnsureSuccess,
                 DifficultyCheck = ruleSkillCheck.DC,

@@ -1310,7 +1310,7 @@ namespace WOTRMultiplayer.Services
 
         private async void OnNotifyCombatTurnSynchronizationRequired(long playerId, NotifyCombatTurnSynchronizationRequired combatTurnSynchronization)
         {
-            Logger.LogInformation("Received {MessageType}. Units={Units}", nameof(NotifyCombatTurnSynchronizationRequired), combatTurnSynchronization.CombatState.Units.Count);
+            Logger.LogInformation("Received {MessageType}. Units={Units}, KilledUnits={KilledUnits}", nameof(NotifyCombatTurnSynchronizationRequired), combatTurnSynchronization.CombatState.Units.Count, combatTurnSynchronization.CombatState.KilledUnits);
 
             try
             {

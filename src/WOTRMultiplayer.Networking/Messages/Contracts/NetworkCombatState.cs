@@ -14,5 +14,8 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
 
         [ProtoMember(3)]
         public List<NetworkUnit> Units { get; set; } = [];
+
+        [ProtoMember(4)]
+        public List<string> KilledUnits { get; set; } = [];
     }
 }

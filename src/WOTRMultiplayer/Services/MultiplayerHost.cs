@@ -1113,6 +1113,17 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
+        public void OnUnitDeath(string unitId)
+        {
+            if (Game.Combat?.Turn == null)
+            {
+                return;
+            }
+
+            Game.Combat.UnitsKilledLastTurn.Add(unitId);
+            Logger.LogInformation("Unit has been killed. UnitId={UnitId}", unitId);
+        }
+
         public void OnGlobalMapMagicSpellUsed(NetworkGlobalMapMagicSpell globalMagicSpell)
         {
             var message = new NotifyGlobalMapMagicSpellUsed
@@ -1352,6 +1363,9 @@ namespace WOTRMultiplayer.Services
                     {
                         Game.Combat.Turn.RequiresTurnEntitiesSynchronization = false;
                         var combatState = CombatInteraction.GetCombatState();
+                        combatState.KilledUnits = [.. Game.Combat.UnitsKilledLastTurn];
+                        Game.Combat.UnitsKilledLastTurn.Clear();
+
                         var syncMessage = new NotifyCombatTurnSynchronizationRequired
                         {
                             CombatState = Mapper.Map<Networking.Messages.Contracts.NetworkCombatState>(combatState)

@@ -32,15 +32,18 @@ namespace WOTRMultiplayer.Services.GameInteraction
         private readonly ILogger<CombatInteractionService> _logger;
         private readonly IGameStateLookupService _gameStateLookupService;
         private readonly IMainThreadAccessor _mainThreadAccessor;
+        private readonly IPlayerNotificationService _playerNotificationService;
 
         public CombatInteractionService(
             ILogger<CombatInteractionService> logger,
             IGameStateLookupService gameStateLookupService,
+            IPlayerNotificationService playerNotificationService,
             IMainThreadAccessor mainThreadAccessor)
         {
             _logger = logger;
             _gameStateLookupService = gameStateLookupService;
             _mainThreadAccessor = mainThreadAccessor;
+            _playerNotificationService = playerNotificationService;
         }
 
         public void UpdateIsInCombatStatus()
@@ -565,6 +568,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             try
             {
+                KillUnits(networkCombatState.KilledUnits);
+
                 var unitsToUpdate = networkCombatState.Units.ToDictionary(x => x, x => _gameStateLookupService.GetUnitEntity(x.Id));
                 foreach (var (networkUnit, unit) in unitsToUpdate)
                 {
@@ -591,6 +596,22 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 _logger.LogError(ex, "Unable to update combat state. RoundNumber={RoundNumber}, UnitsCount={UnitsCount}, IsFullUpdate={IsFullUpdate}", networkCombatState.RoundNumber, networkCombatState.Units.Count, requiresFullUpdate);
                 throw;
+            }
+        }
+
+        private void KillUnits(List<string> killedUnits)
+        {
+            foreach (var unitId in killedUnits)
+            {
+                var unitToKill = _gameStateLookupService.GetUnitEntity(unitId);
+                if (unitToKill == null || unitToKill.State.IsFinallyDead)
+                {
+                    return;
+                }
+
+                // TODO: get units from everyone and kill at the same time?
+                // _playerNotificationService.ShowWarningNotification(WellKnownKeys.GameNotifications.Combat.UnitAutokilled.Key, addToLog: true, unitToKill.CharacterName, unitToKill.UniqueId);
+                // GameHelper.KillUnit(unitToKill);
             }
         }
 

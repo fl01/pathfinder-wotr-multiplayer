@@ -10,5 +10,7 @@ namespace WOTRMultiplayer.Entities.Combat
         public bool HasSurpriseRound { get; set; }
 
         public List<NetworkUnit> Units { get; set; } = [];
+
+        public List<string> KilledUnits { get; set; } = [];
     }
 }

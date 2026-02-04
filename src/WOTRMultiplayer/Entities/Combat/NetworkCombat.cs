@@ -21,6 +21,8 @@ namespace WOTRMultiplayer.Entities.Combat
 
         public ConcurrentDictionary<string, HashSet<long>> MidCombatUnitJoins { get; set; } = new();
 
+        public List<string> UnitsKilledLastTurn { get; set; } = [];
+
         public HashSet<string> ConfirmedMidCombatUnits { get; set; } = [];
 
         public List<NetworkAIAction> AIActions { get; set; } = [];

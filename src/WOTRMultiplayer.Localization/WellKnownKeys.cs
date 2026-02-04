@@ -877,6 +877,12 @@ public static class WellKnownKeys
             {
                 public static string Key { get; set; }
             }
+
+            [Description("unitAutokilled")]
+            public static class UnitAutokilled
+            {
+                public static string Key { get; set; }
+            }
         }
 
         [Description("tacticalCombat")]

@@ -224,7 +224,8 @@
             },
             "combat": {
                 "clientTurnOrderDesync": "Turn order has been overriden by Host due to detected desync",
-                "hostTurnOrderDesync": "Player {0} is trying to start different character turn, forcing to start the same one"
+                "hostTurnOrderDesync": "Player {0} is trying to start different character turn, forcing to start the same one",
+                "unitAutokilled": "Auto-killing unit '{0}' ({1}) as it's dead at host"
             },
             "tacticalCombat": {
                 "disabledAutoCombat": "Auto combat is disabled within multiplayer session"
