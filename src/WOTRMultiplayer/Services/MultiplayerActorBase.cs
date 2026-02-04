@@ -272,7 +272,7 @@ namespace WOTRMultiplayer.Services
 
         public void OnClickUnit(NetworkClick click)
         {
-            if (Game.Combat == null && IsControlledByPlayers(click.TargetUnitId)
+            if (Game.Combat == null && (IsControlledByPlayers(click.TargetUnitId) || !IsControlledByLocalPlayer(click.SelectedUnits))
                 || Game.Combat != null && (!(Game.Combat.Turn?.IsLocalPlayer ?? false) || CombatInteraction.IsCombatTurnFinished()))
             {
                 return;

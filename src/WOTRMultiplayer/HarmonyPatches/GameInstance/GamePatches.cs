@@ -182,6 +182,16 @@ namespace WOTRMultiplayer.HarmonyPatches.GameInstance
                 return;
             }
 
+
+            // FullScreenUI has a separate 'selectedFullScreenCharacter' property, but it's not reliable due to skipped game modes.
+            // applying a generic fix for everything (with a hope not to cause extra problems smile) to make sure SelectedUnit is always set if we control atlease 1 character
+            if (Game.Instance.SelectionCharacter.SelectedUnits?.Count > 0 && !Game.Instance.Vendor.IsTrading)
+            {
+                var selectedCharacter = Game.Instance.SelectionCharacter.SelectedUnits.FirstOrDefault();
+                Game.Instance.SelectionCharacter.SelectedUnit.Value = selectedCharacter;
+                Game.Instance.SelectionCharacter.m_FullScreenSelectedUnit = selectedCharacter;
+            }
+
             if (isStart)
             {
                 combatLogView.Hide();
@@ -189,14 +199,6 @@ namespace WOTRMultiplayer.HarmonyPatches.GameInstance
             }
 
             combatLogView.Show();
-
-            // FullScreenUI has a separate 'selectedFullScreenCharacter' property, but it's not reliable due to skipped game modes.
-            // applying a generic fix for everything (with a hope not to cause extra problems smile) to make sure SelectedUnit is always set if we control atlease 1 character
-            if (Game.Instance.SelectionCharacter.SelectedUnits?.Count > 0)
-            {
-                var selectedCharacter = Game.Instance.SelectionCharacter.SelectedUnits.FirstOrDefault();
-                Game.Instance.SelectionCharacter.SelectedUnit.Value = selectedCharacter;
-            }
         }
     }
 }
