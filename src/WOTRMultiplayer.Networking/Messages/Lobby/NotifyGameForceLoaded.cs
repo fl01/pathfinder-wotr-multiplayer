@@ -11,5 +11,8 @@ namespace WOTRMultiplayer.Networking.Messages.Lobby
 
         [ProtoMember(2)]
         public byte[] Content { get; set; }
+
+        [ProtoMember(3)]
+        public int Seed { get; set; }
     }
 }

@@ -1541,11 +1541,13 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLobbySaveGameChanged(long playerId, NotifyLobbySaveGameChanged notifyLobbySaveGameChanged)
         {
-            Logger.LogInformation("Received {MessageType}. GameId={GameId}, Size={Size}", nameof(NotifyLobbySaveGameChanged), notifyLobbySaveGameChanged.GameId, notifyLobbySaveGameChanged.Content?.Length);
+            Logger.LogInformation("Received {MessageType}. GameId={GameId}, Size={Size}, Seed={Seed}", nameof(NotifyLobbySaveGameChanged), notifyLobbySaveGameChanged.GameId, notifyLobbySaveGameChanged.Content?.Length, notifyLobbySaveGameChanged.Seed);
 
             UpdateSaveInfo(notifyLobbySaveGameChanged.GameId, notifyLobbySaveGameChanged.Content);
 
-            Logger.LogInformation("Game is ready to be started. SavePath={SavePath}", Game.StartUp.SavePath);
+            Game.LoadedSaveSeed = notifyLobbySaveGameChanged.Seed;
+
+            Logger.LogInformation("Game is ready to be started. SavePath={SavePath}, LoadedSaveSeed={LoadedSaveSeed}", Game.StartUp.SavePath, Game.LoadedSaveSeed);
             var confirmationMessage = new NotifyLobbySyncStatusChanged { PlayerId = Game.LocalPlayerId, Status = NetworkLobbySyncStatus.Succeed.ToString() };
             Send(confirmationMessage);
         }

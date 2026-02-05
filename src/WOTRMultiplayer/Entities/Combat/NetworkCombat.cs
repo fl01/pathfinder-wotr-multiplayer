@@ -5,6 +5,9 @@ namespace WOTRMultiplayer.Entities.Combat
 {
     public class NetworkCombat
     {
+        /// <summary>
+        /// new seed for each combat
+        /// </summary>
         public int Seed { get; set; }
 
         public bool IsInitialized { get; set; }

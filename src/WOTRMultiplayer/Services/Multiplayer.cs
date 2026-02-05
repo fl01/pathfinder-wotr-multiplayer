@@ -990,6 +990,11 @@ namespace WOTRMultiplayer.Services
             return _multiplayerActorAccessor.Current?.SessionSeed;
         }
 
+        public int GetLoadedSaveSeed()
+        {
+            return _multiplayerActorAccessor.Current?.LoadedSaveSeed ?? 0;
+        }
+
         public int? GetCrusadeArmyCombatAreaSeed()
         {
             try

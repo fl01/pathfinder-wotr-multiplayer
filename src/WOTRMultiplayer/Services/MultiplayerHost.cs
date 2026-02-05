@@ -178,6 +178,8 @@ namespace WOTRMultiplayer.Services
             }
 
             SetLobbyStage(NetworkLobbyStage.PreparingToStart);
+            Game.LoadedSaveSeed = CreateRandomSeed();
+
             var host = GetHost();
             UpdateLobbySyncStatus(host, NetworkLobbySyncStatus.Succeed);
 
@@ -192,9 +194,10 @@ namespace WOTRMultiplayer.Services
             {
                 GameId = Game.Id,
                 Content = content,
+                Seed = Game.LoadedSaveSeed
             };
 
-            Logger.LogInformation("Sending {MessageType}. GameId={GameId}, ContentSize={ContentSize}", nameof(NotifyLobbySaveGameChanged), saveGameChanged.GameId, saveGameChanged.Content?.Length);
+            Logger.LogInformation("Sending {MessageType}. GameId={GameId}, ContentSize={ContentSize}, LoadedSaveSeed={LoadedSaveSeed}", nameof(NotifyLobbySaveGameChanged), saveGameChanged.GameId, saveGameChanged.Content?.Length, saveGameChanged.Seed);
             Send(saveGameChanged);
 
             TryStartSavedGame();

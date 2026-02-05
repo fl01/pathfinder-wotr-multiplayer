@@ -51,6 +51,8 @@ namespace WOTRMultiplayer.Services
 
         public int SessionSeed => Game.SessionSeed;
 
+        public int? LoadedSaveSeed => Game.LoadedSaveSeed;
+
         public int? CombatSeed => Game.Combat?.Seed;
 
         public int? CrusadeArmyCombatAreaSeed => Game.ArmyCombat?.AreaSeed;
@@ -526,14 +528,16 @@ namespace WOTRMultiplayer.Services
 
             Game.ForcedPause = null;
             ResetGameIdGenerator();
+            Game.LoadedSaveSeed = CreateRandomSeed();
 
             var content = FileSystem.GetRawFileContent(savePath);
             var message = new NotifyGameForceLoaded
             {
                 GameId = Game.Id,
                 Content = content,
+                Seed = Game.LoadedSaveSeed,
             };
-            Logger.LogInformation("Sending {MessageType}. GameId={GameId}, SavePath={SavePath}, ContentSize={ContentSize}", nameof(NotifyGameForceLoaded), message.GameId, Game.StartUp.SavePath, message.Content.Length);
+            Logger.LogInformation("Sending {MessageType}. GameId={GameId}, SavePath={SavePath}, ContentSize={ContentSize}, LoadedSaveSeed={LoadedSaveSeed}", nameof(NotifyGameForceLoaded), message.GameId, Game.StartUp.SavePath, message.Content.Length, message.Seed);
 
             Send(message);
         }
@@ -3364,9 +3368,11 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGameForceLoaded(long receivedFrom, NotifyGameForceLoaded gameForceLoaded)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, GameId={GameId}, ContentSize={ContentSize}", nameof(NotifyGameForceLoaded), receivedFrom, gameForceLoaded.GameId, gameForceLoaded.Content.Length);
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, GameId={GameId}, ContentSize={ContentSize}, LoadedSaveSeed={LoadedSaveSeed}", nameof(NotifyGameForceLoaded), receivedFrom, gameForceLoaded.GameId, gameForceLoaded.Content.Length, gameForceLoaded.Seed);
 
             UpdateSaveInfo(gameForceLoaded.GameId, gameForceLoaded.Content);
+
+            Game.LoadedSaveSeed = gameForceLoaded.Seed;
 
             LoadSavedGame();
 

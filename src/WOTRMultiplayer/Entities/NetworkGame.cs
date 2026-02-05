@@ -13,7 +13,15 @@ namespace WOTRMultiplayer.Entities
     {
         public string Id { get; set; }
 
+        /// <summary>
+        /// global seed perssistent for entire session (including loading save games)
+        /// </summary>
         public int SessionSeed { get; set; }
+
+        /// <summary>
+        /// new seed for each save load
+        /// </summary>
+        public int LoadedSaveSeed { get; set; }
 
         public long LocalPlayerId { get; set; }
 

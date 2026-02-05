@@ -56,6 +56,8 @@ namespace WOTRMultiplayer.Abstractions
 
         int? CombatSeed { get; }
 
+        int? LoadedSaveSeed { get; }
+
         int? CrusadeArmyCombatAreaSeed { get; }
 
         int? CrusadeArmyCombatSeed { get; }
