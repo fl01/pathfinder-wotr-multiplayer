@@ -408,5 +408,14 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void LeaveZoneLoot()
         {
         }
+
+        public void ApplyTrapDisarm(NetworkTrapDisarm trapDisarm)
+        {
+        }
+
+        public bool UnitIsBusy(string unitId)
+        {
+            return false;
+        }
     }
 }

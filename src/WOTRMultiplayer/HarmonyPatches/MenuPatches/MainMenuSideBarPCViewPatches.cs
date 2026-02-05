@@ -47,7 +47,7 @@ namespace WOTRMultiplayer.HarmonyPatches.MenuPatches
         {
             if (BlueprintesCachePatches.LastInitError != null)
             {
-                EventBus.RaiseEvent<IMessageModalUIHandler>(x => x.HandleOpen(BlueprintesCachePatches.LastInitError), true);
+                EventBus.RaiseEvent<IMessageModalUIHandler>(x => x.HandleOpen(BlueprintesCachePatches.LastInitError));
             }
         }
     }

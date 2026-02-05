@@ -188,5 +188,9 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void ReselectSelectedCharacters();
 
         void LeaveZoneLoot();
+
+        void ApplyTrapDisarm(NetworkTrapDisarm trapDisarm);
+
+        bool UnitIsBusy(string unitId);
     }
 }

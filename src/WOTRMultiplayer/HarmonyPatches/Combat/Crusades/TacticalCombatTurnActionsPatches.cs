@@ -73,7 +73,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat.Crusades
             }
 
             var message = new LocalizedString { Key = WellKnownKeys.GameNotifications.TacticalCombat.DisabledAutoCombat.Key };
-            EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(message, false), true);
+            EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(message, false));
             return false;
         }
 

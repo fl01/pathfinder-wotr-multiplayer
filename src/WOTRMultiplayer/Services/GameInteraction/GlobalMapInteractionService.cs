@@ -905,7 +905,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 changes.ResourcesOneTime += delta;
                 changes.Apply(null, true);
                 UISoundController.Instance.Play(UISoundType.ArmyManagementBuyResourcesPlay);
-                EventBus.RaiseEvent<IKingdomResourcesHandler>(x => x.OnResourcesChanged(delta), true);
+                EventBus.RaiseEvent<IKingdomResourcesHandler>(x => x.OnResourcesChanged(delta));
             });
         }
 

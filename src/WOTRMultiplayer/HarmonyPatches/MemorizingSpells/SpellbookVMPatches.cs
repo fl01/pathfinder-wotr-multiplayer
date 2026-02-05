@@ -25,7 +25,7 @@ namespace WOTRMultiplayer.HarmonyPatches.MemorizingSpells
             if (!canChangeSlot)
             {
                 var message = new LocalizedString { Key = WellKnownKeys.GameNotifications.SpellBook.NoSpellSlotPermission.Key };
-                EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(message, true), true);
+                EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(message, true));
             }
             return canChangeSlot;
         }
@@ -67,7 +67,7 @@ namespace WOTRMultiplayer.HarmonyPatches.MemorizingSpells
             if (!canChangeSlot)
             {
                 var message = new LocalizedString { Key = WellKnownKeys.GameNotifications.SpellBook.NoSpellSlotPermission.Key };
-                EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(message, true), true);
+                EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(message, true));
             }
             return canChangeSlot;
         }

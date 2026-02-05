@@ -50,6 +50,7 @@ using Kingmaker.UnitLogic.ActivatableAbilities;
 using Kingmaker.UnitLogic.Commands;
 using Kingmaker.Utility;
 using Kingmaker.View.MapObjects;
+using Kingmaker.View.MapObjects.Traps;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
 using TMPro;
@@ -953,10 +954,10 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 perceptionCheck = Rulebook.Trigger(perceptionCheck);
 
                 // using UnitStealthController.TickUnit as a reference
-                EventBus.RaiseEvent<IUnitInStealthSpottedHandler>(x => x.HandleUnitInStealthSpotted(stealhedUnitId, perceptionCheck), true);
+                EventBus.RaiseEvent<IUnitInStealthSpottedHandler>(x => x.HandleUnitInStealthSpotted(stealhedUnitId, perceptionCheck));
                 if (stealhedUnitId.Stealth.AddSpottedBy(initiatorUnitId))
                 {
-                    EventBus.RaiseEvent<IUnitSpottedHandler>(x => x.HandleUnitSpotted(stealhedUnitId, initiatorUnitId), true);
+                    EventBus.RaiseEvent<IUnitSpottedHandler>(x => x.HandleUnitSpotted(stealhedUnitId, initiatorUnitId));
                 }
 
                 if (UnitStealthController.SpotterBreaksStealth(stealhedUnitId, initiatorUnitId))
@@ -1350,7 +1351,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                 _uiAccessor.CloseAllWindows();
 
-                EventBus.RaiseEvent<ISkipTimeWindowUIHandler>(x => x.HandleOpenSkipTime(), true);
+                EventBus.RaiseEvent<ISkipTimeWindowUIHandler>(x => x.HandleOpenSkipTime());
             });
         }
 
@@ -2066,6 +2067,64 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                 _uiAccessor.LootPCView.ViewModel.LeaveZone();
                 _logger.LogError("ZoneLoot has been left");
+            });
+        }
+
+        public bool UnitIsBusy(string unitId)
+        {
+            var unit = _gameStateLookupService.GetUnitEntity(unitId);
+            return unit.Commands.IsRunning();
+        }
+
+        public void ApplyTrapDisarm(NetworkTrapDisarm trapDisarm)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var mapObject = _gameStateLookupService.GetMapObject(trapDisarm.UnitId);
+                if (mapObject == null)
+                {
+                    _logger.LogWarning("Unable to find trap to apply disarm check. It's either already disabled or invalid id. TrapId={TrapId}", trapDisarm.MapObject.Id);
+                    return;
+                }
+
+                if (mapObject is not TrapObjectData trapData)
+                {
+                    _logger.LogError("Trap disarm can't be applied to a non-TrapObjectData. TrapId={TrapId}", trapDisarm.MapObject.Id);
+                    return;
+                }
+
+                if (!trapData.TrapActive)
+                {
+                    return;
+                }
+
+                var unit = _gameStateLookupService.GetUnitEntity(trapDisarm.UnitId);
+                if (unit == null)
+                {
+                    _logger.LogError("Unable to find unit who interacted with a trap. TrapId={TrapId}, UnitId={UnitId}", trapDisarm.MapObject.Id, trapDisarm.UnitId);
+                    return;
+                }
+
+                // copy-paste of TrapObjectData.Interact
+                if (trapDisarm.IsSuccess)
+                {
+                    trapData.RunDisableActions(unit);
+                    trapData.View.PostSoundEvent(trapData.Settings.DisabledSound);
+                    trapData.Deactivate(true);
+                    EventBus.RaiseEvent<IDisarmTrapHandler>(x => x.HandleDisarmTrapSuccess(unit, trapData.View));
+                    return;
+                }
+
+                if (trapDisarm.Roll <= trapData.DisableDC - trapData.DisableTriggerMargin)
+                {
+                    EventBus.RaiseEvent<IDisarmTrapHandler>(x => x.HandleDisarmTrapCriticalFail(unit, trapData.View));
+                    trapData.TriggerTrap(unit);
+                    return;
+                }
+
+                trapData.View.PostSoundEvent(trapData.Settings.DisableFailSound);
+                EventBus.RaiseEvent<IDisarmTrapHandler>(x => x.HandleDisarmTrapFail(unit, trapData.View));
+                _logger.LogWarning("Trap disarm roll has been applied. TrapId={TrapId}, Roll={Roll}", trapDisarm.MapObject.Id, trapDisarm.Roll);
             });
         }
 

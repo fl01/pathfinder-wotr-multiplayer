@@ -330,5 +330,9 @@ namespace WOTRMultiplayer.Abstractions
         void OnGlobalMapRecruitmentSlotsRerolled();
 
         void OnGlobalMapCrusadeArmyLeaderLevelingShown();
+
+        void OnUnitDeath(string unitId);
+
+        void OnTrapDisarmRolled(NetworkTrapDisarm trapDisarm);
     }
 }

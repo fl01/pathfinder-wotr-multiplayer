@@ -4002,11 +4002,29 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnUnitDeath(unitId);
+                _multiplayerActorAccessor.Current.OnUnitDeath(unitId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while processing combat unit death. UnitId={UnitId}", unitId);
+                throw;
+            }
+        }
+
+        public void OnTrapDisarmRolled(NetworkTrapDisarm trapDisarm)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnTrapDisarmRolled(trapDisarm);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while processing trap disarm roll. TrapId={TrapId}, UnitId={UnitId}, Roll={Roll}", trapDisarm.MapObject.Id, trapDisarm.UnitId, trapDisarm.Roll);
                 throw;
             }
         }

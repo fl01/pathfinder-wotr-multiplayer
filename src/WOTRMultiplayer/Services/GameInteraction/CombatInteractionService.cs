@@ -281,7 +281,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     ShouldSkipAnimation = Game.Instance.TacticalCombat.Data.Accelerated
                 };
 
-                EventBus.RaiseEvent<IClickActionHandler>(x => x.OnCastRequested(ability, target), true);
+                EventBus.RaiseEvent<IClickActionHandler>(x => x.OnCastRequested(ability, target));
                 unit.Commands.Run(useAbilityCommand);
                 _logger.LogInformation("Command {command} has been executed. UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}", nameof(NetworkTacticalUnitUseAbilityCommand), tacticalUnitUseAbilityCommand.Ability.CasterId, tacticalUnitUseAbilityCommand.Ability.Id, tacticalUnitUseAbilityCommand.Ability.Name);
             });

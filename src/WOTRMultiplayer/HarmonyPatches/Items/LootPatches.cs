@@ -174,7 +174,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Items
                 var errorMessage = "Unable to move items into disposed container. Denying action since those items will be deleted once UI is closed";
                 Main.GetLogger<LootPatches>().LogWarning(errorMessage);
                 var messageKey = new LocalizedString { Key = WellKnownKeys.GameNotifications.Looting.DisposedLootbagBugWarning.Key };
-                EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(messageKey, true), true);
+                EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(messageKey, true));
                 throw new InvalidOperationException(errorMessage);
             }
 

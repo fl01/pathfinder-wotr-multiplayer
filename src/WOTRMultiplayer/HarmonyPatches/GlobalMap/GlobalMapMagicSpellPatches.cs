@@ -94,7 +94,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             }
 
             var message = new LocalizedString { Key = WellKnownKeys.GameNotifications.GlobalMap.DisabledActionBar.Key };
-            EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(message, false), true);
+            EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(message, false));
             return false;
         }
 

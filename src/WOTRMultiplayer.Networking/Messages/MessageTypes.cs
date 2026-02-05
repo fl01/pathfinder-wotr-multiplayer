@@ -227,7 +227,8 @@
             NotifyCapitalModeRestInitiated,
             NotifyCombatStarted,
             NotifyZoneLootLeft,
-            NotifyCombatUnitKilled
+            NotifyCombatUnitKilled,
+            NotifyTrapDisarmRolled
         }
 
         public enum Request

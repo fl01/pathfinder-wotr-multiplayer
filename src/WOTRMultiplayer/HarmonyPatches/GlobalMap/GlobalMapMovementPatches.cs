@@ -379,7 +379,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             {
                 // this one doesn't make sense to sync
                 // UIUtility.ShowMessageBox(craftRoot.AlreadyCollected, MessageModalBase.ModalType.Message, null);
-                EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(craftRoot.AlreadyCollected, false), true);
+                EventBus.RaiseEvent<IWarningNotificationUIHandler>(x => x.HandleWarning(craftRoot.AlreadyCollected, false));
                 return false;
             }
 

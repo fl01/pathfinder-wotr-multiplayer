@@ -1728,6 +1728,16 @@ namespace WOTRMultiplayer.Services
             Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, UnitId={UnitId}", nameof(NotifyCombatUnitKilled), message.PlayerId, message.UnitId);
         }
 
+        public void OnTrapDisarmRolled(NetworkTrapDisarm trapDisarm)
+        {
+            var message = new NotifyTrapDisarmRolled
+            {
+                TrapDisarm = Mapper.Map<Networking.Messages.Contracts.NetworkTrapDisarm>(trapDisarm)
+            };
+            Send(message);
+            Logger.LogInformation("Sending {MessageType}. TrapId={TrapId}, Position={Position}, Roll={Roll}, IsSuccess={IsSuccess}, UnitId={UnitId}", nameof(NotifyTrapDisarmRolled), message.TrapDisarm.MapObject.Id, message.TrapDisarm.MapObject.Position, message.TrapDisarm.Roll, message.TrapDisarm.IsSuccess, message.TrapDisarm.UnitId);
+        }
+
         public void OnZoneLootCollectorButtonsUpdated()
         {
             UpdateZoneLootUIState();
@@ -3098,8 +3108,9 @@ namespace WOTRMultiplayer.Services
                 .On<NotifyGlobalMapCrusadeArmyBuyLeaderShown>(OnNotifyGlobalMapCrusadeArmyBuyLeaderShown)
                 .On<NotifyGlobalMapCrusadeArmyLeaderLevelingShown>(OnNotifyGlobalMapCrusadeArmyLeaderLevelingShown)
 
-                // overtips
+                // mapobjects
                 .On<NotifyOvertipInteracted>(OnNotifyOvertipInteracted)
+                .On<NotifyTrapDisarmRolled>(OnNotifyTrapDisarmRolled)
 
                 // items&inventory
                 .On<NotifyLootableEntitySkinned>(OnNotifyContainerSkinned)
@@ -3152,6 +3163,19 @@ namespace WOTRMultiplayer.Services
                 // cutscenes
                 .On<NotifyCutsceneSkipped>(OnNotifyCutsceneSkipped)
                 ;
+        }
+
+        private async void OnNotifyTrapDisarmRolled(long receivedFrom, NotifyTrapDisarmRolled trapDisarmRolled)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, TrapId={TrapId}, Position={Position}, Roll={Roll}, IsSuccess={IsSuccess}, UnitId={UnitId}",
+                nameof(NotifyTrapDisarmRolled), trapDisarmRolled.TrapDisarm.MapObject.Id, trapDisarmRolled.TrapDisarm.MapObject.Position, trapDisarmRolled.TrapDisarm.Roll, trapDisarmRolled.TrapDisarm.IsSuccess, trapDisarmRolled.TrapDisarm.UnitId);
+
+            OnAfterNetworkMessageHandled(receivedFrom, trapDisarmRolled);
+
+            await WaitWhileTrue(() => GameInteraction.UnitIsBusy(trapDisarmRolled.TrapDisarm.UnitId), "Waiting for unit to finish actions before applying trap disarm roll");
+
+            var trapDisarm = Mapper.Map<NetworkTrapDisarm>(trapDisarmRolled.TrapDisarm);
+            GameInteraction.ApplyTrapDisarm(trapDisarm);
         }
 
         private async void OnNotifyCombatUnitKilled(long receivedFrom, NotifyCombatUnitKilled combatUnitKilled)
