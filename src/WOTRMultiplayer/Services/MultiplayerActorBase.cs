@@ -1733,8 +1733,8 @@ namespace WOTRMultiplayer.Services
                 PlayerId = Game.LocalPlayerId,
                 UnitId = unitId
             };
-            Send(message);
             Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, UnitId={UnitId}", nameof(NotifyCombatUnitKilled), message.PlayerId, message.UnitId);
+            Send(message);
         }
 
         public void OnTrapDisarmRolled(NetworkTrapDisarm trapDisarm)
@@ -1743,8 +1743,24 @@ namespace WOTRMultiplayer.Services
             {
                 TrapDisarm = Mapper.Map<Networking.Messages.Contracts.NetworkTrapDisarm>(trapDisarm)
             };
-            Send(message);
             Logger.LogInformation("Sending {MessageType}. TrapId={TrapId}, Position={Position}, Roll={Roll}, IsSuccess={IsSuccess}, UnitId={UnitId}", nameof(NotifyTrapDisarmRolled), message.TrapDisarm.MapObject.Id, message.TrapDisarm.MapObject.Position, message.TrapDisarm.Roll, message.TrapDisarm.IsSuccess, message.TrapDisarm.UnitId);
+            Send(message);
+        }
+
+        public void OnUnitAutoUseAbilityChanged(string unitId, NetworkAbility networkAbility)
+        {
+            if (!IsControlledByLocalPlayer(unitId))
+            {
+                return;
+            }
+
+            var message = new NotifyUnitAutoUseAbilityChanged
+            {
+                UnitId = unitId,
+                Ability = Mapper.Map<Networking.Messages.Contracts.NetworkAbility>(networkAbility)
+            };
+            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}", nameof(NotifyUnitAutoUseAbilityChanged), message.UnitId, message.Ability?.Id, message.Ability?.Name);
+            Send(message);
         }
 
         public void OnZoneLootCollectorButtonsUpdated()
@@ -3198,6 +3214,7 @@ namespace WOTRMultiplayer.Services
                 .On<NotifyMapObjectLockpicked>(OnNotifyMapObjectLockpicked)
 
                 // abilities
+                .On<NotifyUnitAutoUseAbilityChanged>(OnNotifyUnitAutoUseAbilityChanged)
                 .On<NotifyAbilityUsed>(OnNotifyAbilityUsed)
                 .On<NotifyToggleActivatableAbility>(OnNotifyToggleActivatableAbility)
 
@@ -3240,27 +3257,37 @@ namespace WOTRMultiplayer.Services
                 ;
         }
 
-        private void OnNotifyGamePauseStarted(long receivedFrom, NotifyGamePauseStarted pauseStarted)
+        private void OnNotifyUnitAutoUseAbilityChanged(long receivedFrom, NotifyUnitAutoUseAbilityChanged message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, Reason={Reason}, RemovalDelay={RemovalDelay}", nameof(NotifyGamePauseStarted), receivedFrom, pauseStarted.PlayerId, pauseStarted.Pause.Reason, pauseStarted.Pause.RemovalDelay);
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}", nameof(NotifyUnitAutoUseAbilityChanged), receivedFrom, message.UnitId, message.Ability?.Id, message.Ability?.Name);
 
-            var pause = Mapper.Map<NetworkForcedPause>(pauseStarted.Pause);
+            var ability = Mapper.Map<NetworkAbility>(message.Ability);
+            GameInteraction.SetUnitAutoUseAbility(message.UnitId, ability);
+
+            OnAfterNetworkMessageHandled(receivedFrom, message);
+        }
+
+        private void OnNotifyGamePauseStarted(long receivedFrom, NotifyGamePauseStarted message)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, Reason={Reason}, RemovalDelay={RemovalDelay}", nameof(NotifyGamePauseStarted), receivedFrom, message.PlayerId, message.Pause.Reason, message.Pause.RemovalDelay);
+
+            var pause = Mapper.Map<NetworkForcedPause>(message.Pause);
             EnsureForcePaused(pause.Reason, pause.RemovalDelay);
             GameInteraction.SetPause(true);
 
-            OnAfterNetworkMessageHandled(receivedFrom, pauseStarted);
+            OnAfterNetworkMessageHandled(receivedFrom, message);
         }
 
-        private async void OnNotifyTrapDisarmRolled(long receivedFrom, NotifyTrapDisarmRolled trapDisarmRolled)
+        private async void OnNotifyTrapDisarmRolled(long receivedFrom, NotifyTrapDisarmRolled message)
         {
             Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, TrapId={TrapId}, Position={Position}, Roll={Roll}, IsSuccess={IsSuccess}, UnitId={UnitId}",
-                nameof(NotifyTrapDisarmRolled), receivedFrom, trapDisarmRolled.TrapDisarm.MapObject.Id, trapDisarmRolled.TrapDisarm.MapObject.Position, trapDisarmRolled.TrapDisarm.Roll, trapDisarmRolled.TrapDisarm.IsSuccess, trapDisarmRolled.TrapDisarm.UnitId);
+                nameof(NotifyTrapDisarmRolled), receivedFrom, message.TrapDisarm.MapObject.Id, message.TrapDisarm.MapObject.Position, message.TrapDisarm.Roll, message.TrapDisarm.IsSuccess, message.TrapDisarm.UnitId);
 
-            OnAfterNetworkMessageHandled(receivedFrom, trapDisarmRolled);
+            OnAfterNetworkMessageHandled(receivedFrom, message);
 
-            await WaitWhileTrue(() => GameInteraction.IsUnitBusy(trapDisarmRolled.TrapDisarm.UnitId), "Waiting for unit to finish actions before applying trap disarm roll");
+            await WaitWhileTrue(() => GameInteraction.IsUnitBusy(message.TrapDisarm.UnitId), "Waiting for unit to finish actions before applying trap disarm roll");
 
-            var trapDisarm = Mapper.Map<NetworkTrapDisarm>(trapDisarmRolled.TrapDisarm);
+            var trapDisarm = Mapper.Map<NetworkTrapDisarm>(message.TrapDisarm);
             GameInteraction.ApplyTrapDisarm(trapDisarm);
         }
 

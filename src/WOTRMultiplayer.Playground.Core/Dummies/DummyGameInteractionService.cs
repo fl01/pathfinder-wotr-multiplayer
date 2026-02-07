@@ -417,5 +417,9 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
             return false;
         }
+
+        public void SetUnitAutoUseAbility(string unitId, NetworkAbility ability)
+        {
+        }
     }
 }

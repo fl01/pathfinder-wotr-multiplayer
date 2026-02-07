@@ -2081,6 +2081,23 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return unit?.Commands.IsRunning() ?? false;
         }
 
+        public void SetUnitAutoUseAbility(string unitId, NetworkAbility ability)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var unit = _gameStateLookupService.GetUnitEntity(unitId);
+                if (unit == null)
+                {
+                    _logger.LogError("Unable to change autouse ability due to missing unit. UnitId={UnitId}", unitId);
+                    return;
+                }
+
+                var autoUseAbility = _gameStateLookupService.FindAbility(unit, ability);
+                unit.Brain.AutoUseAbility = autoUseAbility;
+                _logger.LogInformation("Unit AutoUseAbility has been changed. UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}", unitId, ability?.Id, ability?.Name);
+            });
+        }
+
         public void ApplyTrapDisarm(NetworkTrapDisarm trapDisarm)
         {
             _mainThreadAccessor.Post(() =>

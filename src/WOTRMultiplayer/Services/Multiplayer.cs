@@ -4029,6 +4029,24 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        public void OnUnitAutoUseAbilityChanged(string unitId, NetworkAbility networkAbility)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnUnitAutoUseAbilityChanged(unitId, networkAbility);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing unit autouse ability. UnitId={UnitId}, AbilityName={AbilityName}", unitId, networkAbility?.Name);
+                throw;
+            }
+        }
+
         public void CloseMultiplayerLobbyWindow()
         {
             if (_lobbyWindow != null && _lobbyWindow.IsVisible)

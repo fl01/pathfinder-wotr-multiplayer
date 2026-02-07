@@ -115,6 +115,11 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         public AbilityData FindAbility(UnitEntityData unit, NetworkAbility networkAbility)
         {
+            if (networkAbility == null)
+            {
+                return null;
+            }
+
             if (!string.IsNullOrEmpty(networkAbility.SpellbookId))
             {
                 return FindAbilityInSpellbook(unit, networkAbility);
