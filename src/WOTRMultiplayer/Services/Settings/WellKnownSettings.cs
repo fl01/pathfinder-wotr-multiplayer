@@ -58,10 +58,10 @@ namespace WOTRMultiplayer.Services.Settings
         public static class Combat
         {
             [Description("ai-sync")]
-            public static WellKnownSettingKey<bool> AISync { get; } = new(true);
+            public static WellKnownSettingKey<bool> EnableAISync { get; } = new(true);
 
             [Description("crusade-ai-sync")]
-            public static WellKnownSettingKey<bool> CrusadeAISync { get; } = new(true);
+            public static WellKnownSettingKey<bool> EnableCrusadeAISync { get; } = new(true);
         }
 
         [Description("networking")]
@@ -79,6 +79,12 @@ namespace WOTRMultiplayer.Services.Settings
         {
             [Description("hide-server-address")]
             public static WellKnownSettingKey<bool> HideServerAddress { get; } = new(false);
+
+            [Description("track-connection-history")]
+            public static WellKnownSettingKey<bool> TrackConnectionHistory { get; } = new(true);
+
+            [Description("max-connection-history-records")]
+            public static WellKnownSettingKey<int> MaxConnectionHistoryRecords { get; } = new(3);
         }
 
         [Description("hotkeys")]

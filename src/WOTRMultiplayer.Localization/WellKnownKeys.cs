@@ -148,6 +148,62 @@ public static class WellKnownKeys
                 public static string Key { get; set; }
             }
 
+            [Description("connectingText")]
+            public static class ConnectingText
+            {
+                public static string Key { get; set; }
+            }
+
+            [Description("serverHistory")]
+            public static class ServerHistory
+            {
+                [Description("header")]
+                public static class Header
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("secondsAgo")]
+                public static class SecondsAgo
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("minutesAgo")]
+                public static class MinutesAgo
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("hoursAgo")]
+                public static class HoursAgo
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("daysAgo")]
+                public static class DaysAgo
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("errors")]
+                public static class Errors
+                {
+                    [Description("unableToLoad")]
+                    public static class UnableToLoad
+                    {
+                        public static string Key { get; set; }
+                    }
+
+                    [Description("unableToSave")]
+                    public static class UnableToSave
+                    {
+                        public static string Key { get; set; }
+                    }
+                }
+            }
+
             [Description("serverAddress")]
             public static class ServerAddress
             {
@@ -476,6 +532,38 @@ public static class WellKnownKeys
 
             [Description("hideServerAddress")]
             public static class HideServerAddress
+            {
+                [Description("title")]
+                public static class Title
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("tooltip")]
+                public static class Tooltip
+                {
+                    public static string Key { get; set; }
+                }
+            }
+
+            [Description("trackConnectionHistory")]
+            public static class TrackConnectionHistory
+            {
+                [Description("title")]
+                public static class Title
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("tooltip")]
+                public static class Tooltip
+                {
+                    public static string Key { get; set; }
+                }
+            }
+
+            [Description("maxConnectionHistoryRecords")]
+            public static class MaxConnectionHistoryRecords
             {
                 [Description("title")]
                 public static class Title

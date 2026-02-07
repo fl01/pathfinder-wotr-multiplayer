@@ -29,7 +29,7 @@ namespace WOTRMultiplayer.Playground.Client
         {
             WellKnownSettings.Initialize();
 
-            var serviceProvider = DIFactory.Create(new UnityModManagerSettings { UseDebugConsole = false });
+            var serviceProvider = DIFactory.Create(new UnityModManagerSettings { UseDebugConsole = false }, "./");
             var client = new MultiplayerClient(
                 serviceProvider.GetService<ILogger<MultiplayerClient>>(),
                 new DummyGameInteractionService(),

@@ -23,8 +23,8 @@ namespace WOTRMultiplayer.Services.Settings
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Dialogs.BlockedAnswerAnimationDuration);
 
             // combat
-            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Combat.AISync);
-            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Combat.CrusadeAISync);
+            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Combat.EnableAISync);
+            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Combat.EnableCrusadeAISync);
 
             // networking
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Networking.HostPortRangeStart);
@@ -35,6 +35,8 @@ namespace WOTRMultiplayer.Services.Settings
 
             // misc
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Miscellaneous.HideServerAddress);
+            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Miscellaneous.TrackConnectionHistory);
+            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Miscellaneous.MaxConnectionHistoryRecords);
 
             // danger zone
             _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.DefaultForcedPauseTimeout);
@@ -59,8 +61,8 @@ namespace WOTRMultiplayer.Services.Settings
                 DialogBlockedAnswerAnimationDuration = _settingsControllerAccessor.GetValue(WellKnownSettings.Dialogs.BlockedAnswerAnimationDuration),
 
                 // combat
-                SyncAICombatActions = _settingsControllerAccessor.GetValue(WellKnownSettings.Combat.AISync),
-                SyncCrusadeArmyAICombatActions = _settingsControllerAccessor.GetValue(WellKnownSettings.Combat.CrusadeAISync),
+                SyncAICombatActions = _settingsControllerAccessor.GetValue(WellKnownSettings.Combat.EnableAISync),
+                SyncCrusadeArmyAICombatActions = _settingsControllerAccessor.GetValue(WellKnownSettings.Combat.EnableCrusadeAISync),
 
                 // networking
                 HostPortRangeStart = _settingsControllerAccessor.GetValue(WellKnownSettings.Networking.HostPortRangeStart),
@@ -68,6 +70,8 @@ namespace WOTRMultiplayer.Services.Settings
 
                 // misc
                 HideServerAddress = _settingsControllerAccessor.GetValue(WellKnownSettings.Miscellaneous.HideServerAddress),
+                TrackConnectionHistory = _settingsControllerAccessor.GetValue(WellKnownSettings.Miscellaneous.TrackConnectionHistory),
+                MaxConnectionHistoryRecords = _settingsControllerAccessor.GetValue(WellKnownSettings.Miscellaneous.MaxConnectionHistoryRecords),
 
                 // danger zone
                 ForcedPauseDefaultTerminationDelay = _settingsControllerAccessor.GetTimeSpanValue(WellKnownSettings.DangerZone.DefaultForcedPauseTimeout),

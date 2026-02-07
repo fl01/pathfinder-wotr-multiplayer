@@ -138,7 +138,6 @@ namespace WOTRMultiplayer.UI.Controllers
 
             ServerInfoSectionContent.CleanupAllChildren();
 
-            var defaultMesh = Main.Multiplayer.Factory.GetDefaultMesh();
             var serverInfoContainerObject = Main.Multiplayer.Factory.CreateDefaultGameObject(ServerInfoSectionContent.transform);
             serverInfoContainerObject.name = PlayerContainerObjectName;
             serverInfoContainerObject.AddComponent<HorizontalLayoutGroup>();
@@ -151,8 +150,8 @@ namespace WOTRMultiplayer.UI.Controllers
             serverAddressElement.preferredHeight = 40;
             var serverAddressBox = serverAddressObject.AddComponent<TextMeshProUGUI>();
             serverAddressBox.alignment = TextAlignmentOptions.Center;
-            serverAddressBox.material = defaultMesh.Material;
-            serverAddressBox.color = defaultMesh.Color;
+            serverAddressBox.material = Main.Multiplayer.Factory.DefaultTextMesh.Material;
+            serverAddressBox.color = Main.Multiplayer.Factory.DefaultTextMesh.Color;
 
             var settings = _multiplayerSettingsService.GetSettings();
             var endpointText = settings.HideServerAddress ? "***.***.***.***:****" : connectivity.Endpoint.ToString();
@@ -266,7 +265,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private void CreatePlayerObject(NetworkPlayer player)
         {
-            var defaultMesh = Main.Multiplayer.Factory.GetDefaultMesh();
+            var defaultMesh = Main.Multiplayer.Factory.DefaultTextMesh;
             var playerContainerObject = Main.Multiplayer.Factory.CreateDefaultGameObject(PlayersSectionContent.transform);
             playerContainerObject.name = PlayerContainerObjectName;
             var horizontal = playerContainerObject.AddComponent<HorizontalLayoutGroup>();

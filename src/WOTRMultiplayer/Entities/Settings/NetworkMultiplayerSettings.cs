@@ -28,6 +28,10 @@ namespace WOTRMultiplayer.Entities.Settings
 
         public bool HideServerAddress { get; set; }
 
+        public bool TrackConnectionHistory { get; set; }
+
+        public int MaxConnectionHistoryRecords { get; set; }
+
         public float DialogSelectedAnswerAnimationDuration { get; set; }
 
         public float DialogNonSelectedAnswerAnimationDuration { get; set; }

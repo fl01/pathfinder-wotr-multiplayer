@@ -63,12 +63,13 @@ namespace WOTRMultiplayer.UI
         private SaveLoadPCView _saveLoadPCView;
         private GameObject _defaultGameObject;
         private GameObject _borderDecoration;
-        private Mesh _defaultTextMesh;
 
         private readonly ILogger<UIFactory> _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly IUIAccessor _uiAccessor;
         private readonly IMultiplayerActorAccessor _multiplayerActorAccessor;
+
+        public Mesh DefaultTextMesh { get; private set; }
 
         private readonly HashSet<string> _editableMultiplayerSettingsInGame = new([
             WellKnownSettings.Dialogs.SelectedAnswerAnimationDuration.Key,
@@ -253,7 +254,7 @@ namespace WOTRMultiplayer.UI
             return copy;
         }
 
-        private GameObject CreateBorderDecoration(Transform parent)
+        public GameObject CreateBorderDecoration(Transform parent)
         {
             return UnityEngine.Object.Instantiate(_borderDecoration, parent);
         }
@@ -350,16 +351,11 @@ namespace WOTRMultiplayer.UI
 
         public void StoreDefaultTextMesh(TextMeshProUGUI defaultTextMesh)
         {
-            _defaultTextMesh ??= new Mesh
+            DefaultTextMesh ??= new Mesh
             {
                 Color = defaultTextMesh.color,
                 Material = defaultTextMesh.material,
             };
-        }
-
-        public Mesh GetDefaultMesh()
-        {
-            return _defaultTextMesh;
         }
 
         public GameObject CreateCloseButton(Transform parent)
@@ -461,8 +457,8 @@ namespace WOTRMultiplayer.UI
             var serverInfoTitle = serverInfoTitleObject.AddComponent<TextMeshProUGUI>();
             var serverInfoTitleLayout = serverInfoTitleObject.AddComponent<LayoutElement>();
             serverInfoTitleLayout.preferredHeight = LobbySectionTitleHeight;
-            serverInfoTitle.material = _defaultTextMesh.Material;
-            serverInfoTitle.color = _defaultTextMesh.Color;
+            serverInfoTitle.material = DefaultTextMesh.Material;
+            serverInfoTitle.color = DefaultTextMesh.Color;
             serverInfoTitle.horizontalAlignment = HorizontalAlignmentOptions.Center;
             serverInfoTitle.SetText(UIUtility.GetSaberBookFormat(new LocalizedString { Key = WellKnownKeys.LobbyWindow.Server.Title.Key }));
 
@@ -486,8 +482,8 @@ namespace WOTRMultiplayer.UI
             var playersTitle = playersTitleObject.AddComponent<TextMeshProUGUI>();
             var playersTitleLayout = playersTitleObject.AddComponent<LayoutElement>();
             playersTitleLayout.preferredHeight = LobbySectionTitleHeight;
-            playersTitle.material = _defaultTextMesh.Material;
-            playersTitle.color = _defaultTextMesh.Color;
+            playersTitle.material = DefaultTextMesh.Material;
+            playersTitle.color = DefaultTextMesh.Color;
             playersTitle.horizontalAlignment = HorizontalAlignmentOptions.Center;
             playersTitle.SetText(UIUtility.GetSaberBookFormat(new LocalizedString { Key = WellKnownKeys.LobbyWindow.Players.Title.Key }));
 
@@ -511,8 +507,8 @@ namespace WOTRMultiplayer.UI
             charactersSectionTitleLayout.preferredHeight = LobbySectionTitleHeight;
             charactersSectionTitleObject.name = LobbyWindowController.CharactersSectionTitleObjectName;
             var characterControlTitle = charactersSectionTitleObject.AddComponent<TextMeshProUGUI>();
-            characterControlTitle.material = _defaultTextMesh.Material;
-            characterControlTitle.color = _defaultTextMesh.Color;
+            characterControlTitle.material = DefaultTextMesh.Material;
+            characterControlTitle.color = DefaultTextMesh.Color;
             characterControlTitle.horizontalAlignment = HorizontalAlignmentOptions.Center;
             characterControlTitle.SetText(UIUtility.GetSaberBookFormat(new LocalizedString { Key = WellKnownKeys.LobbyWindow.Characters.Title.Key }));
             var charactersSectionContentObject = CreateDefaultGameObject(charactersSectionObject.transform);
@@ -624,8 +620,8 @@ namespace WOTRMultiplayer.UI
 
             // combat
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Combat.Title.Key });
-            yield return CreateBoolSetting(WellKnownKeys.Settings.Combat.SyncAI.Title.Key, WellKnownKeys.Settings.Combat.SyncAI.Tooltip.Key, WellKnownSettings.Combat.AISync);
-            yield return CreateBoolSetting(WellKnownKeys.Settings.Combat.CrusadeAISync.Title.Key, WellKnownKeys.Settings.Combat.CrusadeAISync.Tooltip.Key, WellKnownSettings.Combat.CrusadeAISync);
+            yield return CreateBoolSetting(WellKnownKeys.Settings.Combat.SyncAI.Title.Key, WellKnownKeys.Settings.Combat.SyncAI.Tooltip.Key, WellKnownSettings.Combat.EnableAISync);
+            yield return CreateBoolSetting(WellKnownKeys.Settings.Combat.CrusadeAISync.Title.Key, WellKnownKeys.Settings.Combat.CrusadeAISync.Tooltip.Key, WellKnownSettings.Combat.EnableCrusadeAISync);
 
             // networking
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Networking.Title.Key });
@@ -645,6 +641,8 @@ namespace WOTRMultiplayer.UI
             // misc
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Miscellaneous.Title.Key });
             yield return CreateBoolSetting(WellKnownKeys.Settings.Miscellaneous.HideServerAddress.Title.Key, WellKnownKeys.Settings.Miscellaneous.HideServerAddress.Tooltip.Key, WellKnownSettings.Miscellaneous.HideServerAddress);
+            yield return CreateBoolSetting(WellKnownKeys.Settings.Miscellaneous.TrackConnectionHistory.Title.Key, WellKnownKeys.Settings.Miscellaneous.TrackConnectionHistory.Tooltip.Key, WellKnownSettings.Miscellaneous.TrackConnectionHistory);
+            yield return CreateSliderSetting(WellKnownKeys.Settings.Miscellaneous.MaxConnectionHistoryRecords.Title.Key, WellKnownKeys.Settings.Miscellaneous.MaxConnectionHistoryRecords.Tooltip.Key, WellKnownSettings.Miscellaneous.MaxConnectionHistoryRecords, 1, 7);
 
             // hotkeys
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Hotkeys.Title.Key });
@@ -715,6 +713,21 @@ namespace WOTRMultiplayer.UI
             floatSetting.m_Step = 0.1f;
             ConfigureSetting(floatSetting, titleKey, tooltipKey);
             var setting = new SettingsEntityFloat(settingKey.Key, settingKey.DefaultValue);
+            floatSetting.LinkSetting(setting);
+            ConfigureSettingModification(floatSetting);
+
+            var viewModel = new SettingsEntitySliderVM(floatSetting);
+            return viewModel;
+        }
+
+        private SettingsEntitySliderVM CreateSliderSetting(string titleKey, string tooltipKey, WellKnownSettingKey<int> settingKey, int minValue, int maxValue)
+        {
+            var floatSetting = ScriptableObject.CreateInstance<UISettingsEntitySliderInt>();
+            floatSetting.m_MinValue = minValue;
+            floatSetting.m_MaxValue = maxValue;
+            floatSetting.m_ShowValueText = true;
+            ConfigureSetting(floatSetting, titleKey, tooltipKey);
+            var setting = new SettingsEntityInt(settingKey.Key, settingKey.DefaultValue);
             floatSetting.LinkSetting(setting);
             ConfigureSettingModification(floatSetting);
 

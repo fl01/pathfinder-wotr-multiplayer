@@ -23,6 +23,8 @@ namespace WOTRMultiplayer
 {
     public class Main
     {
+        public const string ModFolder = "./Mods/WOTRMultiplayer";
+
         private static IServiceProvider _serviceProvider;
         private static ILogger<Main> _logger;
 
@@ -46,7 +48,7 @@ namespace WOTRMultiplayer
             try
             {
                 ModManagerSettings = UnityModManager.ModSettings.Load<UnityModManagerSettings>(entry);
-                _serviceProvider = DIFactory.Create(ModManagerSettings);
+                _serviceProvider = DIFactory.Create(ModManagerSettings, ModFolder);
 
                 _logger = _serviceProvider.GetService<ILogger<Main>>();
             }

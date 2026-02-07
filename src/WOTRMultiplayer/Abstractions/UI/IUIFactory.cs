@@ -13,7 +13,11 @@ namespace WOTRMultiplayer.Abstractions.UI
 {
     public interface IUIFactory
     {
+        WOTRMultiplayer.UI.Mesh DefaultTextMesh { get; }
+
         IMultiplayerWindow InitializeMultiplayerWindow(InitializeMultiplayerContext context, Action onShow);
+
+        GameObject CreateBorderDecoration(Transform parent);
 
         GameObject CreateDefaultGameObject(Transform parent);
 
@@ -30,8 +34,6 @@ namespace WOTRMultiplayer.Abstractions.UI
         ILobbyWindow InitializeEscMenuLobbyWindow(ILobbyWindowController lobbyWindowController, Action onShow);
 
         GameObject CreateBackgroundArt(Transform parent);
-
-        WOTRMultiplayer.UI.Mesh GetDefaultMesh();
 
         void StoreBorderDecoration(GameObject gameObject);
 

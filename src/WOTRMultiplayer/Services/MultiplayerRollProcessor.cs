@@ -385,7 +385,13 @@ namespace WOTRMultiplayer.Services
                 }
 
                 var savingThrow = CreateSavingThrowRoll(NetworkDiceRollType.Hit, ruleSavingThrow);
-                ruleSavingThrow.D20 = RetrieveRoll<RuleRollD20>(savingThrow, ruleSavingThrow.Initiator);
+                var d20 = RetrieveRoll<RuleRollD20>(savingThrow, ruleSavingThrow.Initiator);
+                if (d20 == null)
+                {
+                    return;
+                }
+
+                ruleSavingThrow.D20 = d20;
             }
             catch (Exception ex)
             {

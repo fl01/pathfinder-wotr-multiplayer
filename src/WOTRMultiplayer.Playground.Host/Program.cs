@@ -31,7 +31,7 @@ namespace WOTRMultiplayer.Playground.Host
             Console.WriteLine("Press enter to host");
             Console.ReadLine();
 
-            var serviceProvider = DIFactory.Create(new UnityModManagerSettings { UseDebugConsole = false });
+            var serviceProvider = DIFactory.Create(new UnityModManagerSettings { UseDebugConsole = false }, "./");
             var host = new MultiplayerHost(
                 serviceProvider.GetService<ILogger<MultiplayerHost>>(),
                 new DummyGameInteractionService(),

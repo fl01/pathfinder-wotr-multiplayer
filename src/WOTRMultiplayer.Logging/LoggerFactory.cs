@@ -8,7 +8,7 @@ namespace WOTRMultiplayer.Logging
     {
         private readonly static object _consoleSinkRoot = new();
 
-        public static ILogger Create(bool addConsoleSink, Serilog.Events.LogEventLevel consoleMinLevel, Serilog.Events.LogEventLevel fileMinLevel)
+        public static ILogger Create(bool addConsoleSink, string baseFolder, Serilog.Events.LogEventLevel consoleMinLevel, Serilog.Events.LogEventLevel fileMinLevel)
         {
             var template = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level}] {SourceContext}: {Message:lj}{NewLine}{Exception}";
             var logConfig = new LoggerConfiguration();
@@ -20,7 +20,7 @@ namespace WOTRMultiplayer.Logging
 
             logConfig
                 .WriteTo.Console(outputTemplate: template, restrictedToMinimumLevel: consoleMinLevel)
-                .WriteTo.File("./Mods/WOTRMultiplayer/logs/wotr-multiplayer.log", restrictedToMinimumLevel: fileMinLevel, outputTemplate: template, rollingInterval: RollingInterval.Day)
+                .WriteTo.File($"{baseFolder}/logs/wotr-multiplayer.log", restrictedToMinimumLevel: fileMinLevel, outputTemplate: template, rollingInterval: RollingInterval.Day)
                 .Enrich.FromLogContext()
                 .Enrich.With(new ClassNameEnricher())
                 ;

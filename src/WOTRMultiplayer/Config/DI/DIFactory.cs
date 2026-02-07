@@ -33,13 +33,13 @@ namespace WOTRMultiplayer.Config.DI
 {
     public static class DIFactory
     {
-        public static IServiceProvider Create(UnityModManagerSettings settings)
+        public static IServiceProvider Create(UnityModManagerSettings settings, string modFolder)
         {
             var serviceCollection = new ServiceCollection();
             var consoleLogLevel = (LogEventLevel)settings.ConsoleMinimumLogLevel;
             var fileLogLevel = (LogEventLevel)settings.FileMinimumLogLevel;
 
-            Log.Logger = Logging.LoggerFactory.Create(settings.UseDebugConsole, consoleLogLevel, fileLogLevel);
+            Log.Logger = Logging.LoggerFactory.Create(settings.UseDebugConsole, modFolder, consoleLogLevel, fileLogLevel);
 
             serviceCollection.AddLogging(x =>
             {

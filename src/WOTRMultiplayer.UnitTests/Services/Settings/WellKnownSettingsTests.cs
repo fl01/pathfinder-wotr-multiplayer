@@ -24,7 +24,7 @@ namespace WOTRMultiplayer.UnitTests.Services.Settings
         {
             yield return new WellKnownSettingTestCase { Name = "general->playerName", Key = () => WellKnownSettings.General.PlayerName.Key };
 
-            yield return new WellKnownSettingTestCase { Name = "combat->aiSync", Key = () => WellKnownSettings.Combat.AISync.Key };
+            yield return new WellKnownSettingTestCase { Name = "combat->aiSync", Key = () => WellKnownSettings.Combat.EnableAISync.Key };
 
             yield return new WellKnownSettingTestCase { Name = "networking->hostPortRangeStart", Key = () => WellKnownSettings.Networking.HostPortRangeStart.Key };
             yield return new WellKnownSettingTestCase { Name = "networking->hostPortRangeEnd", Key = () => WellKnownSettings.Networking.HostPortRangeEnd.Key };

@@ -26,6 +26,22 @@ namespace WOTRMultiplayer.Services.IO
             return File.Exists(path) ? File.ReadAllText(path) : null;
         }
 
+        public bool WriteFile(string path, string content)
+        {
+            _logger.LogInformation("Writing file content. Path={Path}, ContentSize={ContentSize}", path, content.Length);
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                File.WriteAllText(path, content);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to write file. Path={Path}", path);
+                return false;
+            }
+        }
+
         public bool WriteFile(string path, byte[] content)
         {
             _logger.LogInformation("Writing file content. Path={Path}, ContentSize={ContentSize}", path, content.Length);
