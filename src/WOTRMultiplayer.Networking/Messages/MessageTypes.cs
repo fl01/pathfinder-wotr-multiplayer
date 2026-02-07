@@ -230,7 +230,8 @@
             NotifyCombatUnitKilled,
             NotifyTrapDisarmRolled,
             ClientTogglePauseOff,
-            NotifyUnitAutoUseAbilityChanged
+            NotifyUnitAutoUseAbilityChanged,
+            NotifyInventoryItemCopied
         }
 
         public enum Request

@@ -421,5 +421,9 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void SetUnitAutoUseAbility(string unitId, NetworkAbility ability)
         {
         }
+
+        public void CopyInventoryItem(NetworkItemCopy itemCopy)
+        {
+        }
     }
 }

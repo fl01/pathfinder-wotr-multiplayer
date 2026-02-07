@@ -32,6 +32,7 @@ using Kingmaker.RuleSystem;
 using Kingmaker.RuleSystem.Rules;
 using Kingmaker.Settings;
 using Kingmaker.TurnBasedMode;
+using Kingmaker.UI;
 using Kingmaker.UI._ConsoleUI.Overtips;
 using Kingmaker.UI.CharSelect;
 using Kingmaker.UI.Common;
@@ -2095,6 +2096,33 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 var autoUseAbility = _gameStateLookupService.FindAbility(unit, ability);
                 unit.Brain.AutoUseAbility = autoUseAbility;
                 _logger.LogInformation("Unit AutoUseAbility has been changed. UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}", unitId, ability?.Id, ability?.Name);
+            });
+        }
+
+        public void CopyInventoryItem(NetworkItemCopy itemCopy)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var unit = _gameStateLookupService.GetUnitEntity(itemCopy.UnitId);
+                if (unit == null)
+                {
+                    _logger.LogError("Unable to copy item due to missing unit. UnitId={UnitId}", itemCopy.UnitId);
+                    return;
+                }
+
+                var item = unit.Inventory.FirstOrDefault(x => IsSameItem(x, itemCopy.Item) && x.Blueprint.GetComponent<CopyItem>() != null);
+                if (item == null)
+                {
+                    _logger.LogError("Unable to find valid item to copy. UnitId={UnitId}, ItemId={ItemId}, ItemName={ItemName}", itemCopy.UnitId, itemCopy.Item.UniqueId, itemCopy.Item.Name);
+                    return;
+                }
+
+                var copyComponent = item.Blueprint.GetComponent<CopyItem>();
+                copyComponent.Copy(item, unit);
+                UISoundController.Instance.Play(UISoundType.SubscribeItem);
+                RefreshInventoryWindow();
+
+                _logger.LogInformation("Item has been copied. UnitId={UnitId}, ItemId={ItemId}, ItemName={ItemName}", itemCopy.UnitId, item.UniqueId, item.NameForAcronym);
             });
         }
 

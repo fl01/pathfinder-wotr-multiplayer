@@ -16,7 +16,11 @@ That said, compatibility with other mods hasn't really been tested at all and th
 However, this might be revised later on once multiplayer is stable enough to start focusing on making things play nicely with popular mods.
 
 ### Known mod compatibility issues:
-- ModMenu
+- Bubble Tweaks - works fine if you use it purely for non-interactive UI changes (Character Statistics / pathing through AoE / loot icons / etc)
+  - additional interactive UI elements ('Jump to siege' button / etc) are not synced
+  - animation speed is not synced
+
+- ModMenu - not compatible
   - global edit of `SaveLoadPcView` causes some minor side-effects for our own copy of that view
   - multiplayer settings are corrupted / not loaded correctly on Settings UI. Didn't look for a reason yet
 

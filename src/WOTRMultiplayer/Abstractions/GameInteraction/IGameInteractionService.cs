@@ -194,5 +194,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         bool IsUnitBusy(string unitId);
 
         void SetUnitAutoUseAbility(string unitId, NetworkAbility ability);
+
+        void CopyInventoryItem(NetworkItemCopy itemCopy);
     }
 }

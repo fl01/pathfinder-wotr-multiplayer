@@ -1763,6 +1763,16 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
+        public void OnCopyInventoryItem(NetworkItemCopy itemCopy)
+        {
+            var message = new NotifyInventoryItemCopied
+            {
+                Copy = Mapper.Map<Networking.Messages.Contracts.NetworkItemCopy>(itemCopy)
+            };
+            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, ItemName={ItemName}", nameof(NotifyInventoryItemCopied), message.Copy.UnitId, message.Copy.Item.Name);
+            Send(message);
+        }
+
         public void OnZoneLootCollectorButtonsUpdated()
         {
             UpdateZoneLootUIState();
@@ -3209,6 +3219,7 @@ namespace WOTRMultiplayer.Services
                 .On<NotifyZoneLootClosed>(OnNotifyZoneLootClosed)
                 .On<NotifyInventoryItemTransferred>(OnNotifyInventoryItemTransferred)
                 .On<NotifyInventoryItemUsed>(OnNotifyInventoryItemUsed)
+                .On<NotifyInventoryItemCopied>(OnNotifyInventoryItemCopied)
 
                 // lockpick
                 .On<NotifyMapObjectLockpicked>(OnNotifyMapObjectLockpicked)
@@ -3255,6 +3266,16 @@ namespace WOTRMultiplayer.Services
                 // cutscenes
                 .On<NotifyCutsceneSkipped>(OnNotifyCutsceneSkipped)
                 ;
+        }
+
+        private void OnNotifyInventoryItemCopied(long receivedFrom, NotifyInventoryItemCopied message)
+        {
+            Logger.LogInformation("Sending {MessageType}. ReceivedFrom={ReceivedFrom}, UnitId={UnitId}, ItemName={ItemName}", nameof(NotifyInventoryItemCopied), receivedFrom, message.Copy.UnitId, message.Copy.Item.Name);
+
+            var itemCopy = Mapper.Map<NetworkItemCopy>(message.Copy);
+            GameInteraction.CopyInventoryItem(itemCopy);
+
+            OnAfterNetworkMessageHandled(receivedFrom, message);
         }
 
         private void OnNotifyUnitAutoUseAbilityChanged(long receivedFrom, NotifyUnitAutoUseAbilityChanged message)

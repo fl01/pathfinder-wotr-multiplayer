@@ -483,5 +483,7 @@ namespace WOTRMultiplayer.Abstractions
         void OnTrapDisarmRolled(NetworkTrapDisarm trapDisarm);
 
         void OnUnitAutoUseAbilityChanged(string unitId, NetworkAbility networkAbility);
+
+        void OnCopyInventoryItem(NetworkItemCopy itemCopy);
     }
 }

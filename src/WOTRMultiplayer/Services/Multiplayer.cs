@@ -4047,6 +4047,24 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        public void OnCopyInventoryItem(NetworkItemCopy itemCopy)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnCopyInventoryItem(itemCopy);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while copying inventory item. UnitId={UnitId}, ItemName={ItemName}", itemCopy.UnitId, itemCopy.Item.Name);
+                throw;
+            }
+        }
+
         public void CloseMultiplayerLobbyWindow()
         {
             if (_lobbyWindow != null && _lobbyWindow.IsVisible)

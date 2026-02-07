@@ -2,10 +2,12 @@
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
+using Kingmaker.Blueprints.Items.Components;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.Items;
 using Kingmaker.Items.Slots;
 using Kingmaker.RuleSystem.Rules.Abilities;
+using Kingmaker.UI.MVVM._VM.Slots;
 using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.Utility;
 using Microsoft.Extensions.Logging;
@@ -20,6 +22,49 @@ namespace WOTRMultiplayer.HarmonyPatches.Items
     [HarmonyPatch]
     public class InventoryPatches
     {
+        [HarmonyPatch(typeof(ItemSlotVM), nameof(ItemSlotVM.CopyItem))]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> ItemSlotVM_CopyItem_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var lookFor = AccessTools.Method(typeof(CopyItem), nameof(Kingmaker.Blueprints.Items.Components.CopyItem.Copy));
+            var replaceWith = AccessTools.Method(typeof(InventoryPatches), nameof(InventoryPatches.CopyItem));
+            var matcher = new CodeMatcher(instructions);
+            var match = matcher.SearchForward(x => x.Calls(lookFor));
+            if (match.IsInvalid)
+            {
+                Main.GetLogger<RandomLootPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
+                return instructions;
+            }
+
+            var newInstructions = new List<CodeInstruction>
+            {
+                new (OpCodes.Ldarg_0),
+                new (OpCodes.Ldloc_0),
+                new (OpCodes.Call, replaceWith),
+            };
+            match = match.Insert(newInstructions);
+
+            Main.GetLogger<RandomLootPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
+            return matcher.Instructions();
+        }
+
+        private static void CopyItem(ItemSlotVM slot, UnitEntityData unit)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            var itemCopy = new NetworkItemCopy
+            {
+                Item = NetworkItem.FromItemEntity(slot.Item.Value),
+                UnitId = unit.UniqueId
+            };
+
+            Main.Multiplayer.OnCopyInventoryItem(itemCopy);
+        }
+
         [HarmonyPatch(typeof(ItemsCollection), nameof(ItemsCollection.DropItem))]
         [HarmonyPrefix]
         public static void ItemsCollection_DropItem_Prefix(ItemsCollection __instance, ItemEntity item)
