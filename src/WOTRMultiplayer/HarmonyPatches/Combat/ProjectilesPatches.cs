@@ -37,7 +37,6 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             };
             match = match.RemoveInstructions(18).Insert(newInstructions);
 
-            PatchesUtils.Dump(match);
             Main.GetLogger<ProjectilesPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
