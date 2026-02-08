@@ -348,6 +348,11 @@ namespace WOTRMultiplayer.UI.Controllers
             {
                 ReadyButtonObject.GetComponent<OwlcatButton>().Interactable = true;
                 LeaveButtonObject.GetComponent<OwlcatButton>().Interactable = true;
+
+                if (players.All(x => x.IsReady))
+                {
+                    OnEveryoneIsReady();
+                }
             });
         }
 

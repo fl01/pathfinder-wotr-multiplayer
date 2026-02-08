@@ -360,6 +360,10 @@ namespace WOTRMultiplayer.UI.Controllers
             MainThreadAccessor.Post(() =>
             {
                 StartButton.Interactable = canStart;
+                if (canStart)
+                {
+                    OnEveryoneIsReady();
+                }
             });
         }
 

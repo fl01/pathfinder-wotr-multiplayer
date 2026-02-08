@@ -1,5 +1,6 @@
 ﻿using System;
 using Kingmaker.Localization;
+using Kingmaker.UI;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
 using TMPro;
@@ -153,12 +154,16 @@ namespace WOTRMultiplayer.UI.Controllers
             MenuContent.SetActive(false);
 
             _logger.LogInformation("Deactivated");
-
         }
 
-        private void OnClickedInternal()
+        public ModalActionConfirmation GetDeactivationConfirmation()
         {
-            OnClicked?.Invoke(this, EventArgs.Empty);
+            return GetDeactivationConfirmationInternal();
+        }
+
+        protected void OnEveryoneIsReady()
+        {
+            UISoundController.Instance.Play(UISoundType.GlobalMapReTokenAppear);
         }
 
         protected virtual ModalActionConfirmation GetDeactivationConfirmationInternal()
@@ -166,9 +171,9 @@ namespace WOTRMultiplayer.UI.Controllers
             return null;
         }
 
-        public ModalActionConfirmation GetDeactivationConfirmation()
+        private void OnClickedInternal()
         {
-            return GetDeactivationConfirmationInternal();
+            OnClicked?.Invoke(this, EventArgs.Empty);
         }
     }
 }
