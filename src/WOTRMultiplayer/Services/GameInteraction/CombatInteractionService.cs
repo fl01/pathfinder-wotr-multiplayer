@@ -715,17 +715,27 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     continue;
                 }
 
-                if (!buff.IsPermanent)
+                try
                 {
-                    buff.NextResourceSpendingTime = Game.Instance.TimeController.GameTime + networkBuff.NextResourceSpendingTime;
-                    buff.NextTickTime = Game.Instance.TimeController.GameTime + networkBuff.NextTickTime;
-                    buff.SetDuration(networkBuff.TimeLeft);
-                    _logger.LogInformation("Updated buff. UnitId={UnitId}, Id={Id}, Name={Name}, Duration={Duration}, NextResourceSpendingTime={NextResourceSpendingTime}, NextTickTime={NextTickTime}",
+                    if (!buff.IsPermanent)
+                    {
+                        buff.NextResourceSpendingTime = Game.Instance.TimeController.GameTime + networkBuff.NextResourceSpendingTime;
+                        buff.NextTickTime = Game.Instance.TimeController.GameTime + networkBuff.NextTickTime;
+                        buff.SetDuration(networkBuff.TimeLeft);
+                        _logger.LogInformation("Updated buff. UnitId={UnitId}, Id={Id}, Name={Name}, Duration={Duration}, NextResourceSpendingTime={NextResourceSpendingTime}, NextTickTime={NextTickTime}",
+                            unit.UniqueId, buff.UniqueId, buff.NameForAcronym, networkBuff.TimeLeft, buff.NextResourceSpendingTime, buff.NextTickTime);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error while updating buff. UnitId={UnitId}, Id={Id}, Name={Name}, Duration={Duration}, NextResourceSpendingTime={NextResourceSpendingTime}, NextTickTime={NextTickTime}",
                         unit.UniqueId, buff.UniqueId, buff.NameForAcronym, networkBuff.TimeLeft, buff.NextResourceSpendingTime, buff.NextTickTime);
                 }
-
-                remoteUnitBuffs.Remove(networkBuff);
-                localUnitBuffs.Remove(buff);
+                finally
+                {
+                    remoteUnitBuffs.Remove(networkBuff);
+                    localUnitBuffs.Remove(buff);
+                }
             }
 
             if (remoteUnitBuffs.Count > 0)
