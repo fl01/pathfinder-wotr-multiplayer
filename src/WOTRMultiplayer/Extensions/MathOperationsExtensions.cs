@@ -4,7 +4,7 @@ namespace WOTRMultiplayer.Extensions
 {
     public static class MathOperationsExtensions
     {
-        public static TimeSpan AddSafe(this TimeSpan timeSpan, TimeSpan other)
+        public static TimeSpan SafeAdd(this TimeSpan timeSpan, TimeSpan other)
         {
             try
             {
