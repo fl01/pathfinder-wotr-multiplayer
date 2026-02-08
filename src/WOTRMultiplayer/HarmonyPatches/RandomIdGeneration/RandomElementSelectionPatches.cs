@@ -150,9 +150,10 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             }
 
             var sessionSeed = Main.Multiplayer.GetSessionSeed();
-            var combatSeed = Main.Multiplayer.GetCombatSeed() ?? 0;
-            var identifier = $"{nameof(DublicateSpellComponent)}:{nameof(DublicateSpellComponent.GetNewTarget)}:{nameof(GetDuplicateSpellRandom)}:{sessionSeed}:{combatSeed}:{Game.Instance.Player.GameId}:{ability.Caster?.Unit?.UniqueId}:{ability.NameForAcronym}:{baseTarget.UniqueId}";
-            var random = Main.Multiplayer.ValueGenerator.GetRandom(SeedLifetime.Combat, identifier);
+            var combatSeed = Main.Multiplayer.GetCombatSeed();
+            var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
+            var identifier = $"{nameof(DublicateSpellComponent)}:{nameof(DublicateSpellComponent.GetNewTarget)}:{nameof(GetDuplicateSpellRandom)}:{Game.Instance.Player.GameId}:{ability.Caster?.Unit?.UniqueId}:{ability.NameForAcronym}:{baseTarget.UniqueId}:{sessionSeed}:{combatSeed}:{combatTurnSeed}";
+            var random = Main.Multiplayer.ValueGenerator.GetRandom(SeedLifetime.CombatTurn, identifier);
             Main.GetLogger<RandomElementSelectionPatches>().LogInformation("Duplicate spell target random has been initialized. Identifier={Identifier}", identifier);
             return random;
         }
@@ -188,10 +189,9 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
 
             try
             {
-
                 var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var crusadeCombatSeed = Main.Multiplayer.GetCrusadeArmyCombatSeed() ?? -1;
-                var identifier = $"{nameof(SquadsActionOnTacticalCombatStart)}:{nameof(SquadsActionOnTacticalCombatStart.HandleCombatStart)}:{nameof(GetSquadsActionOnCombatStartRandom)}:{sessionSeed}:{Game.Instance.Player.GameId}:{crusadeCombatSeed}";
+                var crusadeCombatSeed = Main.Multiplayer.GetCrusadeArmyCombatSeed();
+                var identifier = $"{nameof(SquadsActionOnTacticalCombatStart)}:{nameof(SquadsActionOnTacticalCombatStart.HandleCombatStart)}:{nameof(GetSquadsActionOnCombatStartRandom)}:{Game.Instance.Player.GameId}:{sessionSeed}:{crusadeCombatSeed}";
                 var random = Main.Multiplayer.ValueGenerator.GetRandom(SeedLifetime.Combat, identifier);
                 Main.GetLogger<RandomElementSelectionPatches>().LogInformation("Squads action on combat start random has been initialized. Identifier={Identifier}", identifier);
                 return random;

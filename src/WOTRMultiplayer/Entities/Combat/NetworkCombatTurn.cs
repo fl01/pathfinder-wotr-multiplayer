@@ -2,6 +2,8 @@
 {
     public class NetworkCombatTurn
     {
+        public int Seed { get; set; }
+
         public string UnitId { get; set; }
 
         public bool IsAI { get; set; }
@@ -13,6 +15,5 @@
         public bool IsInProgress { get; set; }
 
         public bool RequiresTurnEntitiesSynchronization { get; set; }
-
     }
 }

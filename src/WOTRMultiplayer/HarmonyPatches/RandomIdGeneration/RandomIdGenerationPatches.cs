@@ -420,13 +420,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             try
             {
                 var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                if (sessionSeed == null)
-                {
-                    Main.GetLogger<RandomIdGenerationPatches>().LogError("Session seed is unavailable");
-                    return Game.Instance.CreateUnitVacuum(blueprintUnit);
-                }
-
-                var identifier = $"{GetCommonIdPart()}:{nameof(Game.CreateUnitVacuum)}:{blueprintUnit.name}:{blueprintUnit.AssetGuid}";
+                var identifier = $"{GetCommonIdPart()}:{nameof(Game.CreateUnitVacuum)}:{blueprintUnit.name}:{blueprintUnit.AssetGuid}:{sessionSeed}";
                 var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.CustomCompanionUnit, Game.Instance.Player.GameId, identifier);
                 var unit = new UnitEntityData(id, isInGame: true, blueprintUnit);
                 return unit;
@@ -564,7 +558,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             {
                 string id = null;
                 var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var identifier = $"{GetCommonIdPart()}:{blueprint.AssetGuid}:{faction}:{sessionSeed.Value}";
+                var identifier = $"{GetCommonIdPart()}:{blueprint.AssetGuid}:{faction}:{sessionSeed}";
                 while (string.IsNullOrEmpty(id))
                 {
                     id = Main.Multiplayer.ValueGenerator.CreateGuid(SeedLifetime.Area, identifier).ToString();
@@ -602,7 +596,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             {
                 string id = null;
                 var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var identifier = $"{GetCommonIdPart()}:{armyNameWithIndex.ArmyName}:{armyNameWithIndex.ArmyIndex}:{armyFaction}:{armyPreset?.AssetGuid.ToString()}:{position?.Location?.name}:{isGarrison}:{isTraveling}:{sessionSeed.Value}";
+                var identifier = $"{GetCommonIdPart()}:{armyNameWithIndex.ArmyName}:{armyNameWithIndex.ArmyIndex}:{armyFaction}:{armyPreset?.AssetGuid.ToString()}:{position?.Location?.name}:{isGarrison}:{isTraveling}:{sessionSeed}";
                 while (string.IsNullOrEmpty(id))
                 {
                     id = Main.Multiplayer.ValueGenerator.CreateGuid(SeedLifetime.Area, identifier).ToString();

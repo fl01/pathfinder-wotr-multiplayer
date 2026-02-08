@@ -5,6 +5,7 @@
         // single MP session including any quick loads
         Persistent,
         Area,
-        Combat
+        Combat,
+        CombatTurn
     }
 }

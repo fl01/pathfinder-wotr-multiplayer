@@ -57,7 +57,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             try
             {
                 var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var identifier = $"{nameof(ArmyMercenariesManager)}.{nameof(ArmyMercenariesManager.RollSlots)}:{nameof(ArmyMercenariesManager_RollSlots_Prefix)}:{Game.Instance.Player.GameId}:{sessionSeed.Value}";
+                var identifier = $"{nameof(ArmyMercenariesManager)}.{nameof(ArmyMercenariesManager.RollSlots)}:{nameof(ArmyMercenariesManager_RollSlots_Prefix)}:{Game.Instance.Player.GameId}:{sessionSeed}";
                 Main.GetLogger<ArmyMercenariesManagerPatches>().LogInformation("Random for Roll Mercenaries slots has been initialized. Identifer={Identifier}", identifier);
                 var random = Main.Multiplayer.ValueGenerator.GetRandom(SeedLifetime.Persistent, identifier);
 

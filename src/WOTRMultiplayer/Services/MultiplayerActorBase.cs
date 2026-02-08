@@ -55,6 +55,8 @@ namespace WOTRMultiplayer.Services
 
         public int? CombatSeed => Game.Combat?.Seed;
 
+        public int? CombatTurnSeed => Game.Combat?.Turn?.Seed;
+
         public int? CrusadeArmyCombatAreaSeed => Game.ArmyCombat?.AreaSeed;
 
         public int? CrusadeArmyCombatSeed => Game.ArmyCombat?.Seed;
@@ -91,7 +93,8 @@ namespace WOTRMultiplayer.Services
 
         protected IMultiplayerSettingsService SettingsService { get; private set; }
 
-        private readonly IValueGenerator _valueGenerator;
+        protected IValueGenerator ValueGenerator { get; private set; }
+
         private readonly INetworkReceiver _networkReceiver;
 
         protected abstract bool HasControlOverUI { get; }
@@ -127,7 +130,7 @@ namespace WOTRMultiplayer.Services
             DiceRollStorage = diceRollStorage;
             FileSystem = fileSystemService;
             SettingsService = multiplayerSettingsService;
-            _valueGenerator = valueGenerator;
+            ValueGenerator = valueGenerator;
             _networkReceiver = networkReceiver;
         }
 
@@ -574,7 +577,7 @@ namespace WOTRMultiplayer.Services
             SaveLastCombatTurn();
 
             Game.Combat = null;
-            _valueGenerator.ResetSeedGenerators(SeedLifetime.Combat);
+            ValueGenerator.ResetSeedGenerators(SeedLifetime.Combat, SeedLifetime.CombatTurn);
         }
         public void OnHandleDelayCombatTurn(string unitId, string targetUnitId)
         {
@@ -606,7 +609,7 @@ namespace WOTRMultiplayer.Services
 
                 UpdateConfirmedMidCombatUnits();
                 Game.Combat.AIActions.Clear();
-                Logger.LogInformation("Turn start is allowed. UnitId={UnitId}, IsActingInSurpiseRound={IsActingInSurpiseRound}, TurnUnitId={TurnUnitId}", unitId, actingInSurpriseRound, Game.Combat.Turn.UnitId);
+                Logger.LogInformation("Turn start is allowed. UnitId={UnitId}, IsActingInSurpiseRound={IsActingInSurpiseRound}, TurnUnitId={TurnUnitId}, TurnSeed={TurnSeed}", unitId, actingInSurpriseRound, Game.Combat.Turn.UnitId, Game.Combat.Turn.Seed);
                 return true;
             }
 
@@ -2019,7 +2022,7 @@ namespace WOTRMultiplayer.Services
         {
             Game.ArmyCombat = null;
             Logger.LogInformation("Crusade army combat has ended");
-            _valueGenerator.ResetSeedGenerators(SeedLifetime.Combat);
+            ValueGenerator.ResetSeedGenerators(SeedLifetime.Combat, SeedLifetime.CombatTurn);
         }
 
         public bool OnBeforeTacticalCombatTurnStart(int turnNumber)
@@ -2691,7 +2694,7 @@ namespace WOTRMultiplayer.Services
         protected void ResetGameIdGenerator()
         {
             Logger.LogInformation("Resetting id counters. GameId={GameId}", Game.Id);
-            _valueGenerator.ResetUniqueIdCounters(Game.Id);
+            ValueGenerator.ResetUniqueIdCounters(Game.Id);
         }
 
         protected void SoftReset()
@@ -2703,7 +2706,7 @@ namespace WOTRMultiplayer.Services
             Game.ArmyCombat = null;
             Game.Leveling = null;
             DiceRollStorage.Reset();
-            _valueGenerator.ResetSeedGenerators(SeedLifetime.Area, SeedLifetime.Combat);
+            ValueGenerator.ResetSeedGenerators(SeedLifetime.Area, SeedLifetime.Combat, SeedLifetime.CombatTurn);
 
             ResetPlayersTracker(Game.PlayersInGroupChanger);
             ResetPlayersTracker(Game.PlayersInSkipTime);
@@ -4371,11 +4374,12 @@ namespace WOTRMultiplayer.Services
                     IsActingInSurpriseRound = actingInSurpriseRound,
                     IsLocalPlayer = IsControlledByLocalPlayer(unitId),
                     IsAI = !GameInteraction.IsUnitInParty(unitId),
+                    Seed = CreateRandomSeed()
                 };
             }
 
-            Logger.LogInformation("Turn has been initialized. UnitId={UnitId}, IsLocalPlayer={IsLocalPlayer}, IsAI={IsAI}, IsActingInSurpriseRound={IsActingInSurpriseRound}, IsInProgress={IsInProgress}",
-                unitId, Game.Combat.Turn.IsLocalPlayer, Game.Combat.Turn.IsAI, Game.Combat.Turn.IsActingInSurpriseRound, Game.Combat.Turn.IsInProgress);
+            Logger.LogInformation("Turn has been initialized. UnitId={UnitId}, IsLocalPlayer={IsLocalPlayer}, IsAI={IsAI}, IsActingInSurpriseRound={IsActingInSurpriseRound}, IsInProgress={IsInProgress}, Seed={Seed}",
+                unitId, Game.Combat.Turn.IsLocalPlayer, Game.Combat.Turn.IsAI, Game.Combat.Turn.IsActingInSurpriseRound, Game.Combat.Turn.IsInProgress, Game.Combat.Turn.Seed);
 
             OnLocalPlayerTurnStart();
         }

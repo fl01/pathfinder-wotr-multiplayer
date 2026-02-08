@@ -54,6 +54,8 @@ namespace WOTRMultiplayer.Abstractions
 
         int SessionSeed { get; }
 
+        int? CombatTurnSeed { get; }
+
         int? CombatSeed { get; }
 
         int? LoadedSaveSeed { get; }

@@ -9,5 +9,8 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     {
         [ProtoMember(1)]
         public NetworkCombatState CombatState { get; set; }
+
+        [ProtoMember(2)]
+        public int Seed { get; set; }
     }
 }

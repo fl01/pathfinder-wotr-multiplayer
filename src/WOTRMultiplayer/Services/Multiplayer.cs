@@ -970,29 +970,33 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public int? GetCombatSeed()
+        public int GetCombatSeed()
         {
-            // SessionSeed is a fallback in case we rely on combat seed outside of the combat.
-            // there is only 1 known case as of now: attacking someone with MirrorImage buff when combat has not been started yet
-            // fallback will not provide true randomness as the same unit would lose the same amount of mirror images each time it's attacked outside of the combat
-            // but it's extremely rare to be in this situation anyway
-            var seed = _multiplayerActorAccessor.Current?.CombatSeed ?? GetSessionSeed();
-            if (!seed.HasValue)
-            {
-                _logger.LogError("Neither CombatSeed nor SessionSeed is available. Those values should not be requested outside of the MP session");
-            }
-
+            var seed = _multiplayerActorAccessor.Current?.CombatSeed ?? 0;
             return seed;
         }
 
-        public int? GetSessionSeed()
+        public int GetCombatTurnSeed()
         {
-            return _multiplayerActorAccessor.Current?.SessionSeed;
+            var seed = _multiplayerActorAccessor.Current?.CombatTurnSeed ?? 0;
+            return seed;
+        }
+
+        public int GetCrusadeArmyCombatSeed()
+        {
+            return _multiplayerActorAccessor.Current?.CrusadeArmyCombatSeed ?? 0;
+        }
+
+        public int GetSessionSeed()
+        {
+            var seed = _multiplayerActorAccessor.Current?.SessionSeed ?? 0;
+            return seed;
         }
 
         public int GetLoadedSaveSeed()
         {
-            return _multiplayerActorAccessor.Current?.LoadedSaveSeed ?? 0;
+            var seed = _multiplayerActorAccessor.Current?.LoadedSaveSeed ?? 0;
+            return seed;
         }
 
         public int? GetCrusadeArmyCombatAreaSeed()
@@ -1012,26 +1016,6 @@ namespace WOTRMultiplayer.Services
                 _logger.LogError(ex, "Error while getting crusade army combat seed");
                 throw;
             }
-        }
-
-        public int? GetCrusadeArmyCombatSeed()
-        {
-            try
-            {
-                if (_multiplayerActorAccessor == null)
-                {
-                    return null;
-                }
-
-                var seed = _multiplayerActorAccessor.Current.CrusadeArmyCombatSeed;
-                return seed;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while getting crusade army combat seed");
-                throw;
-            }
-
         }
 
         public void OnInterrupRestBanterBark(NetworkRestBanter networkRestBanter)

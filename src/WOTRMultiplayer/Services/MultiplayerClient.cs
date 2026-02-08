@@ -1309,19 +1309,23 @@ namespace WOTRMultiplayer.Services
             GameInteraction.ApplyStealthPerceptionCheck(check);
         }
 
-        private async void OnNotifyCombatTurnSynchronizationRequired(long playerId, NotifyCombatTurnSynchronizationRequired combatTurnSynchronization)
+        private async void OnNotifyCombatTurnSynchronizationRequired(long playerId, NotifyCombatTurnSynchronizationRequired message)
         {
-            Logger.LogInformation("Received {MessageType}. Units={Units}", nameof(NotifyCombatTurnSynchronizationRequired), combatTurnSynchronization.CombatState.Units.Count);
+            Logger.LogInformation("Received {MessageType}. Units={Units}, TurnSeed={TurnSeed}", nameof(NotifyCombatTurnSynchronizationRequired), message.CombatState.Units.Count, message.Seed);
 
             try
             {
                 await WaitWhileTrue(() => Game.Combat?.Turn == null, "Turn has not been initialized yet");
 
-                var combatState = Mapper.Map<NetworkCombatState>(combatTurnSynchronization.CombatState);
+                var combatState = Mapper.Map<NetworkCombatState>(message.CombatState);
                 await CombatInteraction.UpdateCombatStateAsync(combatState, false);
+
+                Game.Combat.Turn.Seed = message.Seed;
 
                 DiceRollStorage.Reset();
                 Logger.LogInformation("Dice roll storage has been reset at after syncing turn units");
+
+                ValueGenerator.ResetSeedGenerators(Random.SeedLifetime.CombatTurn);
 
                 var confirmationMessage = new ClientCombatTurnSynchronized { UnitId = Game.Combat.Turn.UnitId };
                 Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}", nameof(ClientCombatTurnSynchronized), confirmationMessage.UnitId);
@@ -1340,25 +1344,26 @@ namespace WOTRMultiplayer.Services
             await SendLocalRollAsync(request.PlayerId, request);
         }
 
-        private void OnNotifyCombatTurnStarted(long playerId, NotifyCombatTurnStarted started)
+        private void OnNotifyCombatTurnStarted(long playerId, NotifyCombatTurnStarted message)
         {
-            Logger.LogInformation("Received {MessageType}. Round={Round}, UnitId={UnitId}", nameof(NotifyCombatTurnStarted), started.Round, started.UnitId);
+            Logger.LogInformation("Received {MessageType}. Round={Round}, UnitId={UnitId}", nameof(NotifyCombatTurnStarted), message.Round, message.UnitId);
             if (Game.Combat?.Turn == null)
             {
-                Logger.LogError("Trying to start not initialized turn. Round={Round}, UnitId={UnitId}", started.Round, started.UnitId);
+                Logger.LogError("Trying to start not initialized turn. Round={Round}, UnitId={UnitId}", message.Round, message.UnitId);
                 return;
             }
 
-            if (!string.Equals(started.UnitId, Game.Combat.Turn.UnitId, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(message.UnitId, Game.Combat.Turn.UnitId, StringComparison.OrdinalIgnoreCase))
             {
-                Logger.LogWarning("Starting turn with different UnitId. LocalUnitId={LocalUnitId}, HostUnitId={HostUnitId}", Game.Combat.Turn.UnitId, started.UnitId);
+                Logger.LogWarning("Starting turn with different UnitId. LocalUnitId={LocalUnitId}, HostUnitId={HostUnitId}", Game.Combat.Turn.UnitId, message.UnitId);
             }
 
-            if (Game.Combat.Round != started.Round)
+            if (Game.Combat.Round != message.Round)
             {
-                Logger.LogWarning("Starting turn with different Round number. LocalRound={LocalRound}, HostRound={HostRound}", Game.Combat.Round, started.Round);
+                Logger.LogWarning("Starting turn with different Round number. LocalRound={LocalRound}, HostRound={HostRound}", Game.Combat.Round, message.Round);
             }
 
+            Logger.LogInformation("Starting combat turn. UnitId={UnitId}, TurnSeed={TurnSeed}", Game.Combat.Turn.Seed, Game.Combat.Turn.Seed);
             Game.Combat.Turn.IsInProgress = true;
             CombatInteraction.StartTurnBasedCombatTurn(Game.Combat.Turn.UnitId);
         }

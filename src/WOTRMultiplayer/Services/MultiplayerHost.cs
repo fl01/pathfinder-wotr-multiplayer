@@ -29,6 +29,7 @@ using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
 using WOTRMultiplayer.Networking.Messages.Requests;
 using WOTRMultiplayer.Services.GameInteraction.Contexts;
+using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.Services
 {
@@ -1345,6 +1346,7 @@ namespace WOTRMultiplayer.Services
 
                         var syncMessage = new NotifyCombatTurnSynchronizationRequired
                         {
+                            Seed = Game.Combat.Turn.Seed,
                             CombatState = Mapper.Map<Networking.Messages.Contracts.NetworkCombatState>(combatState)
                         };
                         Send(syncMessage);
@@ -1363,6 +1365,8 @@ namespace WOTRMultiplayer.Services
                     DiceRollStorage.Reset();
                     Logger.LogInformation("Dice roll storage has been reset at turn entites sync stage");
 
+                    ValueGenerator.ResetSeedGenerators(SeedLifetime.CombatTurn);
+
                     var message = new NotifyCombatTurnStarted
                     {
                         Round = Game.Combat.Round,
@@ -1373,6 +1377,7 @@ namespace WOTRMultiplayer.Services
 
                     Game.Combat.Turn.IsInProgress = true;
                 }
+
                 CombatInteraction.StartTurnBasedCombatTurn(Game.Combat.Turn.UnitId);
             }
             catch (Exception ex)

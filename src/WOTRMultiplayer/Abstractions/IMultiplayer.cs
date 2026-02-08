@@ -280,9 +280,13 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnGlobalMapAutoCrusadeCombatChanged(bool isEnabled);
 
-        int? GetCombatSeed();
+        int GetCombatSeed();
 
-        int? GetSessionSeed();
+        int GetCombatTurnSeed();
+
+        int GetCrusadeArmyCombatSeed();
+
+        int GetSessionSeed();
 
         int GetLoadedSaveSeed();
 
@@ -371,8 +375,6 @@ namespace WOTRMultiplayer.Abstractions
         void OnCrusadeArmyCombatTurnStarted(NetworkArmyCombatTurn armyCombatTurn);
 
         int? GetCrusadeArmyCombatAreaSeed();
-
-        int? GetCrusadeArmyCombatSeed();
 
         void OnCrusadeArmyBattleResultsShown();
 
