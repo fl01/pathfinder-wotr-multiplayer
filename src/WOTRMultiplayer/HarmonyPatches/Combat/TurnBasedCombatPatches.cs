@@ -101,21 +101,30 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 return true;
             }
 
-            var unitInfo = __instance.FindUnitInfo(unit);
-            if (unitInfo == null)
+            try
             {
-                return true;
-            }
+                var unitInfo = __instance.FindUnitInfo(unit);
+                if (unitInfo == null)
+                {
+                    Main.GetLogger<TurnBasedCombatPatches>().LogWarning("Requested unit has no combat info. UnitId={UnitId}", unit.UniqueId);
+                    return true;
+                }
 
-            var canContinue = Main.Multiplayer.OnBeforeStartTurn(unit.UniqueId, unitInfo.ActingInSurpriseRound);
-            if (!canContinue)
+                var canContinue = Main.Multiplayer.OnBeforeStartTurn(unit.UniqueId, unitInfo.ActingInSurpriseRound);
+                if (!canContinue)
+                {
+                    // creating fake turn to restrict rechoosing unit / starting new turn before all the confirmations
+                    __instance.CurrentTurn = new TurnController((JsonConstructorMark)default);
+                    __instance.TurnStartTime = Game.Instance.TimeController.GameTime;
+                }
+
+                return canContinue;
+            }
+            catch (Exception ex)
             {
-                // creating fake turn to restrict rechoosing unit / starting new turn before all the confirmations
-                __instance.CurrentTurn = new TurnController((JsonConstructorMark)default);
-                __instance.TurnStartTime = Game.Instance.TimeController.GameTime;
+                Main.GetLogger<TurnBasedCombatPatches>().LogError(ex, "Error while starting combat turn");
+                throw;
             }
-
-            return canContinue;
         }
 
         [HarmonyPatch(typeof(TurnController), nameof(TurnController.Tick))]

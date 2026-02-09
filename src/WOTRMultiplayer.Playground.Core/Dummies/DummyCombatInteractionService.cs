@@ -1,8 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Combat.Crusades;
+using WOTRMultiplayer.Entities.Units;
 
 namespace WOTRMultiplayer.Playground.Core.Dummies
 {
@@ -107,6 +109,16 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public bool IsRiderActive()
         {
             return false;
+        }
+
+        public List<NetworkUnit> GetUnitsInCombat()
+        {
+            return [];
+        }
+
+        public Task EnsureUnitsInCombatAsync(List<NetworkUnit> units)
+        {
+            return Task.CompletedTask;
         }
     }
 }

@@ -1,0 +1,13 @@
+﻿using ProtoBuf;
+using WOTRMultiplayer.Networking.Messages.Contracts;
+
+namespace WOTRMultiplayer.Networking.Messages.Game
+{
+    [ProtoContract]
+    [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyCombatPreparationRequired)]
+    public class NotifyCombatPreparationRequired
+    {
+        [ProtoMember(1)]
+        public NetworkCombatUnitDiscrepancy Discrepancy { get; set; }
+    }
+}

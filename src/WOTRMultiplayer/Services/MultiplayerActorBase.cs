@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using Kingmaker.Controllers.Rest;
@@ -556,11 +557,11 @@ namespace WOTRMultiplayer.Services
             Game.Combat = new NetworkCombat();
             Game.LastCombatTurn = null;
 
-            var unitsInCombat = CombatInteraction.GetCombatState();
+            var combatState = CombatInteraction.GetCombatState();
             var message = new NotifyCombatStarted
             {
                 PlayerId = Game.LocalPlayerId,
-                State = Mapper.Map<Networking.Messages.Contracts.NetworkCombatState>(unitsInCombat),
+                State = Mapper.Map<Networking.Messages.Contracts.NetworkCombatState>(combatState),
             };
             Logger.LogInformation("Sending {MessageType}. UnitsCount={UnitsCount}", nameof(NotifyCombatStarted), message.State.Units.Count);
             Send(message);
@@ -579,6 +580,7 @@ namespace WOTRMultiplayer.Services
             Game.Combat = null;
             ValueGenerator.ResetSeedGenerators(SeedLifetime.Combat, SeedLifetime.CombatTurn);
         }
+
         public void OnHandleDelayCombatTurn(string unitId, string targetUnitId)
         {
             if (!IsControlledByLocalPlayer(unitId))
@@ -642,21 +644,23 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                // tavern defense
-                if (Game.Combat == null)
+                if (Game.Combat == null
+                    || Game.Combat.Stage == NetworkCombatStage.Preparing)
                 {
+                    Logger.LogInformation("Unit is allowed to join combat at current stage. UnitId={UnitId}, Stage={Stage}", unitId, Game.Combat?.Stage);
                     return true;
                 }
 
                 var isSummoned = GameInteraction.IsSummoned(unitId);
                 if (isSummoned)
                 {
+                    Logger.LogInformation("Summoned unit is allowed to join combat. UnitId={UnitId}", unitId);
                     return true;
                 }
 
                 if (Game.Combat.ConfirmedMidCombatUnits.Contains(unitId))
                 {
-                    Logger.LogInformation("Unit has been allowed to join mid combat. UnitId={UnitId}", unitId);
+                    Logger.LogWarning("Unit has been allowed to join mid combat. UnitId={UnitId}", unitId);
                     return true;
                 }
 
@@ -2730,6 +2734,13 @@ namespace WOTRMultiplayer.Services
             ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyLeaderLeveling);
         }
 
+        protected void SetCombatStage(NetworkCombatStage combatStage)
+        {
+            var current = Game.Combat.Stage;
+            Game.Combat.Stage = combatStage;
+            Logger.LogInformation("Combat stage has been changed. From={From}, To={To}", current, combatStage);
+        }
+
         protected string StoreSaveGameContent(byte[] content)
         {
             if (content == null)
@@ -2747,6 +2758,19 @@ namespace WOTRMultiplayer.Services
             }
 
             return savePath;
+        }
+
+        protected Task FixCombatUnitDiscrepancyAsync(NetworkCombatUnitDiscrepancy unitDiscrepancy)
+        {
+            var localPlayerDiscrepancy = unitDiscrepancy.Units.Where(x => x.Key != Game.LocalPlayerId).SelectMany(x => x.Value).ToList();
+            if (localPlayerDiscrepancy.Count == 0)
+            {
+                Logger.LogInformation("Local player doesn't require any combat unit discrepancy fixes");
+                return Task.CompletedTask;
+            }
+
+            Logger.LogInformation("Discrepant units will be added to combat. Units={Units}", localPlayerDiscrepancy.Select(x => x.Id));
+            return CombatInteraction.EnsureUnitsInCombatAsync(localPlayerDiscrepancy);
         }
 
         protected bool IsCasterControlledByLocalPlayer(string sourceUnitId)
@@ -3050,16 +3074,15 @@ namespace WOTRMultiplayer.Services
 
         protected async Task WaitWhileTrue(Func<bool> condition, string warningMessage)
         {
-            var delay = TimeSpan.FromMilliseconds(10);
             if (condition())
             {
                 Logger.LogWarning(warningMessage);
-                var timeout = Task.Delay(TimeSpan.FromMinutes(1));
+                using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
                 while (condition())
                 {
-                    await Task.Delay(delay);
+                    await Task.Delay(10);
 
-                    if (timeout.IsCompleted)
+                    if (timeout.IsCancellationRequested)
                     {
                         throw new InvalidOperationException($"Awaiter failed due to timeout. WarningText={warningMessage}");
                     }
@@ -3378,15 +3401,19 @@ namespace WOTRMultiplayer.Services
             }
 
             var settings = SettingsService.GetSettings();
-            var delay = TimeSpan.FromSeconds(settings.EnforcedCombatStartDelay);
-            await Task.Delay(delay);
+            var delay = Task.Delay(TimeSpan.FromSeconds(settings.EnforcedCombatStartDelay));
+            var startedLocally = WaitWhileTrue(() => Game.Combat == null, $"Waiting for combat to start or forcing it after {settings.EnforcedCombatStartDelay}");
+            await Task.WhenAny(delay, startedLocally);
 
             var combatState = Mapper.Map<NetworkCombatState>(combatStarted.State);
-            var hasBeenForcedToStart = await CombatInteraction.StartCombatAsync(combatState);
-            if (hasBeenForcedToStart)
+            if (Game.Combat == null)
             {
-                GameInteraction.SetPause(false);
-                PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.Combat.ForcedToStart.Key, args: player.Name);
+                var hasBeenForcedToStart = await CombatInteraction.StartCombatAsync(combatState);
+                if (hasBeenForcedToStart)
+                {
+                    GameInteraction.SetPause(false);
+                    PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.Combat.ForcedToStart.Key, args: player.Name);
+                }
             }
         }
 

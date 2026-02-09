@@ -27,7 +27,7 @@
             None = 500,
             ClientAreaLoaded,
             ClientCharacterLevelingRequested,
-            ClientCombatInitialized,
+            ClientCombatInitializationCompleted,
             ClientCombatTurnStarted,
             ClientCombatTurnSynchronized,
             ClientDialogStartRequested,
@@ -43,7 +43,7 @@
             NotifyCampingUseHealingSpellsChanged,
             NotifyLevelingStarted,
             NotifyCharacterMove,
-            NotifyCombatInitialized,
+            NotifyCombatInitializationRequired,
             NotifyCombatTurnStarted,
             NotifyCombatTurnSynchronizationRequired,
             NotifyDialogCueAnswerSelected,
@@ -231,7 +231,11 @@
             NotifyTrapDisarmRolled,
             ClientTogglePauseOff,
             NotifyUnitAutoUseAbilityChanged,
-            NotifyInventoryItemCopied
+            NotifyInventoryItemCopied,
+            NotifyCombatPreparationRequired,
+            ClientCombatPreparationCompleted,
+            ClientCombatPreparationStarted,
+            NotifyCombatInitializationCompleted
         }
 
         public enum Request

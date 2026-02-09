@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentValidation;
 using Kingmaker;
@@ -9,6 +10,7 @@ using Kingmaker.Armies.TacticalCombat.Blueprints;
 using Kingmaker.Armies.TacticalCombat.Commands;
 using Kingmaker.Armies.TacticalCombat.Controllers;
 using Kingmaker.Blueprints;
+using Kingmaker.Controllers.Combat;
 using Kingmaker.Designers;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.GameModes;
@@ -458,6 +460,11 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     var unitsInCombat = networkCombatState.Units.Select(u => _gameStateLookupService.GetUnitEntity(u.Id)).ToList();
                     foreach (UnitEntityData unitEntityData in unitsInCombat)
                     {
+                        if (unitEntityData == null)
+                        {
+                            continue;
+                        }
+
                         if (!unitEntityData.IsPlayerFaction && unitEntityData.IsPlayersEnemy)
                         {
                             foreach (UnitEntityData unitEntityData2 in Game.Instance.Player.PartyAndPets)
@@ -481,6 +488,90 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return taskCompletion.Task;
         }
 
+        public async Task EnsureUnitsInCombatAsync(List<NetworkUnit> units)
+        {
+            var taskCompletion = new TaskCompletionSource<bool>();
+
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+            List<UnitEntityData> localUnits = [.. units.Select(u => _gameStateLookupService.GetUnitEntity(u.Id)).Where(x => x != null)];
+            if (localUnits.Count != units.Count)
+            {
+                _logger.LogWarning("Waiting for all units to be available locally");
+                while (localUnits.Count != units.Count && !timeout.IsCancellationRequested)
+                {
+                    localUnits = [.. units.Select(u => _gameStateLookupService.GetUnitEntity(u.Id)).Where(x => x != null)];
+                }
+            }
+            timeout.Cancel();
+
+            _mainThreadAccessor.Post(() =>
+            {
+                foreach (UnitEntityData unit in localUnits)
+                {
+                    if (unit.IsInCombat)
+                    {
+                        _logger.LogWarning("Unit is already in combat. UnitId={UnitId}", unit.UniqueId);
+                        continue;
+                    }
+
+                    var notSurprised = UnitCombatJoinController.CalculateIsNotSurprised(unit);
+                    unit.JoinCombat(notSurprised);
+                }
+
+                _logger.LogInformation("Units have been added to combat. Units={Units}", localUnits.Select(x => x.UniqueId));
+                taskCompletion.SetResult(true);
+            });
+
+            await taskCompletion.Task;
+        }
+
+        public List<NetworkUnit> GetUnitsInCombat()
+        {
+            try
+            {
+                List<UnitEntityData> unitsInCombat = [.. Game.Instance.State.Units.InCombat()];
+
+                switch (Game.Instance.CurrentlyLoadedArea.name)
+                {
+                    case "Prologue_Caves_1":
+                        var anevia = Game.Instance.State.Units.FirstOrDefault(u => string.Equals(u.CharacterName, "Anevia", StringComparison.OrdinalIgnoreCase));
+                        if (anevia != null)
+                        {
+                            // Anevia, constantly joins midfight
+                            unitsInCombat.Add(anevia);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+
+                var units = new List<NetworkUnit>();
+                var buffBaseTime = GetBuffBaseTime();
+                foreach (var combatUnit in unitsInCombat)
+                {
+                    var unit = new NetworkUnit
+                    {
+                        Id = combatUnit.UniqueId,
+                        Position = combatUnit.Position.ToNetworkVector3(),
+                        Orientation = combatUnit.Orientation,
+                        TurnBasedInfo = GetUnitTurnBasedInfo(combatUnit),
+                        CombatState = GetUnitCombatState(combatUnit),
+                        Descriptor = GetUnitDescriptor(combatUnit),
+                        Buffs = GetUnitBuffs(combatUnit, buffBaseTime)
+                    };
+
+                    units.Add(unit);
+                }
+
+                return units;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to get units in combat");
+                throw;
+            }
+        }
+
         private void SetTurnMovementLimit(string rawMovementLimit, UnitEntityData executor)
         {
             var turn = Game.Instance.TurnBasedCombatController.CurrentTurn;
@@ -492,7 +583,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             }
         }
 
-        private static ForcedPath CreateForcedPath(List<NetworkVector3> path)
+        private ForcedPath CreateForcedPath(List<NetworkVector3> path)
         {
             if (path == null || path.Count == 0)
             {
@@ -502,45 +593,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
             var vectorPath = path.Select(v => v.ToUnityVector3()).ToList();
             var forcedPath = new ForcedPath(vectorPath);
             return forcedPath;
-        }
-
-        private List<NetworkUnit> GetUnitsInCombat()
-        {
-            var unitsInCombat = Game.Instance.State.Units.InCombat().ToList();
-
-            switch (Game.Instance.CurrentlyLoadedArea.name)
-            {
-                case "Prologue_Caves_1":
-                    var anevia = Game.Instance.State.Units.FirstOrDefault(u => string.Equals(u.CharacterName, "Anevia", StringComparison.OrdinalIgnoreCase));
-                    if (anevia != null)
-                    {
-                        // Anevia, constantly joins midfight
-                        unitsInCombat.Add(anevia);
-                    }
-                    break;
-                default:
-                    break;
-            }
-
-            var units = new List<NetworkUnit>();
-            var buffBaseTime = GetBuffBaseTime();
-            foreach (var combatUnit in unitsInCombat)
-            {
-                var unit = new NetworkUnit
-                {
-                    Id = combatUnit.UniqueId,
-                    Position = combatUnit.Position.ToNetworkVector3(),
-                    Orientation = combatUnit.Orientation,
-                    TurnBasedInfo = GetUnitTurnBasedInfo(combatUnit),
-                    CombatState = GetUnitCombatState(combatUnit),
-                    Descriptor = GetUnitDescriptor(combatUnit),
-                    Buffs = GetUnitBuffs(combatUnit, buffBaseTime)
-                };
-
-                units.Add(unit);
-            }
-
-            return units;
         }
 
         private TimeSpan GetBuffBaseTime()

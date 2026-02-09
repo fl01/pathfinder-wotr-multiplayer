@@ -26,5 +26,10 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
 
         [ProtoMember(7)]
         public List<NetworkBuff> Buffs { get; set; } = [];
+
+        public override string ToString()
+        {
+            return Id?.ToString();
+        }
     }
 }

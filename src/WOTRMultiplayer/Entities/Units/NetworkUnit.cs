@@ -17,5 +17,15 @@ namespace WOTRMultiplayer.Entities.Units
         public NetworkUnitDescriptor Descriptor { get; set; }
 
         public List<NetworkBuff> Buffs { get; set; } = [];
+
+        public override bool Equals(object obj)
+        {
+            return obj is NetworkUnit other && string.Equals(this.Id, other.Id, System.StringComparison.OrdinalIgnoreCase);
+        }
+
+        public override int GetHashCode()
+        {
+            return (Id ?? string.Empty).GetHashCode();
+        }
     }
 }

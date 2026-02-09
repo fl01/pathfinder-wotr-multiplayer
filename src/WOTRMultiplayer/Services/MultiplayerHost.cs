@@ -23,6 +23,7 @@ using WOTRMultiplayer.Entities.Items;
 using WOTRMultiplayer.Entities.Leveling;
 using WOTRMultiplayer.Entities.Rest;
 using WOTRMultiplayer.Entities.Settings;
+using WOTRMultiplayer.Entities.Units;
 using WOTRMultiplayer.Networking;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Game;
@@ -330,7 +331,51 @@ namespace WOTRMultiplayer.Services
         /// <returns></returns>
         public bool CanInitializeCombat()
         {
-            return true;
+            if (Game.Combat == null)
+            {
+                return false;
+            }
+
+            switch (Game.Combat.Stage)
+            {
+                case NetworkCombatStage.Idle:
+                    if (!Game.Combat.PlayersCombatPreparation.TryGetValue(Game.LocalPlayerId, out _))
+                    {
+                        var unitsInCombat = CombatInteraction.GetUnitsInCombat();
+                        Game.Combat.PlayersCombatPreparation.TryAdd(Game.LocalPlayerId, unitsInCombat);
+                    }
+
+                    var canStartPreparing = Game.Combat.PlayersCombatPreparation.Count >= GetSyncedPlayersCount();
+                    if (canStartPreparing)
+                    {
+                        SetCombatStage(NetworkCombatStage.Preparing);
+                    }
+                    return false;
+                case NetworkCombatStage.Preparing:
+                    if (!Game.Combat.IsPrepared)
+                    {
+                        var discrepantUnits = GetDiscrepantCombatUnits();
+                        var preparationRequiredMessage = new NotifyCombatPreparationRequired
+                        {
+                            Discrepancy = Mapper.Map<Networking.Messages.Contracts.NetworkCombatUnitDiscrepancy>(discrepantUnits),
+                        };
+                        Logger.LogInformation("Sending {MessageType}. DiscrepantUnits={DiscrepantUnits}", nameof(NotifyCombatPreparationRequired), preparationRequiredMessage.Discrepancy.Units);
+                        Send(preparationRequiredMessage);
+                        Game.Combat.IsPrepared = true;
+                        FixCombatUnitDiscrepancyAsync(discrepantUnits)
+                            .ContinueWith(a => Game.Combat.PlayersCombatPreparation.TryRemove(Game.LocalPlayerId, out _))
+                            .ConfigureAwait(false);
+                    }
+
+                    var isPrepared = Game.Combat.PlayersCombatPreparation.Count == 0;
+                    if (isPrepared)
+                    {
+                        SetCombatStage(NetworkCombatStage.Initialization);
+                    }
+                    return false;
+                default:
+                    return true;
+            }
         }
 
         /// <summary>
@@ -344,23 +389,47 @@ namespace WOTRMultiplayer.Services
                 return false;
             }
 
-            if (Game.Combat.Round <= 1 && !Game.Combat.IsInitialized)
+            switch (Game.Combat.Stage)
             {
-                var combatState = CombatInteraction.GetCombatState();
-                var message = new NotifyCombatInitialized
-                {
-                    State = Mapper.Map<Networking.Messages.Contracts.NetworkCombatState>(combatState),
-                    Seed = Game.Combat.Seed
-                };
+                case NetworkCombatStage.Idle:
+                case NetworkCombatStage.Preparing:
+                    return false;
+                case NetworkCombatStage.Initialization:
+                    if (!Game.Combat.IsInitialized)
+                    {
+                        var combatState = CombatInteraction.GetCombatState();
+                        var message = new NotifyCombatInitializationRequired
+                        {
+                            State = Mapper.Map<Networking.Messages.Contracts.NetworkCombatState>(combatState),
+                            Seed = Game.Combat.Seed
+                        };
+                        Logger.LogInformation("Sending {MessageType}. Seed={Seed}, RoundNumber={RoundNumber}, HasSurprisingRound={HasSurprisingRound}, UnitsInCombat={UnitsInCombat}",
+                            nameof(NotifyCombatInitializationRequired), message.Seed, message.State.RoundNumber, message.State.HasSurpriseRound, message.State.Units.Count);
+                        Send(message);
 
-                Send(message);
-                Game.Combat.IsInitialized = true;
-                Game.Combat.PlayersCombatInitialization.TryAdd(Game.LocalPlayerId, true);
-                Logger.LogInformation("Sending {MessageType}. Seed={Seed}, RoundNumber={RoundNumber}, HasSurprisingRound={HasSurprisingRound}, UnitsInCombat={UnitsInCombat}", nameof(NotifyCombatInitialized), message.Seed, message.State.RoundNumber, message.State.HasSurpriseRound, message.State.Units.Count);
+                        Game.Combat.IsInitialized = true;
+                        Game.Combat.PlayersCombatInitialization.TryAdd(Game.LocalPlayerId, true);
+                    }
+
+                    var canContinue = Game.Combat.PlayersCombatInitialization.Count >= GetSyncedPlayersCount();
+                    if (canContinue)
+                    {
+                        SetCombatStage(NetworkCombatStage.Playing);
+                    }
+                    return false;
+                case NetworkCombatStage.Playing:
+                    if (!Game.Combat.IsPlaying)
+                    {
+                        var message = new NotifyCombatInitializationCompleted();
+                        Send(message);
+                        Logger.LogInformation("Sending {MessageType}", nameof(NotifyCombatInitializationCompleted));
+
+                        Game.Combat.IsPlaying = true;
+                    }
+                    return true;
+                default:
+                    return Game.Combat.IsPlaying;
             }
-
-            var canContinue = Game.Combat.PlayersCombatInitialization.Count >= GetSyncedPlayersCount();
-            return canContinue;
         }
 
         public override void CombatStarted()
@@ -1455,7 +1524,9 @@ namespace WOTRMultiplayer.Services
                .On<ClientCharacterLevelingRequested>(OnClientCharacterLevelingRequested)
 
                // combat
-               .On<ClientCombatInitialized>(OnClientCombatInitialized)
+               .On<ClientCombatPreparationStarted>(OnClientCombatPreparationStarted)
+               .On<ClientCombatPreparationCompleted>(OnClientCombatPreparationCompleted)
+               .On<ClientCombatInitializationCompleted>(OnClientCombatInitializationCompleted)
                .On<ClientCombatTurnStarted>(OnClientCombatTurnStarted)
                .On<ClientCombatTurnSynchronized>(OnClientCombatTurnSynchronized)
 
@@ -1480,6 +1551,22 @@ namespace WOTRMultiplayer.Services
                // inventory
                .On<NotifyPolymorphicItemCreationRequested>(OnNotifyPolymorphicItemCreationRequested)
                ;
+        }
+
+        private async void OnClientCombatPreparationStarted(long receivedFrom, ClientCombatPreparationStarted message)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitsCount={UnitsCount}", nameof(ClientCombatPreparationCompleted), receivedFrom, message.Units.Count);
+            var units = Mapper.Map<List<NetworkUnit>>(message.Units);
+
+            await WaitWhileTrue(() => Game.Combat == null, $"Waiting for combat to start to add preparation. PlayerId={receivedFrom}");
+            Game.Combat.PlayersCombatPreparation.TryAdd(receivedFrom, units);
+        }
+
+        private void OnClientCombatPreparationCompleted(long receivedFrom, ClientCombatPreparationCompleted message)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, Units={Units}", nameof(ClientCombatPreparationCompleted), receivedFrom, message.PlayerId, message.Units.Select(x => x.Id));
+            Game.Combat.PlayersCombatPreparation.TryRemove(message.PlayerId, out _);
+            Logger.LogInformation("Combat preparation updated. ConfirmedPlayer={ConfirmedPlayer}, PlayersLeft={PlayersLeft}", message.PlayerId, Game.Combat.PlayersCombatPreparation.Keys);
         }
 
         private void OnClientTogglePauseOff(long receivedFrom, ClientTogglePauseOff message)
@@ -1684,14 +1771,9 @@ namespace WOTRMultiplayer.Services
             TryStartTurn();
         }
 
-        private void OnClientCombatInitialized(long playerId, ClientCombatInitialized initialized)
+        private void OnClientCombatInitializationCompleted(long playerId, ClientCombatInitializationCompleted message)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}", nameof(ClientCombatInitialized), playerId);
-            if (Game.Combat == null)
-            {
-                Logger.LogWarning("Received client initialization, but combat is null. PlayerId={PlayerId}", playerId);
-                return;
-            }
+            Logger.LogInformation("Received {MessageType}", nameof(ClientCombatInitializationCompleted), playerId);
 
             if (!Game.Combat.PlayersCombatInitialization.TryAdd(playerId, true))
             {
@@ -2291,6 +2373,26 @@ namespace WOTRMultiplayer.Services
 
             content = FileSystem.GetRawFileContent(Game.StartUp.SavePath);
             return content != null;
+        }
+
+        private NetworkCombatUnitDiscrepancy GetDiscrepantCombatUnits()
+        {
+            var discrepancy = new NetworkCombatUnitDiscrepancy();
+
+            foreach (var (playerId, units) in Game.Combat.PlayersCombatPreparation)
+            {
+                var others = Game.Combat.PlayersCombatPreparation
+                    .Where(kvp => kvp.Key != playerId)
+                    .SelectMany(kvp => kvp.Value)
+                    .ToHashSet();
+
+                discrepancy.Units[playerId] = [.. units
+                    .Where(v => !others.Contains(v))
+                    .Distinct()];
+            }
+
+            discrepancy.Units = discrepancy.Units.Where(x => x.Value.Count > 0).ToDictionary(x => x.Key, x => x.Value);
+            return discrepancy;
         }
     }
 }

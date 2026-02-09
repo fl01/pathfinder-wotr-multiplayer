@@ -61,6 +61,5 @@ namespace WOTRMultiplayer.Services.PubSub
 
             ActorAccessor.Current.CombatEnded();
         }
-
     }
 }

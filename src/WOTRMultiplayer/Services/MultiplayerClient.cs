@@ -195,6 +195,23 @@ namespace WOTRMultiplayer.Services
 
         public bool CanInitializeCombat()
         {
+            if (Game.Combat == null)
+            {
+                return false;
+            }
+
+            if (!Game.Combat.IsPrepared)
+            {
+                var units = CombatInteraction.GetUnitsInCombat();
+                var message = new ClientCombatPreparationStarted
+                {
+                    Units = Mapper.Map<List<Networking.Messages.Contracts.NetworkUnit>>(units),
+                };
+                Logger.LogInformation("Sending {MessageType}. UnitsCount={UnitsCount}", nameof(ClientCombatPreparationStarted), message.Units.Count);
+                Send(message);
+                Game.Combat.IsPrepared = true;
+            }
+
             var canInitializeCombat = Game.Combat != null && Game.Combat.IsInitialized;
             return canInitializeCombat;
         }
@@ -465,10 +482,12 @@ namespace WOTRMultiplayer.Services
                .On<NotifyCampingUnitsRoleChanged>(OnNotifyCampingUnitsRoleChanged)
 
                // combat
+               .On<NotifyCombatPreparationRequired>(OnNotifyCombatPreparationRequired)
+               .On<NotifyCombatInitializationRequired>(OnNotifyCombatInitializationRequired)
+               .On<NotifyCombatInitializationCompleted>(OnNotifyCombatInitializationCompleted)
                .On<NotifyInvalidCombatTurnStarted>(OnNotifyInvalidCombatTurnStarted)
-               .On<NotifyCombatInitialized>(OnNotifyCombatInitialized)
-               .On<NotifyCombatTurnStarted>(OnNotifyCombatTurnStarted)
                .On<NotifyCombatTurnSynchronizationRequired>(OnNotifyCombatTurnSynchronizationRequired)
+               .On<NotifyCombatTurnStarted>(OnNotifyCombatTurnStarted)
 
                // global map & crusade combat
                .On<NotifyGlobalMapRestOpened>(OnNotifyGlobalMapRestOpened)
@@ -566,6 +585,27 @@ namespace WOTRMultiplayer.Services
                // inventory
                .On<NotifyPolymorphicItemCreated>(OnNotifyPolymorphicItemCreated)
                ;
+        }
+
+        private async void OnNotifyCombatPreparationRequired(long receivedFrom, NotifyCombatPreparationRequired message)
+        {
+            Logger.LogInformation("Received {MessageType}. DiscrepantUnits={DiscrepantUnits}", nameof(NotifyCombatPreparationRequired), message.Discrepancy.Units);
+
+            SetCombatStage(NetworkCombatStage.Preparing);
+
+            var discrepancy = Mapper.Map<NetworkCombatUnitDiscrepancy>(message.Discrepancy);
+            await FixCombatUnitDiscrepancyAsync(discrepancy);
+
+            var units = CombatInteraction.GetUnitsInCombat();
+            var confirmation = new ClientCombatPreparationCompleted
+            {
+                PlayerId = Game.LocalPlayerId,
+                Units = Mapper.Map<List<Networking.Messages.Contracts.NetworkUnit>>(units)
+            };
+            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, UnitsCount={UnitsCount}, Units={Units}", nameof(ClientCombatPreparationCompleted), confirmation.PlayerId, confirmation.Units.Count, confirmation.Units.Select(x => x.Id));
+            Send(confirmation);
+
+            SetCombatStage(NetworkCombatStage.Initialization);
         }
 
         private void OnNotifyGlobalMapCrusadeArmyLeaderLevelingSkillSelected(long receivedFrom, NotifyGlobalMapCrusadeArmyLeaderLevelingSkillSelected message)
@@ -679,8 +719,6 @@ namespace WOTRMultiplayer.Services
             UpdateGlobalMapCrusadeArmyInfoUIStateAfterBuyLeader();
 
             GlobalMapInteraction.CloseBuyLeaderScreen();
-
-            OnAfterNetworkMessageHandled(receivedFrom, globalMapCrusadeArmyBuyLeaderClosed);
         }
 
         private void OnNotifyGlobalMapCrusadeArmySetLeaderRecruitClicked(long receivedFrom, NotifyGlobalMapCrusadeArmySetLeaderRecruitClicked globalMapCrusadeArmySetLeaderRecruitClicked)
@@ -1368,23 +1406,29 @@ namespace WOTRMultiplayer.Services
             CombatInteraction.StartTurnBasedCombatTurn(Game.Combat.Turn.UnitId);
         }
 
-        private async void OnNotifyCombatInitialized(long playerId, NotifyCombatInitialized combatInitialized)
+        private async void OnNotifyCombatInitializationRequired(long playerId, NotifyCombatInitializationRequired message)
         {
-            Logger.LogInformation("Received {MessageType}. Seed={Seed}, Units={Units}", nameof(NotifyCombatInitialized), combatInitialized.Seed, combatInitialized.State.Units.Count);
+            Logger.LogInformation("Received {MessageType}. Seed={Seed}, UnitsCount={UnitsCount}, Units={Units}", nameof(NotifyCombatInitializationRequired), message.Seed, message.State.Units.Count, message.State.Units.Select(x => x.Id));
 
             await WaitWhileTrue(() => Game.Combat == null, "Combat has not been started on client yet. Waiting until start");
 
-            Game.Combat.Seed = combatInitialized.Seed;
+            Game.Combat.Seed = message.Seed;
             Logger.LogInformation("Combat seed has been configured. Seed={Seed}", Game.Combat.Seed);
 
-            var combatState = Mapper.Map<NetworkCombatState>(combatInitialized.State);
+            var combatState = Mapper.Map<NetworkCombatState>(message.State);
             await CombatInteraction.UpdateCombatStateAsync(combatState, true);
 
-            Logger.LogInformation("Sending {MessageType}", nameof(ClientCombatInitialized));
-            var message = new ClientCombatInitialized();
-            Send(message);
+            var confirmation = new ClientCombatInitializationCompleted();
+            Logger.LogInformation("Sending {MessageType}", nameof(ClientCombatInitializationCompleted));
+            Send(confirmation);
+        }
 
+        private void OnNotifyCombatInitializationCompleted(long playerId, NotifyCombatInitializationCompleted message)
+        {
+            Logger.LogInformation("Received {MessageType}", nameof(NotifyCombatInitializationCompleted));
+            SetCombatStage(NetworkCombatStage.Playing);
             Game.Combat.IsInitialized = true;
+            Game.Combat.IsPlaying = true;
         }
 
         private async void OnNotifyDialogStarted(long playerId, NotifyDialogStarted started)

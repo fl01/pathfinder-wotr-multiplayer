@@ -88,5 +88,22 @@ namespace WOTRMultiplayer.Networking.UnitTests.Messages
             // Assert
             Assert.That(invalidProtoContracts.Count, Is.EqualTo(0), "Missing ProtoMember: " + string.Join(", ", invalidProtoContracts.Select(x => x.Name)));
         }
+
+        [Test]
+        public void NetworkMessages_EachMessageIsMarkedWithProtoContract()
+        {
+            // Arrange
+            var allMessages = Assembly
+                .GetAssembly(typeof(ProtobufPacket))
+                .GetTypes()
+                .Where(t => t.GetCustomAttribute<BeetleX.Packets.MessageTypeAttribute>() != null)
+                .ToList();
+
+            // Act
+            var invalidMessages = allMessages.Where(x => x.GetCustomAttribute<ProtoContractAttribute>() == null).ToList();
+
+            // Assert
+            Assert.That(invalidMessages.Count, Is.EqualTo(0), "Missing ProtoContractAttribute: " + string.Join(", ", invalidMessages.Select(x => x.Name)));
+        }
     }
 }

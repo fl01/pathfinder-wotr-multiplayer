@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
+using WOTRMultiplayer.Entities.Units;
 
 namespace WOTRMultiplayer.Entities.Combat
 {
@@ -10,13 +11,21 @@ namespace WOTRMultiplayer.Entities.Combat
         /// </summary>
         public int Seed { get; set; }
 
+        public NetworkCombatStage Stage { get; set; }
+
         public bool IsInitialized { get; set; }
+
+        public bool IsPrepared { get; set; }
+
+        public bool IsPlaying { get; set; }
 
         public int Round { get; set; }
 
         public NetworkCombatTurn Turn { get; set; }
 
         public ConcurrentDictionary<long, bool> PlayersCombatInitialization { get; set; } = new();
+
+        public ConcurrentDictionary<long, List<NetworkUnit>> PlayersCombatPreparation { get; set; } = new();
 
         public ConcurrentDictionary<string, HashSet<long>> PlayersNextTurnInitialization { get; set; } = new();
 
