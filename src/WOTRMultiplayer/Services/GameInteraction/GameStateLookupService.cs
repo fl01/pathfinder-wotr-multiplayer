@@ -86,33 +86,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return army;
         }
 
-        public AbilityData GetKnownSpell(Spellbook spellbook, string abilityId, string abilityName)
-        {
-            for (int level = 0; level < spellbook.m_KnownSpells.Length; level++)
-            {
-                var spellLevel = spellbook.m_KnownSpells[level];
-                var spellSlot = spellLevel.FirstOrDefault(s => string.Equals(s.UniqueId, abilityId, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(s.NameForAcronym, abilityName, StringComparison.OrdinalIgnoreCase));
-
-                if (spellSlot != null)
-                {
-                    return spellSlot;
-                }
-            }
-
-            return null;
-        }
-        public AbilityData FindAbility(NetworkAbility networkAbility)
-        {
-            var caster = GetUnitEntity(networkAbility.CasterId);
-            if (caster == null)
-            {
-                return null;
-            }
-
-            return FindAbility(caster, networkAbility);
-        }
-
         public AbilityData FindAbility(UnitEntityData unit, NetworkAbility networkAbility)
         {
             if (networkAbility == null)
@@ -142,16 +115,107 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 return convertedAbility;
             }
 
-            var byAbilityId = unit.Abilities.Enumerable.FirstOrDefault(a => string.Equals(a.Data.UniqueId, networkAbility.Id, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(a.Data.NameForAcronym, networkAbility.Name, StringComparison.OrdinalIgnoreCase));
-
-            if (byAbilityId != null)
+            var fromAbilities = GetAbility(unit, networkAbility);
+            if (fromAbilities != null)
             {
-                _logger.LogInformation("Ability has been found by abilityId. UnitId={UnitId}, AbilityId={AbilityId}", unit.UniqueId, networkAbility.Id);
-                return byAbilityId.Data;
+                _logger.LogInformation("Ability has been found in abilities. UnitId={UnitId}, AbilityId={AbilityId}", unit.UniqueId, networkAbility.Id);
+                return fromAbilities;
             }
 
             return null;
+        }
+
+        public Spellbook GetSpellbook(UnitEntityData unit, string spellbookId)
+        {
+            var spellBook = unit.Spellbooks.FirstOrDefault(s => string.Equals(s.Blueprint.AssetGuid.ToString(), spellbookId, StringComparison.OrdinalIgnoreCase));
+            return spellBook;
+        }
+
+        public AbilityData GetKnownSpell(Spellbook spellbook, string abilityId, string abilityBlueprintId, int spellLevel, int? metamagic)
+        {
+            if (spellbook.m_KnownSpells.Length <= spellLevel)
+            {
+                return null;
+            }
+
+            var spells = spellbook.m_KnownSpells[spellLevel];
+            var spell = GetSpell(spells, abilityId, abilityBlueprintId, metamagic);
+            return spell;
+        }
+
+        public SpellSlot GetSpellSlot(Spellbook spellbook, int index, SpellSlotType slotType, int spellLevel)
+        {
+            if (spellbook == null)
+            {
+                return null;
+            }
+
+            if (spellbook.m_MemorizedSpells.Length <= spellLevel)
+            {
+                return null;
+            }
+
+            var spellSlots = spellbook.m_MemorizedSpells[spellLevel];
+            var spellSlot = spellSlots.FirstOrDefault(s => s.Index == index && s.Type == slotType);
+
+            return spellSlot;
+        }
+
+        public AbilityData GetKnownSpell(Spellbook spellbook, NetworkAbility ability)
+        {
+            return GetKnownSpell(spellbook, ability.Id, ability.BlueprintId, ability.SpellLevel, ability.Metamagic);
+        }
+
+        private AbilityData GetMemorizedSpell(Spellbook spellbook, NetworkAbility ability)
+        {
+            return GetMemorizedSpell(spellbook, ability.Id, ability.BlueprintId, ability.SpellLevel, ability.Metamagic);
+        }
+
+        private AbilityData GetCustomSpell(Spellbook spellbook, NetworkAbility ability)
+        {
+            if (spellbook.m_CustomSpells.Length <= ability.SpellLevel)
+            {
+                return null;
+            }
+
+            var spells = spellbook.m_CustomSpells[ability.SpellLevel];
+            var spell = GetSpell(spells, ability.Id, ability.BlueprintId, ability.Metamagic);
+            return spell;
+        }
+
+        private AbilityData GetMemorizedSpell(Spellbook spellbook, string abilityId, string abilityBlueprintId, int spellLevel, int? metamagic)
+        {
+            if (spellbook.m_MemorizedSpells.Length <= spellLevel)
+            {
+                return null;
+            }
+
+            var spells = spellbook.m_MemorizedSpells[spellLevel].Where(x => x.Spell != null).Select(x => x.Spell).ToList();
+            var spell = GetSpell(spells, abilityId, abilityBlueprintId, metamagic);
+            return spell;
+        }
+
+        private AbilityData GetAbility(UnitEntityData unit, NetworkAbility networkAbility)
+        {
+            var ability = unit.Abilities.Enumerable.FirstOrDefault(a => string.Equals(a.Data.UniqueId, networkAbility.Id, StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(a.Data.Blueprint.AssetGuid.ToString(), networkAbility.BlueprintId, StringComparison.OrdinalIgnoreCase));
+
+            return ability?.Data;
+        }
+
+        private AbilityData GetSpell(List<AbilityData> spells, string abilityId, string abilityBlueprintId, int? metamagic)
+        {
+            var matchedSpells = spells.Where(s => string.Equals(s.UniqueId, abilityId, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(s.Blueprint.AssetGuid.ToString(), abilityBlueprintId, StringComparison.OrdinalIgnoreCase));
+
+            if (metamagic.HasValue)
+            {
+                var meta = (Metamagic)metamagic.Value;
+                matchedSpells.Where(x => x.MetamagicData != null && x.MetamagicData.Has(meta));
+            }
+
+            var spell = matchedSpells.FirstOrDefault();
+            return spell;
         }
 
         private AbilityData FindAbilityInSpellbook(UnitEntityData unit, NetworkAbility networkAbility)
@@ -165,53 +229,52 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
             if (!string.IsNullOrEmpty(networkAbility.ConvertedFromId))
             {
-                var spellConversionSource = GetKnownSpell(spellbook, networkAbility.ConvertedFromId, networkAbility.Name) ?? GetMemorizedSpell(spellbook, networkAbility.ConvertedFromId, networkAbility.Name);
+                var spellConversionSource = GetKnownSpell(spellbook, networkAbility.ConvertedFromId, networkAbility.BlueprintId, networkAbility.SpellLevel, networkAbility.Metamagic)
+                    ?? GetMemorizedSpell(spellbook, networkAbility.ConvertedFromId, networkAbility.BlueprintId, networkAbility.SpellLevel, networkAbility.Metamagic);
+
                 if (spellConversionSource == null)
                 {
                     _logger.LogError("Can't find spell conversion source for converted ability. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookName={SpellbookName}, ConvertedAbilityId={ConvertedAbilityId}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name, networkAbility.ConvertedFromId);
                     return null;
                 }
 
-                var convertedSpell = GetConvertedAbility(spellConversionSource, networkAbility);
-                if (convertedSpell == null)
+                var convertedAbility = GetConvertedAbility(spellConversionSource, networkAbility);
+                if (convertedAbility == null)
                 {
                     _logger.LogError("Can't find target ability in spell conversion list. UnitId={UnitId}, AbilityId={abilityId}, SpellbookName={SpellbookName}, ConvertedAbilityId={ConvertedAbilityId}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name, networkAbility.ConvertedFromId);
                     return null;
                 }
 
                 _logger.LogInformation("Converted spell has been found. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookName={SpellbookName}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name);
-                return convertedSpell;
+                return convertedAbility;
             }
 
-            var knownSpell = GetKnownSpell(spellbook, networkAbility.Id, networkAbility.Name);
+            var knownSpell = GetKnownSpell(spellbook, networkAbility);
             if (knownSpell != null)
             {
                 _logger.LogInformation("Spell has been found in known spells. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookName={SpellbookName}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name);
                 return knownSpell;
             }
 
-            var memorizedSpell = GetMemorizedSpell(spellbook, networkAbility.Id, networkAbility.Name);
+            var memorizedSpell = GetMemorizedSpell(spellbook, networkAbility);
             if (memorizedSpell != null)
             {
                 _logger.LogInformation("Spell has been found in memorized spells. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookName={SpellbookName}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name);
                 return memorizedSpell;
             }
 
-            return null;
-        }
-
-        private AbilityData GetMemorizedSpell(Spellbook spellbook, string abilityId, string abilityName)
-        {
-            for (int level = 0; level < spellbook.m_MemorizedSpells.Length; level++)
+            var customSpell = GetCustomSpell(spellbook, networkAbility);
+            if (customSpell != null)
             {
-                var spellLevel = spellbook.m_MemorizedSpells[level];
-                var spellSlot = spellLevel.FirstOrDefault(s => string.Equals(s.Spell?.UniqueId, abilityId, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(s.Spell?.NameForAcronym, abilityName, StringComparison.OrdinalIgnoreCase));
+                _logger.LogInformation("Spell has been found in custom spells. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookName={SpellbookName}", unit.UniqueId, networkAbility.Id, spellbook.Blueprint.Name);
+                return customSpell;
+            }
 
-                if (spellSlot != null)
-                {
-                    return spellSlot.Spell;
-                }
+            var fromAbilities = GetAbility(unit, networkAbility);
+            if (fromAbilities != null)
+            {
+                _logger.LogInformation("Spell has been found in abilities. UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}, SpellbookName={SpellbookName}", unit.UniqueId, networkAbility.Id, networkAbility.Name, spellbook.Blueprint.Name);
+                return fromAbilities;
             }
 
             return null;
@@ -221,7 +284,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             var convertedSpell = conversionSource.GetConversions().FirstOrDefault(
                     c => string.Equals(c.UniqueId, networkAbility.Id, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(c.NameForAcronym, networkAbility.Name, StringComparison.OrdinalIgnoreCase));
+                    || string.Equals(c.Blueprint.AssetGuid.ToString(), networkAbility.BlueprintId, StringComparison.OrdinalIgnoreCase));
 
             return convertedSpell;
         }

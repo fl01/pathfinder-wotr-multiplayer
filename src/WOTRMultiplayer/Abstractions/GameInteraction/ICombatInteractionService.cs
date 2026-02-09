@@ -43,7 +43,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void AttackUnit(NetworkUnitAttack attack);
 
-        void UseAbility(NetworkAbility networkAbility);
+        void UseAbility(NetworkAbilityUse networkAbilityUse);
 
         Task<bool> StartCombatAsync(NetworkCombatState networkCombatState);
 

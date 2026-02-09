@@ -22,15 +22,9 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         public NetworkUnitCombatState CombatState { get; set; }
 
         [ProtoMember(6)]
-        public NetworkUnitAttack CurrentAttack { get; set; }
-
-        [ProtoMember(7)]
-        public NetworkAbility CurrentAbility { get; set; }
-
-        [ProtoMember(8)]
         public NetworkUnitDescriptor Descriptor { get; set; }
 
-        [ProtoMember(9)]
+        [ProtoMember(7)]
         public List<NetworkBuff> Buffs { get; set; } = [];
     }
 }

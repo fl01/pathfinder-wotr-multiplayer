@@ -256,36 +256,36 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 if (!TacticalCombatHelper.IsActive)
                 {
-                    _logger.LogWarning("Unable to run {command} due to inactive tactical combat. UnitId={UnitId}", nameof(NetworkTacticalUnitUseAbilityCommand), tacticalUnitUseAbilityCommand.Ability.CasterId);
+                    _logger.LogWarning("Unable to run {command} due to inactive tactical combat. UnitId={UnitId}", nameof(NetworkTacticalUnitUseAbilityCommand), tacticalUnitUseAbilityCommand.InitiatorUnitId);
                     return;
                 }
 
-                var unit = _gameStateLookupService.GetUnitEntity(tacticalUnitUseAbilityCommand.Ability.CasterId);
+                var unit = _gameStateLookupService.GetUnitEntity(tacticalUnitUseAbilityCommand.InitiatorUnitId);
                 if (unit == null)
                 {
-                    _logger.LogError("Unable to run {command} due to missing unit. UnitId={UnitId}", nameof(NetworkTacticalUnitUseAbilityCommand), tacticalUnitUseAbilityCommand.Ability.CasterId);
+                    _logger.LogError("Unable to run {command} due to missing unit. UnitId={UnitId}", nameof(NetworkTacticalUnitUseAbilityCommand), tacticalUnitUseAbilityCommand.InitiatorUnitId);
                     return;
                 }
 
                 var ability = _gameStateLookupService.FindAbility(unit, tacticalUnitUseAbilityCommand.Ability);
                 if (ability == null)
                 {
-                    _logger.LogError("Unable to run {command} due to missing ability. UnitId={UnitId}, AbilityId={AbilityId}", nameof(NetworkTacticalUnitUseAbilityCommand), tacticalUnitUseAbilityCommand.Ability.CasterId, tacticalUnitUseAbilityCommand.Ability.Id);
+                    _logger.LogError("Unable to run {command} due to missing ability. UnitId={UnitId}, AbilityId={AbilityId}", nameof(NetworkTacticalUnitUseAbilityCommand), tacticalUnitUseAbilityCommand.InitiatorUnitId, tacticalUnitUseAbilityCommand.Ability.Id);
                     return;
                 }
 
-                var target = _gameStateLookupService.GetUnitEntity(tacticalUnitUseAbilityCommand.Ability.Target.UnitId);
-                var point = tacticalUnitUseAbilityCommand.Ability.Target.Point.ToUnityVector3(); ;
+                var target = _gameStateLookupService.GetUnitEntity(tacticalUnitUseAbilityCommand.Target.UnitId);
+                var point = tacticalUnitUseAbilityCommand.Target.Point.ToUnityVector3();
                 var targetWrapper = new TargetWrapper(point, null, target);
                 var useAbilityCommand = new TacticalCombatUnitUseAbility(ability, targetWrapper)
                 {
-                    ForcedPath = CreateForcedPath(tacticalUnitUseAbilityCommand.Ability.VectorPath),
+                    ForcedPath = CreateForcedPath(tacticalUnitUseAbilityCommand.VectorPath),
                     ShouldSkipAnimation = Game.Instance.TacticalCombat.Data.Accelerated
                 };
 
                 EventBus.RaiseEvent<IClickActionHandler>(x => x.OnCastRequested(ability, target));
                 unit.Commands.Run(useAbilityCommand);
-                _logger.LogInformation("Command {command} has been executed. UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}", nameof(NetworkTacticalUnitUseAbilityCommand), tacticalUnitUseAbilityCommand.Ability.CasterId, tacticalUnitUseAbilityCommand.Ability.Id, tacticalUnitUseAbilityCommand.Ability.Name);
+                _logger.LogInformation("Command {command} has been executed. UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}", nameof(NetworkTacticalUnitUseAbilityCommand), tacticalUnitUseAbilityCommand.InitiatorUnitId, tacticalUnitUseAbilityCommand.Ability.Id, tacticalUnitUseAbilityCommand.Ability.Name);
             });
         }
 
@@ -368,10 +368,10 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    var executor = _gameStateLookupService.GetUnitEntity(attack.ExecutorUnitId);
+                    var executor = _gameStateLookupService.GetUnitEntity(attack.InitiatorUnitId);
                     if (executor == null)
                     {
-                        _logger.LogError("Unable to find executor unit to perform unit attack command. ExecutorUnitId={ExecutorUnitId}", attack.ExecutorUnitId);
+                        _logger.LogError("Unable to find executor unit to perform unit attack command. ExecutorUnitId={ExecutorUnitId}", attack.InitiatorUnitId);
                         return;
                     }
 
@@ -379,31 +379,31 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Unable to attack unit. ExecutorUnitId={ExecutorUnitId}, TargetUnitId={TargetUnitId}", attack.ExecutorUnitId, attack.TargetUnitId);
+                    _logger.LogError(ex, "Unable to attack unit. ExecutorUnitId={ExecutorUnitId}, TargetUnitId={TargetUnitId}", attack.InitiatorUnitId, attack.TargetUnitId);
                     throw;
                 }
             });
         }
 
-        public void UseAbility(NetworkAbility networkAbility)
+        public void UseAbility(NetworkAbilityUse networkAbilityUse)
         {
             try
             {
                 _mainThreadAccessor.Post(() =>
                 {
-                    var executor = _gameStateLookupService.GetUnitEntity(networkAbility.CasterId);
+                    var executor = _gameStateLookupService.GetUnitEntity(networkAbilityUse.InitiatorUnitId);
                     if (executor == null)
                     {
-                        _logger.LogError("Unable to find executor unit to perform unit ability use. ExecutorUnitId={ExecutorUnitId}", networkAbility.CasterId);
+                        _logger.LogError("Unable to find executor unit to perform unit ability use. InitiatorUnitId={InitiatorUnitId}", networkAbilityUse.InitiatorUnitId);
                         return;
                     }
 
-                    RunUnitAbilityCommand(executor, networkAbility);
+                    RunUnitAbilityCommand(executor, networkAbilityUse);
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to initiate UseAbility. CasterId={CasterId}, TargetUnitId={TargetUnitId}, AbilityId={AbilityId}", networkAbility.CasterId, networkAbility.Target.UnitId, networkAbility.Id);
+                _logger.LogError(ex, "Unable to initiate UseAbility. InitiatorUnitId={InitiatorUnitId}, TargetUnitId={TargetUnitId}, AbilityId={AbilityId}", networkAbilityUse.InitiatorUnitId, networkAbilityUse.Target?.UnitId, networkAbilityUse.Ability.Id);
                 throw;
             }
         }
@@ -530,8 +530,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     Orientation = combatUnit.Orientation,
                     TurnBasedInfo = GetUnitTurnBasedInfo(combatUnit),
                     CombatState = GetUnitCombatState(combatUnit),
-                    CurrentAbility = GetUnitAbilityCommand(combatUnit),
-                    CurrentAttack = GetUnitAttackCommand(combatUnit),
                     Descriptor = GetUnitDescriptor(combatUnit),
                     Buffs = GetUnitBuffs(combatUnit)
                 };
@@ -571,57 +569,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 }
             };
             return descriptor;
-        }
-
-        private NetworkUnitAttack GetUnitAttackCommand(UnitEntityData combatUnit)
-        {
-            var attackCommand = combatUnit.Commands.Attack;
-            if (attackCommand == null)
-            {
-                return null;
-            }
-
-            var path = PathVisualizer.Instance?.CurrentPathForUnit(attackCommand.Executor.View);
-            var networkPath = path?.vectorPath.Select(v => v.ToNetworkVector3()).ToList();
-            var attack = new NetworkUnitAttack
-            {
-                ExecutorUnitId = attackCommand.Executor.UniqueId,
-                TargetUnitId = attackCommand.TargetUnit?.UniqueId,
-                IsFullAttack = attackCommand.IsAttackFull,
-                IsSingleAttack = attackCommand.IsSingleAttack,
-                IsCharge = attackCommand.IsCharge,
-                VectorPath = networkPath
-            };
-
-            return attack;
-        }
-
-        private NetworkAbility GetUnitAbilityCommand(UnitEntityData combatUnit)
-        {
-            var useAbilityCommand = combatUnit.Commands.UnitUseAbility;
-            if (useAbilityCommand == null)
-            {
-                return null;
-            }
-
-            var path = PathVisualizer.Instance?.CurrentPathForUnit(useAbilityCommand.Executor.View);
-            var networkPath = path?.vectorPath.Select(v => v.ToNetworkVector3()).ToList();
-            var ability = new NetworkAbility
-            {
-                Id = useAbilityCommand.Ability.UniqueId,
-                Name = useAbilityCommand.Ability.NameForAcronym,
-                SpellbookId = useAbilityCommand.Ability.Spellbook?.Blueprint.Name.Key,
-                CasterId = useAbilityCommand.Executor.UniqueId,
-                VectorPath = networkPath,
-                Target = new NetworkTargetWrapper(
-                    useAbilityCommand.Target.Point.ToNetworkVector3(),
-                    useAbilityCommand.Target.Orientation,
-                    useAbilityCommand.Target.Unit?.UniqueId),
-                CommandType = useAbilityCommand.Type.ToString(),
-                ConvertedFromId = useAbilityCommand.Ability.ConvertedFrom?.UniqueId
-            };
-
-            return ability;
         }
 
         private NetworkUnitTurnBasedInfo GetUnitTurnBasedInfo(UnitEntityData combatUnit)
@@ -753,7 +700,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     }
 
                     var newBuff = unit.Buffs.AddBuff(buff, caster, buffToAdd.IsPermanent ? null : buffToAdd.TimeLeft);
-                    _logger.LogInformation("Buff has been added. UnitId={UnitId}, Id={Id}, Name={Name}, IsPermanent={IsPermanent}, PlannedDuration={PlannedDuration}", unit.UniqueId, newBuff.UniqueId, newBuff.NameForAcronym, newBuff.IsPermanent, newBuff.PlannedDuration);
+                    _logger.LogInformation("Buff has been added. UnitId={UnitId}, Id={Id}, BlueprintId={BlueprintId}, Name={Name}, IsPermanent={IsPermanent}, PlannedDuration={PlannedDuration}", unit.UniqueId, newBuff.UniqueId, buffToAdd.BlueprintId, newBuff.NameForAcronym, newBuff.IsPermanent, newBuff.PlannedDuration);
                 }
             }
 
@@ -806,23 +753,33 @@ namespace WOTRMultiplayer.Services.GameInteraction
             executorUnit.Commands.Run(command);
         }
 
-        private void RunUnitAbilityCommand(UnitEntityData executorUnit, NetworkAbility networkAbility)
+        private void RunUnitAbilityCommand(UnitEntityData executorUnit, NetworkAbilityUse networkAbilityUse)
         {
-            var abilityData = _gameStateLookupService.FindAbility(executorUnit, networkAbility);
+            var abilityData = _gameStateLookupService.FindAbility(executorUnit, networkAbilityUse.Ability);
             if (abilityData == null)
             {
-                _logger.LogError("Unable to run unit ability command due to missing ability. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookBlueprintId={SpellbookBlueprintId}", executorUnit.UniqueId, networkAbility.Id, networkAbility.SpellbookId);
+                _logger.LogError("Unable to run unit ability command due to missing ability. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookBlueprintId={SpellbookBlueprintId}", executorUnit.UniqueId, networkAbilityUse.Ability.Id, networkAbilityUse.Ability.SpellbookId);
                 return;
             }
 
-            if (!Enum.TryParse<UnitCommand.CommandType>(networkAbility.CommandType, true, out var commandType))
+            abilityData.ParamSpellbook = _gameStateLookupService.GetSpellbook(executorUnit, networkAbilityUse.Ability.ParamSpellBookId);
+            abilityData.ParamSpellLevel = networkAbilityUse.Ability.ParamSpellLevel;
+
+            if (networkAbilityUse.Ability.ParamSpellSlot != null)
             {
-                _logger.LogWarning("Unable to parse command type. Type={Type}", networkAbility.CommandType);
+                var param = networkAbilityUse.Ability.ParamSpellSlot;
+                var spellSlotSpellBook = _gameStateLookupService.GetSpellbook(executorUnit, param.SpellbookId);
+                abilityData.ParamSpellSlot = _gameStateLookupService.GetSpellSlot(spellSlotSpellBook, param.Slot.Index, param.Slot.Type, param.SpellLevel);
+            }
+
+            if (!Enum.TryParse<UnitCommand.CommandType>(networkAbilityUse.CommandType, true, out var commandType))
+            {
+                _logger.LogWarning("Unable to parse command type. Type={Type}", networkAbilityUse.CommandType);
                 commandType = UnitCommand.CommandType.Standard;
             }
-            var target = CreateTargetWrapper(networkAbility.Target);
+            var target = CreateTargetWrapper(networkAbilityUse.Target);
 
-            RunUnitAbilityCommand(executorUnit, abilityData, target, networkAbility.VectorPath, commandType, networkAbility.MovementLimit);
+            RunUnitAbilityCommand(executorUnit, abilityData, target, networkAbilityUse.VectorPath, commandType, networkAbilityUse.MovementLimit);
         }
 
         private void RunUnitAbilityCommand(UnitEntityData executorUnit, AbilityData abilityData, TargetWrapper targetWrapper, List<NetworkVector3> vectorPath, UnitCommand.CommandType commandType, string rawMovementLimit)

@@ -103,7 +103,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnClickMapObject(NetworkClick click);
 
-        void OnAbilityUse(NetworkAbility ability);
+        void OnAbilityUse(NetworkAbilityUse abilityUse);
 
         void OnUnitAttackCommandStarted(NetworkUnitAttack networkUnitAttack);
 
@@ -141,9 +141,9 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnTransferVendorItem(NetworkVendorItemTransfer transfer);
 
-        void OnMemorizeSpell(NetworkSpellSlot slot);
+        void OnMemorizeSpell(string unitId, NetworkSpellSlot networkSpellSlot, NetworkAbility networkAbility);
 
-        void OnForgetSpell(NetworkSpellSlot slot);
+        void OnForgetSpell(string unitId, NetworkSpellSlot networkSpellSlot, NetworkAbility networkAbility);
 
         void OnLevelingMythicClassSelected(string mythicClassId);
 
@@ -337,7 +337,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnTrapDisarmRolled(NetworkTrapDisarm trapDisarm);
 
-        void OnUnitAutoUseAbilityChanged(string unitId, NetworkAbility networkAbility);
+        void OnUnitAutoUseAbilityChanged(NetworkAutoUseAbility networkAutoUseAbility);
 
         void OnCopyInventoryItem(NetworkItemCopy itemCopy);
     }

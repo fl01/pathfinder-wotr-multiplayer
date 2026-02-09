@@ -46,7 +46,6 @@ using Kingmaker.UI.MVVM._VM.Settings.Entities;
 using Kingmaker.UI.Selection;
 using Kingmaker.UI.SettingsUI;
 using Kingmaker.UI.UnitSettings;
-using Kingmaker.UnitLogic;
 using Kingmaker.UnitLogic.ActivatableAbilities;
 using Kingmaker.UnitLogic.Commands;
 using Kingmaker.Utility;
@@ -1617,28 +1616,28 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
-        public void ForgetSpell(NetworkSpellSlot networkSpellSlot)
+        public void ForgetSpell(string unitId, NetworkSpellSlot networkSpellSlot, NetworkAbility networkAbility)
         {
-            var unit = _gameStateLookupService.GetUnitEntity(networkSpellSlot.UnitId);
-            if (unit == null)
-            {
-                _logger.LogError("Unable to find unit to forget spell. UnitId={UnitId}", networkSpellSlot.UnitId);
-                return;
-            }
-
-            var spellbook = unit.Spellbooks.FirstOrDefault(s => string.Equals(s.Blueprint.Name.Key, networkSpellSlot.SpellbookId, StringComparison.OrdinalIgnoreCase));
-            if (spellbook == null)
-            {
-                _logger.LogError("Unable to find spellbook to forget spell. UnitId={UnitId}, SpellbookId={SpellbookId}", networkSpellSlot.UnitId, networkSpellSlot.SpellbookId);
-                return;
-            }
-
             _mainThreadAccessor.Post(() =>
             {
-                var spellSlot = GetSpellSlot(spellbook, networkSpellSlot);
+                var unit = _gameStateLookupService.GetUnitEntity(unitId);
+                if (unit == null)
+                {
+                    _logger.LogError("Unable to find unit to forget spell. UnitId={UnitId}", unitId);
+                    return;
+                }
+
+                var spellbook = _gameStateLookupService.GetSpellbook(unit, networkAbility.SpellbookId);
+                if (spellbook == null)
+                {
+                    _logger.LogError("Unable to find spellbook to forget spell. UnitId={UnitId}, SpellbookId={SpellbookId}", unitId, networkAbility.SpellbookId);
+                    return;
+                }
+
+                var spellSlot = _gameStateLookupService.GetSpellSlot(spellbook, networkSpellSlot.Index, networkSpellSlot.Type, networkAbility.SpellLevel);
                 if (spellSlot == null)
                 {
-                    _logger.LogError("Unable to find spellslot to forget. UnitId={UnitId}, SpellbookId={SpellbookId}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}", networkSpellSlot.UnitId, networkSpellSlot.SpellbookId, networkSpellSlot.Index, networkSpellSlot.Type);
+                    _logger.LogError("Unable to find spellslot to forget. UnitId={UnitId}, SpellbookId={SpellbookId}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}", unitId, networkAbility.SpellbookId, networkSpellSlot.Index, networkSpellSlot.Type);
                     return;
                 }
 
@@ -1648,26 +1647,26 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
-        public void MemorizeSpell(NetworkSpellSlot networkSpellSlot)
+        public void MemorizeSpell(string unitId, NetworkSpellSlot networkSpellSlot, NetworkAbility networkAbility)
         {
-            var unit = _gameStateLookupService.GetUnitEntity(networkSpellSlot.UnitId);
-            if (unit == null)
-            {
-                _logger.LogError("Unable to find unit to memorize spell. UnitId={UnitId}", networkSpellSlot.UnitId);
-                return;
-            }
-
-            var spellbook = unit.Spellbooks.FirstOrDefault(s => string.Equals(s.Blueprint.Name.Key, networkSpellSlot.SpellbookId, StringComparison.OrdinalIgnoreCase));
-            if (spellbook == null)
-            {
-                _logger.LogError("Unable to find spellbook to memorize spell. UnitId={UnitId}, SpellbookId={SpellbookId}", networkSpellSlot.UnitId, networkSpellSlot.SpellbookId);
-                return;
-            }
-
             _mainThreadAccessor.Post(() =>
             {
-                var spellSlot = GetSpellSlot(spellbook, networkSpellSlot);
-                var spell = _gameStateLookupService.GetKnownSpell(spellbook, networkSpellSlot.SpellId, networkSpellSlot.SpellName);
+                var unit = _gameStateLookupService.GetUnitEntity(unitId);
+                if (unit == null)
+                {
+                    _logger.LogError("Unable to find unit to memorize spell. UnitId={UnitId}", unitId);
+                    return;
+                }
+
+                var spellbook = _gameStateLookupService.GetSpellbook(unit, networkAbility.SpellbookId);
+                if (spellbook == null)
+                {
+                    _logger.LogError("Unable to find spellbook to memorize spell. UnitId={UnitId}, SpellbookId={SpellbookId}", unitId, networkAbility.SpellbookId);
+                    return;
+                }
+
+                var spellSlot = _gameStateLookupService.GetSpellSlot(spellbook, networkSpellSlot.Index, networkSpellSlot.Type, networkAbility.SpellLevel);
+                var spell = _gameStateLookupService.GetKnownSpell(spellbook, networkAbility);
                 spellbook.Memorize(spell, spellSlot);
                 _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.SpellBook.MemorizedSpell.Key, spell.Name, unit.CharacterName);
                 RefreshSpellbookUI();
@@ -2087,20 +2086,20 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return unit?.Commands.IsRunning() ?? false;
         }
 
-        public void SetUnitAutoUseAbility(string unitId, NetworkAbility ability)
+        public void SetUnitAutoUseAbility(NetworkAutoUseAbility autoUseAbility)
         {
             _mainThreadAccessor.Post(() =>
             {
-                var unit = _gameStateLookupService.GetUnitEntity(unitId);
+                var unit = _gameStateLookupService.GetUnitEntity(autoUseAbility.UnitId);
                 if (unit == null)
                 {
-                    _logger.LogError("Unable to change autouse ability due to missing unit. UnitId={UnitId}", unitId);
+                    _logger.LogError("Unable to change autouse ability due to missing unit. UnitId={UnitId}", autoUseAbility.UnitId);
                     return;
                 }
 
-                var autoUseAbility = _gameStateLookupService.FindAbility(unit, ability);
-                unit.Brain.AutoUseAbility = autoUseAbility;
-                _logger.LogInformation("Unit AutoUseAbility has been changed. UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}", unitId, ability?.Id, ability?.Name);
+                var ability = _gameStateLookupService.FindAbility(unit, autoUseAbility.Ability);
+                unit.Brain.AutoUseAbility = ability;
+                _logger.LogInformation("Unit AutoUseAbility has been changed. UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}", autoUseAbility.UnitId, ability?.UniqueId, ability?.NameForAcronym);
             });
         }
 
@@ -2586,19 +2585,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
             }
 
             var spellSlot = new MechanicActionBarSlotMemorizedSpell(ability.SpellSlot) { Unit = unit };
-            return spellSlot;
-        }
-
-        private SpellSlot GetSpellSlot(Spellbook spellbook, NetworkSpellSlot slot)
-        {
-            if (spellbook.m_MemorizedSpells.Length < slot.SpellLevel)
-            {
-                return null;
-            }
-
-            var spellLevel = spellbook.m_MemorizedSpells[slot.SpellLevel];
-            var spellSlot = spellLevel.FirstOrDefault(s => s.Index == slot.Index && s.Type == slot.Type);
-
             return spellSlot;
         }
 

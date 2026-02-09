@@ -17,16 +17,12 @@ namespace WOTRMultiplayer.HarmonyPatches.ActionBar
                 return;
             }
 
-            var networkAbility = value == null ? null : new NetworkAbility
+            var autoUse = new NetworkAutoUseAbility
             {
-                Id = value.UniqueId,
-                Name = value.NameForAcronym,
-                SpellbookId = value.Spellbook?.Blueprint.Name.Key,
-                CasterId = __instance.Owner.UniqueId,
-                ConvertedFromId = value.ConvertedFrom?.UniqueId
+                UnitId = __instance.Owner.UniqueId,
+                Ability = Main.Mapper.Map<NetworkAbility>(value)
             };
-
-            Main.Multiplayer.OnUnitAutoUseAbilityChanged(__instance.Owner.UniqueId, networkAbility);
+            Main.Multiplayer.OnUnitAutoUseAbilityChanged(autoUse);
         }
     }
 }

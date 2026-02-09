@@ -202,19 +202,19 @@ namespace WOTRMultiplayer.Services
             Game.Combat.Round = round;
         }
 
-        public void OnAbilityUse(NetworkAbility ability)
+        public void OnAbilityUse(NetworkAbilityUse abilityUse)
         {
-            if (!IsCasterControlledByLocalPlayer(ability.CasterId))
+            if (!IsCasterControlledByLocalPlayer(abilityUse.InitiatorUnitId))
             {
                 return;
             }
 
             var message = new NotifyAbilityUsed
             {
-                Ability = Mapper.Map<Networking.Messages.Contracts.NetworkAbility>(ability)
+                AbilityUse = Mapper.Map<Networking.Messages.Contracts.NetworkAbilityUse>(abilityUse)
             };
             Logger.LogInformation("Sending {MessageType}. CasterId={CasterId}, TargetUnitId={TargetUnitId}, TargetPoint={TargetPoint}, AbilityId={AbilityId}, SpellbookId={SpellbookId}, VectorPathCount={VectorPathCount}, MovementLimit={MovementLimit}",
-                nameof(NotifyAbilityUsed), message.Ability.CasterId, message.Ability.Target.UnitId, message.Ability.Target.Point, message.Ability.Id, message.Ability.SpellbookId, message.Ability.VectorPath?.Count, message.Ability.MovementLimit);
+                nameof(NotifyAbilityUsed), message.AbilityUse.InitiatorUnitId, message.AbilityUse.Target?.UnitId, message.AbilityUse.Target?.Point, message.AbilityUse.Ability.Id, message.AbilityUse.Ability.SpellbookId, message.AbilityUse.VectorPath, message.AbilityUse.MovementLimit);
 
             Send(message);
         }
@@ -228,7 +228,7 @@ namespace WOTRMultiplayer.Services
                 return;
             }
 
-            var isLocal = IsControlledByLocalPlayer(networkUnitAttack.ExecutorUnitId);
+            var isLocal = IsControlledByLocalPlayer(networkUnitAttack.InitiatorUnitId);
             if (!isLocal || (Game.Combat.Turn?.IsAI ?? false))
             {
                 return;
@@ -238,7 +238,7 @@ namespace WOTRMultiplayer.Services
             {
                 Attack = Mapper.Map<Networking.Messages.Contracts.NetworkUnitAttack>(networkUnitAttack)
             };
-            Logger.LogInformation("Sending {MessageType}. ExecutorUnitId={ExecutorUnitId}, TargetUnitId={TargetUnitId}, IsFullAttack={IsFullAttack}", nameof(NotifyUnitAttacked), message.Attack.ExecutorUnitId, message.Attack.TargetUnitId, message.Attack.IsFullAttack);
+            Logger.LogInformation("Sending {MessageType}. InitiatorUnitId={InitiatorUnitId}, TargetUnitId={TargetUnitId}, IsFullAttack={IsFullAttack}", nameof(NotifyUnitAttacked), message.Attack.InitiatorUnitId, message.Attack.TargetUnitId, message.Attack.IsFullAttack);
 
             Send(message);
         }
@@ -795,26 +795,30 @@ namespace WOTRMultiplayer.Services
             Logger.LogInformation("Sending {MessageType}. ItemId={ItemId}, Count={Count}, Action={Action}, ActionTarget={ActionTarget}", nameof(NetworkVendorItemTransfer), message.ItemTransfer.Item.UniqueId, message.ItemTransfer.Count, message.ItemTransfer.ItemAction, message.ItemTransfer.ItemActionTarget);
             Send(message);
         }
-        public void OnMemorizeSpell(NetworkSpellSlot slot)
+        public void OnMemorizeSpell(string unitId, NetworkSpellSlot networkSpellSlot, NetworkAbility networkAbility)
         {
             var message = new NotifySpellMemorized
             {
-                Slot = Mapper.Map<Networking.Messages.Contracts.NetworkSpellSlot>(slot)
+                UnitId = unitId,
+                Slot = Mapper.Map<Networking.Messages.Contracts.NetworkSpellSlot>(networkSpellSlot),
+                Ability = Mapper.Map<Networking.Messages.Contracts.NetworkAbility>(networkAbility),
             };
             Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, SpellbookId={SpellbookId}, SpellId={SpellId}, SpellLevel={SpellLevel}, SpellName={SpellName}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}",
-                nameof(NotifySpellMemorized), slot.UnitId, slot.SpellbookId, slot.SpellId, slot.SpellLevel, slot.SpellName, slot.Index, slot.Type);
+                nameof(NotifySpellMemorized), message.UnitId, message.Ability.SpellbookId, message.Ability.Id, message.Ability.SpellLevel, message.Ability.Name, message.Slot.Index, message.Slot.Type);
 
             Send(message);
         }
 
-        public void OnForgetSpell(NetworkSpellSlot slot)
+        public void OnForgetSpell(string unitId, NetworkSpellSlot networkSpellSlot, NetworkAbility networkAbility)
         {
             var message = new NotifySpellForgotten
             {
-                Slot = Mapper.Map<Networking.Messages.Contracts.NetworkSpellSlot>(slot)
+                UnitId = unitId,
+                Slot = Mapper.Map<Networking.Messages.Contracts.NetworkSpellSlot>(networkSpellSlot),
+                Ability = Mapper.Map<Networking.Messages.Contracts.NetworkAbility>(networkAbility),
             };
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, SpellbookId={SpellbookId}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}",
-                nameof(NotifySpellForgotten), slot.UnitId, slot.SpellbookId, slot.Index, slot.Type);
+            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, SpellbookId={SpellbookId}, SpellId={SpellId}, SpellLevel={SpellLevel}, SpellName={SpellName}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}",
+                nameof(NotifySpellForgotten), message.UnitId, message.Ability.SpellbookId, message.Ability.Id, message.Ability.SpellLevel, message.Ability.Name, message.Slot.Index, message.Slot.Type);
 
             Send(message);
         }
@@ -1750,19 +1754,18 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
-        public void OnUnitAutoUseAbilityChanged(string unitId, NetworkAbility networkAbility)
+        public void OnUnitAutoUseAbilityChanged(NetworkAutoUseAbility networkAutoUseAbility)
         {
-            if (!IsControlledByLocalPlayer(unitId))
+            if (!IsControlledByLocalPlayer(networkAutoUseAbility.UnitId))
             {
                 return;
             }
 
             var message = new NotifyUnitAutoUseAbilityChanged
             {
-                UnitId = unitId,
-                Ability = Mapper.Map<Networking.Messages.Contracts.NetworkAbility>(networkAbility)
+                AutoUse = Mapper.Map<Networking.Messages.Contracts.NetworkAutoUseAbility>(networkAutoUseAbility)
             };
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}", nameof(NotifyUnitAutoUseAbilityChanged), message.UnitId, message.Ability?.Id, message.Ability?.Name);
+            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}", nameof(NotifyUnitAutoUseAbilityChanged), message.AutoUse.UnitId, message.AutoUse.Ability?.Id, message.AutoUse.Ability?.Name);
             Send(message);
         }
 
@@ -3300,10 +3303,10 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyUnitAutoUseAbilityChanged(long receivedFrom, NotifyUnitAutoUseAbilityChanged message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}", nameof(NotifyUnitAutoUseAbilityChanged), receivedFrom, message.UnitId, message.Ability?.Id, message.Ability?.Name);
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}", nameof(NotifyUnitAutoUseAbilityChanged), receivedFrom, message.AutoUse.UnitId, message.AutoUse.Ability?.Id, message.AutoUse.Ability?.Name);
 
-            var ability = Mapper.Map<NetworkAbility>(message.Ability);
-            GameInteraction.SetUnitAutoUseAbility(message.UnitId, ability);
+            var autoUseAbility = Mapper.Map<NetworkAutoUseAbility>(message.AutoUse);
+            GameInteraction.SetUnitAutoUseAbility(autoUseAbility);
 
             OnAfterNetworkMessageHandled(receivedFrom, message);
         }
@@ -3970,20 +3973,21 @@ namespace WOTRMultiplayer.Services
             OnAfterNetworkMessageHandled(receivedFrom, activatableAbility);
         }
 
-        private void OnNotifyAbilityUsed(long receivedFrom, NotifyAbilityUsed abilityUse)
+        private void OnNotifyAbilityUsed(long receivedFrom, NotifyAbilityUsed message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, CasterId={CasterId}, AbilityId={AbilityId}, TargetUnitId={TargetUnitId}, TargetPoint={TargetPoint}, MovementLimit={MovementLimit}", nameof(NotifyAbilityUsed), receivedFrom, abilityUse.Ability.CasterId, abilityUse.Ability.Id, abilityUse.Ability.Target.UnitId, abilityUse.Ability.Target.Point, abilityUse.Ability.MovementLimit);
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, CasterId={CasterId}, AbilityId={AbilityId}, TargetUnitId={TargetUnitId}, TargetPoint={TargetPoint}, MovementLimit={MovementLimit}",
+                nameof(NotifyAbilityUsed), receivedFrom, message.AbilityUse.InitiatorUnitId, message.AbilityUse.Ability.Id, message.AbilityUse.Target?.UnitId, message.AbilityUse.Target?.Point, message.AbilityUse.MovementLimit);
 
-            var ability = Mapper.Map<NetworkAbility>(abilityUse.Ability);
+            var ability = Mapper.Map<NetworkAbilityUse>(message.AbilityUse);
             CombatInteraction.UseAbility(ability);
 
-            OnAfterNetworkMessageHandled(receivedFrom, abilityUse);
+            OnAfterNetworkMessageHandled(receivedFrom, message);
         }
 
         private void OnNotifyUnitAttacked(long receivedFrom, NotifyUnitAttacked unitAttacked)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, ExecutorUnitId={ExecutorUnitId}, TargetUnitId={TargetUnitId}, IsFullAttack={IsFullAttack}, IsSingleAttack={IsSingleAttack}, MovementLimit={MovementLimit}",
-                nameof(NotifyUnitAttacked), receivedFrom, unitAttacked.Attack.ExecutorUnitId, unitAttacked.Attack.TargetUnitId, unitAttacked.Attack.IsFullAttack, unitAttacked.Attack.IsSingleAttack, unitAttacked.Attack.MovementLimit);
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, InitiatorUnitId={InitiatorUnitId}, TargetUnitId={TargetUnitId}, IsFullAttack={IsFullAttack}, IsSingleAttack={IsSingleAttack}, MovementLimit={MovementLimit}",
+                nameof(NotifyUnitAttacked), receivedFrom, unitAttacked.Attack.InitiatorUnitId, unitAttacked.Attack.TargetUnitId, unitAttacked.Attack.IsFullAttack, unitAttacked.Attack.IsSingleAttack, unitAttacked.Attack.MovementLimit);
 
             var attack = Mapper.Map<NetworkUnitAttack>(unitAttacked.Attack);
             CombatInteraction.AttackUnit(attack);
@@ -4085,28 +4089,30 @@ namespace WOTRMultiplayer.Services
             OnAfterNetworkMessageHandled(receivedFrom, message);
         }
 
-        private void OnNotifySpellForgotten(long receivedFrom, NotifySpellForgotten spellForgotten)
+        private void OnNotifySpellForgotten(long receivedFrom, NotifySpellForgotten message)
         {
             Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitId={UnitId}, SpellbookId={SpellbookId}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}",
-                nameof(NotifySpellForgotten), receivedFrom, spellForgotten.Slot.UnitId, spellForgotten.Slot.SpellbookId, spellForgotten.Slot.Index, spellForgotten.Slot.Type);
+                nameof(NotifySpellForgotten), receivedFrom, message.UnitId, message.Ability.SpellbookId, message.Slot.Index, message.Slot.Type);
 
-            var slot = Mapper.Map<NetworkSpellSlot>(spellForgotten.Slot);
+            var slot = Mapper.Map<NetworkSpellSlot>(message.Slot);
+            var ability = Mapper.Map<NetworkAbility>(message.Ability);
 
-            GameInteraction.ForgetSpell(slot);
+            GameInteraction.ForgetSpell(message.UnitId, slot, ability);
 
-            OnAfterNetworkMessageHandled(receivedFrom, spellForgotten);
+            OnAfterNetworkMessageHandled(receivedFrom, message);
         }
 
-        private void OnNotifySpellMemorized(long receivedFrom, NotifySpellMemorized memorized)
+        private void OnNotifySpellMemorized(long receivedFrom, NotifySpellMemorized message)
         {
             Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitId={UnitId}, SpellbookId={SpellbookId}, SpellId={SpellId}, SpellLevel={SpellLevel}, SpellName={SpellName}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}",
-                nameof(NotifySpellMemorized), receivedFrom, memorized.Slot.UnitId, memorized.Slot.SpellbookId, memorized.Slot.SpellId, memorized.Slot.SpellLevel, memorized.Slot.SpellName, memorized.Slot.Index, memorized.Slot.Type);
+                nameof(NotifySpellMemorized), receivedFrom, message.UnitId, message.Ability.SpellbookId, message.Ability.Id, message.Ability.SpellLevel, message.Ability.Name, message.Slot.Index, message.Slot.Type);
 
-            var slot = Mapper.Map<NetworkSpellSlot>(memorized.Slot);
+            var slot = Mapper.Map<NetworkSpellSlot>(message.Slot);
+            var ability = Mapper.Map<NetworkAbility>(message.Ability);
 
-            GameInteraction.MemorizeSpell(slot);
+            GameInteraction.MemorizeSpell(message.UnitId, slot, ability);
 
-            OnAfterNetworkMessageHandled(receivedFrom, memorized);
+            OnAfterNetworkMessageHandled(receivedFrom, message);
         }
 
         private void OnNotifyLevelingPortraitSelected(long receivedFrom, NotifyLevelingPortraitSelected levelingPortraitSelected)

@@ -468,7 +468,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnAbilityUse(NetworkAbility networkAbility)
+        public void OnAbilityUse(NetworkAbilityUse networkAbilityUse)
         {
             try
             {
@@ -477,11 +477,11 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Current.OnAbilityUse(networkAbility);
+                _multiplayerActorAccessor.Current.OnAbilityUse(networkAbilityUse);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while using ability. AbilityName={AbilityName}", networkAbility?.Name);
+                _logger.LogError(ex, "Error while using ability. AbilityName={AbilityName}", networkAbilityUse.Ability?.Name);
                 throw;
             }
         }
@@ -1130,7 +1130,7 @@ namespace WOTRMultiplayer.Services
             return _multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Host.IsActive;
         }
 
-        public void OnMemorizeSpell(NetworkSpellSlot networkSpellSlot)
+        public void OnMemorizeSpell(string unitId, NetworkSpellSlot networkSpellSlot, NetworkAbility networkAbility)
         {
             try
             {
@@ -1139,16 +1139,16 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Current.OnMemorizeSpell(networkSpellSlot);
+                _multiplayerActorAccessor.Current.OnMemorizeSpell(unitId, networkSpellSlot, networkAbility);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while memorizing spell. UnitId={UnitId}", networkSpellSlot?.UnitId);
+                _logger.LogError(ex, "Error while memorizing spell. UnitId={UnitId}, SpellName={SpellName}", unitId, networkAbility.Name);
                 throw;
             }
         }
 
-        public void OnForgetSpell(NetworkSpellSlot networkSpellSlot)
+        public void OnForgetSpell(string unitId, NetworkSpellSlot networkSpellSlot, NetworkAbility networkAbility)
         {
             try
             {
@@ -1157,11 +1157,11 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Current.OnForgetSpell(networkSpellSlot);
+                _multiplayerActorAccessor.Current.OnForgetSpell(unitId, networkSpellSlot, networkAbility);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while forgetting spell. UnitId={UnitId}", networkSpellSlot?.UnitId);
+                _logger.LogError(ex, "Error while forgetting spell. UnitId={UnitId}, SpellName={SpellName}", unitId, networkAbility.Name);
                 throw;
             }
         }
@@ -2072,7 +2072,7 @@ namespace WOTRMultiplayer.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while processing unit attack. UnitId={UnitId}, TargetUnitId={TargetUnitId}", networkUnitAttack.ExecutorUnitId, networkUnitAttack.TargetUnitId);
+                _logger.LogError(ex, "Error while processing unit attack. UnitId={UnitId}, TargetUnitId={TargetUnitId}", networkUnitAttack.InitiatorUnitId, networkUnitAttack.TargetUnitId);
                 throw;
             }
         }
@@ -4013,7 +4013,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnUnitAutoUseAbilityChanged(string unitId, NetworkAbility networkAbility)
+        public void OnUnitAutoUseAbilityChanged(NetworkAutoUseAbility networkAutoUseAbility)
         {
             try
             {
@@ -4022,11 +4022,11 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Current.OnUnitAutoUseAbilityChanged(unitId, networkAbility);
+                _multiplayerActorAccessor.Current.OnUnitAutoUseAbilityChanged(networkAutoUseAbility);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while changing unit autouse ability. UnitId={UnitId}, AbilityName={AbilityName}", unitId, networkAbility?.Name);
+                _logger.LogError(ex, "Error while changing unit autouse ability. UnitId={UnitId}, AbilityName={AbilityName}", networkAutoUseAbility.UnitId, networkAutoUseAbility.Ability?.Name);
                 throw;
             }
         }

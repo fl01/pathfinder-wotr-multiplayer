@@ -26,10 +26,14 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         GlobalMapArmyState GetGlobalMapArmy(string id);
 
-        AbilityData GetKnownSpell(Spellbook spellbook, string abilityId, string abilityName);
+        AbilityData FindAbility(UnitEntityData unit, NetworkAbility ability);
 
-        AbilityData FindAbility(UnitEntityData unit, NetworkAbility abilityUse);
+        Spellbook GetSpellbook(UnitEntityData unit, string spellbookId);
 
-        AbilityData FindAbility(NetworkAbility abilityUse);
+        AbilityData GetKnownSpell(Spellbook spellbook, string abilityId, string abilityBlueprintId, int spellLevel, int? metamagic);
+
+        AbilityData GetKnownSpell(Spellbook spellbook, NetworkAbility ability);
+
+        SpellSlot GetSpellSlot(Spellbook spellbook, int index, SpellSlotType slotType, int spellLevel);
     }
 }

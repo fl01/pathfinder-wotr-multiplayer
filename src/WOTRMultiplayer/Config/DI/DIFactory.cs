@@ -50,6 +50,7 @@ namespace WOTRMultiplayer.Config.DI
             serviceCollection.AddAutoMapper(cfg =>
             {
                 cfg.AddProfile<NetworkMessagesProfile>();
+                cfg.AddProfile<GameProfile>();
             });
 
             serviceCollection.AddSingleton<IMainThreadAccessor, MainThreadAccessor>();

@@ -3,12 +3,12 @@
 namespace WOTRMultiplayer.Networking.Messages.Contracts
 {
     [ProtoContract]
-    public class NetworkSpellSlot
+    public class NetworkAutoUseAbility
     {
         [ProtoMember(1)]
-        public int Index { get; set; }
+        public NetworkAbility Ability { get; set; }
 
         [ProtoMember(2)]
-        public string Type { get; set; }
+        public string UnitId { get; set; }
     }
 }

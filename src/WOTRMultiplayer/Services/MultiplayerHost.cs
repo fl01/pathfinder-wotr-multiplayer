@@ -927,7 +927,7 @@ namespace WOTRMultiplayer.Services
             {
                 Command = Mapper.Map<Networking.Messages.Contracts.NetworkTacticalUnitUseAbilityCommand>(tacticalUnitUseAbilityCommand)
             };
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, AbilityId={AbilityId}, Path={Path}", nameof(NotifyTacticalUnitUseAbilityCommandExecuted), message.Command.Ability.CasterId, message.Command.Ability.Id, message.Command.Ability.VectorPath);
+            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, AbilityId={AbilityId}, Path={Path}", nameof(NotifyTacticalUnitUseAbilityCommandExecuted), message.Command.InitiatorUnitId, message.Command.Ability.Id, message.Command.VectorPath);
             Send(message);
         }
 

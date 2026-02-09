@@ -8,6 +8,12 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     public class NotifySpellForgotten
     {
         [ProtoMember(1)]
+        public string UnitId { get; set; }
+
+        [ProtoMember(2)]
         public NetworkSpellSlot Slot { get; set; }
+
+        [ProtoMember(3)]
+        public NetworkAbility Ability { get; set; }
     }
 }

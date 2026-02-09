@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace WOTRMultiplayer.Entities.Combat.Crusades
+namespace WOTRMultiplayer.Entities.Combat
 {
-    public class NetworkTacticalUnitUseAbilityCommand
+    public class NetworkAbilityUse
     {
         public NetworkAbility Ability { get; set; }
 
@@ -11,5 +11,9 @@ namespace WOTRMultiplayer.Entities.Combat.Crusades
         public NetworkTargetWrapper Target { get; set; }
 
         public List<NetworkVector3> VectorPath { get; set; }
+
+        public string CommandType { get; set; }
+
+        public string MovementLimit { get; set; }
     }
 }

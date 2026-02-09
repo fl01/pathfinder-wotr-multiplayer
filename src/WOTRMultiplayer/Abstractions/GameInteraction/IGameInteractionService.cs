@@ -106,9 +106,9 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void MakeVendorDeal();
 
-        void ForgetSpell(NetworkSpellSlot networkSpellSlot);
+        void ForgetSpell(string unitId, NetworkSpellSlot networkSpellSlot, NetworkAbility networkAbility);
 
-        void MemorizeSpell(NetworkSpellSlot networkSpellSlot);
+        void MemorizeSpell(string unitId, NetworkSpellSlot networkSpellSlot, NetworkAbility networkAbility);
 
         void MoveActionBarSlots(NetworkActionBarSlot sourceActionBarSlot, NetworkActionBarSlot targetActionBarSlot);
 
@@ -193,7 +193,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         bool IsUnitBusy(string unitId);
 
-        void SetUnitAutoUseAbility(string unitId, NetworkAbility ability);
+        void SetUnitAutoUseAbility(NetworkAutoUseAbility autoUseAbility);
 
         void CopyInventoryItem(NetworkItemCopy itemCopy);
     }

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using WOTRMultiplayer.Entities.Combat;
 
 namespace WOTRMultiplayer.Entities.Units
 {
@@ -14,10 +13,6 @@ namespace WOTRMultiplayer.Entities.Units
         public NetworkUnitTurnBasedInfo TurnBasedInfo { get; set; }
 
         public NetworkUnitCombatState CombatState { get; set; }
-
-        public NetworkUnitAttack CurrentAttack { get; set; }
-
-        public NetworkAbility CurrentAbility { get; set; }
 
         public NetworkUnitDescriptor Descriptor { get; set; }
 

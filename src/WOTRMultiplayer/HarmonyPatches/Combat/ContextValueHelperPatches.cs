@@ -37,7 +37,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
         private static int RollDice(MechanicsContext context, RuleRollDice ruleRollDice)
         {
-            if (Main.Multiplayer.IsActive && Main.Multiplayer.IsInCombat)
+            if (Main.Multiplayer.IsActive && Main.Multiplayer.IsInCombat && ruleRollDice.DiceFormula.Rolls != 0 && ruleRollDice.DiceFormula.Dice != Kingmaker.RuleSystem.DiceType.Zero)
             {
                 Main.GetLogger<ContextValueHelperPatches>().LogWarning("Name={Name}, UnitId={UnitId}, TargetUnitId={TargetUnitId}, TargetPoint={TargetPoint}, AbilityBlueprintId={AbilityBlueprintId}, AbilityName={AbilityName}, ItemName={ItemName}, DiceRolls={DiceRolls}, Dice={Dice}",
                     context.NameForAcronym, context.MaybeOwner?.UniqueId, context.MainTarget?.Unit, context.MainTarget?.Point, context.SourceAbility?.AssetGuid.ToString(), context.SourceAbility?.NameForAcronym, context.SourceItem?.NameForAcronym, ruleRollDice.DiceFormula.Rolls, ruleRollDice.DiceFormula.Dice);

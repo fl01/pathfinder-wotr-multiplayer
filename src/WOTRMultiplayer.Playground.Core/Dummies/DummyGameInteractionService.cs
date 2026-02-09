@@ -120,10 +120,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void ForgetSpell(NetworkSpellSlot networkSpellSlot)
-        {
-        }
-
         public NetworkCampingState GetCampigState()
         {
             return null;
@@ -233,10 +229,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         }
 
         public void MakeVendorDeal()
-        {
-        }
-
-        public void MemorizeSpell(NetworkSpellSlot networkSpellSlot)
         {
         }
 
@@ -418,11 +410,19 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
             return false;
         }
 
-        public void SetUnitAutoUseAbility(string unitId, NetworkAbility ability)
+        public void SetUnitAutoUseAbility(NetworkAutoUseAbility networkAutoUseAbility)
         {
         }
 
         public void CopyInventoryItem(NetworkItemCopy itemCopy)
+        {
+        }
+
+        public void ForgetSpell(string unitId, NetworkSpellSlot networkSpellSlot, NetworkAbility networkAbility)
+        {
+        }
+
+        public void MemorizeSpell(string unitId, NetworkSpellSlot networkSpellSlot, NetworkAbility networkAbility)
         {
         }
     }

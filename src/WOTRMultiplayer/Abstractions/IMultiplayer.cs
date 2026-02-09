@@ -80,7 +80,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnInteractWithMapObjectOvertip(NetworkOvertip networkOvertip);
 
-        void OnAbilityUse(NetworkAbility networkAbility);
+        void OnAbilityUse(NetworkAbilityUse networkAbilityUse);
 
         void OnToggleActivatableAbility(NetworkActivatableAbility networkActivatableAbility);
 
@@ -138,9 +138,9 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnCloseVendorWindow();
 
-        void OnMemorizeSpell(NetworkSpellSlot networkSpellSlot);
+        void OnMemorizeSpell(string unitId, NetworkSpellSlot networkSpellSlot, NetworkAbility networkAbility);
 
-        void OnForgetSpell(NetworkSpellSlot networkSpellSlot);
+        void OnForgetSpell(string unitId, NetworkSpellSlot networkSpellSlot, NetworkAbility networkAbility);
 
         bool RequestLevelingUI(string unitId, NetworkLevelingType levelingType);
 
@@ -484,7 +484,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnTrapDisarmRolled(NetworkTrapDisarm trapDisarm);
 
-        void OnUnitAutoUseAbilityChanged(string unitId, NetworkAbility networkAbility);
+        void OnUnitAutoUseAbilityChanged(NetworkAutoUseAbility networkAutoUseAbility);
 
         void OnCopyInventoryItem(NetworkItemCopy itemCopy);
     }

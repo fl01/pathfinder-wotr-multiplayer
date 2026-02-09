@@ -8,9 +8,6 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     public class NotifyUnitAutoUseAbilityChanged
     {
         [ProtoMember(1)]
-        public string UnitId { get; set; }
-
-        [ProtoMember(2)]
-        public NetworkAbility Ability { get; set; }
+        public NetworkAutoUseAbility AutoUse { get; set; }
     }
 }

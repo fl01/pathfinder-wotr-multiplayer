@@ -3,8 +3,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Kingmaker.Assets.Controllers.GlobalMap;
-using Kingmaker.UI;
-using Kingmaker.UI.MVVM._PCView.Crusade.LeaderLevelUp;
 using Kingmaker.UI.MVVM._PCView.GlobalMap.Message;
 using Kingmaker.UI.MVVM._VM.GlobalMap.Message;
 using Kingmaker.Utility;

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using AutoMapper;
 using HarmonyLib;
 using Kingmaker.PubSubSystem;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,6 +34,8 @@ namespace WOTRMultiplayer
         public static IMultiplayer Multiplayer { get; private set; }
 
         public static IUIAccessor UIAccessor { get; private set; }
+
+        public static IMapper Mapper { get; private set; }
 
         public static IMultiplayerRollsProcessor Rolls { get; private set; }
 
@@ -69,6 +72,7 @@ namespace WOTRMultiplayer
                 Multiplayer = _serviceProvider.GetRequiredService<IMultiplayer>();
                 Rolls = _serviceProvider.GetRequiredService<IMultiplayerRollsProcessor>();
                 UIAccessor = _serviceProvider.GetRequiredService<IUIAccessor>();
+                Mapper = _serviceProvider.GetRequiredService<IMapper>();
 
                 entry.OnGUI += OnGui;
                 entry.OnSaveGUI += OnSaveGui;

@@ -75,26 +75,12 @@ namespace WOTRMultiplayer.HarmonyPatches.ActionBar
                     slot.UnitId = slot.ActivatableAbility.CasterId;
                     break;
                 case MechanicActionBarSlotAbility ability:
-                    slot.Ability = new NetworkAbility
-                    {
-                        Id = ability.Ability.UniqueId,
-                        Name = ability.Ability.NameForAcronym,
-                        SpellbookId = ability.Ability.Spellbook?.Blueprint.Name.Key,
-                        CasterId = ability.Unit.UniqueId,
-                        ConvertedFromId = ability.Ability.ConvertedFrom?.UniqueId,
-                    };
-                    slot.UnitId = slot.Ability.CasterId;
+                    slot.Ability = Main.Mapper.Map<NetworkAbility>(ability.Ability);
+                    slot.UnitId = ability.Unit.UniqueId;
                     break;
                 case MechanicActionBarSlotSpell spell:
-                    slot.Ability = new NetworkAbility
-                    {
-                        Id = spell.Spell.UniqueId,
-                        Name = spell.Spell.NameForAcronym,
-                        SpellbookId = spell.Spell.Spellbook?.Blueprint.Name.Key,
-                        CasterId = spell.Unit.UniqueId,
-                        ConvertedFromId = spell.Spell.ConvertedFrom?.UniqueId,
-                    };
-                    slot.UnitId = slot.Ability.CasterId;
+                    slot.Ability = Main.Mapper.Map<NetworkAbility>(spell.Spell);
+                    slot.UnitId = spell.Unit.UniqueId;
                     break;
                 case MechanicActionBarSlotItem item:
                     slot.Item = NetworkItem.FromItemEntity(item.Item);

@@ -129,9 +129,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
             try
             {
-                if (__instance.Ability.StickyTouch != null)
+                if (ShouldIgnoreStickyTouchAbilityCast(__instance))
                 {
-                    Main.GetLogger<UnitCommandsPatches>().LogWarning("Skipping ability use as it's a part of sticky touch usage. UnitId={UnitId}, AbilityName={AbilityName}, AbilityId={AbilityId}", __instance.Executor.UniqueId, __instance.Ability.Name, __instance.Ability.UniqueId);
+                    Main.GetLogger<UnitCommandsPatches>().LogWarning("Skipping ability use as it's a part of sticky touch delivery usage. UnitId={UnitId}, AbilityName={AbilityName}, AbilityId={AbilityId}", __instance.Executor.UniqueId, __instance.Ability.Name, __instance.Ability.UniqueId);
                     return;
                 }
 
@@ -151,9 +151,32 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             }
             catch (Exception ex)
             {
-                Main.GetLogger<UnitCommandsPatches>().LogError(ex, "Unable to handle unit ability use command");
+                Main.GetLogger<UnitCommandsPatches>().LogError(ex, "Unable to handle unit ability use command. UnitId={UnitId}, AbilityName={AbilityName}", __instance.Executor.UniqueId, __instance.Ability.NameForAcronym);
                 throw;
             }
+        }
+
+        private static bool ShouldIgnoreStickyTouchAbilityCast(UnitUseAbility command)
+        {
+            if (command.Ability.StickyTouch == null)
+            {
+                return false;
+            }
+
+            if (Game.Instance.TurnBasedCombatController.CurrentTurn == null)
+            {
+                return true;
+            }
+
+            var actionStates = Game.Instance.TurnBasedCombatController.CurrentTurn.GetActionsStates(command.Executor);
+            var isIgnored = command.Type switch
+            {
+                CommandType.Standard => !actionStates.Standard.CanUseAbility,
+                CommandType.Swift => !actionStates.Swift.CanUseAbility,
+                _ => false,
+            };
+
+            return isIgnored;
         }
 
         private static bool IsKineticistAutousedAbility(UnitUseAbility instance)
@@ -168,23 +191,17 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             var path = PathVisualizer.Instance?.CurrentPathForUnit(command.Executor.View);
             var networkPath = path?.vectorPath.Select(v => v.ToNetworkVector3()).ToList();
             var movementLimit = Game.Instance.TurnBasedCombatController.CurrentTurn?.CurrentMovementLimit;
-            var networkAbility = new NetworkAbility
+            var abilityUse = new NetworkAbilityUse
             {
-                Id = command.Ability.UniqueId,
-                Name = command.Ability.NameForAcronym,
-                SpellbookId = command.Ability.Spellbook?.Blueprint.Name.Key,
-                CasterId = command.Executor.UniqueId,
+                Ability = Main.Mapper.Map<NetworkAbility>(command.Ability),
+                Target = Main.Mapper.Map<NetworkTargetWrapper>(command.Target),
+                InitiatorUnitId = command.Executor.UniqueId,
                 VectorPath = networkPath,
-                Target = new NetworkTargetWrapper(
-                    command.Target.Point.ToNetworkVector3(),
-                    command.Target.Orientation,
-                    command.Target.Unit?.UniqueId),
                 CommandType = command.Type.ToString(),
-                ConvertedFromId = command.Ability.ConvertedFrom?.UniqueId,
                 MovementLimit = movementLimit?.ToString()
             };
 
-            Main.Multiplayer.OnAbilityUse(networkAbility);
+            Main.Multiplayer.OnAbilityUse(abilityUse);
         }
 
         private static void OnUnitAttack(UnitAttack command, bool forceMount)
@@ -196,7 +213,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
             var unitAttack = new NetworkUnitAttack
             {
-                ExecutorUnitId = executor,
+                InitiatorUnitId = executor,
                 TargetUnitId = command.TargetUnit?.UniqueId,
                 IsFullAttack = command.IsAttackFull,
                 IsSingleAttack = command.IsSingleAttack,

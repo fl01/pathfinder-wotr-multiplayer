@@ -92,29 +92,13 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat.Crusades
         {
             var unitUseAbilityCommand = new NetworkTacticalUnitUseAbilityCommand
             {
-                Ability = GetAbility(unit, command),
+                Ability = Main.Mapper.Map<NetworkAbility>(command.Ability),
+                InitiatorUnitId = unit.UniqueId,
+                Target = Main.Mapper.Map<NetworkTargetWrapper>(command.Target),
+                VectorPath = GetPath(command.ForcedPath)
             };
 
             Main.Multiplayer.OnTacticalCombatUnitUseAbilityCommand(unitUseAbilityCommand);
-        }
-
-        private static NetworkAbility GetAbility(UnitEntityData unit, TacticalCombatUnitUseAbility command)
-        {
-            var ability = new NetworkAbility
-            {
-                Id = command.Ability.UniqueId,
-                Name = command.Ability.NameForAcronym,
-                SpellbookId = command.Ability.Spellbook?.Blueprint.Name.Key,
-                CasterId = unit.UniqueId,
-                VectorPath = GetPath(command.ForcedPath),
-                Target = new NetworkTargetWrapper(
-                    command.Target.Point.ToNetworkVector3(),
-                    command.Target.Orientation,
-                    command.Target.Unit?.UniqueId),
-                ConvertedFromId = command.Ability.ConvertedFrom?.UniqueId
-            };
-
-            return ability;
         }
 
         private static void OnUnitAttackCommand(UnitEntityData unit, TacticalCombatUnitAttack command)

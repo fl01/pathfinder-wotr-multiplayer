@@ -310,6 +310,15 @@ namespace WOTRMultiplayer.Config.Mapping
 
             CreateMap<NetworkItemCopy, Networking.Messages.Contracts.NetworkItemCopy>()
                 .ReverseMap();
+
+            CreateMap<NetworkAbilityUse, Networking.Messages.Contracts.NetworkAbilityUse>()
+                .ReverseMap();
+
+            CreateMap<NetworkAutoUseAbility, Networking.Messages.Contracts.NetworkAutoUseAbility>()
+                .ReverseMap();
+
+            CreateMap<NetworkAbilityParamSpellSlot, Networking.Messages.Contracts.NetworkAbilityParamSpellSlot>()
+                .ReverseMap();
         }
     }
 }

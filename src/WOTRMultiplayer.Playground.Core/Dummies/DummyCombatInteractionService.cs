@@ -86,7 +86,7 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void UseAbility(NetworkAbility networkAbility)
+        public void UseAbility(NetworkAbilityUse networkAbilityUse)
         {
         }
 

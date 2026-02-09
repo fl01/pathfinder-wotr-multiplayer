@@ -4,7 +4,7 @@ using ProtoBuf;
 namespace WOTRMultiplayer.Networking.Messages.Contracts
 {
     [ProtoContract]
-    public class NetworkTacticalUnitUseAbilityCommand
+    public class NetworkAbilityUse
     {
         [ProtoMember(1)]
         public NetworkAbility Ability { get; set; }
@@ -17,5 +17,11 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
 
         [ProtoMember(4)]
         public List<NetworkVector3> VectorPath { get; set; }
+
+        [ProtoMember(5)]
+        public string CommandType { get; set; }
+
+        [ProtoMember(6)]
+        public string MovementLimit { get; set; }
     }
 }

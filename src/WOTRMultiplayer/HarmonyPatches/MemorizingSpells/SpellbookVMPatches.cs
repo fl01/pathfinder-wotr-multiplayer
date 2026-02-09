@@ -1,11 +1,17 @@
-﻿using HarmonyLib;
+﻿using System.Collections.Generic;
+using System.Reflection;
+using System.Reflection.Emit;
+using HarmonyLib;
 using Kingmaker.Localization;
 using Kingmaker.PubSubSystem;
 using Kingmaker.UI.MVVM._VM.ServiceWindows.Spellbook;
 using Kingmaker.UI.MVVM._VM.ServiceWindows.Spellbook.KnownSpells;
 using Kingmaker.UI.MVVM._VM.ServiceWindows.Spellbook.MemorizingPanel;
 using Kingmaker.UnitLogic;
+using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Spells;
+using WOTRMultiplayer.HarmonyPatches.Combat;
 
 namespace WOTRMultiplayer.HarmonyPatches.MemorizingSpells
 {
@@ -39,19 +45,11 @@ namespace WOTRMultiplayer.HarmonyPatches.MemorizingSpells
                 return;
             }
 
-            var slot = new NetworkSpellSlot
-            {
-                Index = spellSlot?.Index,
-                Type = spellSlot?.Type,
-                SpellbookId = __instance.SpellbookInformationVM.Spellbook.Value.Blueprint.Name.Key,
-                SpellId = abilityData?.SpellData.UniqueId,
-                SpellName = abilityData?.SpellData.NameForAcronym,
-                SpellLevel = abilityData.SpellLevel,
-                UnitId = __instance.UnitDescriptor.Value.Unit.UniqueId
+            var unitId = __instance.UnitDescriptor.Value.Unit.UniqueId;
+            var ability = Main.Mapper.Map<NetworkAbility>(abilityData.SpellData);
+            var slot = Main.Mapper.Map<NetworkSpellSlot>(spellSlot);
 
-            };
-
-            Main.Multiplayer.OnMemorizeSpell(slot);
+            Main.Multiplayer.OnMemorizeSpell(unitId, slot, ability);
         }
 
         [HarmonyPatch(typeof(SpellbookVM), nameof(SpellbookVM.TryForget))]
@@ -73,24 +71,43 @@ namespace WOTRMultiplayer.HarmonyPatches.MemorizingSpells
         }
 
         [HarmonyPatch(typeof(SpellbookVM), nameof(SpellbookVM.TryForget))]
-        [HarmonyPostfix]
-        public static void SpellbookVM_TryForget_Postfix(SpellbookVM __instance, SpellbookMemorizeSlotVM spellSlot, ref bool __result)
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> SpellbookVM_TryForget_Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            if (!Main.Multiplayer.IsActive || !__result)
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var lookFor = AccessTools.Method(typeof(Spellbook), nameof(Spellbook.ForgetMemorized));
+            var replaceWith = AccessTools.Method(typeof(SpellbookVMPatches), nameof(SpellbookVMPatches.ForgetSpell));
+            var matcher = new CodeMatcher(instructions);
+            var match = matcher.SearchForward(x => x.Calls(lookFor));
+            if (match.IsInvalid)
+            {
+                Main.GetLogger<UnitFearControllerPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
+                return instructions;
+            }
+
+            var newInstructions = new List<CodeInstruction>()
+            {
+                new(OpCodes.Ldarg_0),
+                new(OpCodes.Ldarg_1),
+                new(OpCodes.Call, replaceWith),
+            };
+            match = match.Advance(1).Insert(newInstructions);
+            Main.GetLogger<UnitFearControllerPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
+            return matcher.Instructions();
+        }
+
+        private static void ForgetSpell(SpellbookVM spellbookVM, SpellbookMemorizeSlotVM spellSlot)
+        {
+            if (!Main.Multiplayer.IsActive)
             {
                 return;
             }
 
-            var slot = new NetworkSpellSlot
-            {
-                Index = spellSlot.SpellSlot.Index,
-                Type = spellSlot.SpellSlot.Type,
-                SpellbookId = __instance.SpellbookInformationVM.Spellbook.Value.Blueprint.Name.Key,
-                UnitId = __instance.UnitDescriptor.Value.Unit.UniqueId,
-                SpellLevel = spellSlot.SpellLevel,
-            };
+            var unitId = spellbookVM.UnitDescriptor.Value.Unit.UniqueId;
+            var ability = Main.Mapper.Map<NetworkAbility>(spellSlot.SpellData);
+            var slot = Main.Mapper.Map<NetworkSpellSlot>(spellSlot);
 
-            Main.Multiplayer.OnForgetSpell(slot);
+            Main.Multiplayer.OnForgetSpell(unitId, slot, ability);
         }
     }
 }
