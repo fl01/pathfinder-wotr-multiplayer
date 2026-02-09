@@ -13,14 +13,17 @@ namespace WOTRMultiplayer.Config.Mapping
     {
         public GameProfile()
         {
-            CreateMap<AbilityData, NetworkAbility>().ConstructUsing(Create);
+            CreateMap<AbilityData, NetworkAbility>().ConstructUsing(Create)
+                .ForAllMembers(x => x.Ignore());
 
-            CreateMap<SpellSlot, NetworkSpellSlot>().ConstructUsing(x => Create(x));
+            CreateMap<SpellSlot, NetworkSpellSlot>().ConstructUsing(x => Create(x))
+                .ForAllMembers(x => x.Ignore());
 
-            CreateMap<SpellSlot, NetworkAbilityParamSpellSlot>().ConstructUsing(Create);
+            CreateMap<SpellSlot, NetworkAbilityParamSpellSlot>().ConstructUsing(Create)
+                .ForAllMembers(x => x.Ignore());
 
             CreateMap<TargetWrapper, NetworkTargetWrapper>().ConstructUsing(x => Create(x))
-                .ForMember(x => x.Point, o => o.Ignore());
+                .ForAllMembers(x => x.Ignore());
         }
 
         private NetworkSpellSlot Create(SpellSlot spellSlot)

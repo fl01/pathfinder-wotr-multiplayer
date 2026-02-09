@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -45,11 +46,19 @@ namespace WOTRMultiplayer.HarmonyPatches.MemorizingSpells
                 return;
             }
 
-            var unitId = __instance.UnitDescriptor.Value.Unit.UniqueId;
-            var ability = Main.Mapper.Map<NetworkAbility>(abilityData.SpellData);
-            var slot = Main.Mapper.Map<NetworkSpellSlot>(spellSlot);
+            try
+            {
+                var unitId = __instance.UnitDescriptor.Value.Unit.UniqueId;
+                var ability = Main.Mapper.Map<NetworkAbility>(abilityData.SpellData);
+                var slot = Main.Mapper.Map<NetworkSpellSlot>(spellSlot);
 
-            Main.Multiplayer.OnMemorizeSpell(unitId, slot, ability);
+                Main.Multiplayer.OnMemorizeSpell(unitId, slot, ability);
+            }
+            catch (Exception ex)
+            {
+                Main.GetLogger<UnitFearControllerPatches>().LogError(ex, "Error while memorizing spell");
+                throw;
+            }
         }
 
         [HarmonyPatch(typeof(SpellbookVM), nameof(SpellbookVM.TryForget))]
@@ -81,7 +90,7 @@ namespace WOTRMultiplayer.HarmonyPatches.MemorizingSpells
             var match = matcher.SearchForward(x => x.Calls(lookFor));
             if (match.IsInvalid)
             {
-                Main.GetLogger<UnitFearControllerPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
+                Main.GetLogger<SpellbookVMPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
                 return instructions;
             }
 
@@ -92,22 +101,30 @@ namespace WOTRMultiplayer.HarmonyPatches.MemorizingSpells
                 new(OpCodes.Call, replaceWith),
             };
             match = match.Advance(1).Insert(newInstructions);
-            Main.GetLogger<UnitFearControllerPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
+            Main.GetLogger<SpellbookVMPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
-        private static void ForgetSpell(SpellbookVM spellbookVM, SpellbookMemorizeSlotVM spellSlot)
+        private static void ForgetSpell(SpellbookVM spellbookVM, SpellbookMemorizeSlotVM spellbookMemorizeVM)
         {
             if (!Main.Multiplayer.IsActive)
             {
                 return;
             }
 
-            var unitId = spellbookVM.UnitDescriptor.Value.Unit.UniqueId;
-            var ability = Main.Mapper.Map<NetworkAbility>(spellSlot.SpellData);
-            var slot = Main.Mapper.Map<NetworkSpellSlot>(spellSlot);
+            try
+            {
+                var unitId = spellbookVM.UnitDescriptor.Value.Unit.UniqueId;
+                var ability = Main.Mapper.Map<NetworkAbility>(spellbookMemorizeVM.SpellData);
+                var slot = Main.Mapper.Map<NetworkSpellSlot>(spellbookMemorizeVM.SpellSlot);
 
-            Main.Multiplayer.OnForgetSpell(unitId, slot, ability);
+                Main.Multiplayer.OnForgetSpell(unitId, slot, ability);
+            }
+            catch (Exception ex)
+            {
+                Main.GetLogger<UnitFearControllerPatches>().LogError(ex, "Error while forgetting spell");
+                throw;
+            }
         }
     }
 }

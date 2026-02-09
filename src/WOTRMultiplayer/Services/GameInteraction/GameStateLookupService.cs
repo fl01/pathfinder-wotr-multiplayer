@@ -14,6 +14,7 @@ using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.GlobalMap;
+using WOTRMultiplayer.Entities.Spells;
 using WOTRMultiplayer.Extensions;
 
 namespace WOTRMultiplayer.Services.GameInteraction
@@ -143,9 +144,9 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return spell;
         }
 
-        public SpellSlot GetSpellSlot(Spellbook spellbook, int index, SpellSlotType slotType, int spellLevel)
+        public SpellSlot GetSpellSlot(Spellbook spellbook, NetworkSpellSlot networkSpellSlot, int spellLevel)
         {
-            if (spellbook == null)
+            if (spellbook == null || networkSpellSlot == null)
             {
                 return null;
             }
@@ -156,7 +157,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             }
 
             var spellSlots = spellbook.m_MemorizedSpells[spellLevel];
-            var spellSlot = spellSlots.FirstOrDefault(s => s.Index == index && s.Type == slotType);
+            var spellSlot = spellSlots.FirstOrDefault(s => s.Index == networkSpellSlot.Index && s.Type == networkSpellSlot.Type);
 
             return spellSlot;
         }

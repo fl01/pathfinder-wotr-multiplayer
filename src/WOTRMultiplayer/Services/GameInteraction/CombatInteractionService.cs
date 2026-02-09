@@ -838,7 +838,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 var param = networkAbilityUse.Ability.ParamSpellSlot;
                 var spellSlotSpellBook = _gameStateLookupService.GetSpellbook(executorUnit, param.SpellbookId);
-                abilityData.ParamSpellSlot = _gameStateLookupService.GetSpellSlot(spellSlotSpellBook, param.Slot.Index, param.Slot.Type, param.SpellLevel);
+                abilityData.ParamSpellSlot = _gameStateLookupService.GetSpellSlot(spellSlotSpellBook, param.Slot, param.SpellLevel);
             }
 
             if (!Enum.TryParse<UnitCommand.CommandType>(networkAbilityUse.CommandType, true, out var commandType))

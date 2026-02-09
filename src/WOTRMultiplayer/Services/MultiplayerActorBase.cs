@@ -809,7 +809,7 @@ namespace WOTRMultiplayer.Services
                 Ability = Mapper.Map<Networking.Messages.Contracts.NetworkAbility>(networkAbility),
             };
             Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, SpellbookId={SpellbookId}, SpellId={SpellId}, SpellLevel={SpellLevel}, SpellName={SpellName}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}",
-                nameof(NotifySpellMemorized), message.UnitId, message.Ability.SpellbookId, message.Ability.Id, message.Ability.SpellLevel, message.Ability.Name, message.Slot.Index, message.Slot.Type);
+                nameof(NotifySpellMemorized), message.UnitId, message.Ability.SpellbookId, message.Ability.Id, message.Ability.SpellLevel, message.Ability.Name, message.Slot?.Index, message.Slot?.Type);
 
             Send(message);
         }
@@ -4134,7 +4134,7 @@ namespace WOTRMultiplayer.Services
         private void OnNotifySpellMemorized(long receivedFrom, NotifySpellMemorized message)
         {
             Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitId={UnitId}, SpellbookId={SpellbookId}, SpellId={SpellId}, SpellLevel={SpellLevel}, SpellName={SpellName}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}",
-                nameof(NotifySpellMemorized), receivedFrom, message.UnitId, message.Ability.SpellbookId, message.Ability.Id, message.Ability.SpellLevel, message.Ability.Name, message.Slot.Index, message.Slot.Type);
+                nameof(NotifySpellMemorized), receivedFrom, message.UnitId, message.Ability.SpellbookId, message.Ability.Id, message.Ability.SpellLevel, message.Ability.Name, message.Slot?.Index, message.Slot?.Type);
 
             var slot = Mapper.Map<NetworkSpellSlot>(message.Slot);
             var ability = Mapper.Map<NetworkAbility>(message.Ability);

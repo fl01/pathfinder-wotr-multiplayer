@@ -7,6 +7,7 @@ using Kingmaker.UnitLogic.Abilities;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.GlobalMap;
+using WOTRMultiplayer.Entities.Spells;
 
 namespace WOTRMultiplayer.Abstractions.GameInteraction
 {
@@ -34,6 +35,6 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         AbilityData GetKnownSpell(Spellbook spellbook, NetworkAbility ability);
 
-        SpellSlot GetSpellSlot(Spellbook spellbook, int index, SpellSlotType slotType, int spellLevel);
+        SpellSlot GetSpellSlot(Spellbook spellbook, NetworkSpellSlot networkSpellSlot, int spellLevel);
     }
 }

@@ -1634,10 +1634,10 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     return;
                 }
 
-                var spellSlot = _gameStateLookupService.GetSpellSlot(spellbook, networkSpellSlot.Index, networkSpellSlot.Type, networkAbility.SpellLevel);
+                var spellSlot = _gameStateLookupService.GetSpellSlot(spellbook, networkSpellSlot, networkAbility.SpellLevel);
                 if (spellSlot == null)
                 {
-                    _logger.LogError("Unable to find spellslot to forget. UnitId={UnitId}, SpellbookId={SpellbookId}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}", unitId, networkAbility.SpellbookId, networkSpellSlot.Index, networkSpellSlot.Type);
+                    _logger.LogError("Unable to find spellslot to forget. UnitId={UnitId}, SpellbookId={SpellbookId}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}", unitId, networkAbility.SpellbookId, networkSpellSlot?.Index, networkSpellSlot?.Type);
                     return;
                 }
 
@@ -1665,7 +1665,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     return;
                 }
 
-                var spellSlot = _gameStateLookupService.GetSpellSlot(spellbook, networkSpellSlot.Index, networkSpellSlot.Type, networkAbility.SpellLevel);
+                var spellSlot = _gameStateLookupService.GetSpellSlot(spellbook, networkSpellSlot, networkAbility.SpellLevel);
                 var spell = _gameStateLookupService.GetKnownSpell(spellbook, networkAbility);
                 spellbook.Memorize(spell, spellSlot);
                 _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.SpellBook.MemorizedSpell.Key, spell.Name, unit.CharacterName);
