@@ -174,13 +174,18 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private AbilityData GetCustomSpell(Spellbook spellbook, NetworkAbility ability)
         {
-            if (spellbook.m_CustomSpells.Length <= ability.SpellLevel)
+            return GetCustomSpell(spellbook, ability.Id, ability.BlueprintId, ability.SpellLevel, ability.Metamagic);
+        }
+
+        private AbilityData GetCustomSpell(Spellbook spellbook, string abilityId, string abilityBlueprintId, int spellLevel, int? metamagic)
+        {
+            if (spellbook.m_CustomSpells.Length <= spellLevel)
             {
                 return null;
             }
 
-            var spells = spellbook.m_CustomSpells[ability.SpellLevel];
-            var spell = GetSpell(spells, ability.Id, ability.BlueprintId, ability.Metamagic);
+            var spells = spellbook.m_CustomSpells[spellLevel];
+            var spell = GetSpell(spells, abilityId, abilityBlueprintId, metamagic);
             return spell;
         }
 
@@ -221,17 +226,18 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private AbilityData FindAbilityInSpellbook(UnitEntityData unit, NetworkAbility networkAbility)
         {
-            var spellbook = unit.Spellbooks.FirstOrDefault(s => string.Equals(s.Blueprint.Name.Key, networkAbility.SpellbookId));
+            var spellbook = GetSpellbook(unit, networkAbility.SpellbookId);
             if (spellbook == null)
             {
-                _logger.LogError("Unable to 4find ability due to missing spellbook. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookId={SpellbookId}", unit.UniqueId, networkAbility.Id, networkAbility.SpellbookId);
+                _logger.LogError("Unable to find ability due to missing spellbook. UnitId={UnitId}, AbilityId={AbilityId}, SpellbookId={SpellbookId}", unit.UniqueId, networkAbility.Id, networkAbility.SpellbookId);
                 return null;
             }
 
             if (!string.IsNullOrEmpty(networkAbility.ConvertedFromId))
             {
                 var spellConversionSource = GetKnownSpell(spellbook, networkAbility.ConvertedFromId, networkAbility.BlueprintId, networkAbility.SpellLevel, networkAbility.Metamagic)
-                    ?? GetMemorizedSpell(spellbook, networkAbility.ConvertedFromId, networkAbility.BlueprintId, networkAbility.SpellLevel, networkAbility.Metamagic);
+                    ?? GetMemorizedSpell(spellbook, networkAbility.ConvertedFromId, networkAbility.BlueprintId, networkAbility.SpellLevel, networkAbility.Metamagic)
+                    ?? GetCustomSpell(spellbook, networkAbility.ConvertedFromId, networkAbility.BlueprintId, networkAbility.SpellLevel, networkAbility.Metamagic);
 
                 if (spellConversionSource == null)
                 {

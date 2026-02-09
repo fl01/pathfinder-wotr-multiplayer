@@ -88,7 +88,7 @@ namespace WOTRMultiplayer.Config.Mapping
                 Id = abilityData.UniqueId,
                 Name = abilityData.NameForAcronym,
                 BlueprintId = abilityData.Blueprint.AssetGuid.ToString(),
-                SpellbookId = abilityData.Spellbook?.Blueprint.Name.Key,
+                SpellbookId = abilityData.Spellbook?.Blueprint.AssetGuid.ToString(),
                 ConvertedFromId = abilityData.ConvertedFrom?.UniqueId,
                 SpellLevel = abilityData.SpellLevel,
                 Metamagic = (int?)abilityData.MetamagicData?.MetamagicMask,
