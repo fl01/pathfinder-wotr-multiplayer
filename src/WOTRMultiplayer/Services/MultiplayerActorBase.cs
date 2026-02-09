@@ -642,7 +642,8 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (Game.Combat == null)
+                // tavern defense
+                if (Game.Combat == null || string.Equals(GameInteraction.GetCurrentAreaName(), "DefendersHeart", StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }

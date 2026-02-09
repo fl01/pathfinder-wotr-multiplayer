@@ -691,14 +691,22 @@ namespace WOTRMultiplayer.Services
             return canSelect;
         }
 
-        public void OnGlobalMapContinueTravel(NetworkGlobalMapTraveler globalMapTraveler)
+        public bool OnGlobalMapContinueTravel(NetworkGlobalMapTraveler globalMapTraveler)
         {
+            var readyPlayers = GetPlayersCountWithSyncedGlobalMapMode();
+            if (!readyPlayers.HasValue)
+            {
+                Logger.LogError("Global Map location select has been denied due to invalid ready players value");
+                return false;
+            }
+
             var message = new NotifyGlobalMapTravelContinued
             {
                 Traveler = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapTraveler>(globalMapTraveler)
             };
             Logger.LogInformation("Sending {MessageType}. EdgePosition={EdgePosition}", nameof(NotifyGlobalMapTravelContinued), message.Traveler.Position?.EdgePosition);
             Send(message);
+            return true;
         }
 
         public void OnGlobalMapStopTravel(NetworkGlobalMapTraveler globalMapTraveler)

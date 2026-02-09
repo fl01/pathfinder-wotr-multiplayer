@@ -339,15 +339,16 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
 
         [HarmonyPatch(typeof(GlobalMapUI), nameof(GlobalMapUI.OnContinue))]
         [HarmonyPrefix]
-        public static void GlobalMapUI_OnContinue_Prefix()
+        public static bool GlobalMapUI_OnContinue_Prefix()
         {
             if (!Main.Multiplayer.IsActive)
             {
-                return;
+                return true;
             }
 
             var traveler = GetGlobalMapTraveler(Game.Instance.GlobalMapController.SelectedTraveler);
-            Main.Multiplayer.OnGlobalMapContinueTravel(traveler);
+            var canContinue = Main.Multiplayer.OnGlobalMapContinueTravel(traveler);
+            return canContinue;
         }
 
         [HarmonyPatch(typeof(GlobalMapUI), nameof(GlobalMapUI.OnStop))]
