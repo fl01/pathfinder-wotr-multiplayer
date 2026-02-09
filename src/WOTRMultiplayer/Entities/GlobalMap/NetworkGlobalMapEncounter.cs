@@ -2,7 +2,7 @@
 {
     public class NetworkGlobalMapEncounter
     {
-        public int Seed { get; set; }
+        public int? Seed { get; set; }
 
         public string BlueprintId { get; set; }
 

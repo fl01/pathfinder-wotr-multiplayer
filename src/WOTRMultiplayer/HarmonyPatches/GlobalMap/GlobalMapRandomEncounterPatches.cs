@@ -119,7 +119,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
                 AvoidanceResult = encounter.AvoidanceCheckResult.ToString(),
                 BlueprintId = encounter.Blueprint.AssetGuid.ToString(),
                 Position = encounter.Position?.ToNetworkVector3(),
-                Seed = encounter.RandomCombat.Seed,
+                Seed = encounter.RandomCombat?.Seed,
                 IsTrader = encounter.IsTraderRE,
             };
 

@@ -470,7 +470,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    var encounter = BlueprintRoot.Instance.RE.Encounters.FirstOrDefault(e => string.Equals(e.AssetGuid.ToString(), globalMapEncounter.BlueprintId));
+                    var encounter = BlueprintRoot.Instance.RE.Encounters.FirstOrDefault(e => string.Equals(e.AssetGuid.ToString(), globalMapEncounter.BlueprintId, StringComparison.OrdinalIgnoreCase));
                     if (encounter == null)
                     {
                         _logger.LogError("Unable to find global map encounter. BlueprintId={BlueprintId}", globalMapEncounter.BlueprintId);
@@ -478,13 +478,19 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     }
 
                     var position = globalMapEncounter.Position.ToUnityVector3();
+
                     var combatRandomEncounterData = new CombatRandomEncounterData(encounter, position)
                     {
                         IsTraderRE = globalMapEncounter.IsTrader,
                         AvoidanceCheckResult = (RandomEncounterAvoidanceCheckResult)Enum.Parse(typeof(RandomEncounterAvoidanceCheckResult), globalMapEncounter.AvoidanceResult, true)
                     };
-                    var component = encounter.AreaEntrance.Area.GetComponent<CombatRandomEncounterAreaSettings>();
-                    combatRandomEncounterData.RandomCombat = CombatRandomEncountersGenerator.GenerateRandomEncounter(globalMapEncounter.Seed, GlobalMapView.Instance.CurrentZone, component, null);
+
+                    if (globalMapEncounter.Seed.HasValue)
+                    {
+                        var component = encounter.AreaEntrance.Area.GetComponent<CombatRandomEncounterAreaSettings>();
+                        combatRandomEncounterData.RandomCombat = CombatRandomEncountersGenerator.GenerateRandomEncounter(globalMapEncounter.Seed.Value, GlobalMapView.Instance.CurrentZone, component, null);
+                    }
+
                     RandomEncountersController.State.Player.StartEncounter(combatRandomEncounterData);
                     Game.Instance.RandomEncountersController.m_LastStartedEncounter = RandomEncountersController.State.Player.CurrentEncounterData;
                     Game.Instance.Player.REManager.OnGlobalMapEncounterStarted(encounter, false);

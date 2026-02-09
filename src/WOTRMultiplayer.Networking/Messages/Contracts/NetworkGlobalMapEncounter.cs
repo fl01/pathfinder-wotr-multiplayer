@@ -6,7 +6,7 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
     public class NetworkGlobalMapEncounter
     {
         [ProtoMember(1)]
-        public int Seed { get; set; }
+        public int? Seed { get; set; }
 
         [ProtoMember(2)]
         public string BlueprintId { get; set; }
