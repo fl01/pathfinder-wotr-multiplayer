@@ -130,16 +130,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
             return null;
         }
 
-        public string GetCurrentAreaName()
-        {
-            return string.Empty;
-        }
-
-        public int GetCurrentChapter()
-        {
-            return -1;
-        }
-
         public EntityDataBase GetEntity(string id)
         {
             return null;
@@ -424,6 +414,11 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
 
         public void MemorizeSpell(string unitId, NetworkSpellSlot networkSpellSlot, NetworkAbility networkAbility)
         {
+        }
+
+        public NetworkArea GetCurrentArea()
+        {
+            return null;
         }
     }
 }

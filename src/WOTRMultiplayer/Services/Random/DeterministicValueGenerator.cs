@@ -14,7 +14,7 @@ namespace WOTRMultiplayer.Services.Random
 {
     public class DeterministicValueGenerator : IValueGenerator
     {
-        private readonly ConcurrentDictionary<string, UniqueIdCounters> _entityCounters = new();
+        private readonly ConcurrentDictionary<string, IdCounters> _entityCounters = new();
         private readonly ConcurrentDictionary<int, Seed> _seedGenerators = new();
         private readonly ILogger<DeterministicValueGenerator> _logger;
         private readonly IGameInteractionService _gameInteractionService;
@@ -30,20 +30,20 @@ namespace WOTRMultiplayer.Services.Random
             _hashService = hashService;
         }
 
-        public Guid CreateGuid(SeedLifetime seedLifetime, string seed)
+        public Guid CreateGuid(IdentifierLifetime lifetime, string seed)
         {
             var actualSeed = _hashService.Murmur3(seed);
-            var generator = GetSeed(seedLifetime, actualSeed);
+            var generator = GetSeededGenerator(lifetime, actualSeed);
             var guidBytes = new byte[16];
             generator.Random.NextBytes(guidBytes);
             var guid = new Guid(guidBytes);
             return guid;
         }
 
-        public NetworkVector2 GetRandomUnitCircle(SeedLifetime seedLifetime, string seed)
+        public NetworkVector2 GetRandomUnitCircle(IdentifierLifetime lifetime, string seed)
         {
             var actualSeed = _hashService.Murmur3(seed);
-            var generator = GetSeed(seedLifetime, actualSeed);
+            var generator = GetSeededGenerator(lifetime, actualSeed);
 
             float angle = generator.Random.NextFloat(0, 1f) * Mathf.PI * 2f;
             float radius = Mathf.Sqrt(generator.Random.NextFloat(0, 1f));
@@ -55,37 +55,39 @@ namespace WOTRMultiplayer.Services.Random
             return point;
         }
 
-        public System.Random GetRandom(SeedLifetime seedLifetime, string seed)
+        public System.Random GetRandom(IdentifierLifetime lifetime, string identifier)
         {
-            var actualSeed = _hashService.Murmur3(seed);
-            var generator = GetSeed(seedLifetime, actualSeed);
+            var actualSeed = CreateSeed(lifetime, identifier);
+            var generator = GetSeededGenerator(lifetime, actualSeed);
             return generator.Random;
         }
 
-        public int Range(SeedLifetime seedLifetime, int seed, int minInclusive, int maxExclusive)
+        public int Range(IdentifierLifetime lifetime, string identifier, int minInclusive, int maxExclusive)
         {
-            var generator = GetSeed(seedLifetime, seed);
+            var actualSeed = CreateSeed(lifetime, identifier);
+            var generator = GetSeededGenerator(lifetime, actualSeed);
             var result = generator.Random.Next(minInclusive, maxExclusive);
             return result;
         }
 
-        public int Range(SeedLifetime seedLifetime, string seed, int minInclusive, int maxExclusive)
+        public float Range(IdentifierLifetime lifetime, string identifier, float minInclusive, float maxExclusive)
         {
-            var actualSeed = _hashService.Murmur3(seed);
-            return Range(seedLifetime, actualSeed, minInclusive, maxExclusive);
-        }
-
-        public float Range(SeedLifetime seedLifetime, string seed, float minInclusive, float maxExclusive)
-        {
-            var actualSeed = _hashService.Murmur3(seed);
-            var generator = GetSeed(seedLifetime, actualSeed);
+            var actualSeed = CreateSeed(lifetime, identifier);
+            var generator = GetSeededGenerator(lifetime, actualSeed);
             var result = generator.Random.NextFloat(minInclusive, maxExclusive);
             return result;
         }
 
-        private Seed GetSeed(SeedLifetime seedLifetime, int seed)
+        private int CreateSeed(IdentifierLifetime lifetime, string identifier)
         {
-            var seedGenerator = _seedGenerators.GetOrAdd(seed, k => new Seed { Lifetime = seedLifetime, Random = new System.Random(k) });
+            var fullIdentifier = lifetime.ToString() + identifier;
+            var seed = _hashService.Murmur3(fullIdentifier);
+            return seed;
+        }
+
+        private Seed GetSeededGenerator(IdentifierLifetime lifetime, int seed)
+        {
+            var seedGenerator = _seedGenerators.GetOrAdd(seed, k => new Seed { Lifetime = lifetime, Random = new System.Random(k) });
             return seedGenerator;
         }
 
@@ -94,7 +96,7 @@ namespace WOTRMultiplayer.Services.Random
             _entityCounters.TryRemove(gameId, out _);
         }
 
-        public void ResetSeedGenerators(params SeedLifetime[] lifetimes)
+        public void ResetSeededGenerators(params IdentifierLifetime[] lifetimes)
         {
             var lifetimesToRemove = lifetimes.ToHashSet();
 
@@ -104,15 +106,15 @@ namespace WOTRMultiplayer.Services.Random
                 _seedGenerators.TryRemove(seed.Key, out _);
             }
 
-            _logger.LogInformation("Seeds generators have been cleared. LifetimeTypes={LifetimeTypes}", lifetimesToRemove);
+            _logger.LogInformation("Seeded generators have been cleared. Lifetimes={Lifetimes}", lifetimesToRemove);
         }
 
-        public string GenerateUniqueId(UniqueIdType uniqueIdType, string gameId, string identifier)
+        public string GenerateUniqueId(IdType idType, string gameId, string identifier)
         {
             try
             {
-                var counter = _entityCounters.GetOrAdd(gameId ?? "main-menu", k => new UniqueIdCounters());
-                var fullIdentifier = uniqueIdType + identifier;
+                var counter = _entityCounters.GetOrAdd(gameId ?? "main-menu", k => new IdCounters());
+                var fullIdentifier = idType + identifier;
                 var hashed = _hashService.Murmur3(fullIdentifier).ToString();
 
                 if (!counter.NameIdentifiers.TryGetValue(hashed, out uint nameCounter))
@@ -120,7 +122,7 @@ namespace WOTRMultiplayer.Services.Random
                     nameCounter = 0;
                 }
 
-                var prefix = uniqueIdType.GetAttributeOfType<DescriptionAttribute>()?.Description ?? uniqueIdType.ToString();
+                var prefix = idType.GetAttributeOfType<DescriptionAttribute>()?.Description ?? idType.ToString();
                 string id;
                 do
                 {
@@ -134,7 +136,7 @@ namespace WOTRMultiplayer.Services.Random
             }
             catch (System.Exception ex)
             {
-                _logger.LogError(ex, "Unable to generate unique id. UniqueIdType={UniqueIdType}, Identifier={Identifier}", uniqueIdType, identifier);
+                _logger.LogError(ex, "Unable to generate unique id. UniqueIdType={UniqueIdType}, Identifier={Identifier}", idType, identifier);
                 throw;
             }
         }

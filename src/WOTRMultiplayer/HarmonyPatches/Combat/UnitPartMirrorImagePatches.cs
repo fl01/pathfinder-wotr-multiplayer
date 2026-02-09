@@ -51,7 +51,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 var combatSeed = Main.Multiplayer.GetCombatSeed();
                 var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
                 var uniqueId = $"{image.Source.Owner.Unit.UniqueId}:{nameof(UnitPartMirrorImage)}.{nameof(UnitPartMirrorImage.TryAbsorbHit)}:{combatSeed}:{combatTurnSeed}";
-                int absorbedCount = Main.Multiplayer.ValueGenerator.Range(SeedLifetime.CombatTurn, uniqueId, minRange, maxRange);
+                int absorbedCount = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.CombatTurn, uniqueId, minRange, maxRange);
                 Main.GetLogger<UnitPartMirrorImagePatches>().LogInformation("Mirror image absorbtion count has been generated. Id={Id}, Count={Count}, MinRange={MinRange}, MaxRange={MaxRange}", uniqueId, absorbedCount, minRange, maxRange);
 
                 return absorbedCount;

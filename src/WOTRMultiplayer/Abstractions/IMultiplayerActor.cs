@@ -4,6 +4,7 @@ using Kingmaker.Controllers.Rest;
 using Kingmaker.GameModes;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.ActionBar;
+using WOTRMultiplayer.Entities.Area;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Combat.Crusades;
 using WOTRMultiplayer.Entities.Dialogs;
@@ -36,6 +37,8 @@ namespace WOTRMultiplayer.Abstractions
 
         void MoveNonCombatCharacter(NetworkCharacterMove move);
 
+        NetworkArea CurrentArea { get; }
+
         bool IsInCombat { get; }
 
         bool IsActive { get; }
@@ -54,11 +57,13 @@ namespace WOTRMultiplayer.Abstractions
 
         int SessionSeed { get; }
 
+        int? LoadedSaveSeed { get; }
+
+        int? AreaSeed { get; }
+
         int? CombatTurnSeed { get; }
 
         int? CombatSeed { get; }
-
-        int? LoadedSaveSeed { get; }
 
         int? CrusadeArmyCombatAreaSeed { get; }
 

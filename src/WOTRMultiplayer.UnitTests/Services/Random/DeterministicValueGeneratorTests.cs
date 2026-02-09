@@ -38,7 +38,7 @@ namespace WOTRMultiplayer.UnitTests.Services.Random
         {
             // Arrange
             var gameId = Guid.NewGuid().ToString();
-            var idType = UniqueIdType.Unit;
+            var idType = IdType.Unit;
             var expectedPrefix = idType.GetAttributeOfType<System.ComponentModel.DescriptionAttribute>().Description;
             var identifier = "bla";
             var hash = 123;
@@ -64,7 +64,7 @@ namespace WOTRMultiplayer.UnitTests.Services.Random
         {
             // Arrange
             var gameId = Guid.NewGuid().ToString();
-            var idType = UniqueIdType.Unit;
+            var idType = IdType.Unit;
             var expectedPrefix = idType.GetAttributeOfType<System.ComponentModel.DescriptionAttribute>().Description;
             var identifier = "bla";
             var expectedException = new InvalidOperationException(Guid.NewGuid().ToString());
@@ -83,7 +83,7 @@ namespace WOTRMultiplayer.UnitTests.Services.Random
         {
             // Arrange
             var gameId = Guid.NewGuid().ToString();
-            var idType = UniqueIdType.Unit;
+            var idType = IdType.Unit;
             var expectedPrefix = idType.GetAttributeOfType<System.ComponentModel.DescriptionAttribute>().Description;
             var identifier = "bla";
             var expectedException = new InvalidOperationException(Guid.NewGuid().ToString());
@@ -97,7 +97,7 @@ namespace WOTRMultiplayer.UnitTests.Services.Random
         }
 
         [TestCaseSource(nameof(GetAllUniqueIdTypes))]
-        public void GenerateUniqueId_MultipleIdentifiers_IdCounterIsUniqueToIdentifier(UniqueIdType idType)
+        public void GenerateUniqueId_MultipleIdentifiers_IdCounterIsUniqueToIdentifier(IdType idType)
         {
             // Arrange
             var gameId = Guid.NewGuid().ToString();
@@ -121,7 +121,7 @@ namespace WOTRMultiplayer.UnitTests.Services.Random
         }
 
         [TestCaseSource(nameof(GetAllUniqueIdTypes))]
-        public void GenerateUniqueId_MultipleCallsForSameIdentifierWithSameIdType_IdCounterIsShared(UniqueIdType idType)
+        public void GenerateUniqueId_MultipleCallsForSameIdentifierWithSameIdType_IdCounterIsShared(IdType idType)
         {
             // Arrange
             var gameId = Guid.NewGuid().ToString();
@@ -142,7 +142,7 @@ namespace WOTRMultiplayer.UnitTests.Services.Random
         }
 
         [TestCaseSource(nameof(GetAllUniqueIdTypes))]
-        public void GenerateUniqueId_MultipleCallsForSameIdentifierWithSameIdTypeButDifferentGameId_IdCounterIsNotShared(UniqueIdType idType)
+        public void GenerateUniqueId_MultipleCallsForSameIdentifierWithSameIdTypeButDifferentGameId_IdCounterIsNotShared(IdType idType)
         {
             // Arrange
             var gameId = Guid.NewGuid().ToString();
@@ -162,10 +162,10 @@ namespace WOTRMultiplayer.UnitTests.Services.Random
             A.CallTo(() => _gameInteractionService.GetEntity(A<string>.Ignored)).MustHaveHappened(2, Times.Exactly);
         }
 
-        [TestCase(UniqueIdType.Unit, UniqueIdType.EntityView)]
-        [TestCase(UniqueIdType.AreaEffect, UniqueIdType.ItemEntity)]
-        [TestCase(UniqueIdType.CustomCompanionUnit, UniqueIdType.Unit)]
-        public void GenerateUniqueId_MultipleCallsForSameIdentifierButDifferentIdType_IdCounterIsNotShared(UniqueIdType idTypeOne, UniqueIdType idTypeTwo)
+        [TestCase(IdType.Unit, IdType.EntityView)]
+        [TestCase(IdType.AreaEffect, IdType.ItemEntity)]
+        [TestCase(IdType.CustomCompanionUnit, IdType.Unit)]
+        public void GenerateUniqueId_MultipleCallsForSameIdentifierButDifferentIdType_IdCounterIsNotShared(IdType idTypeOne, IdType idTypeTwo)
         {
             // Arrange
             var gameId = Guid.NewGuid().ToString();
@@ -195,17 +195,17 @@ namespace WOTRMultiplayer.UnitTests.Services.Random
             A.CallTo(() => _hashService.Murmur3(seed)).Returns(123456);
 
             // Act
-            var firstSequence = Enumerable.Range(0, 10).Select(_ => _valueGenerator.CreateGuid(SeedLifetime.Area, seed)).ToList();
-            _valueGenerator.ResetSeedGenerators(SeedLifetime.Area);
-            var secondSequence = Enumerable.Range(0, 10).Select(_ => _valueGenerator.CreateGuid(SeedLifetime.Area, seed)).ToList();
+            var firstSequence = Enumerable.Range(0, 10).Select(_ => _valueGenerator.CreateGuid(IdentifierLifetime.Area, seed)).ToList();
+            _valueGenerator.ResetSeededGenerators(IdentifierLifetime.Area);
+            var secondSequence = Enumerable.Range(0, 10).Select(_ => _valueGenerator.CreateGuid(IdentifierLifetime.Area, seed)).ToList();
 
             // Assert
             Assert.That(firstSequence, Is.EqualTo(secondSequence));
         }
 
-        private static IEnumerable<UniqueIdType> GetAllUniqueIdTypes()
+        private static IEnumerable<IdType> GetAllUniqueIdTypes()
         {
-            return [.. Enum.GetValues(typeof(UniqueIdType)).Cast<UniqueIdType>()];
+            return [.. Enum.GetValues(typeof(IdType)).Cast<IdType>()];
         }
     }
 }

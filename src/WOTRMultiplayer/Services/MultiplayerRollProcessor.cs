@@ -1037,7 +1037,8 @@ namespace WOTRMultiplayer.Services
             if (gameMode == GameModeType.Cutscene || gameMode == GameModeType.CutsceneGlobalMap)
             {
                 // EstrodTower - using columns to damage enemies
-                return rule is RuleCalculateDamage && _importantCutsceneAreas.Contains(_gameInteractionService.GetCurrentAreaName());
+                var areaName = _multiplayerActorAccessor.Current.CurrentArea?.Name;
+                return rule is RuleCalculateDamage && _importantCutsceneAreas.Contains(areaName);
             }
 
             if (!_combatInteractionService.IsInCrusadeTacticalCombat())

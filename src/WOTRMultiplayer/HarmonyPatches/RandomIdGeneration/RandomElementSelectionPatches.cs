@@ -153,7 +153,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             var combatSeed = Main.Multiplayer.GetCombatSeed();
             var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
             var identifier = $"{nameof(DublicateSpellComponent)}:{nameof(DublicateSpellComponent.GetNewTarget)}:{nameof(GetDuplicateSpellRandom)}:{Game.Instance.Player.GameId}:{ability.Caster?.Unit?.UniqueId}:{ability.NameForAcronym}:{baseTarget.UniqueId}:{sessionSeed}:{combatSeed}:{combatTurnSeed}";
-            var random = Main.Multiplayer.ValueGenerator.GetRandom(SeedLifetime.CombatTurn, identifier);
+            var random = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.CombatTurn, identifier);
             Main.GetLogger<RandomElementSelectionPatches>().LogInformation("Duplicate spell target random has been initialized. Identifier={Identifier}", identifier);
             return random;
         }
@@ -169,7 +169,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             {
                 var sessionSeed = Main.Multiplayer.GetSessionSeed();
                 var identifier = $"{nameof(LeadersRoot)}:{nameof(LeadersRoot.GetLeadersForRecruit)}:{nameof(GetLeadersForRecruitRandom)}:{sessionSeed}:{Game.Instance.Player.GameId}";
-                var random = Main.Multiplayer.ValueGenerator.GetRandom(SeedLifetime.Area, identifier);
+                var random = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.Area, identifier);
                 Main.GetLogger<RandomElementSelectionPatches>().LogInformation("Leaders for recruit random has been initialized. Identifier={Identifier}", identifier);
                 return random;
             }
@@ -192,7 +192,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
                 var sessionSeed = Main.Multiplayer.GetSessionSeed();
                 var crusadeCombatSeed = Main.Multiplayer.GetCrusadeArmyCombatSeed();
                 var identifier = $"{nameof(SquadsActionOnTacticalCombatStart)}:{nameof(SquadsActionOnTacticalCombatStart.HandleCombatStart)}:{nameof(GetSquadsActionOnCombatStartRandom)}:{Game.Instance.Player.GameId}:{sessionSeed}:{crusadeCombatSeed}";
-                var random = Main.Multiplayer.ValueGenerator.GetRandom(SeedLifetime.Combat, identifier);
+                var random = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.Combat, identifier);
                 Main.GetLogger<RandomElementSelectionPatches>().LogInformation("Squads action on combat start random has been initialized. Identifier={Identifier}", identifier);
                 return random;
             }
@@ -215,7 +215,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
 
                 var sessionSeed = Main.Multiplayer.GetSessionSeed();
                 var identifier = $"{nameof(ArmyRoot)}:{nameof(ArmyRoot.SummonTravellingArmy)}:{nameof(GetTravelingArmyRandom)}:{sessionSeed}:{Game.Instance.Player.GameId}:{chapterSpawnInfo.Chapter}";
-                var random = Main.Multiplayer.ValueGenerator.GetRandom(SeedLifetime.Persistent, identifier);
+                var random = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.Persistent, identifier);
                 Main.GetLogger<RandomElementSelectionPatches>().LogInformation("Leaders for recruit random has been initialized. Identifier={Identifier}");
                 return random;
             }
@@ -237,7 +237,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
 
                 var sessionSeed = Main.Multiplayer.GetSessionSeed();
                 var identifier = $"{nameof(ArmyRoot)}:{nameof(ArmyRoot.SummonTravellingArmy)}:{nameof(GetTravelingArmiesCount)}:{sessionSeed}:{Game.Instance.Player.GameId}:{minInclusive}:{maxExclusive}:{chapterSpawnInfo.Chapter}";
-                var armiesCount = Main.Multiplayer.ValueGenerator.Range(SeedLifetime.Persistent, identifier, minInclusive, maxExclusive);
+                var armiesCount = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Persistent, identifier, minInclusive, maxExclusive);
                 Main.GetLogger<RandomElementSelectionPatches>().LogInformation("Travling armies count has been rolled. Count={Count}, MinInclusive={MinInclusive}, MaxExclusive={MaxExclusive}, Identifier={Identifier}", armiesCount, minInclusive, maxExclusive, identifier);
                 return armiesCount;
             }

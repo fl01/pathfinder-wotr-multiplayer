@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using AutoMapper;
+using Kingmaker.Utility;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.GameInteraction;
@@ -1368,7 +1369,7 @@ namespace WOTRMultiplayer.Services
                 DiceRollStorage.Reset();
                 Logger.LogInformation("Dice roll storage has been reset at after syncing turn units");
 
-                ValueGenerator.ResetSeedGenerators(Random.SeedLifetime.CombatTurn);
+                ValueGenerator.ResetSeededGenerators(Random.IdentifierLifetime.CombatTurn);
 
                 var confirmationMessage = new ClientCombatTurnSynchronized { UnitId = Game.Combat.Turn.UnitId };
                 Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}", nameof(ClientCombatTurnSynchronized), confirmationMessage.UnitId);
@@ -1529,9 +1530,14 @@ namespace WOTRMultiplayer.Services
             GameInteraction.LeaveArea(transition);
         }
 
-        private void OnNotifyGamePauseEnded(long playerId, NotifyGamePauseEnded changed)
+        private void OnNotifyGamePauseEnded(long playerId, NotifyGamePauseEnded message)
         {
-            Logger.LogInformation("Received {MessageType}", nameof(NotifyGamePauseEnded));
+            Logger.LogInformation("Received {MessageType}. AreaSeed={AreaSeed}", nameof(NotifyGamePauseEnded), message.AreaSeed);
+            if (message.AreaSeed.HasValue)
+            {
+                SetAreaSeed(message.AreaSeed.Value);
+            }
+
             Game.ForcedPause = null;
             GameInteraction.SetPause(false);
         }

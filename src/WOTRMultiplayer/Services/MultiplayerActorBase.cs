@@ -19,6 +19,7 @@ using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.ActionBar;
+using WOTRMultiplayer.Entities.Area;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Combat.Crusades;
 using WOTRMultiplayer.Entities.Content;
@@ -48,11 +49,15 @@ namespace WOTRMultiplayer.Services
     {
         private readonly object _actionLock = new();
 
+        public NetworkArea CurrentArea => Game.CurrentArea;
+
         public bool IsInCombat => Game?.Combat != null;
 
         public int SessionSeed => Game.SessionSeed;
 
         public int? LoadedSaveSeed => Game.LoadedSaveSeed;
+
+        public int? AreaSeed => Game.CurrentArea?.Seed;
 
         public int? CombatSeed => Game.Combat?.Seed;
 
@@ -422,9 +427,9 @@ namespace WOTRMultiplayer.Services
 
         public void OnAreaScenesLoaded()
         {
-            var currentChapter = GameInteraction.GetCurrentChapter();
-            var currentArea = GameInteraction.GetCurrentAreaName();
-            Logger.LogInformation("Area scenes loaded. Chapter={Chapter}, AreaName={AreaName}", currentChapter, currentArea);
+            Game.CurrentArea = GameInteraction.GetCurrentArea();
+
+            Logger.LogInformation("Area scenes loaded. Chapter={Chapter}, AreaName={AreaName}", Game.CurrentArea.Chapter, Game.CurrentArea.Name);
 
             SetLobbyStage(NetworkLobbyStage.Playing);
 
@@ -439,7 +444,7 @@ namespace WOTRMultiplayer.Services
                 GameInteraction.SetPause(true);
             }
 
-            if (IsOutOfSupportedArea(currentChapter, currentArea))
+            if (IsOutOfSupportedArea())
             {
                 PlayerNotification.ShowModalMessage(WellKnownKeys.SysMessages.OutOfSupportedAreas.Key);
             }
@@ -578,7 +583,7 @@ namespace WOTRMultiplayer.Services
             SaveLastCombatTurn();
 
             Game.Combat = null;
-            ValueGenerator.ResetSeedGenerators(SeedLifetime.Combat, SeedLifetime.CombatTurn);
+            ValueGenerator.ResetSeededGenerators(IdentifierLifetime.Combat, IdentifierLifetime.CombatTurn);
         }
 
         public void OnHandleDelayCombatTurn(string unitId, string targetUnitId)
@@ -2030,7 +2035,7 @@ namespace WOTRMultiplayer.Services
         {
             Game.ArmyCombat = null;
             Logger.LogInformation("Crusade army combat has ended");
-            ValueGenerator.ResetSeedGenerators(SeedLifetime.Combat, SeedLifetime.CombatTurn);
+            ValueGenerator.ResetSeededGenerators(IdentifierLifetime.Combat, IdentifierLifetime.CombatTurn);
         }
 
         public bool OnBeforeTacticalCombatTurnStart(int turnNumber)
@@ -2714,7 +2719,7 @@ namespace WOTRMultiplayer.Services
             Game.ArmyCombat = null;
             Game.Leveling = null;
             DiceRollStorage.Reset();
-            ValueGenerator.ResetSeedGenerators(SeedLifetime.Area, SeedLifetime.Combat, SeedLifetime.CombatTurn);
+            ValueGenerator.ResetSeededGenerators(IdentifierLifetime.Area, IdentifierLifetime.Combat, IdentifierLifetime.CombatTurn);
 
             ResetPlayersTracker(Game.PlayersInGroupChanger);
             ResetPlayersTracker(Game.PlayersInSkipTime);
@@ -2907,6 +2912,12 @@ namespace WOTRMultiplayer.Services
                 || string.Equals(x.Name, character.Name, StringComparison.OrdinalIgnoreCase));
 
             return actualCharacter;
+        }
+
+        protected void SetAreaSeed(int seed)
+        {
+            Game.CurrentArea.Seed = seed;
+            Logger.LogInformation("Area seed has been set. Seed={Seed}", Game.CurrentArea.Seed);
         }
 
         protected NetworkPlayer GetPlayer(long playerId)
@@ -4435,11 +4446,9 @@ namespace WOTRMultiplayer.Services
             return canControl;
         }
 
-#pragma warning disable IDE0060 // Remove unused parameter
-        private bool IsOutOfSupportedArea(int currentChapter, string currentArea)
-#pragma warning restore IDE0060 // Remove unused parameter
+        private bool IsOutOfSupportedArea()
         {
-            var isOutOfSupport = currentChapter switch
+            var isOutOfSupport = Game.CurrentArea.Chapter switch
             {
                 <= 2 => false,
                 _ => true,

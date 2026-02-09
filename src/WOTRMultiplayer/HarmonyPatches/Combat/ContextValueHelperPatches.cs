@@ -50,16 +50,19 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             try
             {
                 var sessionSeed = Main.Multiplayer.GetSessionSeed();
+                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
+                var areaSeed = Main.Multiplayer.GetAreaSeed();
                 var combatSeed = Main.Multiplayer.GetCombatSeed();
                 var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
+
+                var lifetime = combatSeed == 0 ? IdentifierLifetime.Area : IdentifierLifetime.Combat;
 
                 var abilityName = context.SourceAbility?.NameForAcronym;
                 var itemName = context.SourceItem?.NameForAcronym;
-                var identifier = $"{nameof(ContextValueHelper)}:{nameof(RollDice)}:{context.NameForAcronym}:{unitId}:{targetUnitId}:{context.SourceAbility?.AssetGuid.ToString()}:{abilityName}:{itemName}:{ruleRollDice.DiceFormula.Rolls}:{ruleRollDice.DiceFormula.Dice}_{sessionSeed}:{loadedSaveSeed}:{combatSeed}:{combatTurnSeed}";
-                var random = Main.Multiplayer.ValueGenerator.GetRandom(SeedLifetime.CombatTurn, identifier);
+                var identifier = $"{nameof(ContextValueHelper)}:{nameof(RollDice)}:{context.NameForAcronym}:{unitId}:{targetUnitId}:{context.SourceAbility?.AssetGuid.ToString()}:{abilityName}:{itemName}:{ruleRollDice.DiceFormula.Rolls}:{ruleRollDice.DiceFormula.Dice}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}:{combatSeed}:{combatTurnSeed}";
+                var random = Main.Multiplayer.ValueGenerator.GetRandom(lifetime, identifier);
                 var result = ruleRollDice.DiceFormula.Roll(random);
-                Main.GetLogger<ContextValueHelperPatches>().LogInformation("Ability/Item random value has been rolled. Name={Name}, Result={Result}, UnitId={UnitId}, TargetUnitId={TargetUnitId}, AbilityName={AbilityName}, ItemName={ItemName}, DiceRolls={DiceRolls}, Dice={Dice}, Identifier={Identifier}", context.NameForAcronym, result, unitId, targetUnitId, abilityName, itemName, ruleRollDice.DiceFormula.Rolls, ruleRollDice.DiceFormula.Dice, identifier);
+                Main.GetLogger<ContextValueHelperPatches>().LogInformation("Ability/Item random value has been rolled. Name={Name}, Result={Result}, IdentifierLifetime={IdentifierLifetime}, UnitId={UnitId}, TargetUnitId={TargetUnitId}, AbilityName={AbilityName}, ItemName={ItemName}, DiceRolls={DiceRolls}, Dice={Dice}, Identifier={Identifier}", context.NameForAcronym, result, lifetime, unitId, targetUnitId, abilityName, itemName, ruleRollDice.DiceFormula.Rolls, ruleRollDice.DiceFormula.Dice, identifier);
                 return result;
             }
             catch (Exception ex)

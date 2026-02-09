@@ -6,5 +6,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyGamePauseEnded)]
     public class NotifyGamePauseEnded
     {
+        [ProtoMember(1)]
+        public int? AreaSeed { get; set; }
     }
 }

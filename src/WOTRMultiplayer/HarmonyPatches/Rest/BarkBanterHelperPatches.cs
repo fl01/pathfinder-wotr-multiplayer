@@ -58,7 +58,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
             var minInclusive = 0;
             var maxExclusive = allBanters.Count;
             var seed = $"{nameof(BarkBanterHelper)}:{nameof(SelectBanter)}:{loadedSaveSeed}";
-            var banterIndex = Main.Multiplayer.ValueGenerator.Range(SeedLifetime.Persistent, seed, minInclusive, maxExclusive);
+            var banterIndex = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Persistent, seed, minInclusive, maxExclusive);
             var selectedBanter = allBanters[banterIndex];
             var firstPhraseKey = selectedBanter?.FirstPhrase?.FirstOrDefault()?.Key;
             Main.GetLogger<BarkBanterHelperPatches>().LogInformation("Selected camping banter. Id={Id}, FirstPhraseKey={FirstPhraseKey}, Seed={Seed}, Index={Index}, MinInclusive={MinInclusive}, MaxExclusive={MaxExclusive}", selectedBanter?.AssetGuid, firstPhraseKey, seed, banterIndex, minInclusive, maxExclusive);

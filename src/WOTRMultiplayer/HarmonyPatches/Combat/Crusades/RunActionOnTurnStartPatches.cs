@@ -51,7 +51,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat.Crusades
             {
                 var crusadeCombatSeed = Main.Multiplayer.GetCrusadeArmyCombatSeed();
                 var identifier = $"{nameof(RunActionOnTurnStart)}:{nameof(RollActionChance)}:{unit.UniqueId}:{turnNumber}:{crusadeCombatSeed}";
-                float roll = Main.Multiplayer.ValueGenerator.Range(SeedLifetime.Combat, identifier, 0f, 1f);
+                float roll = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Combat, identifier, 0f, 1f);
                 Main.GetLogger<RunActionOnTurnStartPatches>().LogInformation("RunActionOnTurnStart has been rolled. UnitId={UnitId}, Roll={Roll}, Identifier={Identifier}", unit.UniqueId, roll, identifier);
                 return roll;
             }

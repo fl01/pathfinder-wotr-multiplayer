@@ -65,7 +65,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
                 var identifier = $"{nameof(UnitFearController)}:{nameof(SelectPointToMove)}:{movementData.unit.UniqueId}:{sessionSeed}:{combatSeed}:{combatTurnSeed}";
 
-                var index = Main.Multiplayer.ValueGenerator.Range(SeedLifetime.CombatTurn, identifier, minInclusive, maxExclusive);
+                var index = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.CombatTurn, identifier, minInclusive, maxExclusive);
                 var point = points.ElementAt(index);
                 Main.GetLogger<UnitFearControllerPatches>().LogInformation("Fear move point has been selected. UnitId={UnitId}, Point={Point}, Index={Index}, TurnSeed={TurnSeed}", movementData.unit.UniqueId, point, index, combatTurnSeed);
                 return point;

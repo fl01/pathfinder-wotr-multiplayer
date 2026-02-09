@@ -2194,16 +2194,22 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return state;
         }
 
-        public int GetCurrentChapter()
+        public NetworkArea GetCurrentArea()
         {
-            var chapter = Game.Instance.Player?.Chapter ?? int.MaxValue;
-            return chapter;
-        }
+            var currentArea = Game.Instance.CurrentlyLoadedArea;
+            if (currentArea == null)
+            {
+                return null;
+            }
 
-        public string GetCurrentAreaName()
-        {
-            var areaName = Game.Instance.CurrentlyLoadedArea?.name;
-            return areaName;
+            var area = new NetworkArea
+            {
+                Id = currentArea.AssetGuid.ToString(),
+                Name = currentArea.name,
+                Chapter = Game.Instance.Player?.Chapter ?? -1
+            };
+
+            return area;
         }
 
         public void CreateAndEquipPolymorphicItem(NetworkPolymorphicItem polymorphicItem, bool createContext)

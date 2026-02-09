@@ -6,22 +6,20 @@ namespace WOTRMultiplayer.Abstractions.Random
 {
     public interface IValueGenerator
     {
-        string GenerateUniqueId(UniqueIdType uniqueIdType, string gameId, string identifier);
+        string GenerateUniqueId(IdType idType, string gameId, string identifier);
 
-        int Range(SeedLifetime seedLifetime, int seed, int minInclusive, int maxExclusive);
+        int Range(IdentifierLifetime lifetime, string identifier, int minInclusive, int maxExclusive);
 
-        int Range(SeedLifetime seedLifetime, string seed, int minInclusive, int maxExclusive);
-
-        float Range(SeedLifetime seedLifetime, string seed, float minInclusive, float maxExclusive);
+        float Range(IdentifierLifetime lifetime, string identifier, float minInclusive, float maxExclusive);
 
         void ResetUniqueIdCounters(string gameId);
 
-        void ResetSeedGenerators(params SeedLifetime[] lifetimes);
+        void ResetSeededGenerators(params IdentifierLifetime[] lifetimes);
 
-        Guid CreateGuid(SeedLifetime area, string seed);
+        Guid CreateGuid(IdentifierLifetime area, string identifier);
 
-        System.Random GetRandom(SeedLifetime seedLifetime, string seed);
+        System.Random GetRandom(IdentifierLifetime lifetime, string identifier);
 
-        NetworkVector2 GetRandomUnitCircle(SeedLifetime seedLifetime, string seed);
+        NetworkVector2 GetRandomUnitCircle(IdentifierLifetime lifetime, string identifier);
     }
 }

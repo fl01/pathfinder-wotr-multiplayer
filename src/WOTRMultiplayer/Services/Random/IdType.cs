@@ -5,7 +5,7 @@ namespace WOTRMultiplayer.Services.Random
     /// <summary>
     /// Description attribute value is used as prefix during ID generation
     /// </summary>
-    public enum UniqueIdType
+    public enum IdType
     {
         [Description("UN")]
         Unit,

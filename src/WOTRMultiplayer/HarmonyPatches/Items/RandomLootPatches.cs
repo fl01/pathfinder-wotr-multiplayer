@@ -135,7 +135,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Items
                 var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
 
                 var identifier = $"{nameof(BlueprintLoot)}:{nameof(GetBlueprintLootRandomizator)}:{Game.Instance.Player.GameId}:{blueprintLoot.Area?.name}:{blueprintLoot.Area?.AssetGuid.ToString()}:{blueprintLoot.Cost}:{sessionSeed}:{loadedSaveSeed}";
-                var randomizer = Main.Multiplayer.ValueGenerator.GetRandom(SeedLifetime.Area, identifier);
+                var randomizer = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.Area, identifier);
                 Main.GetLogger<RandomLootPatches>().LogInformation("Randomizer for BlueprintLoot has been initialized. Identifier={Identifier}, SessionSeed={SessionSeed}, LoadedSaveSeed={LoadedSaveSeed}", identifier, sessionSeed, loadedSaveSeed);
                 return randomizer.Next;
             }
@@ -159,7 +159,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Items
                 var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
 
                 var identifier = $"{nameof(ContextActionAddRandomTrashItem)}:{nameof(GetContextActionLootRandomizator)}:{Game.Instance.Player.GameId}:{contextActionAddRandom.m_LootType}:{contextActionAddRandom.m_MaxCost}:{contextActionAddRandom.m_Silent}:{sessionSeed}:{loadedSaveSeed}";
-                var randomizer = Main.Multiplayer.ValueGenerator.GetRandom(SeedLifetime.Area, identifier);
+                var randomizer = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.Area, identifier);
                 Main.GetLogger<RandomLootPatches>().LogInformation("Randomizer for ContextActionAddRandomTrashItem has been initialized. Identifier={Identifier}, SessionSeed={SessionSeed}, LoadedSaveSeed={LoadedSaveSeed}", identifier, sessionSeed, loadedSaveSeed);
                 return randomizer.Next;
             }
@@ -185,7 +185,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Items
                 var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
 
                 var identifier = $"{nameof(LootRandomItem)}:{nameof(GetRandomLootItem)}:{Game.Instance.Player.GameId}:{ownerBlueprintId}:{ownerBlueprintName}:{sessionSeed}";
-                var roll = Main.Multiplayer.ValueGenerator.Range(SeedLifetime.Area, identifier, minInclusive, maxExclusive);
+                var roll = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, minInclusive, maxExclusive);
                 Main.GetLogger<RandomLootPatches>().LogInformation("Random unit loot item index has been rolled. Roll={Roll}, Identifier={Identifier}, MinInclusive={MinInclusive}, MaxExclusive={MaxExclusive}, SessionSeed={SessionSeed}, LoadedSaveSeed={LoadedSaveSeed}", roll, identifier, minInclusive, maxExclusive, sessionSeed, loadedSaveSeed);
                 return roll;
             }
@@ -211,7 +211,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Items
                 var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
 
                 var identifier = $"{nameof(LootItemsPackVariable)}:{nameof(GetRandomLootItemsPack)}:{Game.Instance.Player.GameId}:{ownerBlueprintId}:{ownerBlueprintName}:{sessionSeed}:{loadedSaveSeed}";
-                var roll = Main.Multiplayer.ValueGenerator.Range(SeedLifetime.Area, identifier, minInclusive, maxExclusive);
+                var roll = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, minInclusive, maxExclusive);
                 Main.GetLogger<RandomLootPatches>().LogInformation("Random unitpack loot item index has been rolled. Roll={Roll}, Identifier={Identifier}, MinInclusive={MinInclusive}, MaxExclusive={MaxExclusive}, SessionSeed={SessionSeed}, LoadedSaveSeed={LoadedSaveSeed}", roll, identifier, minInclusive, maxExclusive, sessionSeed, loadedSaveSeed);
                 return roll;
             }

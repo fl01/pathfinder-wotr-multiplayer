@@ -1,6 +1,6 @@
 ﻿namespace WOTRMultiplayer.Services.Random
 {
-    public enum SeedLifetime
+    public enum IdentifierLifetime
     {
         // single MP session including any quick loads
         Persistent,

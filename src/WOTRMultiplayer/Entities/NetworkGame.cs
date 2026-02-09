@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Kingmaker.GameModes;
+using WOTRMultiplayer.Entities.Area;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Combat.Crusades;
 using WOTRMultiplayer.Entities.Dialogs;
@@ -17,6 +18,8 @@ namespace WOTRMultiplayer.Entities
         /// global seed perssistent for entire session (including loading save games)
         /// </summary>
         public int SessionSeed { get; set; }
+
+        public NetworkArea CurrentArea { get; set; }
 
         /// <summary>
         /// new seed for each save load

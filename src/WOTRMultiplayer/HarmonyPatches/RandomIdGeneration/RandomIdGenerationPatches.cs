@@ -299,7 +299,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
                 }
 
                 var uniqueId = blueprintUnit.name;
-                var voiceIndex = Main.Multiplayer.ValueGenerator.Range(SeedLifetime.Area, uniqueId, 0, voices.Count);
+                var voiceIndex = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, uniqueId, 0, voices.Count);
                 var voiceReference = voices[voiceIndex];
                 var voice = voiceReference.Get();
                 Main.GetLogger<RandomIdGenerationPatches>().LogDebug("Unit voice has been selected. Id={Id}, Gender={Gender}, Voice={Voice}", uniqueId, gender, voice.name);
@@ -323,7 +323,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             try
             {
                 var uniqueId = blueprintUnit.name;
-                var leftHandedRoll = Main.Multiplayer.ValueGenerator.Range(SeedLifetime.Area, uniqueId, 0f, 1f);
+                var leftHandedRoll = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, uniqueId, 0f, 1f);
                 var isLeftHanded = leftHandedRoll <= blueprintUnit.CustomizationPreset.Distribution.LeftHandedChance;
                 Main.GetLogger<RandomIdGenerationPatches>().LogDebug("Unit handedness has been selected. Id={Id}, Roll={Roll}, IsLeftHanded={IsLeftHanded}", uniqueId, leftHandedRoll, isLeftHanded);
                 return isLeftHanded;
@@ -421,13 +421,13 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             {
                 var sessionSeed = Main.Multiplayer.GetSessionSeed();
                 var identifier = $"{GetCommonIdPart()}:{nameof(Game.CreateUnitVacuum)}:{blueprintUnit.name}:{blueprintUnit.AssetGuid}:{sessionSeed}";
-                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.CustomCompanionUnit, Game.Instance.Player.GameId, identifier);
+                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(IdType.CustomCompanionUnit, Game.Instance.Player.GameId, identifier);
                 var unit = new UnitEntityData(id, isInGame: true, blueprintUnit);
                 return unit;
             }
             catch (Exception ex)
             {
-                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating custom companion unit Id. Type={Type}", UniqueIdType.CustomCompanionUnit);
+                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating custom companion unit Id. Type={Type}", IdType.CustomCompanionUnit);
                 throw;
             }
         }
@@ -437,12 +437,12 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             try
             {
                 var identifier = $"{GetCommonIdPart()}:{areaEffectView.GetType().Name}:{areaEffectView.name}";
-                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.AreaEffect, Game.Instance.Player.GameId, identifier);
+                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(IdType.AreaEffect, Game.Instance.Player.GameId, identifier);
                 return id;
             }
             catch (Exception ex)
             {
-                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating unique Id. Type={Type}", UniqueIdType.AreaEffect);
+                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating unique Id. Type={Type}", IdType.AreaEffect);
                 throw;
             }
         }
@@ -452,12 +452,12 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             try
             {
                 var identifier = $"{GetCommonIdPart()}:{prefab.GetType().Name}:{prefab.name}";
-                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.EntityView, Game.Instance.Player.GameId, identifier);
+                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(IdType.EntityView, Game.Instance.Player.GameId, identifier);
                 return id;
             }
             catch (Exception ex)
             {
-                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating unique Id. Type={Type}", UniqueIdType.EntityView);
+                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating unique Id. Type={Type}", IdType.EntityView);
                 throw;
             }
         }
@@ -467,13 +467,13 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             try
             {
                 var rawIdentifier = $"{GetCommonIdPart()}:{unit.AssetGuid}:{prefab.name}:{unit?.CharacterName}";
-                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.Unit, Game.Instance.Player.GameId, rawIdentifier);
+                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(IdType.Unit, Game.Instance.Player.GameId, rawIdentifier);
                 Main.GetLogger<RandomIdGenerationPatches>().LogDebug("UnitId has been generated. GameId={GameId}, RawIdentifier={RawIdentifier}, Id={Id}", Game.Instance.Player.GameId, rawIdentifier, id);
                 return id;
             }
             catch (Exception ex)
             {
-                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating new unit Id. Type={Type}", UniqueIdType.Unit);
+                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating new unit Id. Type={Type}", IdType.Unit);
                 throw;
             }
         }
@@ -483,12 +483,12 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             try
             {
                 var identifier = $"{GetCommonIdPart()}:{fact.GetType().Name}:{fact.NameForAcronym}:{fact.Owner?.UniqueId}";
-                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.Fact, Game.Instance.Player.GameId, identifier);
+                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(IdType.Fact, Game.Instance.Player.GameId, identifier);
                 return id;
             }
             catch (Exception ex)
             {
-                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating new entity fact Id. Type={Type}", UniqueIdType.Fact);
+                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating new entity fact Id. Type={Type}", IdType.Fact);
                 throw;
             }
         }
@@ -498,12 +498,12 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             try
             {
                 var identifier = $"{GetCommonIdPart()}:{unitEntityData.CharacterName}:{blueprintUnit?.name}";
-                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.ChangeBlueprintUnit, Game.Instance.Player.GameId, identifier);
+                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(IdType.ChangeBlueprintUnit, Game.Instance.Player.GameId, identifier);
                 return id;
             }
             catch (Exception ex)
             {
-                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating 'changeBlueprint' Id. Type={Type}", UniqueIdType.ChangeBlueprintUnit);
+                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating 'changeBlueprint' Id. Type={Type}", IdType.ChangeBlueprintUnit);
                 throw;
             }
         }
@@ -513,12 +513,12 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             try
             {
                 var identifier = $"{GetCommonIdPart()}:{blueprintItem.NameForAcronym}:{blueprintItem.ItemType}:{blueprintItem.MiscellaneousType}";
-                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.ItemEntity, Game.Instance.Player.GameId, identifier);
+                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(IdType.ItemEntity, Game.Instance.Player.GameId, identifier);
                 return id;
             }
             catch (Exception ex)
             {
-                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating new item entity Id. Type={Type}", UniqueIdType.ItemEntity);
+                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating new item entity Id. Type={Type}", IdType.ItemEntity);
                 throw;
             }
         }
@@ -536,7 +536,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
                 var leader = globalMapArmyState.Data.Leader;
                 var armyName = globalMapArmyState.Data.ArmyName;
                 var rawIdentifier = $"{GetCommonIdPart()}:{globalMapArmyState.Id}:{globalMapArmyState.ArmyType}:{armyName?.ArmyName}:{armyName?.ArmyIndex}:{squadState.Size}:{squadState.Unit.name}:{groupId}:{regionId}:{leader?.Blueprint.name}:{faction.name}:{crusadeArmyCombatSeed}";
-                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.CrusadeArmyCombatUnit, Game.Instance.Player.GameId, rawIdentifier);
+                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(IdType.CrusadeArmyCombatUnit, Game.Instance.Player.GameId, rawIdentifier);
                 Main.GetLogger<RandomIdGenerationPatches>().LogInformation("Army UnitId has been generated. GameId={GameId}, Seed={Seed}, RawIdentifier={RawIdentifier}, Id={Id}", Game.Instance.Player.GameId, crusadeArmyCombatSeed, rawIdentifier, id);
                 return id;
             }
@@ -561,7 +561,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
                 var identifier = $"{GetCommonIdPart()}:{blueprint.AssetGuid}:{faction}:{sessionSeed}";
                 while (string.IsNullOrEmpty(id))
                 {
-                    id = Main.Multiplayer.ValueGenerator.CreateGuid(SeedLifetime.Area, identifier).ToString();
+                    id = Main.Multiplayer.ValueGenerator.CreateGuid(IdentifierLifetime.Area, identifier).ToString();
                     var army = Game.Instance.Player.ArmyLeadersManager.m_Leaders.FirstOrDefault(a => string.Equals(a.Guid, id, StringComparison.OrdinalIgnoreCase))
                         ?? (Main.UIAccessor.GlobalMapPCView?.m_BuyLeaderPCView?.m_Leaders?.Select(x => x.ViewModel?.m_Leader) ?? []).FirstOrDefault(a => string.Equals(a.Guid, id, StringComparison.OrdinalIgnoreCase));
 
@@ -599,7 +599,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
                 var identifier = $"{GetCommonIdPart()}:{armyNameWithIndex.ArmyName}:{armyNameWithIndex.ArmyIndex}:{armyFaction}:{armyPreset?.AssetGuid.ToString()}:{position?.Location?.name}:{isGarrison}:{isTraveling}:{sessionSeed}";
                 while (string.IsNullOrEmpty(id))
                 {
-                    id = Main.Multiplayer.ValueGenerator.CreateGuid(SeedLifetime.Area, identifier).ToString();
+                    id = Main.Multiplayer.ValueGenerator.CreateGuid(IdentifierLifetime.Area, identifier).ToString();
                     var army = GlobalMapController.State.Armies.FirstOrDefault(a => string.Equals(a.Id, id, StringComparison.OrdinalIgnoreCase));
                     if (army != null)
                     {
@@ -623,12 +623,12 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             try
             {
                 var identifier = $"{GetCommonIdPart()}:{blueprint.NameForAcronym}:{caster?.Unit?.UniqueId}:{fact?.UniqueId}:{blueprintSpellbook?.name}";
-                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(UniqueIdType.AbilityData, Game.Instance.Player.GameId, identifier);
+                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(IdType.AbilityData, Game.Instance.Player.GameId, identifier);
                 return id;
             }
             catch (Exception ex)
             {
-                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating unique Id. Type={Type}", UniqueIdType.AbilityData);
+                Main.GetLogger<RandomIdGenerationPatches>().LogError(ex, "Error while generating unique Id. Type={Type}", IdType.AbilityData);
                 throw;
             }
         }

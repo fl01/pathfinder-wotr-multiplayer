@@ -999,6 +999,12 @@ namespace WOTRMultiplayer.Services
             return seed;
         }
 
+        public int GetAreaSeed()
+        {
+            var seed = _multiplayerActorAccessor.Current?.AreaSeed ?? 0;
+            return seed;
+        }
+
         public int? GetCrusadeArmyCombatAreaSeed()
         {
             try

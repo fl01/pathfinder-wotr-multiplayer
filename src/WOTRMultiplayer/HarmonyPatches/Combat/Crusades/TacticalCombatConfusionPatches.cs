@@ -55,7 +55,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat.Crusades
             {
                 var crusadeCombatSeed = Main.Multiplayer.GetCrusadeArmyCombatSeed();
                 var identifier = $"{nameof(TacticalCombatConfusion)}:{nameof(RollConfusionEffect)}:{unit.UniqueId}:{turnNumber}:{crusadeCombatSeed}";
-                int roll = Main.Multiplayer.ValueGenerator.Range(SeedLifetime.Combat, identifier, 1, 101);
+                int roll = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Combat, identifier, 1, 101);
                 Main.GetLogger<RunActionOnTurnStartPatches>().LogInformation("TacticalCombatConfusion effect has been rolled. UnitId={UnitId}, Roll={Roll}, Identifier={Identifier}", unit.UniqueId, roll, identifier);
                 return roll;
             }

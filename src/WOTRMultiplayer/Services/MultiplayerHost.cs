@@ -208,6 +208,9 @@ namespace WOTRMultiplayer.Services
 
         public void OnAreaLoadingComplete()
         {
+            var areaSeed = CreateRandomSeed();
+            SetAreaSeed(areaSeed);
+
             TryEndForcedPause();
         }
 
@@ -1453,7 +1456,7 @@ namespace WOTRMultiplayer.Services
                     DiceRollStorage.Reset();
                     Logger.LogInformation("Dice roll storage has been reset at turn entites sync stage");
 
-                    ValueGenerator.ResetSeedGenerators(SeedLifetime.CombatTurn);
+                    ValueGenerator.ResetSeededGenerators(IdentifierLifetime.CombatTurn);
 
                     var message = new NotifyCombatTurnStarted
                     {
@@ -2318,10 +2321,15 @@ namespace WOTRMultiplayer.Services
                     Logger.LogInformation("Forced pause will be lifted soon. Delay={Delay}", removalDelay.GetValueOrDefault());
                     delay.ContinueWith(x =>
                     {
+                        var message = new NotifyGamePauseEnded
+                        {
+                            AreaSeed = Game.ForcedPause.Reason == NetworkForcedPauseReason.AreaLoading ? Game.CurrentArea.Seed : null
+                        };
+                        Logger.LogInformation("Sending {MessageType}. AreaSeed={AreaSeed}", nameof(NotifyGamePauseEnded), message.AreaSeed);
+                        Send(message);
+
                         Game.ForcedPause = null;
                         GameInteraction.SetPause(false);
-                        var message = new NotifyGamePauseEnded();
-                        Send(message);
                         Logger.LogInformation("Forced pause has been lifted");
                     });
                     return true;

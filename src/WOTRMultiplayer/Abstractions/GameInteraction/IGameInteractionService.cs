@@ -172,9 +172,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void TerminateNewGameSequence();
 
-        int GetCurrentChapter();
-
-        string GetCurrentAreaName();
+        NetworkArea GetCurrentArea();
 
         /// <summary>
         ///

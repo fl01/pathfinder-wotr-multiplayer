@@ -288,6 +288,8 @@ namespace WOTRMultiplayer.Abstractions
 
         int GetSessionSeed();
 
+        int GetAreaSeed();
+
         int GetLoadedSaveSeed();
 
         void OnZoneLootShown();
