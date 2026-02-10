@@ -61,5 +61,8 @@ namespace WOTRMultiplayer.Abstractions
 
         bool OnBeforeRuleDrainEnergyRoll(RuleDrainEnergy ruleDrainEnergy, RuleRollDice rollD20);
         void OnAfterRuleDrainEnergyRoll(RuleDrainEnergy ruleDrainEnergy, RuleRollDice rollD20);
+
+        bool OnBeforeRuleCombatManeuverRoll(RuleCombatManeuver ruleCombatManeuver);
+        void OnAfterRuleCombatManeuverRoll(RuleCombatManeuver ruleCombatManeuver, RuleRollD20 rollD20);
     }
 }

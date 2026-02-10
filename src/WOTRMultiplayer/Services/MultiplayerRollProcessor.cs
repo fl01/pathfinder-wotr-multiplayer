@@ -857,6 +857,51 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        public bool OnBeforeRuleCombatManeuverRoll(RuleCombatManeuver ruleCombatManeuver)
+        {
+            try
+            {
+                if (!ShouldRetrieveRoll(ruleCombatManeuver))
+                {
+                    return true;
+                }
+
+                var roll = CreateCombatManeuverRoll(NetworkDiceRollType.Hit, ruleCombatManeuver);
+                var d20 = RetrieveRoll<RuleRollD20>(roll, ruleCombatManeuver.Initiator);
+                if (d20 == null)
+                {
+                    return true;
+                }
+
+                ruleCombatManeuver.InitiatorRoll = d20;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
+        }
+
+        public void OnAfterRuleCombatManeuverRoll(RuleCombatManeuver ruleCombatManeuver, RuleRollD20 rollD20)
+        {
+            try
+            {
+                if (!ShouldStoreRoll(ruleCombatManeuver))
+                {
+                    return;
+                }
+
+                var roll = CreateCombatManeuverRoll(NetworkDiceRollType.Hit, ruleCombatManeuver);
+                SaveIntRollValue(roll, rollD20);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle {MethodName}", MethodBase.GetCurrentMethod().Name);
+                throw;
+            }
+        }
+
         public int? OnBeforeRuleDealStatDamageRoll(RuleDealStatDamage ruleDealStatDamage, int criticalModifier)
         {
             try
@@ -1457,6 +1502,20 @@ namespace WOTRMultiplayer.Services
                 TargetIsImmune = ruleDrainEnergy.TargetIsImmune,
                 Empower = ruleDrainEnergy.Empower,
                 DrainValue = ruleDrainEnergy.DrainValue,
+            };
+
+            return roll;
+        }
+
+        private CombatManeuverRoll CreateCombatManeuverRoll(NetworkDiceRollType diceRollType, RuleCombatManeuver ruleCombatManeuver)
+        {
+            var roll = new CombatManeuverRoll(ruleCombatManeuver.Initiator.UniqueId, ruleCombatManeuver.GetType().Name, diceRollType, 0)
+            {
+                TargetCMD = ruleCombatManeuver.TargetCMD,
+                Type = ruleCombatManeuver.Type.ToString(),
+                WeaponName = ruleCombatManeuver.AttackRule?.Weapon.NameForAcronym,
+                TargetUnitId = ruleCombatManeuver.Target?.UniqueId,
+                IncreasedDuration = ruleCombatManeuver.IncreasedDuration
             };
 
             return roll;
