@@ -30,6 +30,7 @@ using TurnBased.Controllers;
 using UniRx;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.Unity;
+using WOTRMultiplayer.Config.Mapping;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Combat.Crusades;
@@ -609,20 +610,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         private List<NetworkBuff> GetUnitBuffs(UnitEntityData combatUnit, TimeSpan buffBaseTime)
         {
             var syncableBuffs = GetSyncableUnitBuffs(combatUnit);
-            var buffs = syncableBuffs.Select(x => new NetworkBuff
-            {
-                Id = x.UniqueId,
-                BlueprintId = x.Blueprint.AssetGuid.ToString(),
-                Name = x.NameForAcronym,
-                IsPermanent = x.IsPermanent,
-                TimeLeft = x.TimeLeft,
-                NextResourceSpendingTime = x.NextResourceSpendingTime == TimeSpan.MaxValue ? TimeSpan.MaxValue : x.NextResourceSpendingTime - buffBaseTime,
-                NextTickTime = x.NextTickTime - buffBaseTime,
-                CasterId = x.Context?.MaybeCaster?.UniqueId,
-                Rank = x.Rank,
-                AbilityParams = _mapper.Map<NetworkAbilityParams>(x.Context.Params)
-            }).ToList();
-
+            var buffs = _mapper.Map<List<NetworkBuff>>(syncableBuffs, x => x.Items[GameProfile.BuffBaseTimeItem] = buffBaseTime);
             return buffs;
         }
 
@@ -714,6 +702,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private List<Buff> GetSyncableUnitBuffs(UnitEntityData unit)
         {
+            // negative levels are handled separately
             var buffs = unit.Buffs.Enumerable.Where(x => !x.Hidden).ToList();
             return buffs;
         }
@@ -740,7 +729,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     if (!buff.IsPermanent)
                     {
                         buff.NextResourceSpendingTime = networkBuff.NextResourceSpendingTime == TimeSpan.MaxValue ? TimeSpan.MaxValue : baseBuffTime.SafeAdd(networkBuff.NextResourceSpendingTime);
-                        buff.NextTickTime = baseBuffTime.SafeAdd(networkBuff.NextTickTime);
+                        buff.NextTickTime = networkBuff.NextTickTime == TimeSpan.MaxValue ? TimeSpan.MaxValue : baseBuffTime.SafeAdd(networkBuff.NextTickTime);
 
                         buff.SetDuration(networkBuff.TimeLeft);
                         _logger.LogInformation("Updated buff. UnitId={UnitId}, Id={Id}, Name={Name}, Duration={Duration}, NextResourceSpendingTime={NextResourceSpendingTime}, NextTickTime={NextTickTime}, BaseBuffTime={BaseBuffTime} NetworkNextTickTime={NetworkNextTickTime}, NetworkNextPendingTime={NetworkNextPendingTime}",
@@ -768,14 +757,14 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     var buff = ResourcesLibrary.TryGetBlueprint<BlueprintBuff>(buffToAdd.BlueprintId);
                     if (buff == null)
                     {
-                        _logger.LogError("Unable to find buff to add. BlueprintId={BlueprintId}", buffToAdd.BlueprintId);
+                        _logger.LogError("Missing blueprint for a buff. BlueprintId={BlueprintId}", buffToAdd.BlueprintId);
                         continue;
                     }
 
                     var abilityParams = _mapper.Map<AbilityParams>(buffToAdd.AbilityParams);
                     var duration = buffToAdd.IsPermanent ? TimeSpan.MaxValue : buffToAdd.TimeLeft;
                     var newBuff = unit.Buffs.AddBuff(buff, caster, duration, abilityParams);
-                    _logger.LogInformation("Buff has been added. UnitId={UnitId}, Id={Id}, BlueprintId={BlueprintId}, Name={Name}, IsPermanent={IsPermanent}, PlannedDuration={PlannedDuration}", unit.UniqueId, newBuff.UniqueId, buffToAdd.BlueprintId, newBuff.NameForAcronym, newBuff.IsPermanent, newBuff.PlannedDuration);
+                    _logger.LogInformation("Buff has been added. UnitId={UnitId}, Id={Id}, Rank={Rank}, BlueprintId={BlueprintId}, Name={Name}, IsPermanent={IsPermanent}, PlannedDuration={PlannedDuration}", unit.UniqueId, newBuff.UniqueId, newBuff.Rank, buffToAdd.BlueprintId, newBuff.NameForAcronym, newBuff.IsPermanent, newBuff.PlannedDuration);
                 }
             }
 
@@ -788,6 +777,9 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     _logger.LogInformation("Buff has been removed. UnitId={UnitId}, Id={Id}, Name={Name}", unit.UniqueId, buffToRemove.UniqueId, buffToRemove.NameForAcronym);
                 }
             }
+
+            unit.Buffs.UpdateNextEvent();
+            _logger.LogInformation("Next buff event has been updated. UnitId={UnitId}", unit.UniqueId);
         }
 
         private void UpdateUnitState(UnitEntityData unit, NetworkUnitState state)

@@ -2767,25 +2767,13 @@ namespace WOTRMultiplayer.Services
 
         protected async Task<bool> FixCombatUnitDiscrepancyAsync(NetworkCombatUnitDiscrepancy unitDiscrepancy)
         {
-            var localPlayerDiscrepancy = unitDiscrepancy.Units.Where(x => x.Key != Game.LocalPlayerId).SelectMany(x => x.Value).ToList();
-            if (localPlayerDiscrepancy.Count == 0)
+            var isFixed = await TryFixCombatUnitDiscrepancyAsync(unitDiscrepancy).ConfigureAwait(false);
+            if (isFixed)
             {
-                Logger.LogInformation("Local player doesn't require any combat unit discrepancy fixes");
-                return true;
+                Game.Combat.PlayersCombatPreparation.TryRemove(Game.LocalPlayerId, out _);
             }
 
-            Logger.LogInformation("Discrepant units will be added to combat. Units={Units}", localPlayerDiscrepancy.Select(x => x.Id));
-            var result = await CombatInteraction.EnsureUnitsInCombatAsync(localPlayerDiscrepancy).ConfigureAwait(false);
-            if (!result)
-            {
-                Logger.LogError("Combat unit discrepancy has not been fixed");
-                PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.Combat.DesyncedCombatUnits.Key);
-                return false;
-            }
-
-            Game.Combat.PlayersCombatPreparation.TryRemove(Game.LocalPlayerId, out _);
-
-            return result;
+            return isFixed;
         }
 
         protected bool IsCasterControlledByLocalPlayer(string sourceUnitId)
@@ -4401,6 +4389,26 @@ namespace WOTRMultiplayer.Services
             };
 
             return tracker;
+        }
+
+        private async Task<bool> TryFixCombatUnitDiscrepancyAsync(NetworkCombatUnitDiscrepancy combatUnitDiscrepancy)
+        {
+            var localPlayerDiscrepancy = combatUnitDiscrepancy.Units.Where(x => x.Key != Game.LocalPlayerId).SelectMany(x => x.Value).ToList();
+            if (localPlayerDiscrepancy.Count == 0)
+            {
+                Logger.LogInformation("Local player doesn't require any combat unit discrepancy fixes");
+                return true;
+            }
+
+            Logger.LogInformation("Discrepant units will be added to combat. Units={Units}", localPlayerDiscrepancy.Select(x => x.Id));
+            var result = await CombatInteraction.EnsureUnitsInCombatAsync(localPlayerDiscrepancy).ConfigureAwait(false);
+            if (!result)
+            {
+                Logger.LogError("Combat unit discrepancy has not been fixed");
+                PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.Combat.DesyncedCombatUnits.Key);
+            }
+
+            return result;
         }
 
         private void UpdateConfirmedMidCombatUnits()

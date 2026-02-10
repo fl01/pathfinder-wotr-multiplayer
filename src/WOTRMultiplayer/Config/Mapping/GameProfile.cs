@@ -1,6 +1,8 @@
-﻿using AutoMapper;
+﻿using System;
+using AutoMapper;
 using Kingmaker.UnitLogic;
 using Kingmaker.UnitLogic.Abilities;
+using Kingmaker.UnitLogic.Buffs;
 using Kingmaker.Utility;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.Combat;
@@ -12,6 +14,8 @@ namespace WOTRMultiplayer.Config.Mapping
 {
     public class GameProfile : Profile
     {
+        public const string BuffBaseTimeItem = "BaseTime";
+
         public GameProfile()
         {
             CreateMap<AbilityData, NetworkAbility>().ConstructUsing(Create)
@@ -26,7 +30,37 @@ namespace WOTRMultiplayer.Config.Mapping
             CreateMap<TargetWrapper, NetworkTargetWrapper>().ConstructUsing(x => Create(x))
                 .ForAllMembers(x => x.Ignore());
 
-            CreateMap<AbilityParams, NetworkAbilityParams>().ReverseMap();
+            CreateMap<AbilityParams, NetworkAbilityParams>()
+                .ReverseMap();
+
+            CreateMap<Buff, NetworkBuff>().ConstructUsing(Create)
+                .ForAllMembers(x => x.Ignore());
+        }
+
+        private NetworkBuff Create(Buff buff, ResolutionContext context)
+        {
+            if (buff == null)
+            {
+                return null;
+            }
+
+            var buffBaseTime = (TimeSpan)context.Items[BuffBaseTimeItem];
+
+            var networkBuff = new NetworkBuff
+            {
+                Id = buff.UniqueId,
+                BlueprintId = buff.Blueprint.AssetGuid.ToString(),
+                Name = buff.NameForAcronym,
+                IsPermanent = buff.IsPermanent,
+                TimeLeft = buff.TimeLeft,
+                NextResourceSpendingTime = buff.NextResourceSpendingTime == TimeSpan.MaxValue ? TimeSpan.MaxValue : buff.NextResourceSpendingTime - buffBaseTime,
+                NextTickTime = buff.NextTickTime == TimeSpan.MaxValue ? TimeSpan.MaxValue : buff.NextTickTime - buffBaseTime,
+                CasterId = buff.Context?.MaybeCaster?.UniqueId,
+                Rank = buff.Rank,
+                AbilityParams = context.Mapper.Map<NetworkAbilityParams>(buff.Context.Params)
+            };
+
+            return networkBuff;
         }
 
         private NetworkSpellSlot Create(SpellSlot spellSlot)
