@@ -725,7 +725,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldRetrieveRoll(ruleEnterStealth))
+                if (!ShouldRetrieveRoll(ruleEnterStealth) || ruleEnterStealth.D20.ResultOverride == 20)
                 {
                     return true;
                 }
@@ -752,7 +752,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldStoreRoll(ruleEnterStealth))
+                if (!ShouldStoreRoll(ruleEnterStealth) || ruleEnterStealth.D20.ResultOverride == 20)
                 {
                     return;
                 }
@@ -1094,8 +1094,8 @@ namespace WOTRMultiplayer.Services
                     case RuleHealDamage:
                     case RuleDealDamage:
                         var targetEvent = (RulebookTargetEvent)rule;
-                        var isMeaningful = IsControlledCharacterTargeted(targetEvent);
-                        return isMeaningful;
+                        var isMeaningfulTargetEvent = IsControlledCharacterTargeted(targetEvent);
+                        return isMeaningfulTargetEvent;
                     // this one is used to detect stealth units. It's always rolled on the host and sent to the client as separate info to prevent sync issues (similar to other perception/inspection checks)
                     case RuleCachedPerceptionCheck:
                         return false;
