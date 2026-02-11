@@ -10,6 +10,7 @@ using Kingmaker.EntitySystem.Entities;
 using Kingmaker.EntitySystem.Persistence.JsonUtility;
 using Kingmaker.TurnBasedMode;
 using Kingmaker.UI;
+using Kingmaker.UI._ConsoleUI.TurnBasedMode;
 using Microsoft.Extensions.Logging;
 using TurnBased.Controllers;
 
@@ -22,12 +23,14 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
         [HarmonyPrefix]
         public static bool PlayerUISettings_DoSpeedUp_Prefix()
         {
-            if (!Main.Multiplayer.IsActive)
-            {
-                return true;
-            }
+            return !Main.Multiplayer.IsActive;
+        }
 
-            return false;
+        [HarmonyPatch(typeof(InitiativeTrackerVM), nameof(InitiativeTrackerVM.InterruptMovement))]
+        [HarmonyPrefix]
+        public static bool InitiativeTrackerVM_InterruptMovement_Prefix()
+        {
+            return !Main.Multiplayer.IsActive;
         }
 
         [HarmonyPatch(typeof(TurnController), nameof(TurnController.CanEndTurn))]
