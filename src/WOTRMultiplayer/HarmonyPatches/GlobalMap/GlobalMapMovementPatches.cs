@@ -340,7 +340,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
 
         [HarmonyPatch(typeof(GlobalMapView), nameof(GlobalMapView.OnBreak))]
         [HarmonyTranspiler]
-        public static IEnumerable<CodeInstruction> GlobalMapView_OnBreak_Prefix(IEnumerable<CodeInstruction> instructions)
+        public static IEnumerable<CodeInstruction> GlobalMapView_OnBreak_Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
             var onContinueCall = AccessTools.Method(typeof(GlobalMapMovementPatches), nameof(GlobalMapMovementPatches.OnGlobalMapContinueTravel));
