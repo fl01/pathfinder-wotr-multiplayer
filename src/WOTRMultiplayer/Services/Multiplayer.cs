@@ -2287,17 +2287,16 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public bool OnGlobalMapContinueTravel(NetworkGlobalMapTraveler globalMapTraveler)
+        public void OnGlobalMapContinueTravel(NetworkGlobalMapTraveler globalMapTraveler)
         {
             try
             {
                 if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
-                    return true;
+                    return;
                 }
 
-                var canContinue = _multiplayerActorAccessor.Host.OnGlobalMapContinueTravel(globalMapTraveler);
-                return canContinue;
+                _multiplayerActorAccessor.Host.OnGlobalMapContinueTravel(globalMapTraveler);
             }
             catch (Exception ex)
             {

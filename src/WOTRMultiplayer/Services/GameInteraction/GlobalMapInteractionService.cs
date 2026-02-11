@@ -21,6 +21,7 @@ using Kingmaker.UI.MVVM._PCView.Crusade.ArmyInfo;
 using Kingmaker.UI.MVVM._PCView.Crusade.Recruit;
 using Kingmaker.UI.MVVM._VM.Crusade.ArmyInfo;
 using Microsoft.Extensions.Logging;
+using Owlcat.Runtime.UI.Controls.Button;
 using TMPro;
 using UniRx;
 using UniRx.Triggers;
@@ -323,6 +324,12 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 {
                     _logger.LogWarning("Unable to update UI due to missing GlobalMapView");
                     return;
+                }
+
+                if (GlobalMapUI.Instance != null)
+                {
+                    GlobalMapUI.Instance.m_BtnContinue.GetComponentInChildren<OwlcatButton>().Interactable = isInteractable;
+                    GlobalMapUI.Instance.m_BtnStop.GetComponentInChildren<OwlcatButton>().Interactable = isInteractable;
                 }
 
                 var toolbar = globalMapView.m_GlobalMapToolbarPCView;

@@ -612,7 +612,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 Damage = combatUnit.Descriptor.Damage,
                 State = new NetworkUnitState
                 {
-                    IsCharging = combatUnit.Descriptor.State.IsCharging
+                    IsCharging = combatUnit.Descriptor.State.IsCharging 
                 }
             };
             return descriptor;

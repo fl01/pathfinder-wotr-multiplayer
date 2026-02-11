@@ -323,32 +323,60 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             __result = __result && canSelectLocation;
         }
 
-        [HarmonyPatch(typeof(GlobalMapUI), nameof(GlobalMapUI.Awake))]
+        [HarmonyPatch(typeof(GlobalMapView), nameof(GlobalMapView.OnBreak))]
         [HarmonyPrefix]
-        public static void GlobalMapUI_Awake_Prefix(GlobalMapUI __instance)
-        {
-            if (!Main.Multiplayer.IsActive)
-            {
-                return;
-            }
-
-            var canNavigate = Main.Multiplayer.CanControlGlobalMap();
-            __instance.m_BtnContinue.GetComponentInChildren<OwlcatButton>().Interactable = canNavigate;
-            __instance.m_BtnStop.GetComponentInChildren<OwlcatButton>().Interactable = canNavigate;
-        }
-
-        [HarmonyPatch(typeof(GlobalMapUI), nameof(GlobalMapUI.OnContinue))]
-        [HarmonyPrefix]
-        public static bool GlobalMapUI_OnContinue_Prefix()
+        public static bool GlobalMapView_OnBreak_Prefix()
         {
             if (!Main.Multiplayer.IsActive)
             {
                 return true;
             }
 
-            var traveler = GetGlobalMapTraveler(Game.Instance.GlobalMapController.SelectedTraveler);
-            var canContinue = Main.Multiplayer.OnGlobalMapContinueTravel(traveler);
+            var canContinue = GlobalMapUI.Instance != null
+                 && ((GlobalMapUI.Instance.m_BtnContinue.GetComponentInChildren<OwlcatButton>()?.Interactable ?? false)
+                     || (GlobalMapUI.Instance.m_BtnStop.GetComponentInChildren<OwlcatButton>()?.Interactable ?? false));
             return canContinue;
+        }
+
+        [HarmonyPatch(typeof(GlobalMapView), nameof(GlobalMapView.OnBreak))]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> GlobalMapView_OnBreak_Prefix(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var onContinueCall = AccessTools.Method(typeof(GlobalMapMovementPatches), nameof(GlobalMapMovementPatches.OnGlobalMapContinueTravel));
+            var onStopCall = AccessTools.Method(typeof(GlobalMapMovementPatches), nameof(GlobalMapMovementPatches.OnGlobalMapStopTravel));
+            var matcher = new CodeMatcher(instructions);
+
+            var continueCall = AccessTools.Method(typeof(GlobalMapController), nameof(GlobalMapController.StartTravels));
+            var match = matcher.SearchForward(x => x.Calls(continueCall));
+            if (match.IsInvalid)
+            {
+                Main.GetLogger<GlobalMapMovementPatches>().LogError("Transpiler has not been applied (StartTravels). Target={Target}", target);
+                return instructions;
+            }
+
+            var continueCallInstructions = new List<CodeInstruction>()
+            {
+                new(OpCodes.Call, onContinueCall),
+            };
+            match = match.Advance(1).Insert(continueCallInstructions);
+
+            var stopCall = AccessTools.Method(typeof(GlobalMapController), nameof(GlobalMapController.PauseTravels));
+            match = matcher.SearchForward(x => x.Calls(stopCall));
+            if (match.IsInvalid)
+            {
+                Main.GetLogger<GlobalMapMovementPatches>().LogError("Transpiler has not been applied (PauseTravels). Target={Target}", target);
+                return instructions;
+            }
+
+            var stopCallInstructions = new List<CodeInstruction>()
+            {
+                new(OpCodes.Call, onStopCall),
+            };
+            match = match.Advance(1).Insert(stopCallInstructions);
+
+            Main.GetLogger<GlobalMapMovementPatches>().LogInformation("Transpiler has been applied (StartTravels + PauseTravels). Target={Target}", target);
+            return matcher.Instructions();
         }
 
         [HarmonyPatch(typeof(GlobalMapUI), nameof(GlobalMapUI.OnStop))]
@@ -360,8 +388,19 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
                 return;
             }
 
+            OnGlobalMapStopTravel();
+        }
+
+        private static void OnGlobalMapStopTravel()
+        {
             var traveler = GetGlobalMapTraveler(Game.Instance.GlobalMapController.SelectedTraveler);
             Main.Multiplayer.OnGlobalMapStopTravel(traveler);
+        }
+
+        private static void OnGlobalMapContinueTravel()
+        {
+            var traveler = GetGlobalMapTraveler(Game.Instance.GlobalMapController.SelectedTraveler);
+            Main.Multiplayer.OnGlobalMapContinueTravel(traveler);
         }
 
         [HarmonyPatch(typeof(GlobalMapMovementUtility), nameof(GlobalMapMovementUtility.ShowCollectIngredientMessage))]
