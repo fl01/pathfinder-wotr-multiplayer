@@ -14,7 +14,6 @@ using Kingmaker.Blueprints;
 using Kingmaker.Controllers.Combat;
 using Kingmaker.Designers;
 using Kingmaker.EntitySystem.Entities;
-using Kingmaker.GameModes;
 using Kingmaker.Pathfinding;
 using Kingmaker.PubSubSystem;
 using Kingmaker.TurnBasedMode;
@@ -96,13 +95,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                var gameMode = Game.Instance.m_GameModes.Peek();
-                if (gameMode.Type != GameModeType.TacticalCombat && Game.Instance.CurrentlyLoadedArea is not BlueprintTacticalCombatArea)
+                if (!TacticalCombatHelper.IsActive || Game.Instance.CurrentlyLoadedArea is not BlueprintTacticalCombatArea)
                 {
-                    _logger.LogError("Unable to initialize crusade army combat due to invalid area/game mode. GameModeType={Type}, AreaType={AreaType}", gameMode.Type.Name, Game.Instance.CurrentlyLoadedArea?.GetType().Name);
+                    _logger.LogError("Unable to initialize crusade army combat due to invalid area/game mode. GameModeType={Type}, AreaType={AreaType}", Game.Instance.CurrentlyLoadedArea?.GetType().Name);
                     return;
                 }
 
+                var gameMode = Game.Instance.m_GameModes.Peek();
                 var intialziationController = gameMode.GetController<TacticalCombatInitializationController>();
                 if (intialziationController == null)
                 {

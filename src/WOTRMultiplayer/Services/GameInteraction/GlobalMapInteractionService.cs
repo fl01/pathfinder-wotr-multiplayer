@@ -4,7 +4,6 @@ using System.Linq;
 using Kingmaker;
 using Kingmaker.Assets.Controllers.GlobalMap;
 using Kingmaker.Blueprints;
-using Kingmaker.Blueprints.Root;
 using Kingmaker.Crusade.GlobalMagic;
 using Kingmaker.ElementsSystem;
 using Kingmaker.Globalmap;
@@ -477,7 +476,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    var encounter = BlueprintRoot.Instance.RE.Encounters.FirstOrDefault(e => string.Equals(e.AssetGuid.ToString(), globalMapEncounter.BlueprintId, StringComparison.OrdinalIgnoreCase));
+                    var encounterId = BlueprintGuid.Parse(globalMapEncounter.BlueprintId);
+                    var encounter = ResourcesLibrary.TryGetBlueprint<BlueprintRandomEncounter>(encounterId);
                     if (encounter == null)
                     {
                         _logger.LogError("Unable to find global map encounter. BlueprintId={BlueprintId}", globalMapEncounter.BlueprintId);

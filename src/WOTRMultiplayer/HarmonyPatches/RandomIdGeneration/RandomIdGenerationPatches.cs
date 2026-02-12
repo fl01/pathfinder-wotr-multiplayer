@@ -57,7 +57,6 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             {
                 new(OpCodes.Ldarg_1),
                 new(OpCodes.Ldarg_2),
-                new(OpCodes.Ldarg_3),
                 new(OpCodes.Ldarg_S, 4),
                 new(OpCodes.Ldloc_1),
                 new(OpCodes.Call, replaceWith)
@@ -523,7 +522,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             }
         }
 
-        public static string GetNewArmyUnitId(GlobalMapArmyState globalMapArmyState, SquadState squadState, string groupId, RegionId regionId, BlueprintFaction faction)
+        public static string GetNewArmyUnitId(GlobalMapArmyState globalMapArmyState, SquadState squadState, RegionId regionId, BlueprintFaction faction)
         {
             if (!Main.Multiplayer.IsActive)
             {
@@ -535,10 +534,10 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
                 var crusadeArmyCombatSeed = Game.Instance.TacticalCombat.Data.Seed;
                 var leader = globalMapArmyState.Data.Leader;
                 var armyName = globalMapArmyState.Data.ArmyName;
-                var rawIdentifier = $"{GetCommonIdPart()}:{globalMapArmyState.Id}:{globalMapArmyState.ArmyType}:{armyName?.ArmyName}:{armyName?.ArmyIndex}:{squadState.Size}:{squadState.Unit.name}:{groupId}:{regionId}:{leader?.Blueprint.name}:{faction.name}:{crusadeArmyCombatSeed}";
-                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(IdType.CrusadeArmyCombatUnit, Game.Instance.Player.GameId, rawIdentifier);
-                Main.GetLogger<RandomIdGenerationPatches>().LogInformation("Army UnitId has been generated. GameId={GameId}, Seed={Seed}, RawIdentifier={RawIdentifier}, Id={Id}", Game.Instance.Player.GameId, crusadeArmyCombatSeed, rawIdentifier, id);
-                return id;
+                var rawIdentifier = $"{GetCommonIdPart()}:{globalMapArmyState.Id}:{globalMapArmyState.ArmyType}:{armyName?.ArmyName}:{armyName?.ArmyIndex}:{squadState.Size}:{squadState.Unit.name}:{regionId}:{leader?.Blueprint.name}:{faction.name}:{crusadeArmyCombatSeed}";
+                var id = Main.Multiplayer.ValueGenerator.CreateGuid(IdentifierLifetime.Area, rawIdentifier);
+                Main.GetLogger<RandomIdGenerationPatches>().LogInformation("Army UnitId has been generated. Seed={Seed}, RawIdentifier={RawIdentifier}, Id={Id}", crusadeArmyCombatSeed, rawIdentifier, id);
+                return id.ToString();
             }
             catch (Exception ex)
             {

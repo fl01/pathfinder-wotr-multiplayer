@@ -1012,7 +1012,7 @@ namespace WOTRMultiplayer.Services
 
         private async void OnNotifyTacticalCombatInitialized(long receivedFrom, NotifyTacticalCombatInitialized tacticalCombatInitialized)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, AreaSeed={AreaSeed}, Seed={Seed}", nameof(NotifyTacticalCombatInitialized), receivedFrom, tacticalCombatInitialized.AreaSeed, tacticalCombatInitialized.AreaSeed);
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, AreaSeed={AreaSeed}, Seed={Seed}", nameof(NotifyTacticalCombatInitialized), receivedFrom, tacticalCombatInitialized.AreaSeed, tacticalCombatInitialized.Seed);
 
             await WaitWhileTrue(() => Game.ArmyCombat == null, "Crusade army combat has not been started yet");
 

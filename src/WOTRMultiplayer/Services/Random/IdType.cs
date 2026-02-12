@@ -29,9 +29,6 @@ namespace WOTRMultiplayer.Services.Random
         AbilityData,
 
         [Description("CCU")]
-        CustomCompanionUnit,
-
-        [Description("CACU")]
-        CrusadeArmyCombatUnit
+        CustomCompanionUnit
     }
 }
