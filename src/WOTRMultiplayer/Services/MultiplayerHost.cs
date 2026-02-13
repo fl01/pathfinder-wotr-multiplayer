@@ -569,6 +569,14 @@ namespace WOTRMultiplayer.Services
                     return null;
                 }
 
+                if (aiActions.Count > 0
+                    && aiActions[aiActions.Count - 1].ActionBlueprintId == null
+                    && aiActions[aiActions.Count - 1].UnitId == action.UnitId
+                    && action.ActionBlueprintId == null)
+                {
+                    Logger.LogInformation("Duplicate AI action has been skipped. UnitId={UnitId}", action.UnitId);
+                }
+
                 aiActions.Add(action);
                 Logger.LogInformation("AI action selection has been stored. UnitId={UnitId}, ActionBlueprintId={ActionBlueprintId}, TargetId={TargetId}, Index={Index}", action.UnitId, action.ActionBlueprintId, action.TargetId, aiActions.Count);
                 return null;
