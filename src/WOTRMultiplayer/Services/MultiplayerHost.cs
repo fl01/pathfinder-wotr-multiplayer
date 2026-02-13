@@ -1727,8 +1727,11 @@ namespace WOTRMultiplayer.Services
                 NetworkAIAction networkAIAction = null;
                 do
                 {
-                    var turnActions = Game.Combat?.AIActions ?? Game.ArmyCombat?.AIActions;
-                    if (turnActions == null || turnActions.Count == 0 || turnActions.Count <= request.ActionIndex)
+                    var turnActions = (Game.Combat?.AIActions ?? Game.ArmyCombat?.AIActions ?? []).
+                        Where(x => string.Equals(x.UnitId, request.UnitId, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+
+                    if (turnActions.Count <= request.ActionIndex)
                     {
                         await Task.Delay(TimeSpan.FromMilliseconds(10));
                         continue;
@@ -2283,12 +2286,6 @@ namespace WOTRMultiplayer.Services
             }
 
             var currentCue = Game.Dialog.CurrentCueName;
-            if (string.IsNullOrEmpty(currentCue))
-            {
-                Logger.LogWarning("Current CueName is not set for the dialog");
-                return;
-            }
-
             var missingPlayers = GetPlayersWhoHaveNotSeenCueYet(currentCue);
             if (missingPlayers.Count > 0)
             {

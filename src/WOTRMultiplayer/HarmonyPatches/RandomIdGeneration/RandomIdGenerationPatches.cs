@@ -44,7 +44,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
         {
             var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
             var lookFor = AccessTools.Method(typeof(Guid), nameof(Guid.NewGuid));
-            var replaceWith = AccessTools.Method(typeof(RandomIdGenerationPatches), nameof(RandomIdGenerationPatches.CreateCombatUnitId));
+            var replaceWith = AccessTools.Method(typeof(RandomIdGenerationPatches), nameof(RandomIdGenerationPatches.CreateTacticalCombatUnitId));
             var matcher = new CodeMatcher(instructions);
             var match = matcher.SearchForward(x => x.Calls(lookFor));
             if (match.IsInvalid)
@@ -72,7 +72,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
         {
             var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
             var lookFor = AccessTools.Method(typeof(Guid), nameof(Guid.NewGuid));
-            var replaceWith = AccessTools.Method(typeof(RandomIdGenerationPatches), nameof(RandomIdGenerationPatches.CreateCombatLeaderId));
+            var replaceWith = AccessTools.Method(typeof(RandomIdGenerationPatches), nameof(RandomIdGenerationPatches.CreateTacticalCombatLeaderId));
             var matcher = new CodeMatcher(instructions);
             var match = matcher.SearchForward(x => x.Calls(lookFor));
             if (match.IsInvalid)
@@ -549,7 +549,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             }
         }
 
-        private static string CreateCombatLeaderId(GlobalMapArmyState globalMapArmyState, bool attacker, BlueprintFaction faction)
+        private static string CreateTacticalCombatLeaderId(GlobalMapArmyState globalMapArmyState, bool attacker, BlueprintFaction faction)
         {
             if (!Main.Multiplayer.IsActive)
             {
@@ -574,7 +574,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
 
         }
 
-        private static string CreateCombatUnitId(GlobalMapArmyState globalMapArmyState, SquadState squadState, RegionId regionId, BlueprintFaction faction)
+        private static string CreateTacticalCombatUnitId(GlobalMapArmyState globalMapArmyState, SquadState squadState, RegionId regionId, BlueprintFaction faction)
         {
             if (!Main.Multiplayer.IsActive)
             {

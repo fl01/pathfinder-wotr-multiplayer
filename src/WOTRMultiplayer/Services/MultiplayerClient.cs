@@ -274,7 +274,6 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-
                 var aiActions = GetAIActions();
                 if (aiActions == null || string.IsNullOrEmpty(networkAIAction.ActionBlueprintId))
                 {
