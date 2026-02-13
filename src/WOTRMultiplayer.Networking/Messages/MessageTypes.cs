@@ -235,7 +235,8 @@
             NotifyCombatPreparationRequired,
             ClientCombatPreparationCompleted,
             ClientCombatPreparationStarted,
-            NotifyCombatInitializationCompleted
+            NotifyCombatInitializationCompleted,
+            NotifyGlobalMapCrusadeArmyLeaderLevelingStarted
         }
 
         public enum Request

@@ -2028,11 +2028,22 @@ namespace WOTRMultiplayer.Services
             UpdateGlobalMapRecruitmentUIState();
         }
 
+        public void OnGlobalMapCrusadeArmyLeaderLevelingStarted(NetworkGlobalMapArmy globalMapArmy)
+        {
+            var message = new NotifyGlobalMapCrusadeArmyLeaderLevelingStarted
+            {
+                Army = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapArmy>(globalMapArmy)
+            };
+            Logger.LogInformation("Sending {MessageType}. ArmyId={ArmyId}", nameof(NotifyGlobalMapCrusadeArmyLeaderLevelingStarted), message.Army.Id);
+            Send(message);
+        }
+
         public void OnGlobalMapCrusadeArmyLeaderLevelingShown()
         {
             AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyLeaderLeveling, Game.LocalPlayerId);
 
             var message = new NotifyGlobalMapCrusadeArmyLeaderLevelingShown();
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyLeaderLevelingShown));
             Send(message);
 
             UpdateGlobalMapCrusadeArmyLeaderLevelingUIState();
@@ -3268,6 +3279,7 @@ namespace WOTRMultiplayer.Services
                 .On<NotifyGlobalMapCrusadeArmySetLeaderShown>(OnNotifyGlobalMapCrusadeArmySetLeaderShown)
                 .On<NotifyGlobalMapCrusadeArmyBuyLeaderShown>(OnNotifyGlobalMapCrusadeArmyBuyLeaderShown)
                 .On<NotifyGlobalMapCrusadeArmyLeaderLevelingShown>(OnNotifyGlobalMapCrusadeArmyLeaderLevelingShown)
+                .On<NotifyGlobalMapCrusadeArmyLeaderLevelingStarted>(OnNotifyGlobalMapCrusadeArmyLeaderLevelingStarted)
 
                 // mapobjects
                 .On<NotifyOvertipInteracted>(OnNotifyOvertipInteracted)
@@ -3438,6 +3450,17 @@ namespace WOTRMultiplayer.Services
             Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyCapitalModeRestInitiated), receivedFrom);
 
             GameInteraction.InitiateRest();
+
+            OnAfterNetworkMessageHandled(receivedFrom, message);
+        }
+
+
+        private void OnNotifyGlobalMapCrusadeArmyLeaderLevelingStarted(long receivedFrom, NotifyGlobalMapCrusadeArmyLeaderLevelingStarted message)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, ArmyId={ArmyId}", nameof(NotifyGlobalMapCrusadeArmyLeaderLevelingStarted), receivedFrom, message.Army.Id);
+
+            var army = Mapper.Map<NetworkGlobalMapArmy>(message.Army);
+            GlobalMapInteraction.StartCrusadeArmyLeaderLeveling(army);
 
             OnAfterNetworkMessageHandled(receivedFrom, message);
         }

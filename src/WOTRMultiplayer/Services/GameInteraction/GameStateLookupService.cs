@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Kingmaker;
+using Kingmaker.Armies;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.Globalmap;
 using Kingmaker.Globalmap.State;

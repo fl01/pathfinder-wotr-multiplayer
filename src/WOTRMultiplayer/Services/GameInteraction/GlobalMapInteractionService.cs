@@ -1409,6 +1409,22 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
+        public void StartCrusadeArmyLeaderLeveling(NetworkGlobalMapArmy globalMapArmy)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var army = _gameStateLookupService.GetGlobalMapArmy(globalMapArmy.Id);
+                if (army?.Data?.Leader == null)
+                {
+                    _logger.LogError("Unable to find army leader to start leader. ArmyId={ArmyId}", globalMapArmy.Id);
+                    return;
+                }
+
+                EventBus.RaiseEvent<ILeaderLevelupHandler>(x => x.ShowLeaderLevelUp(army.Data.Leader));
+                _logger.LogInformation("Army leader leveling has been started. ArmyId={ArmyId}", globalMapArmy.Id);
+            });
+        }
+
         private void DisableRecruitUI(RecruitPCView view)
         {
             foreach (var recruitVM in view.ViewModel.m_Shop)

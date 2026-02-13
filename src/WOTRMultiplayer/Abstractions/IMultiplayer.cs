@@ -475,6 +475,8 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnGlobalMapMagicSpellUsed(NetworkGlobalMapMagicSpell globalMagicSpell);
 
+        void OnGlobalMapCrusadeArmyLeaderLevelingStarted(NetworkGlobalMapArmy globalMapArmy);
+
         void OnGlobalMapCrusadeArmyLeaderLevelingShown();
 
         void OnGlobalMapCrusadeArmyLeaderLevelingClosed();

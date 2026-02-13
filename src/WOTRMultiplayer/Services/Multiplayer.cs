@@ -3912,6 +3912,24 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        public void OnGlobalMapCrusadeArmyLeaderLevelingStarted(NetworkGlobalMapArmy globalMapArmy)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnGlobalMapCrusadeArmyLeaderLevelingStarted(globalMapArmy);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while starting crusade army leader leveling. ArmyId={ArmyId}", globalMapArmy.Id);
+                throw;
+            }
+        }
+
         public void OnGlobalMapCrusadeArmyLeaderLevelingShown()
         {
             try

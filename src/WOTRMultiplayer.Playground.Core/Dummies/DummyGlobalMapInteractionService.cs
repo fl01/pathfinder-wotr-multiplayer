@@ -261,5 +261,9 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void OpenGroupChanger()
         {
         }
+
+        public void StartCrusadeArmyLeaderLeveling(NetworkGlobalMapArmy globalMapArmy)
+        {
+        }
     }
 }

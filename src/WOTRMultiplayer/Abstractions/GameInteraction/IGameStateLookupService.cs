@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Kingmaker.Armies;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.Globalmap.State;
 using Kingmaker.Globalmap.View;

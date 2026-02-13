@@ -131,5 +131,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void ConfirmLeaderLeveling();
 
         void SelectLeaderLevelingSkill(string id);
+
+        void StartCrusadeArmyLeaderLeveling(NetworkGlobalMapArmy globalMapArmy);
     }
 }
