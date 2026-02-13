@@ -13,6 +13,8 @@ namespace WOTRMultiplayer.Entities.Units
 
         public bool IsPermanent { get; set; }
 
+        public bool IsHidden { get; set; }
+
         public TimeSpan TimeLeft { get; set; }
 
         public TimeSpan NextTickTime { get; set; }

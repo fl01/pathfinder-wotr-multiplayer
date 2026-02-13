@@ -87,9 +87,11 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 }
             }
 
-            RemoveUnitBuffs(unit, localUnitBuffs);
+            var buffsToRemove = localUnitBuffs.Where(x => !x.Hidden).ToList();
+            RemoveUnitBuffs(unit, buffsToRemove);
 
-            CreateUnitBuffs(unit, remoteUnitBuffs, buffBaseTime);
+            var buffsToCreate = remoteUnitBuffs.Where(x => !x.IsHidden).ToList();
+            CreateUnitBuffs(unit, buffsToCreate, buffBaseTime);
 
             UpdateNegativeLevels(unit, unitBuffCollection.NegativeLevels);
 
@@ -168,7 +170,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         private List<Buff> GetSyncableUnitBuffs(UnitEntityData unit)
         {
             // negative levels are handled separately
-            var buffs = unit.Buffs.Enumerable.Where(x => !x.Hidden && x.Blueprint != BlueprintRoot.Instance.SystemMechanics.NegativeLevelsBuff).ToList();
+            var buffs = unit.Buffs.Enumerable.Where(x => x.Blueprint != BlueprintRoot.Instance.SystemMechanics.NegativeLevelsBuff).ToList();
             return buffs;
         }
 
@@ -192,7 +194,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             if (!buff.IsPermanent)
             {
                 buff.SetDuration(networkBuff.TimeLeft);
-                if (buff.Rank != networkBuff.Rank)
+                if (!buff.Hidden && buff.Rank != networkBuff.Rank)
                 {
                     buff.SetRank(networkBuff.Rank);
                 }
@@ -201,8 +203,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
             buff.NextResourceSpendingTime = networkBuff.NextResourceSpendingTime == TimeSpan.MaxValue ? TimeSpan.MaxValue : buffBaseTime.SafeAdd(networkBuff.NextResourceSpendingTime);
             buff.NextTickTime = networkBuff.NextTickTime == TimeSpan.MaxValue ? TimeSpan.MaxValue : buffBaseTime.SafeAdd(networkBuff.NextTickTime);
 
-            _logger.LogInformation("Updated buff. UnitId={UnitId}, Id={Id}, Name={Name}, Duration={Duration}, Rank={Rank}, NextResourceSpendingTime={NextResourceSpendingTime}, NextTickTime={NextTickTime}, BuffBaseTime={BuffBaseTime} NetworkNextTickTime={NetworkNextTickTime}, NetworkNextPendingTime={NetworkNextPendingTime}",
-                unit.UniqueId, buff.UniqueId, buff.NameForAcronym, networkBuff.TimeLeft, networkBuff.Rank, buff.NextResourceSpendingTime, buff.NextTickTime, buffBaseTime, networkBuff.NextTickTime, networkBuff.NextResourceSpendingTime);
+            _logger.LogInformation("Updated buff. UnitId={UnitId}, Id={Id}, Name={Name}, Duration={Duration}, Rank={Rank}, IsHidden={IsHidden}, NextResourceSpendingTime={NextResourceSpendingTime}, NextTickTime={NextTickTime}, BuffBaseTime={BuffBaseTime} NetworkNextTickTime={NetworkNextTickTime}, NetworkNextPendingTime={NetworkNextPendingTime}",
+                unit.UniqueId, buff.UniqueId, buff.NameForAcronym, networkBuff.TimeLeft, networkBuff.Rank, networkBuff.IsHidden, buff.NextResourceSpendingTime, buff.NextTickTime, buffBaseTime, networkBuff.NextTickTime, networkBuff.NextResourceSpendingTime);
         }
     }
 }

@@ -41,5 +41,8 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
 
         [ProtoMember(12)]
         public NetworkAbilityParams SourceAbilityParams { get; set; }
+
+        [ProtoMember(13)]
+        public bool IsHidden { get; set; }
     }
 }

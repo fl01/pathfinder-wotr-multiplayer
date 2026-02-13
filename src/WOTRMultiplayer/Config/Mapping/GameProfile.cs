@@ -103,7 +103,8 @@ namespace WOTRMultiplayer.Config.Mapping
                 NextResourceSpendingTime = buff.NextResourceSpendingTime == TimeSpan.MaxValue ? TimeSpan.MaxValue : buff.NextResourceSpendingTime - buffBaseTime,
                 NextTickTime = buff.NextTickTime == TimeSpan.MaxValue ? TimeSpan.MaxValue : buff.NextTickTime - buffBaseTime,
                 CasterId = buff.Context?.MaybeCaster?.UniqueId,
-                Rank = buff.Rank
+                Rank = buff.Rank,
+                IsHidden = buff.Hidden
             };
 
             if (buff.Context.ParentContext is AbilityExecutionContext abilityContext)
