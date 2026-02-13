@@ -280,11 +280,12 @@ namespace WOTRMultiplayer.Services
                     return null;
                 }
 
+                var count = aiActions.Count(x => x.UnitId == networkAIAction.UnitId);
                 var message = new AIActionRequest
                 {
                     Timeout = TimeSpan.FromSeconds(3),
                     UnitId = networkAIAction.UnitId,
-                    ActionIndex = aiActions.Count
+                    ActionIndex = count
                 };
 
                 Logger.LogInformation("Retrieving AI action. UnitId={UnitId}, ActionIndex={ActionIndex}", networkAIAction.UnitId, message.ActionIndex);
