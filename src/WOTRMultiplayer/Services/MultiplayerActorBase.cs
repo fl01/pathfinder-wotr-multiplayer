@@ -2163,7 +2163,9 @@ namespace WOTRMultiplayer.Services
 
         protected bool IsCrusadeArmyCombatTurnInitialized()
         {
-            if (Game.ArmyCombat?.Turn == null || !Game.ArmyCombat.IsInitialized || !Game.ArmyCombat.PlayersNextTurnInitialization.TryGetValue(Game.ArmyCombat.Turn.Number, out var readyPlayers))
+            if (Game.ArmyCombat?.Turn == null
+                || !Game.ArmyCombat.IsInitialized
+                || !Game.ArmyCombat.PlayersNextTurnInitialization.TryGetValue(Game.ArmyCombat.Turn.Number, out var readyPlayers))
             {
                 return false;
             }

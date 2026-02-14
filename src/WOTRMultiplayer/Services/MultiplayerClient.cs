@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using AutoMapper;
 using Kingmaker.Utility;
 using Microsoft.Extensions.Logging;
@@ -1016,10 +1017,13 @@ namespace WOTRMultiplayer.Services
             CombatInteraction.RunTacticalUnitUseAbilityCommand(command);
         }
 
-        private void OnNotifyTacticalUnitAttackCommandExecuted(long receivedFrom, NotifyTacticalUnitAttackCommandExecuted tacticalUnitAttackCommandExecuted)
+        private async Task OnNotifyTacticalUnitAttackCommandExecuted(long receivedFrom, NotifyTacticalUnitAttackCommandExecuted message)
         {
-            Logger.LogInformation("Received {MessageType}. UnitId={UnitId}, TargetId={TargetId}, Path={Path}", nameof(NotifyTacticalUnitAttackCommandExecuted), tacticalUnitAttackCommandExecuted.Command.UnitId, tacticalUnitAttackCommandExecuted.Command.TargetUnitId, tacticalUnitAttackCommandExecuted.Command.Path);
-            var command = Mapper.Map<NetworkTacticalUnitAttackCommand>(tacticalUnitAttackCommandExecuted.Command);
+            Logger.LogInformation("Received {MessageType}. UnitId={UnitId}, TargetId={TargetId}, Path={Path}", nameof(NotifyTacticalUnitAttackCommandExecuted), message.Command.UnitId, message.Command.TargetUnitId, message.Command.Path);
+            var command = Mapper.Map<NetworkTacticalUnitAttackCommand>(message.Command);
+
+            await WaitWhileTrue(() => Game.ArmyCombat == null || !string.Equals(Game.ArmyCombat.Turn.UnitId, message.Command.UnitId, StringComparison.OrdinalIgnoreCase),
+                "Waiting for unit turn to start");
 
             CombatInteraction.RunTacticalUnitAttackCommand(command);
         }
