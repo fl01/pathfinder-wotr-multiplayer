@@ -644,7 +644,7 @@ namespace WOTRMultiplayer.UI
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Miscellaneous.Title.Key });
             yield return CreateBoolSetting(WellKnownKeys.Settings.Miscellaneous.HideServerAddress.Title.Key, WellKnownKeys.Settings.Miscellaneous.HideServerAddress.Tooltip.Key, WellKnownSettings.Miscellaneous.HideServerAddress);
             yield return CreateBoolSetting(WellKnownKeys.Settings.Miscellaneous.TrackConnectionHistory.Title.Key, WellKnownKeys.Settings.Miscellaneous.TrackConnectionHistory.Tooltip.Key, WellKnownSettings.Miscellaneous.TrackConnectionHistory);
-            yield return CreateSliderSetting(WellKnownKeys.Settings.Miscellaneous.MaxConnectionHistoryRecords.Title.Key, WellKnownKeys.Settings.Miscellaneous.MaxConnectionHistoryRecords.Tooltip.Key, WellKnownSettings.Miscellaneous.MaxConnectionHistoryRecords, 1, 7);
+            yield return CreateSliderSetting(WellKnownKeys.Settings.Miscellaneous.MaxConnectionHistoryRecords.Title.Key, WellKnownKeys.Settings.Miscellaneous.MaxConnectionHistoryRecords.Tooltip.Key, WellKnownSettings.Miscellaneous.MaxConnectionHistoryRecords, 1, 10);
 
             // hotkeys
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Hotkeys.Title.Key });

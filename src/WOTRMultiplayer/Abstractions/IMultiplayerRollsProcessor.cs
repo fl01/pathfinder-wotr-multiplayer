@@ -1,4 +1,5 @@
-﻿using Kingmaker.RuleSystem.Rules;
+﻿using Kingmaker.RuleSystem;
+using Kingmaker.RuleSystem.Rules;
 using Kingmaker.RuleSystem.Rules.Abilities;
 using Kingmaker.RuleSystem.Rules.Damage;
 
@@ -44,8 +45,9 @@ namespace WOTRMultiplayer.Abstractions
         bool OnBeforeRuleCheckCastingDefensivelyRoll(RuleCheckCastingDefensively ruleCheckCastingDefensively);
         void OnAfterRuleCheckCastingDefensivelyTrigger(RuleCheckCastingDefensively ruleCheckCastingDefensively);
 
-        bool OnBeforeRollRuleHealDamage(RuleHealDamage ruleHealDamage, int unitsCount, bool isTacticalCombat);
-        void OnAfterRollRuleHealDamage(RuleHealDamage ruleHealDamage, int unitsCount, int result, bool isTacticalCombat);
+        bool OnBeforeRollRuleHealDamage(RuleHealDamage ruleHealDamage, bool isTacticalCombat, DiceFormula diceFormula);
+
+        void OnAfterRollRuleHealDamage(RuleHealDamage ruleHealDamage, int result, bool isTacticalCombat);
 
         bool OnBeforeRuleCastSpellRoll(RuleCastSpell ruleCastSpell, bool isSpellFailure);
         void OnAfterRuleCastSpellTrigger(RuleCastSpell ruleCastSpell);

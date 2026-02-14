@@ -1,5 +1,6 @@
 ﻿using System.Reflection.Emit;
 using HarmonyLib;
+using Kingmaker.Armies.TacticalCombat;
 using Kingmaker.EntitySystem.Entities;
 using Microsoft.Extensions.Logging;
 
@@ -35,7 +36,7 @@ namespace WOTRMultiplayer.HarmonyPatches
         {
             try
             {
-                if (!Main.Multiplayer.IsActive)
+                if (!Main.Multiplayer.IsActive || TacticalCombatHelper.IsActive)
                 {
                     return unit.IsDirectlyControllable;
                 }

@@ -157,38 +157,22 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public bool OnBeforeRollRuleHealDamage(RuleHealDamage ruleHealDamage, int unitsCount, bool isTacticalCombat)
+        public bool OnBeforeRollRuleHealDamage(RuleHealDamage ruleHealDamage, bool isTacticalCombat, DiceFormula diceFormula)
         {
             try
             {
-                if (!ShouldRetrieveRoll(ruleHealDamage))
+                if (!ShouldRetrieveRoll(ruleHealDamage) && !IsRolledDeterministically(ruleHealDamage))
                 {
                     return true;
                 }
 
-                var roll = CreateHealDamageRoll(NetworkDiceRollType.Hit, ruleHealDamage, unitsCount, isTacticalCombat);
-                var rollId = GetDiceRollId(roll);
-                if (rollId == null)
+                var result = IsRolledDeterministically(ruleHealDamage) ? RollHealDamage(ruleHealDamage, isTacticalCombat, diceFormula) : RetrieveHealDamageRoll(ruleHealDamage, isTacticalCombat);
+                if (result == null)
                 {
-                    _logger.LogWarning("Heal Damage retrieving has been skipped due to unability to generate rollId. InitiatorName={InitiatorName}, InitiatorId={InitiatorId}", ruleHealDamage.Initiator?.CharacterName, ruleHealDamage.Initiator?.UniqueId);
                     return true;
                 }
 
-                var networkRoll = _multiplayerActorAccessor.Current.RetrieveRoll<NetworkNamedIntRollValue>(rollId.Value, roll.RuleName, ruleHealDamage.Initiator.UniqueId);
-                if (networkRoll == null)
-                {
-                    _logger.LogCritical("Failed to acquire heal damage roll from remote player which guarantees desync in the game. RollId={RollId}", rollId.Value);
-                    _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.Rolls.MissingHealingRoll.Key, CombatTextSeverity.Critical, new UnitEntityLog(ruleHealDamage.Initiator.UniqueId));
-                    return true;
-                }
-
-                networkRoll.Value.TryGetValue(nameof(ruleHealDamage.Bonus), out var bonusValue);
-                ruleHealDamage.GetType()
-                  .GetProperty(nameof(ruleHealDamage.Bonus))
-                  .SetPropertyWithPrivateSetter(ruleHealDamage, bonusValue);
-
-                networkRoll.Value.TryGetValue(nameof(ruleHealDamage.RollResult), out var rollResult);
-                ruleHealDamage.RollResult = rollResult;
+                ruleHealDamage.RollResult = result.Value;
                 return false;
             }
             catch (Exception ex)
@@ -198,16 +182,16 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnAfterRollRuleHealDamage(RuleHealDamage ruleHealDamage, int unitsCount, int result, bool isTacticalCombat)
+        public void OnAfterRollRuleHealDamage(RuleHealDamage ruleHealDamage, int result, bool isTacticalCombat)
         {
             try
             {
-                if (!ShouldStoreRoll(ruleHealDamage))
+                if (!ShouldStoreRoll(ruleHealDamage) || IsRolledDeterministically(ruleHealDamage))
                 {
                     return;
                 }
 
-                var roll = CreateHealDamageRoll(NetworkDiceRollType.Hit, ruleHealDamage, unitsCount, isTacticalCombat);
+                var roll = CreateHealDamageRoll(NetworkDiceRollType.Hit, ruleHealDamage, isTacticalCombat);
                 var rollId = GetDiceRollId(roll);
                 if (rollId == null)
                 {
@@ -215,13 +199,10 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                var rollValue = new NetworkNamedIntRollValue
+                var rollValue = new NetworkIntRollValue
                 {
-                    Value = new Dictionary<string, int>
-                    {
-                        { nameof(ruleHealDamage.Bonus), ruleHealDamage.Bonus },
-                        { nameof(ruleHealDamage.RollResult), result },
-                    }
+                    RollHistory = [],
+                    Value = result
                 };
 
                 SaveRollValue(rollId.Value, rollValue);
@@ -412,6 +393,45 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        private int? RetrieveHealDamageRoll(RuleHealDamage ruleHealDamage, bool isTacticalCombat)
+        {
+            var roll = CreateHealDamageRoll(NetworkDiceRollType.Hit, ruleHealDamage, isTacticalCombat);
+            var rollId = GetDiceRollId(roll);
+            if (rollId == null)
+            {
+                _logger.LogWarning("Heal Damage retrieving has been skipped due to unability to generate rollId. InitiatorName={InitiatorName}, InitiatorId={InitiatorId}", ruleHealDamage.Initiator?.CharacterName, ruleHealDamage.Initiator?.UniqueId);
+                return null;
+            }
+
+            var networkRoll = _multiplayerActorAccessor.Current.RetrieveRoll<NetworkIntRollValue>(rollId.Value, roll.RuleName, ruleHealDamage.Initiator.UniqueId);
+            if (networkRoll == null)
+            {
+                _logger.LogCritical("Failed to acquire heal damage roll from remote player which guarantees desync in the game. RollId={RollId}", rollId.Value);
+                _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.Rolls.MissingHealingRoll.Key, CombatTextSeverity.Critical, new UnitEntityLog(ruleHealDamage.Initiator.UniqueId));
+                return null;
+            }
+
+            return networkRoll.Value;
+        }
+
+        private int RollHealDamage(RuleHealDamage ruleHealDamage, bool isTacticalCombat, DiceFormula diceFormula)
+        {
+            var healDamage = CreateHealDamageRoll(NetworkDiceRollType.Hit, ruleHealDamage, isTacticalCombat);
+            var rollIdentifier = healDamage.GetIdString();
+
+            var sessionSeed = _multiplayerActorAccessor.Current.SessionSeed;
+            var loadedSaveSeed = _multiplayerActorAccessor.Current.LoadedSaveSeed;
+            var areaSeed = _multiplayerActorAccessor.Current.AreaSeed;
+
+            var identifier = $"{rollIdentifier}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}";
+            var (history, result) = RollDice(IdentifierLifetime.Area, identifier, diceFormula, 0);
+            var rollId = _hashService.Murmur3(identifier);
+            _logger.LogInformation("RuleHealDamage has been rolled deterministicaly. UnitId={UnitId}, Result={Result}, History={History}, RollId={RollId}, Identifier={Identifier}",
+                ruleHealDamage.Initiator.UniqueId, result, history, rollId, identifier);
+
+            return result;
+        }
+
         private RuleRollD20 RollSavingThrow(RuleSavingThrow ruleSavingThrow)
         {
             var savingThrow = CreateSavingThrowRoll(NetworkDiceRollType.Hit, ruleSavingThrow);
@@ -419,8 +439,9 @@ namespace WOTRMultiplayer.Services
 
             var sessionSeed = _multiplayerActorAccessor.Current.SessionSeed;
             var loadedSaveSeed = _multiplayerActorAccessor.Current.LoadedSaveSeed;
+            var areaSeed = _multiplayerActorAccessor.Current.AreaSeed;
 
-            var identifier = $"{rollIdentifier}_{sessionSeed}:{loadedSaveSeed}";
+            var identifier = $"{rollIdentifier}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}";
             var (history, result) = RollDice(IdentifierLifetime.Area, identifier, ruleSavingThrow.D20);
             var rollId = _hashService.Murmur3(identifier);
             _logger.LogInformation("RuleSavingThrow has been rolled deterministicaly. UnitId={UnitId}, Result={Result}, History={History}, RollId={RollId}, Identifier={Identifier}",
@@ -433,13 +454,18 @@ namespace WOTRMultiplayer.Services
 
         private (List<int> history, int result) RollDice(IdentifierLifetime lifetime, string identifier, RuleRollDice ruleRollDice)
         {
+            return RollDice(lifetime, identifier, ruleRollDice.DiceFormula, ruleRollDice.m_RerollAmount);
+        }
+
+        private (List<int> history, int result) RollDice(IdentifierLifetime lifetime, string identifier, DiceFormula diceFormula, int rerollAmount)
+        {
             var random = _valueGenerator.GetRandom(lifetime, identifier);
             var history = new List<int>();
             var result = 0;
-            var rerolls = ruleRollDice.m_RerollAmount;
+            var rerolls = rerollAmount;
             while (rerolls >= 0)
             {
-                result = ruleRollDice.DiceFormula.Roll(random);
+                result = diceFormula.Roll(random);
                 history.Add(result);
                 rerolls--;
             }
@@ -1125,10 +1151,12 @@ namespace WOTRMultiplayer.Services
             switch (rule)
             {
                 case RuleSavingThrow savingThrow:
-                    var isRolled = currentArea != null
-                        && currentArea.IsGlobalMap
+                    var isSavingThrowRolled = currentArea != null && currentArea.IsGlobalMap
                         || _combatInteractionService.IsInCombat() && _gameInteractionService.IsDeadOrMissing(savingThrow.Initiator.UniqueId);
-                    return isRolled;
+                    return isSavingThrowRolled;
+                case RuleHealDamage:
+                    var isHealDamageRolled = currentArea != null && currentArea.IsGlobalMap || !_combatInteractionService.IsInCombat();
+                    return isHealDamageRolled;
                 default:
                     return false;
             }
@@ -1399,14 +1427,13 @@ namespace WOTRMultiplayer.Services
             return roll;
         }
 
-        private HealDamageRoll CreateHealDamageRoll(NetworkDiceRollType diceRollType, RuleHealDamage ruleHealDamage, int unitsCount, bool isTacticalCombat)
+        private HealDamageRoll CreateHealDamageRoll(NetworkDiceRollType diceRollType, RuleHealDamage ruleHealDamage, bool isTacticalCombat)
         {
             var roll = new HealDamageRoll(ruleHealDamage.Initiator?.UniqueId, ruleHealDamage.GetType().Name, diceRollType, 0)
             {
                 AbilityName = ruleHealDamage.Reason.Ability?.StickyTouch?.NameForAcronym ?? ruleHealDamage.Reason.Ability?.NameForAcronym,
                 AbilitySchoolId = ruleHealDamage.Reason.Ability?.Spellbook?.Blueprint.name,
                 TargetId = ruleHealDamage.Target?.UniqueId,
-                UnitsCount = unitsCount,
                 EmpowerModifier = ruleHealDamage.EmpowerModifier,
                 IsTacticalCombat = isTacticalCombat,
                 AdditionalBonus = ruleHealDamage.AdditionalBonus,

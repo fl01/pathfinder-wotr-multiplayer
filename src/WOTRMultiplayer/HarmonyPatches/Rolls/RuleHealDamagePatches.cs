@@ -30,14 +30,14 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
 
         [HarmonyPatch(typeof(RuleHealDamage), nameof(RuleHealDamage.Roll))]
         [HarmonyPostfix]
-        public static void RuleHealDamage_Roll_Postfix(RuleHealDamage __instance, int unitsCount, ref int __result)
+        public static void RuleHealDamage_Roll_Postfix(RuleHealDamage __instance, ref int __result)
         {
             if (!Main.Multiplayer.IsActive)
             {
                 return;
             }
 
-            Main.Rolls.OnAfterRollRuleHealDamage(__instance, unitsCount, __result, TacticalCombatHelper.IsActive);
+            Main.Rolls.OnAfterRollRuleHealDamage(__instance, __result, TacticalCombatHelper.IsActive);
         }
 
         private static bool ReplaceNonTacticalCombat(CodeMatcher matcher, string target)
@@ -53,7 +53,6 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             match.RemoveInstruction();
             var newInstructions = new List<CodeInstruction>()
             {
-                new(OpCodes.Ldarg_1),
                 new(OpCodes.Ldc_I4_0),
                 new(OpCodes.Ldarg_0),
                 new(OpCodes.Call, replaceWith)
@@ -74,27 +73,25 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
                 return false;
             }
 
-            match.RemoveInstruction();
             var newInstructions = new List<CodeInstruction>()
             {
-                new(OpCodes.Ldarg_1),
                 new(OpCodes.Ldc_I4_1),
                 new(OpCodes.Ldarg_0),
                 new(OpCodes.Call, replaceWith)
             };
-            match.Insert(newInstructions);
+            match = match.RemoveInstruction().Insert(newInstructions);
             Main.GetLogger<RuleHealDamagePatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return true;
         }
 
-        private static int HealDamageRoll(DiceFormula diceFormula, int unitsCount, bool isTacticalCombat, RuleHealDamage ruleHealDamage)
+        private static int HealDamageRoll(DiceFormula diceFormula, bool isTacticalCombat, RuleHealDamage ruleHealDamage)
         {
             if (!Main.Multiplayer.IsActive)
             {
                 return isTacticalCombat ? TacticalCombatHelper.GetDiceResult(diceFormula) : Dice.D(diceFormula);
             }
 
-            var shouldRunOriginalLogic = Main.Rolls.OnBeforeRollRuleHealDamage(ruleHealDamage, unitsCount, isTacticalCombat);
+            var shouldRunOriginalLogic = Main.Rolls.OnBeforeRollRuleHealDamage(ruleHealDamage, isTacticalCombat, diceFormula);
             if (!shouldRunOriginalLogic)
             {
                 return ruleHealDamage.RollResult;
