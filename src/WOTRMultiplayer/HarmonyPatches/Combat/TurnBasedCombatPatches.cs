@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Kingmaker;
+using Kingmaker.Controllers;
 using Kingmaker.Controllers.Combat;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.EntitySystem.Persistence.JsonUtility;
@@ -52,16 +53,40 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             return true;
         }
 
-        [HarmonyPatch(typeof(TurnController), nameof(TurnController.CalculatePathForSurprisecommand))]
-        [HarmonyPrefix]
-        public static void TurnController_CalculatePathForSurprisecommand_Prefix(TurnController __instance)
+        [HarmonyPatch(typeof(CombatController), nameof(CombatController.HandleCombatStart))]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> CombatController_HandleCombatStart_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var replaceWith = AccessTools.Method(typeof(TurnBasedCombatPatches), nameof(TurnBasedCombatPatches.HasMoreThanOneSelectedUnit));
+            var lookFor = AccessTools.PropertyGetter(typeof(SelectionCharacterController), nameof(SelectionCharacterController.SelectedUnits));
+            var matcher = new CodeMatcher(instructions);
+            var match = matcher.SearchForward(x => x.Calls(lookFor));
+            if (match.IsInvalid)
+            {
+                Main.GetLogger<TurnBasedCombatPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
+                return instructions;
+            }
+
+            var newInstructions = new List<CodeInstruction>()
+            {
+                new(OpCodes.Call, replaceWith),
+            };
+            match = match.Advance(-2).RemoveInstructions(6).Insert(newInstructions);
+
+            Main.GetLogger<TurnBasedCombatPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
+            return matcher.Instructions();
+        }
+
+        private static bool HasMoreThanOneSelectedUnit()
         {
             if (!Main.Multiplayer.IsActive)
             {
-                return;
+                return Game.Instance.SelectionCharacter.SelectedUnits.Count > 1;
             }
 
-            Main.GetLogger<TurnBasedCombatPatches>().LogInformation("Calculating path for surprise command. UnitId={UnitId}", __instance.Rider?.UniqueId);
+            // there are multiple selected units while someone else starts surprise combat
+            return false;
         }
 
         [HarmonyPatch(typeof(TurnController), nameof(TurnController.CanEndTurn))]

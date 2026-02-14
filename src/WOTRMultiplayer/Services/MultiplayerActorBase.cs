@@ -3457,6 +3457,8 @@ namespace WOTRMultiplayer.Services
                     GameInteraction.SetPause(false);
                     PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.Combat.ForcedToStart.Key, args: player.Name);
                 }
+
+                Logger.LogWarning("Combat has been started by another player. Forced={Forced}", hasBeenForcedToStart);
             }
         }
 

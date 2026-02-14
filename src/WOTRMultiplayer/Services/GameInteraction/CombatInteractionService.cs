@@ -10,7 +10,6 @@ using Kingmaker.Armies.TacticalCombat;
 using Kingmaker.Armies.TacticalCombat.Blueprints;
 using Kingmaker.Armies.TacticalCombat.Commands;
 using Kingmaker.Armies.TacticalCombat.Controllers;
-using Kingmaker.Blueprints;
 using Kingmaker.Controllers.Combat;
 using Kingmaker.Designers;
 using Kingmaker.EntitySystem.Entities;
@@ -18,7 +17,6 @@ using Kingmaker.Pathfinding;
 using Kingmaker.PubSubSystem;
 using Kingmaker.TurnBasedMode;
 using Kingmaker.UnitLogic.Abilities;
-using Kingmaker.UnitLogic.Abilities.Components;
 using Kingmaker.UnitLogic.Class.Kineticist;
 using Kingmaker.UnitLogic.Commands;
 using Kingmaker.UnitLogic.Commands.Base;
@@ -1050,12 +1048,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private void UpdateUnitPosition(UnitEntityData unit, NetworkUnit networkUnit)
         {
-            if (unit.Commands.UnitUseAbility?.Ability?.Blueprint.GetComponent<AbilityCustomCharge>() != null || (unit.Commands.Attack?.IsCharge ?? false))
-            {
-                _logger.LogWarning("Skipping position update for unit who tries to charge. UnitId={UnitId}", unit.UniqueId);
-                return;
-            }
-
             if (!unit.IsInCombat)
             {
                 _logger.LogWarning("Updating unit outside of the combat. UnitId={UnitId}", networkUnit.Id);
