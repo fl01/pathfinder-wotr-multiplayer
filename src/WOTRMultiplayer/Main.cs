@@ -33,6 +33,8 @@ namespace WOTRMultiplayer
 
         public static IMultiplayer Multiplayer { get; private set; }
 
+        public static IPlayerNotificationService PlayerNotification { get; private set; }
+
         public static IUIAccessor UIAccessor { get; private set; }
 
         public static IMapper Mapper { get; private set; }
@@ -73,6 +75,7 @@ namespace WOTRMultiplayer
                 Rolls = _serviceProvider.GetRequiredService<IMultiplayerRollsProcessor>();
                 UIAccessor = _serviceProvider.GetRequiredService<IUIAccessor>();
                 Mapper = _serviceProvider.GetRequiredService<IMapper>();
+                PlayerNotification = _serviceProvider.GetRequiredService<IPlayerNotificationService>();
 
                 entry.OnGUI += OnGui;
                 entry.OnSaveGUI += OnSaveGui;

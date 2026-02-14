@@ -205,10 +205,10 @@
                 "waitingForOtherPlayers": "Can't continue until everyone has seen the cue"
             },
             "rolls": {
-                "failedToAcquireRemoteDamageRoll": "Failed to acquire damage roll from remote player which guarantees desync in the game",
-                "failedToAcquireRemoteHealRoll": "Failed to acquire heal roll from remote player which guarantees desync in the game",
-                "failedToAcquireRemoteRoll": "Failed to acquire {0} roll from remote player which guarantees desync in the game",
-                "invalidRemoteDamageRoll": "Network damage contains an invalid number of damage values which guarantees desync in the game"
+                "missingDamageRoll": "Error retrieving damage roll for {0} unit.\nThis guarantees desync in the game",
+                "discrepantDamageRoll": "Retrieved damage roll for {0} unit contains an invalid number of damage values. Expected={1}, Actual={2}.\nThis guarantees desync in the game",
+                "missingHealingRoll": "Error retrieving healing roll for {0} unit.\nThis guarantees desync in the game",
+                "missingRoll": "Error retrieving '{0}' roll for {1} unit.\nThis guarantees desync in the game"
             },
             "rest": {
                 "noCampingPermission": "Camp can be placed by the host only"
@@ -251,6 +251,9 @@
                 "buffs": {
                     "removedBuffs": "Unit {0} lost the following buffs: {1}",
                     "addedBuffs": "Unit {0} gained the following buffs: {1}"
+                },
+                "conditions": {
+                    "confusion": "Confusion effect ({0}) has been rolled by {1}"
                 },
                 "desyncedCombatUnits": "Some units did not spawn locally, but did spawn for other players. This causes combat and turn order to desync, preventing progression.\nPlease load your last save",
                 "turn": {

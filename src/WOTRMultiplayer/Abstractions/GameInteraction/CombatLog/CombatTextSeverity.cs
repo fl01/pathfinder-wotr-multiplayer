@@ -3,6 +3,7 @@
     public enum CombatTextSeverity
     {
         Debug,
-        Common
+        Common,
+        Critical
     }
 }

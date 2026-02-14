@@ -782,26 +782,26 @@ public static class WellKnownKeys
         [Description("rolls")]
         public static class Rolls
         {
-            [Description("failedToAcquireRemoteDamageRoll")]
-            public static class FailedToAcquireRemoteDamageRoll
+            [Description("missingDamageRoll")]
+            public static class MissingDamageRoll
             {
                 public static string Key { get; set; }
             }
 
-            [Description("failedToAcquireRemoteHealRoll")]
-            public static class FailedToAcquireRemoteHealRoll
+            [Description("discrepantDamageRoll")]
+            public static class DiscrepantDamageRoll
             {
                 public static string Key { get; set; }
             }
 
-            [Description("failedToAcquireRemoteRoll")]
-            public static class FailedToAcquireRemoteRoll
+            [Description("missingHealingRoll")]
+            public static class MissingHealingRoll
             {
                 public static string Key { get; set; }
             }
 
-            [Description("invalidRemoteDamageRoll")]
-            public static class InvalidRemoteDamageRoll
+            [Description("missingRoll")]
+            public static class MissingRoll
             {
                 public static string Key { get; set; }
             }
@@ -987,6 +987,16 @@ public static class WellKnownKeys
 
                 [Description("addedBuffs")]
                 public static class AddedBuffs
+                {
+                    public static string Key { get; set; }
+                }
+            }
+
+            [Description("conditions")]
+            public static class Conditions
+            {
+                [Description("confusion")]
+                public static class Confusion
                 {
                     public static string Key { get; set; }
                 }

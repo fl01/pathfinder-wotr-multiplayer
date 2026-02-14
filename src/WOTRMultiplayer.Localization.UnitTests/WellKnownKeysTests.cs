@@ -70,7 +70,7 @@ namespace WOTRMultiplayer.Localization.UnitTests
             yield return new WellKnownKeyTestCase { Name = "lobbyWindow->players->title", Key = () => WellKnownKeys.LobbyWindow.Players.Title.Key };
             yield return new WellKnownKeyTestCase { Name = "lobbyWindow->characters->title", Key = () => WellKnownKeys.LobbyWindow.Characters.Title.Key };
 
-            yield return new WellKnownKeyTestCase { Name = "gameNotifications->rolls->failedToAcquireRemoteDamageRoll", Key = () => WellKnownKeys.GameNotifications.Rolls.FailedToAcquireRemoteDamageRoll.Key };
+            yield return new WellKnownKeyTestCase { Name = "gameNotifications->rolls->missingDamageRoll", Key = () => WellKnownKeys.GameNotifications.Rolls.MissingDamageRoll.Key };
         }
     }
 }

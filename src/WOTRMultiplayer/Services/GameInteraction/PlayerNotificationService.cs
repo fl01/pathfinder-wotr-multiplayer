@@ -74,9 +74,19 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             var parameters = GetCombatLogParameters(args).ToArray();
             var message = GetLocalizedText(messageKey, parameters);
-            var color = combatTextSeverity == CombatTextSeverity.Debug ? LogThreadBase.Colors.WarningLogColor : GameLogStrings.Instance.DefaultColor;
+            var color = GetTextColor(combatTextSeverity);
             var combatLogMessage = new CombatLogMessage(message, color, PrefixIcon.None, template, false);
             Game.Instance.RootUiContext.InGameVM?.StaticPartVM?.CombatLogVM?.AddNewMessage(combatLogMessage);
+        }
+
+        private Color32 GetTextColor(CombatTextSeverity combatTextSeverity)
+        {
+            return combatTextSeverity switch
+            {
+                CombatTextSeverity.Critical => Color.red,
+                CombatTextSeverity.Common => GameLogStrings.Instance.DefaultColor,
+                _ or CombatTextSeverity.Debug => LogThreadBase.Colors.WarningLogColor,
+            };
         }
 
         private IEnumerable<object> GetCombatLogParameters(params object[] args)
