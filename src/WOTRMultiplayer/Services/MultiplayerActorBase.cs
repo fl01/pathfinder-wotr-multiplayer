@@ -1979,7 +1979,7 @@ namespace WOTRMultiplayer.Services
                     return false;
                 }
 
-                if (Game.ForcedPause == null)
+                if (Game.ForcedPause == null || Game.ForcedPause.Reason == NetworkForcedPauseReason.Manual)
                 {
                     EnsureForcePaused(NetworkForcedPauseReason.Manual, removalDelay: null);
                     Game.ForcedPause.ReadyPlayers.Add(Game.LocalPlayerId);
