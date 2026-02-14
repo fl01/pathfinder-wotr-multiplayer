@@ -575,10 +575,11 @@ namespace WOTRMultiplayer.Services
                     && action.ActionBlueprintId == null)
                 {
                     Logger.LogInformation("Duplicate AI action has been skipped. UnitId={UnitId}", action.UnitId);
+                    return null;
                 }
 
                 aiActions.Add(action);
-                Logger.LogInformation("AI action selection has been stored. UnitId={UnitId}, ActionBlueprintId={ActionBlueprintId}, TargetId={TargetId}, Index={Index}", action.UnitId, action.ActionBlueprintId, action.TargetId, aiActions.Count);
+                Logger.LogInformation("AI action selection has been stored. UnitId={UnitId}, ActionBlueprintId={ActionBlueprintId}, TargetId={TargetId}, Index={Index}", action.UnitId, action.ActionBlueprintId, action.TargetId, aiActions.Count - 1);
                 return null;
             }
             catch (Exception ex)
@@ -1469,6 +1470,7 @@ namespace WOTRMultiplayer.Services
 
                     Game.Combat.PlayersNextTurnInitialization.Clear();
                     Game.Combat.PlayersNextTurnSynchronization.Clear();
+                    Game.Combat.AIActions.Clear();
 
                     DiceRollStorage.Reset();
                     Logger.LogInformation("Dice roll storage has been reset at turn entites sync stage");
@@ -1755,7 +1757,7 @@ namespace WOTRMultiplayer.Services
                         Where(x => string.Equals(x.UnitId, request.UnitId, StringComparison.OrdinalIgnoreCase))
                         .ToList();
 
-                    if (turnActions.Count <= request.ActionIndex)
+                    if (turnActions.Count == 0 || turnActions.Count <= request.ActionIndex)
                     {
                         await Task.Delay(TimeSpan.FromMilliseconds(10));
                         continue;
@@ -1772,7 +1774,9 @@ namespace WOTRMultiplayer.Services
                     Action = Mapper.Map<Networking.Messages.Contracts.NetworkAIAction>(networkAIAction)
                 };
 
-                Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, ActionBlueprintId={ActionBlueprintId}, TargetId={TargetId}", nameof(AIActionResponse), playerId, message.Action?.ActionBlueprintId, message.Action?.TargetId);
+                Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, ActionBlueprintId={ActionBlueprintId}, TargetId={TargetId}",
+                    nameof(AIActionResponse), playerId, message.Action?.ActionBlueprintId, message.Action?.TargetId);
+
                 Send(playerId, message);
             }
             catch (Exception ex)

@@ -276,20 +276,21 @@ namespace WOTRMultiplayer.Services
             try
             {
                 var aiActions = GetAIActions();
-                if (aiActions == null || string.IsNullOrEmpty(networkAIAction.ActionBlueprintId))
+                if (aiActions == null)
                 {
                     return null;
                 }
 
                 var count = aiActions.Count(x => x.UnitId == networkAIAction.UnitId);
+                var settings = SettingsService.GetSettings();
                 var message = new AIActionRequest
                 {
-                    Timeout = TimeSpan.FromSeconds(3),
+                    Timeout = settings.AISyncTimeout,
                     UnitId = networkAIAction.UnitId,
                     ActionIndex = count
                 };
 
-                Logger.LogInformation("Retrieving AI action. UnitId={UnitId}, ActionIndex={ActionIndex}", networkAIAction.UnitId, message.ActionIndex);
+                Logger.LogInformation("Retrieving AI action. UnitId={UnitId}, ActionIndex={ActionIndex}, LocalAction={LocationAction}, LocalTarget={LocalTarget}", networkAIAction.UnitId, message.ActionIndex, networkAIAction.ActionBlueprintId, networkAIAction.TargetId);
 
                 var response = _networkClient.SendAndWaitForAsync<AIActionResponse>(message).Result;
 
@@ -301,15 +302,24 @@ namespace WOTRMultiplayer.Services
 
                 var action = Mapper.Map<NetworkAIAction>(response.Action);
 
+                if (aiActions.Count > 0
+                    && aiActions[aiActions.Count - 1].ActionBlueprintId == null
+                    && aiActions[aiActions.Count - 1].UnitId == action.UnitId
+                    && action.ActionBlueprintId == null)
+                {
+                    Logger.LogInformation("Duplicate AI action has been skipped. UnitId={UnitId}", action.UnitId);
+                    return networkAIAction;
+                }
+
+                aiActions.Add(action);
+
                 if (string.Equals(action.ActionBlueprintId, networkAIAction.ActionBlueprintId, StringComparison.OrdinalIgnoreCase)
                     && string.Equals(action.TargetId, networkAIAction.TargetId, StringComparison.OrdinalIgnoreCase))
                 {
                     Logger.LogInformation("Host AI action is the same, nothing to do here. UnitId={UnitId}, ActionBlueprintId={ActionBlueprintId}, TargetUnitId={TargetUnitId}", networkAIAction.UnitId, networkAIAction.ActionBlueprintId, networkAIAction.TargetId);
-                    aiActions.Add(networkAIAction);
                     return null;
                 }
 
-                aiActions.Add(action);
                 return action;
             }
             catch (Exception ex)
@@ -1428,6 +1438,7 @@ namespace WOTRMultiplayer.Services
 
                 Game.Combat.Turn.Seed = message.TurnSeed;
 
+                Game.Combat.AIActions.Clear();
                 DiceRollStorage.Reset();
                 Logger.LogInformation("Dice roll storage has been reset at after syncing turn units");
 

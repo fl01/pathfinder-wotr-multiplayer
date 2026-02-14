@@ -11,7 +11,8 @@ namespace WOTRMultiplayer.UI.Settings
         private GameObject _inputObject;
         private static readonly Color _invalidFormatColor = Color.red;
         private static readonly Color _validFormatColor = new(0.192f, 0.204f, 0.259f, 1.000f);
-
+        private static readonly Color _interactableColor = new(0.196f, 0.208f, 0.271f);
+        private static readonly Color _nonInteractableColor = Color.grey;
         private TMP_InputField InputField => _inputObject.GetComponent<TMP_InputField>();
 
         public override void BindViewImplementation()
@@ -46,8 +47,13 @@ namespace WOTRMultiplayer.UI.Settings
 
             if (!ViewModel.IsModificationAllowed)
             {
-                inputText.color = Color.grey;
+                inputText.color = _nonInteractableColor;
                 InputField.interactable = false;
+            }
+            else
+            {
+                inputText.color = _interactableColor;
+                InputField.interactable = true;
             }
         }
 

@@ -630,7 +630,6 @@ namespace WOTRMultiplayer.Services
                 }
 
                 UpdateConfirmedMidCombatUnits();
-                Game.Combat.AIActions.Clear();
                 PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Turn.Started.Key, CombatTextSeverity.Common, new UnitEntityLog(unitId));
                 Logger.LogInformation("Turn start is allowed. UnitId={UnitId}, IsActingInSurpiseRound={IsActingInSurpiseRound}, TurnUnitId={TurnUnitId}, TurnSeed={TurnSeed}", unitId, actingInSurpriseRound, Game.Combat.Turn.UnitId, Game.Combat.Turn.Seed);
                 return true;

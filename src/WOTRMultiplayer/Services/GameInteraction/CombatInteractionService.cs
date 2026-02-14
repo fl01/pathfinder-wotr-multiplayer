@@ -1039,7 +1039,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     unit.CombatState.Engage(engageTarget);
                 }
 
-                _logger.LogInformation("Unit engagement has been updated. UnitId={UnitId}, EngagedWith={EngagedWith}, EngagedBy={EngagedBy}, HostEngagedWith={HostEngagedWith}, HostEngagedBy={HostEngagedBy}", unit.UniqueId, string.Join(";", unit.CombatState.m_EngagedUnits.Select(x => x.Key.UniqueId)), string.Join(";", unit.CombatState.m_EngagedBy.Select(x => x.Key.UniqueId)), networkUnit.CombatState.EngagedUnits, networkUnit.CombatState.EngagedBy);
+                _logger.LogDebug("Unit engagement has been updated. UnitId={UnitId}, EngagedWith={EngagedWith}, EngagedBy={EngagedBy}, HostEngagedWith={HostEngagedWith}, HostEngagedBy={HostEngagedBy}", unit.UniqueId, string.Join(";", unit.CombatState.m_EngagedUnits.Select(x => x.Key.UniqueId)), string.Join(";", unit.CombatState.m_EngagedBy.Select(x => x.Key.UniqueId)), networkUnit.CombatState.EngagedUnits, networkUnit.CombatState.EngagedBy);
             }
         }
 
