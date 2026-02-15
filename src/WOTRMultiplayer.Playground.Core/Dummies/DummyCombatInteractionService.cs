@@ -20,7 +20,7 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void EndTurnBasedCombatTurn()
+        public void EndTurnBasedCombatTurn(bool isAI)
         {
         }
 
@@ -137,6 +137,10 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         }
 
         public void AddUnitsToCombat(List<string> units)
+        {
+        }
+
+        public void ExecuteAIAction(NetworkAIAction aiAction)
         {
         }
     }

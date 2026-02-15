@@ -84,7 +84,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             UpdateNegativeLevels(unit, unitBuffCollection.NegativeLevels);
 
             unit.Buffs.UpdateNextEvent();
-            _logger.LogInformation("Unit buffs have been updated. UnitId={UnitId}", unit.UniqueId);
+            _logger.LogDebug("Unit buffs have been updated. UnitId={UnitId}", unit.UniqueId);
         }
 
         private void UpdateNegativeLevels(UnitEntityData unit, List<NetworkUnitNegativeLevelsData> negativeLevels)

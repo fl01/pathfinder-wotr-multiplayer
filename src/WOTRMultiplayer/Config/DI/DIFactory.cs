@@ -9,6 +9,7 @@ using WOTRMultiplayer.Abstractions.Hashing;
 using WOTRMultiplayer.Abstractions.Hotkeys;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.Localization;
+using WOTRMultiplayer.Abstractions.QueuedActions;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Abstractions.UI;
@@ -24,6 +25,7 @@ using WOTRMultiplayer.Services.Hotkeys;
 using WOTRMultiplayer.Services.IO;
 using WOTRMultiplayer.Services.Localization;
 using WOTRMultiplayer.Services.PubSub;
+using WOTRMultiplayer.Services.QueuedActions;
 using WOTRMultiplayer.Services.Random;
 using WOTRMultiplayer.Services.Settings;
 using WOTRMultiplayer.UI;
@@ -55,6 +57,7 @@ namespace WOTRMultiplayer.Config.DI
 
             serviceCollection.AddSingleton<IMainThreadAccessor, MainThreadAccessor>();
             serviceCollection.AddSingleton<IValueGenerator, DeterministicValueGenerator>();
+            serviceCollection.AddSingleton<IQueuedActionsRunner, QueuedActionsRunner>();
 
             serviceCollection.AddSingleton<IFileSystemService, FileSystemService>();
             serviceCollection.AddSingleton<IResourceProvider, ResourceBundleProvider>();

@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Kingmaker.Armies;
+using Kingmaker.AI;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.Globalmap.State;
 using Kingmaker.Globalmap.View;
@@ -44,5 +44,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         AreaEffectEntityData GetAreaEffect(NetworkAreaEffect networkAreaEffect);
 
         List<UnitEntityData> GetActualParty();
+
+        AiAction FindAIAction(UnitEntityData unit, NetworkAIAction networkAIAction);
     }
 }

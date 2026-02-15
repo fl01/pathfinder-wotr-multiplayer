@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using ProtoBuf;
+﻿using ProtoBuf;
 
 namespace WOTRMultiplayer.Networking.Messages.Contracts
 {
@@ -7,24 +6,24 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
     public class NetworkAIAction
     {
         [ProtoMember(1)]
-        public string UnitId { get; set; }
+        public string Id { get; set; }
 
         [ProtoMember(2)]
-        public string TargetId { get; set; }
+        public string Name { get; set; }
 
         [ProtoMember(3)]
-        public string ActionBlueprintId { get; set; }
+        public string UnitId { get; set; }
 
         [ProtoMember(4)]
-        public string ActionType { get; set; }
+        public string TargetId { get; set; }
 
         [ProtoMember(5)]
-        public bool IsAutoUseAbility { get; set; }
+        public NetworkAIDecisionContext DecisionContext { get; set; }
 
         [ProtoMember(6)]
-        public List<NetworkVector3> BestPath { get; set; } = [];
+        public string ActionType { get; set; }
 
         [ProtoMember(7)]
-        public bool BestEnableFiveFootStep { get; set; }
+        public bool UseCommand { get; set; }
     }
 }

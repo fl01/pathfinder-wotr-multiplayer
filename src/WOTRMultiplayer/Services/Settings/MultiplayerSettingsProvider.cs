@@ -22,10 +22,6 @@ namespace WOTRMultiplayer.Services.Settings
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Dialogs.NonSelectedAnswerAnimationDuration);
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Dialogs.BlockedAnswerAnimationDuration);
 
-            // combat
-            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Combat.EnableAISync);
-            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Combat.EnableCrusadeAISync);
-
             // networking
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Networking.HostPortRangeStart);
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Networking.HostPortRangeEnd);
@@ -43,7 +39,6 @@ namespace WOTRMultiplayer.Services.Settings
             _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.RestEncounterForcedPauseTimeout);
             _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.RemoteRollRetrievalTimeout);
             _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.NetworkAwaiterTimeout);
-            _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.AISyncTimeout);
             _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.RestEncounterSyncTimeout);
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.DangerZone.EnforcedCombatStartDelay);
         }
@@ -60,10 +55,6 @@ namespace WOTRMultiplayer.Services.Settings
                 DialogNonSelectedAnswerAnimationDuration = _settingsControllerAccessor.GetValue(WellKnownSettings.Dialogs.NonSelectedAnswerAnimationDuration),
                 DialogBlockedAnswerAnimationDuration = _settingsControllerAccessor.GetValue(WellKnownSettings.Dialogs.BlockedAnswerAnimationDuration),
 
-                // combat
-                SyncAICombatActions = _settingsControllerAccessor.GetValue(WellKnownSettings.Combat.EnableAISync),
-                SyncCrusadeArmyAICombatActions = _settingsControllerAccessor.GetValue(WellKnownSettings.Combat.EnableCrusadeAISync),
-
                 // networking
                 HostPortRangeStart = _settingsControllerAccessor.GetValue(WellKnownSettings.Networking.HostPortRangeStart),
                 HostPortRangeEnd = _settingsControllerAccessor.GetValue(WellKnownSettings.Networking.HostPortRangeEnd),
@@ -78,7 +69,6 @@ namespace WOTRMultiplayer.Services.Settings
                 ForcedPauseRandomEncounterTerminationDelay = _settingsControllerAccessor.GetTimeSpanValue(WellKnownSettings.DangerZone.RestEncounterForcedPauseTimeout),
                 RemoteRollRetrievalTimeout = _settingsControllerAccessor.GetTimeSpanValue(WellKnownSettings.DangerZone.RemoteRollRetrievalTimeout),
                 NetworkAwaiterTimeout = _settingsControllerAccessor.GetTimeSpanValue(WellKnownSettings.DangerZone.NetworkAwaiterTimeout),
-                AISyncTimeout = _settingsControllerAccessor.GetTimeSpanValue(WellKnownSettings.DangerZone.AISyncTimeout),
                 RestEncounterSyncTimeout = _settingsControllerAccessor.GetTimeSpanValue(WellKnownSettings.DangerZone.RestEncounterSyncTimeout),
                 EnforcedCombatStartDelay = _settingsControllerAccessor.GetValue(WellKnownSettings.DangerZone.EnforcedCombatStartDelay),
             };

@@ -236,14 +236,14 @@
             ClientCombatPreparationStarted,
             NotifyCombatInitializationCompleted,
             NotifyGlobalMapCrusadeArmyLeaderLevelingStarted,
-            NotifyGlobalMapLocationMessageAccepted
+            NotifyGlobalMapLocationMessageAccepted,
+            NotifyAIActionSelected,
+            NotifyAICombatTurnEnded
         }
 
         public enum Request
         {
             None = 88888,
-            AIActionRequest,
-            AIActionResponse,
             DiceRollValueRequest,
             DiceRollValueResponse,
             RandomEncounterContextRequest,

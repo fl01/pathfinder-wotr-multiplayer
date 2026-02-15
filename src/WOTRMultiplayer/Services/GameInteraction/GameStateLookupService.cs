@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Kingmaker;
+using Kingmaker.AI;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.Globalmap;
 using Kingmaker.Globalmap.State;
@@ -183,6 +184,21 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             var areaEffect = Game.Instance.State.AreaEffects.FirstOrDefault(a => string.Equals(a.UniqueId, networkAreaEffect.Id, StringComparison.OrdinalIgnoreCase));
             return areaEffect;
+        }
+
+        public AiAction FindAIAction(UnitEntityData unit, NetworkAIAction networkAIAction)
+        {
+            var action = FindAIAction([unit.Brain.GetAvailableAutoUseAbility()?.DefaultAiAction], networkAIAction)
+                ?? FindAIAction([.. unit.Brain.CustomActions.Cast<AiAction>()], networkAIAction)
+                ?? FindAIAction(unit.Brain.AvailableActions, networkAIAction);
+
+            return action;
+        }
+
+        private AiAction FindAIAction(List<AiAction> actions, NetworkAIAction networkAIAction)
+        {
+            var action = actions?.FirstOrDefault(a => a != null && string.Equals(a.Blueprint.AssetGuid.ToString(), networkAIAction.Id, StringComparison.OrdinalIgnoreCase));
+            return action;
         }
 
         private AbilityData GetMemorizedSpell(Spellbook spellbook, NetworkAbility ability)

@@ -169,7 +169,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                     return true;
                 }
 
-                var canContinue = Main.Multiplayer.OnBeforeStartTurn(unit.UniqueId, unitInfo.ActingInSurpriseRound);
+                var canContinue = Main.Multiplayer.OnBeforeTurnStart(unit.UniqueId, unitInfo.ActingInSurpriseRound);
                 if (!canContinue)
                 {
                     // creating fake turn to restrict rechoosing unit / starting new turn before all the confirmations
@@ -193,6 +193,13 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             if (!Main.Multiplayer.IsActive)
             {
                 return true;
+            }
+
+            if (!Main.Multiplayer.IsSourceOfAIActions())
+            {
+                __instance.FramesWaitedForStuckAI = 0;
+                __instance.TimeWaitedForIdleAI = 0;
+                __instance.TimeWaitedToEndTurn = 0;
             }
 
             return __instance.Rider != null;
@@ -219,7 +226,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 return true;
             }
 
-            var canContinue = Main.Multiplayer.OnBeforeEndTurn(__instance.Rider?.UniqueId);
+            var canContinue = Main.Multiplayer.OnBeforeTurnEnd(__instance.Rider?.UniqueId);
             return canContinue;
         }
 

@@ -620,11 +620,6 @@ namespace WOTRMultiplayer.UI
                 WellKnownKeys.Settings.Dialogs.BlockedAnswerAnimationDuration.Tooltip.Key,
                 WellKnownSettings.Dialogs.BlockedAnswerAnimationDuration, defaultMinAnimationDuration, defaultMaxAnimationDuration);
 
-            // combat
-            yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Combat.Title.Key });
-            yield return CreateBoolSetting(WellKnownKeys.Settings.Combat.SyncAI.Title.Key, WellKnownKeys.Settings.Combat.SyncAI.Tooltip.Key, WellKnownSettings.Combat.EnableAISync);
-            yield return CreateBoolSetting(WellKnownKeys.Settings.Combat.CrusadeAISync.Title.Key, WellKnownKeys.Settings.Combat.CrusadeAISync.Tooltip.Key, WellKnownSettings.Combat.EnableCrusadeAISync);
-
             // networking
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Networking.Title.Key });
             yield return CreateIntInputSetting(
@@ -680,12 +675,6 @@ namespace WOTRMultiplayer.UI
                 WellKnownKeys.Settings.DangerZone.NetworkAwaiterTimeout.Title.Key,
                 WellKnownKeys.Settings.DangerZone.NetworkAwaiterTimeout.Tooltip.Key,
                 WellKnownSettings.DangerZone.NetworkAwaiterTimeout,
-                new TimeSpanValidator(),
-                TimeSpanValidator.MaxLength);
-            yield return CreateStringInputSetting(
-                WellKnownKeys.Settings.DangerZone.SyncAITimeout.Title.Key,
-                WellKnownKeys.Settings.DangerZone.SyncAITimeout.Tooltip.Key,
-                WellKnownSettings.DangerZone.AISyncTimeout,
                 new TimeSpanValidator(),
                 TimeSpanValidator.MaxLength);
             yield return CreateSliderSetting(WellKnownKeys.Settings.DangerZone.EnforcedCombatStartDelay.Title.Key,

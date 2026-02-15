@@ -341,7 +341,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound)
+        public bool OnBeforeTurnStart(string unitId, bool actingInSurpriseRound)
         {
             try
             {
@@ -350,7 +350,7 @@ namespace WOTRMultiplayer.Services
                     return true;
                 }
 
-                return _multiplayerActorAccessor.Current.OnBeforeStartTurn(unitId, actingInSurpriseRound);
+                return _multiplayerActorAccessor.Current.OnBeforeTurnStart(unitId, actingInSurpriseRound);
             }
             catch (Exception ex)
             {
@@ -359,7 +359,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public bool OnBeforeEndTurn(string unitId)
+        public bool OnBeforeTurnEnd(string unitId)
         {
             try
             {
@@ -368,7 +368,7 @@ namespace WOTRMultiplayer.Services
                     return true;
                 }
 
-                var canEnd = _multiplayerActorAccessor.Current.OnBeforeEndTurn(unitId);
+                var canEnd = _multiplayerActorAccessor.Current.OnBeforeTurnEnd(unitId);
                 return canEnd;
             }
             catch (Exception ex)
@@ -1039,25 +1039,6 @@ namespace WOTRMultiplayer.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while interrupting rest banter bark. BanterKey={BanterKey}", networkRestBanter.Key);
-                throw;
-            }
-        }
-
-        public NetworkAIAction OnAfterAISelectedAction(NetworkAIAction networkAIAction)
-        {
-            try
-            {
-                if (_multiplayerActorAccessor == null)
-                {
-                    return null;
-                }
-
-                var possibleOverride = _multiplayerActorAccessor.Current.OnAfterAISelectedAction(networkAIAction);
-                return possibleOverride;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error after AI selected action. AIUnitId={AIUnitId}", networkAIAction?.UnitId);
                 throw;
             }
         }
@@ -2502,6 +2483,11 @@ namespace WOTRMultiplayer.Services
                 _logger.LogError(ex, "Error while rolling random encounter on global map");
                 throw;
             }
+        }
+
+        public bool IsSourceOfAIActions()
+        {
+            return _multiplayerActorAccessor.Current != null && _multiplayerActorAccessor.Host.IsActive;
         }
 
         public bool CanControlGlobalMap()
@@ -4092,6 +4078,25 @@ namespace WOTRMultiplayer.Services
                 throw;
             }
         }
+
+        public void OnAIActionSelected(NetworkAIAction aiAction)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnAIActionSelected(aiAction);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while processing ai action. Id={Id}, Name={Name}, UnitId={UnitId}", aiAction.Id, aiAction.Name, aiAction.UnitId);
+                throw;
+            }
+        }
+
 
         public void CloseMultiplayerLobbyWindow()
         {

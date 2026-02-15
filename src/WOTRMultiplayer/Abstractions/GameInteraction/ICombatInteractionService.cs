@@ -28,7 +28,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void StartTurnBasedCombatTurn(string unitId);
 
-        void EndTurnBasedCombatTurn();
+        void EndTurnBasedCombatTurn(bool isAI);
 
         bool IsCombatTurnFinished();
 
@@ -67,5 +67,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         bool CanRiderGetUp();
 
         bool IsRiderActive();
+
+        void ExecuteAIAction(NetworkAIAction aiAction);
     }
 }

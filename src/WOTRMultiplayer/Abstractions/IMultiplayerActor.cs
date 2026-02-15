@@ -90,9 +90,9 @@ namespace WOTRMultiplayer.Abstractions
 
         bool CanContinueCombat();
 
-        bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound);
+        bool OnBeforeTurnStart(string unitId, bool actingInSurpriseRound);
 
-        bool OnBeforeEndTurn(string unitId);
+        bool OnBeforeTurnEnd(string unitId);
 
         void CombatRoundStarted(int round);
 
@@ -142,8 +142,6 @@ namespace WOTRMultiplayer.Abstractions
         void OnShowRestView(RestPhase phase);
 
         void OnInterrupRestBanterBark(NetworkRestBanter networkBanter);
-
-        NetworkAIAction OnAfterAISelectedAction(NetworkAIAction action);
 
         void OnTransferVendorItem(NetworkVendorItemTransfer transfer);
 

@@ -437,48 +437,6 @@ public static class WellKnownKeys
             }
         }
 
-        [Description("combat")]
-        public static class Combat
-        {
-            [Description("title")]
-            public static class Title
-            {
-                public static string Key { get; set; }
-            }
-
-            [Description("syncAI")]
-            public static class SyncAI
-            {
-                [Description("title")]
-                public static class Title
-                {
-                    public static string Key { get; set; }
-                }
-
-                [Description("tooltip")]
-                public static class Tooltip
-                {
-                    public static string Key { get; set; }
-                }
-            }
-
-            [Description("crusadeAISync")]
-            public static class CrusadeAISync
-            {
-                [Description("title")]
-                public static class Title
-                {
-                    public static string Key { get; set; }
-                }
-
-                [Description("tooltip")]
-                public static class Tooltip
-                {
-                    public static string Key { get; set; }
-                }
-            }
-        }
-
         [Description("networking")]
         public static class Networking
         {

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.Area;
+using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Combat.Crusades;
 using WOTRMultiplayer.Entities.Dialogs;
 using WOTRMultiplayer.Entities.GlobalMap;
@@ -177,5 +178,7 @@ namespace WOTRMultiplayer.Abstractions
         void OnGlobalMapCrusadeArmyLeaderLevelingConfirmed();
 
         void OnGlobalMapCrusadeArmyLeaderLevelingSkillSelected(string skillId);
+
+        void OnAIActionSelected(NetworkAIAction aiAction);
     }
 }

@@ -8,6 +8,7 @@ using NUnit.Framework;
 using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.IO;
+using WOTRMultiplayer.Abstractions.QueuedActions;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Config.Mapping;
@@ -39,6 +40,7 @@ namespace WOTRMultiplayer.UnitTests.Services
         private IMultiplayerSettingsService _multiplayerSettingsProvider;
         private IIPEndPointParser _endpointParser;
         private IFileSystemService _fileSystemService;
+        private IQueuedActionsRunner _actionsRunner;
         private INetworkClient _networkClient;
         private IDiceRollStorage _diceRollStorage;
         private IValueGenerator _valueGenerator;
@@ -63,6 +65,8 @@ namespace WOTRMultiplayer.UnitTests.Services
             _endpointParser = A.Fake<IIPEndPointParser>();
             _multiplayerSettingsProvider = A.Fake<IMultiplayerSettingsService>();
             _fileSystemService = A.Fake<IFileSystemService>();
+            _actionsRunner = A.Fake<IQueuedActionsRunner>();
+
 
             _networkClient = A.Fake<INetworkClient>();
             Fake.GetFakeManager(_networkClient).AddRuleFirst(new NetworkReceiverFakeRule());
@@ -85,6 +89,7 @@ namespace WOTRMultiplayer.UnitTests.Services
                 _networkClient,
                 _diceRollStorage,
                 _valueGenerator,
+                _actionsRunner,
                 _mapper);
         }
 

@@ -6,10 +6,11 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using Kingmaker;
 using Kingmaker.AI;
+using Kingmaker.Armies.TacticalCombat;
 using Kingmaker.EntitySystem.Entities;
-using Kingmaker.Pathfinding;
 using Kingmaker.RuleSystem;
 using Kingmaker.UnitLogic;
+using Kingmaker.UnitLogic.Commands;
 using Kingmaker.UnitLogic.Commands.Base;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Entities.Combat;
@@ -73,107 +74,75 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             }
         }
 
-        [HarmonyPatch(typeof(AiBrainController), nameof(AiBrainController.FindBestAction))]
-        [HarmonyPostfix]
-        public static void AiBrainController_FindBestAction_Postfix(UnitEntityData unit, DecisionContext context, ref AiAction bestActionResult, ref UnitEntityData bestTargetResult, ref bool isAutoUseAbility)
+        [HarmonyPatch(typeof(AiBrainController), nameof(AiBrainController.SelectAction))]
+        [HarmonyPrefix]
+        public static bool AiBrainController_SelectAction_Prefix()
         {
             if (!Main.Multiplayer.IsActive)
             {
+                return true;
+            }
+
+            var canContinue = Main.Multiplayer.IsSourceOfAIActions() || TacticalCombatHelper.IsActive;
+            return canContinue;
+        }
+
+        [HarmonyPatch(typeof(AiBrainController), nameof(AiBrainController.SelectAction))]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> AiBrainController_SelectAction_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var lookFor = AccessTools.Method(typeof(UnitCommands), nameof(UnitCommands.InterruptAiCommands));
+            var replaceWith = AccessTools.Method(typeof(AiBrainControllerPatches), nameof(AiBrainControllerPatches.OnAIActionSelected));
+            var matcher = new CodeMatcher(instructions);
+            var match = matcher.SearchForward(x => x.Calls(lookFor));
+            if (match.IsInvalid)
+            {
+                Main.GetLogger<ContextValueHelperPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
+                return instructions;
+            }
+
+            match = match.Advance(-4);
+            var label = match.Instruction.ExtractLabels();
+            var newInstructions = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Ldarg_1).WithLabels(label),
+                new(OpCodes.Ldarg_0),
+                new(OpCodes.Ldloc_0),
+                new(OpCodes.Ldloc_1),
+                new(OpCodes.Call, replaceWith),
+            };
+            match = match.Insert(newInstructions);
+            Main.GetLogger<ContextValueHelperPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
+            return matcher.Instructions();
+        }
+
+        private static void OnAIActionSelected(DecisionContext decisionContext, UnitEntityData aiUnit, AiAction aiAction, UnitEntityData target)
+        {
+            if (!Main.Multiplayer.IsActive
+                || !Game.Instance.Player.IsInCombat
+                || aiAction == null
+                || TacticalCombatHelper.IsActive)
+            {
                 return;
             }
 
-            var calculatedBestPath = context.BestPath?.vectorPath.Select(v => v.ToNetworkVector3()) ?? [];
             var action = new NetworkAIAction
             {
-                UnitId = unit.UniqueId,
-                TargetId = bestTargetResult?.UniqueId,
-                ActionBlueprintId = bestActionResult?.Blueprint.AssetGuid.ToString(),
-                ActionType = bestActionResult?.GetType().Name,
-                IsAutoUseAbility = isAutoUseAbility,
-                BestPath = [.. calculatedBestPath],
-                BestEnableFiveFootStep = context.BestEnableFiveFootStep
+                Id = aiAction.Blueprint.AssetGuid.ToString(),
+                Name = aiAction.Blueprint.name,
+                ActionType = aiAction.GetType().Name,
+                UnitId = aiUnit.UniqueId,
+                TargetId = target?.UniqueId,
+                DecisionContext = new NetworkAIDecisionContext
+                {
+                    BestEnableFiveFootStep = decisionContext.BestEnableFiveFootStep,
+                    VectorPath = decisionContext.BestPath?.vectorPath.Select(v => v.ToNetworkVector3()).ToList() ?? [],
+                },
+                UseCommand = aiAction.UseCommand
             };
 
-            var possibleOverride = Main.Multiplayer.OnAfterAISelectedAction(action);
-            if (possibleOverride == null)
-            {
-                return;
-            }
-
-            var requiresContextUpdate = false;
-            if (!string.Equals(bestActionResult.Blueprint.AssetGuid.ToString(), possibleOverride.ActionBlueprintId, StringComparison.OrdinalIgnoreCase))
-            {
-                Main.GetLogger<AiBrainControllerPatches>().LogWarning("Replacing best action result. PreviousActionBlueprintId={PreviousActionBlueprintId}, NewActionBlueprintId={NewActionBlueprintId}", bestActionResult.Blueprint.AssetGuid.ToString(), possibleOverride.ActionBlueprintId);
-                bestActionResult = FindAIAction(unit, isAutoUseAbility, possibleOverride);
-                requiresContextUpdate = true;
-            }
-
-            if (!string.Equals(bestTargetResult?.UniqueId, possibleOverride.TargetId, StringComparison.OrdinalIgnoreCase))
-            {
-                Main.GetLogger<AiBrainControllerPatches>().LogWarning("Replacing best target result. PreviousTargetUnitId={PreviousTargetUnitId}, NewTargetUnitId={NewTargetUnitId}", bestTargetResult?.UniqueId, possibleOverride.TargetId);
-                bestTargetResult = FindActionTarget(possibleOverride.TargetId);
-                requiresContextUpdate = true;
-            }
-
-            if (requiresContextUpdate)
-            {
-                context.BestEnableFiveFootStep = possibleOverride.BestEnableFiveFootStep;
-
-                var bestPathOverride = possibleOverride.BestPath.Select(v => v.ToUnityVector3()).ToList();
-                context.BestPath = new ForcedPath(bestPathOverride);
-            }
-        }
-
-        private static UnitEntityData FindActionTarget(string targetUniqueId)
-        {
-            if (string.IsNullOrEmpty(targetUniqueId))
-            {
-                return null;
-            }
-
-            var target = Game.Instance.State.Units.All.FirstOrDefault(u => string.Equals(u.UniqueId, targetUniqueId, StringComparison.OrdinalIgnoreCase));
-            return target;
-        }
-
-        private static AiAction FindAIAction(UnitEntityData unitEntityData, bool isAutoUseAbility, NetworkAIAction networkAIAction)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(networkAIAction.ActionBlueprintId))
-                {
-                    return null;
-                }
-
-                if (isAutoUseAbility)
-                {
-                    var action = unitEntityData.Brain.GetAvailableAutoUseAbility()?.DefaultAiAction;
-                    Main.GetLogger<AiBrainControllerPatches>().LogInformation("AutoUse AI action has been selected. ActionBlueprintId={ActionBlueprintId}", action?.Blueprint.AssetGuid.ToString());
-                    return action;
-                }
-
-                var customAction = unitEntityData.Brain.CustomActions.FirstOrDefault(ca => string.Equals(ca.Blueprint.AssetGuid.ToString(), networkAIAction.ActionBlueprintId));
-                if (customAction != null)
-                {
-                    Main.GetLogger<AiBrainControllerPatches>().LogInformation("Custom AI action has been selected. ActionBlueprintId={ActionBlueprintId}", customAction.Blueprint.AssetGuid.ToString());
-                    return customAction;
-                }
-
-                var availableAction = unitEntityData.Brain.AvailableActions.FirstOrDefault(ca => string.Equals(ca.Blueprint.AssetGuid.ToString(), networkAIAction.ActionBlueprintId));
-                if (availableAction != null)
-                {
-                    Main.GetLogger<AiBrainControllerPatches>().LogInformation("Available AI action has been selected. ActionBlueprintId={ActionBlueprintId}", availableAction.Blueprint.AssetGuid.ToString());
-                    return availableAction;
-                }
-
-                Main.GetLogger<AiBrainControllerPatches>().LogError("Unable to find AI action. ActionBlueprintId={ActionBlueprintId}", availableAction.Blueprint.AssetGuid.ToString());
-                return null;
-            }
-            catch (Exception ex)
-            {
-
-                Main.GetLogger<AiBrainControllerPatches>().LogInformation(ex, "Error while selecting AI action. UnitId={UnitId}", unitEntityData.UniqueId);
-                throw;
-            }
+            Main.Multiplayer.OnAIActionSelected(action);
         }
     }
 }

@@ -54,16 +54,6 @@ namespace WOTRMultiplayer.Services.Settings
             public static WellKnownSettingKey<float> BlockedAnswerAnimationDuration { get; } = new(0.8f);
         }
 
-        [Description("combat")]
-        public static class Combat
-        {
-            [Description("ai-sync")]
-            public static WellKnownSettingKey<bool> EnableAISync { get; } = new(true);
-
-            [Description("crusade-ai-sync")]
-            public static WellKnownSettingKey<bool> EnableCrusadeAISync { get; } = new(true);
-        }
-
         [Description("networking")]
         public static class Networking
         {
@@ -108,9 +98,6 @@ namespace WOTRMultiplayer.Services.Settings
 
             [Description("network-awaiter-timeout")]
             public static WellKnownSettingKey<TimeSpan> NetworkAwaiterTimeout { get; } = new(TimeSpan.FromMinutes(1));
-
-            [Description("ai-sync-timeout")]
-            public static WellKnownSettingKey<TimeSpan> AISyncTimeout { get; } = new(TimeSpan.FromSeconds(3));
 
             [Description("rest-encounter-sync-timeout")]
             public static WellKnownSettingKey<TimeSpan> RestEncounterSyncTimeout { get; } = new(TimeSpan.FromSeconds(30));

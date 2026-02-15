@@ -1142,11 +1142,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                 if (networkGameSettings.Multiplayer != null)
                 {
-                    SettingsController.GeneralSettingsProvider.SetValue(WellKnownSettings.Combat.EnableAISync.Key, networkGameSettings.Multiplayer.SyncAICombatActions);
-                    SettingsController.GeneralSettingsProvider.SetValue(WellKnownSettings.Combat.EnableCrusadeAISync.Key, networkGameSettings.Multiplayer.SyncCrusadeArmyAICombatActions);
                     SettingsController.GeneralSettingsProvider.SetValue(WellKnownSettings.DangerZone.RemoteRollRetrievalTimeout.Key, networkGameSettings.Multiplayer.RemoteRollRetrievalTimeout.ToString());
                     SettingsController.GeneralSettingsProvider.SetValue(WellKnownSettings.DangerZone.NetworkAwaiterTimeout.Key, networkGameSettings.Multiplayer.NetworkAwaiterTimeout.ToString());
-                    SettingsController.GeneralSettingsProvider.SetValue(WellKnownSettings.DangerZone.AISyncTimeout.Key, networkGameSettings.Multiplayer.AISyncTimeout.ToString());
                     SettingsController.GeneralSettingsProvider.SetValue(WellKnownSettings.DangerZone.RestEncounterSyncTimeout.Key, networkGameSettings.Multiplayer.RestEncounterSyncTimeout.ToString());
                 }
             });

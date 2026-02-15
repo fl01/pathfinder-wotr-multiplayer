@@ -36,8 +36,6 @@ namespace WOTRMultiplayer.Entities.Combat
 
         public HashSet<string> ConfirmedMidCombatUnits { get; set; } = [];
 
-        public List<NetworkAIAction> AIActions { get; set; } = [];
-
         public HashSet<NetworkAreaEffect> TriggeredAreaEffects { get; set; } = [];
     }
 }

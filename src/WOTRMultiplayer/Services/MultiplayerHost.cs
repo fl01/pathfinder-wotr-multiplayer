@@ -559,36 +559,6 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public NetworkAIAction OnAfterAISelectedAction(NetworkAIAction action)
-        {
-            try
-            {
-                var aiActions = GetAIActions();
-                if (aiActions == null)
-                {
-                    return null;
-                }
-
-                if (aiActions.Count > 0
-                    && aiActions[aiActions.Count - 1].ActionBlueprintId == null
-                    && aiActions[aiActions.Count - 1].UnitId == action.UnitId
-                    && action.ActionBlueprintId == null)
-                {
-                    Logger.LogInformation("Duplicate AI action has been skipped. UnitId={UnitId}", action.UnitId);
-                    return null;
-                }
-
-                aiActions.Add(action);
-                Logger.LogInformation("AI action selection has been stored. UnitId={UnitId}, ActionBlueprintId={ActionBlueprintId}, TargetId={TargetId}, Index={Index}", action.UnitId, action.ActionBlueprintId, action.TargetId, aiActions.Count - 1);
-                return null;
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Unable to store ai actions");
-                throw;
-            }
-        }
-
         public void OnMakeVendorDeal()
         {
             var message = new NotifyVendorDealMade();
@@ -1187,6 +1157,17 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
+        public void OnAIActionSelected(NetworkAIAction aiAction)
+        {
+            var message = new NotifyAIActionSelected
+            {
+                Action = Mapper.Map<Networking.Messages.Contracts.NetworkAIAction>(aiAction)
+            };
+            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, Id={Id}, Name={Name}, Type={Type}, TargetUnitId={TargetUnitId}, UseCommand={UseCommand}, VectorPath={VectorPath}",
+                nameof(NotifyAIActionSelected), message.Action.UnitId, message.Action.Id, message.Action.Name, message.Action.ActionType, message.Action.TargetId, message.Action.UseCommand, message.Action.DecisionContext.VectorPath);
+            Send(message);
+        }
+
         public void OnGlobalMapMagicSpellUsed(NetworkGlobalMapMagicSpell globalMagicSpell)
         {
             var message = new NotifyGlobalMapMagicSpellUsed
@@ -1344,6 +1325,18 @@ namespace WOTRMultiplayer.Services
             return true;
         }
 
+        protected override void OnLocalAITurnEnded()
+        {
+            base.OnLocalAITurnEnded();
+
+            var message = new NotifyAICombatTurnEnded
+            {
+                UnitId = Game.Combat.Turn.UnitId
+            };
+            Logger.LogInformation("Sending {MessageType}", nameof(NotifyAICombatTurnEnded), message.UnitId);
+            Send(message);
+        }
+
         protected override bool OnToggleOffPause(out bool showReason)
         {
             showReason = true;
@@ -1470,7 +1463,6 @@ namespace WOTRMultiplayer.Services
 
                     Game.Combat.PlayersNextTurnInitialization.Clear();
                     Game.Combat.PlayersNextTurnSynchronization.Clear();
-                    Game.Combat.AIActions.Clear();
 
                     DiceRollStorage.Reset();
                     Logger.LogInformation("Dice roll storage has been reset at turn entites sync stage");
@@ -1541,7 +1533,6 @@ namespace WOTRMultiplayer.Services
                .On<DiceRollValueRequest>(OnDiceRollValueRequest)
                .On<DiceRollValueResponse>(null) // usable as awaiter only
                .On<RandomEncounterContextRequest>(OnRandomEncounterContextRequest)
-               .On<AIActionRequest>(OnAIActionRequest)
 
                // pausing
                .On<ClientTogglePauseOff>(OnClientTogglePauseOff)
@@ -1741,48 +1732,6 @@ namespace WOTRMultiplayer.Services
                 // force specific player to open correct leveling ui
                 Logger.LogWarning("Leveling is already in progress. PlayerId={PlayerId}, UnitId={UnitId}, LevelingType={LevelingType}, RequestedUnitId={RequestedUnitId}, RequestedLevelingType={RequestedLevelingType}", playerId, Game.Leveling.UnitId, Game.Leveling.Type, characterLevelingRequested.UnitId, characterLevelingRequested.Type);
                 SendLevelingStartedConfirmation(playerId);
-            }
-        }
-
-        private async void OnAIActionRequest(long playerId, AIActionRequest request)
-        {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, UnitId={UnitId}, ActionIndex={ActionIndex}", nameof(AIActionRequest), playerId, request.UnitId, request.ActionIndex);
-            var timeout = Task.Delay(request.Timeout);
-            try
-            {
-                NetworkAIAction networkAIAction = null;
-                do
-                {
-                    var turnActions = (Game.Combat?.AIActions ?? Game.ArmyCombat?.AIActions ?? []).
-                        Where(x => string.Equals(x.UnitId, request.UnitId, StringComparison.OrdinalIgnoreCase))
-                        .ToList();
-
-                    if (turnActions.Count == 0 || turnActions.Count <= request.ActionIndex)
-                    {
-                        await Task.Delay(TimeSpan.FromMilliseconds(10));
-                        continue;
-                    }
-
-                    networkAIAction = turnActions[request.ActionIndex];
-                    break;
-                }
-                while (!timeout.IsCompleted);
-
-                var message = new AIActionResponse
-                {
-                    UnitId = request.UnitId,
-                    Action = Mapper.Map<Networking.Messages.Contracts.NetworkAIAction>(networkAIAction)
-                };
-
-                Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, ActionBlueprintId={ActionBlueprintId}, TargetId={TargetId}",
-                    nameof(AIActionResponse), playerId, message.Action?.ActionBlueprintId, message.Action?.TargetId);
-
-                Send(playerId, message);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error while looking for a correct AI action. PlayerId={PlayerId}, UnitId={UnitId}", playerId, request.UnitId);
-                throw;
             }
         }
 

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 using AutoMapper;
 using Kingmaker.Utility;
 using Microsoft.Extensions.Logging;
@@ -11,6 +10,7 @@ using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.GameInteraction.CombatLog;
 using WOTRMultiplayer.Abstractions.IO;
+using WOTRMultiplayer.Abstractions.QueuedActions;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Entities;
@@ -39,6 +39,7 @@ namespace WOTRMultiplayer.Services
     {
         private readonly IIPEndPointParser _ipEndPointParser;
         private readonly INetworkClient _networkClient;
+        private readonly IQueuedActionsRunner _queuedActionsRunner;
 
         public Action OnNetworkError { get; set; }
 
@@ -71,6 +72,7 @@ namespace WOTRMultiplayer.Services
             INetworkClient networkClient,
             IDiceRollStorage diceRollStorage,
             IValueGenerator valueGenerator,
+            IQueuedActionsRunner queuedActionsRunner,
             IMapper mapper)
             : base(logger,
                   mapper,
@@ -89,6 +91,7 @@ namespace WOTRMultiplayer.Services
         {
             _ipEndPointParser = ipEndPointParser;
             _networkClient = networkClient;
+            _queuedActionsRunner = queuedActionsRunner;
         }
 
         public AddressParseResult Connect(string address)
@@ -268,64 +271,6 @@ namespace WOTRMultiplayer.Services
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Unable to retrieve rest random encounter context");
-                throw;
-            }
-        }
-
-        public NetworkAIAction OnAfterAISelectedAction(NetworkAIAction networkAIAction)
-        {
-            try
-            {
-                var aiActions = GetAIActions();
-                if (aiActions == null)
-                {
-                    return null;
-                }
-
-                var count = aiActions.Count(x => x.UnitId == networkAIAction.UnitId);
-                var settings = SettingsService.GetSettings();
-                var message = new AIActionRequest
-                {
-                    Timeout = settings.AISyncTimeout,
-                    UnitId = networkAIAction.UnitId,
-                    ActionIndex = count
-                };
-
-                Logger.LogInformation("Retrieving AI action. UnitId={UnitId}, ActionIndex={ActionIndex}, LocalAction={LocationAction}, LocalTarget={LocalTarget}", networkAIAction.UnitId, message.ActionIndex, networkAIAction.ActionBlueprintId, networkAIAction.TargetId);
-
-                var response = _networkClient.SendAndWaitForAsync<AIActionResponse>(message).Result;
-
-                if (response?.Action == null)
-                {
-                    Logger.LogWarning("Host has no next action for current unit. UnitId={UnitId}", networkAIAction.UnitId);
-                    return null;
-                }
-
-                var action = Mapper.Map<NetworkAIAction>(response.Action);
-
-                if (aiActions.Count > 0
-                    && aiActions[aiActions.Count - 1].ActionBlueprintId == null
-                    && aiActions[aiActions.Count - 1].UnitId == action.UnitId
-                    && action.ActionBlueprintId == null)
-                {
-                    Logger.LogInformation("Duplicate AI action has been skipped. UnitId={UnitId}", action.UnitId);
-                    return networkAIAction;
-                }
-
-                aiActions.Add(action);
-
-                if (string.Equals(action.ActionBlueprintId, networkAIAction.ActionBlueprintId, StringComparison.OrdinalIgnoreCase)
-                    && string.Equals(action.TargetId, networkAIAction.TargetId, StringComparison.OrdinalIgnoreCase))
-                {
-                    Logger.LogInformation("Host AI action is the same, nothing to do here. UnitId={UnitId}, ActionBlueprintId={ActionBlueprintId}, TargetUnitId={TargetUnitId}", networkAIAction.UnitId, networkAIAction.ActionBlueprintId, networkAIAction.TargetId);
-                    return null;
-                }
-
-                return action;
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Unable to retrieve AI action. UnitId={UnitId}", networkAIAction.UnitId);
                 throw;
             }
         }
@@ -532,6 +477,8 @@ namespace WOTRMultiplayer.Services
                .On<NotifyInvalidCombatTurnStarted>(OnNotifyInvalidCombatTurnStarted)
                .On<NotifyCombatTurnSynchronizationRequired>(OnNotifyCombatTurnSynchronizationRequired)
                .On<NotifyCombatTurnStarted>(OnNotifyCombatTurnStarted)
+               .On<NotifyAIActionSelected>(OnNotifyAIActionSelected)
+               .On<NotifyAICombatTurnEnded>(OnNotifyAICombatTurnEnded)
 
                // global map & crusade combat
                .On<NotifyGlobalMapRestOpened>(OnNotifyGlobalMapRestOpened)
@@ -632,12 +579,32 @@ namespace WOTRMultiplayer.Services
                ;
         }
 
-        private async void OnNotifyGlobalMapCommonPopupShown(long receivedFrom, NotifyGlobalMapCommonPopupShown globalMapCommonPopupShown)
+        private async void OnNotifyAICombatTurnEnded(long receivedFrom, NotifyAICombatTurnEnded message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, Type={Type}, LocationId={LocationId}, LocationName={LocationName}", nameof(NotifyGlobalMapCommonPopupShown), receivedFrom, globalMapCommonPopupShown.PlayerId, globalMapCommonPopupShown.Popup.Type, globalMapCommonPopupShown.Popup.Location?.Id.Length, globalMapCommonPopupShown.Popup.Location?.Name);
-            AddPlayerToTracker(Game.PlayersInGlobalMapCommonPopup, globalMapCommonPopupShown.PlayerId);
+            Logger.LogInformation("Received {MessageType}. UnitId={PlayerId}", nameof(NotifyAICombatTurnEnded), message.UnitId);
 
-            var popup = Mapper.Map<NetworkGlobalMapCommonPopup>(globalMapCommonPopupShown.Popup);
+            await _queuedActionsRunner.RunAsync(
+                 () => CombatInteraction.EndTurnBasedCombatTurn(Game.Combat.Turn.IsAI),
+                 () => WaitWhileTrue(CombatInteraction.IsRiderActive, "Waiting for AI to be inactive before ending turn"));
+        }
+
+        private async void OnNotifyAIActionSelected(long receivedFrom, NotifyAIActionSelected message)
+        {
+            Logger.LogInformation("Received {MessageType}. UnitId={UnitId}, Id={Id}, Name={Name}, Type={Type}, TargetUnitId={TargetUnitId}, UseCommand={UseCommand}, VectorPath={VectorPath}",
+                nameof(NotifyAIActionSelected), message.Action.UnitId, message.Action.Id, message.Action.Name, message.Action.ActionType, message.Action.TargetId, message.Action.UseCommand, message.Action.DecisionContext.VectorPath);
+
+            var aiAction = Mapper.Map<NetworkAIAction>(message.Action);
+            await _queuedActionsRunner.RunAsync(
+                 () => CombatInteraction.ExecuteAIAction(aiAction),
+                 () => WaitWhileTrue(CombatInteraction.IsRiderActive, "Waiting for AI to be inactive before scheduling another action"));
+        }
+
+        private async void OnNotifyGlobalMapCommonPopupShown(long receivedFrom, NotifyGlobalMapCommonPopupShown message)
+        {
+            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, Type={Type}, LocationId={LocationId}, LocationName={LocationName}", nameof(NotifyGlobalMapCommonPopupShown), receivedFrom, message.PlayerId, message.Popup.Type, message.Popup.Location?.Id.Length, message.Popup.Location?.Name);
+            AddPlayerToTracker(Game.PlayersInGlobalMapCommonPopup, message.PlayerId);
+
+            var popup = Mapper.Map<NetworkGlobalMapCommonPopup>(message.Popup);
 
             var isShown = await GlobalMapInteraction.ShowCommonPopupAsync(popup);
             if (isShown)
@@ -1442,7 +1409,6 @@ namespace WOTRMultiplayer.Services
 
                 Game.Combat.Turn.Seed = message.TurnSeed;
 
-                Game.Combat.AIActions.Clear();
                 DiceRollStorage.Reset();
                 Logger.LogInformation("Dice roll storage has been reset at after syncing turn units");
 

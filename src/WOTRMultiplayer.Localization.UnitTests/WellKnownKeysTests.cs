@@ -31,10 +31,6 @@ namespace WOTRMultiplayer.Localization.UnitTests
             yield return new WellKnownKeyTestCase { Name = "settings->general->playerName->title", Key = () => WellKnownKeys.Settings.General.PlayerName.Title.Key };
             yield return new WellKnownKeyTestCase { Name = "settings->general->playerName->tooltip", Key = () => WellKnownKeys.Settings.General.PlayerName.Tooltip.Key };
 
-            yield return new WellKnownKeyTestCase { Name = "settings->combat->title", Key = () => WellKnownKeys.Settings.Combat.Title.Key };
-            yield return new WellKnownKeyTestCase { Name = "settings->combat->aiSync->title", Key = () => WellKnownKeys.Settings.Combat.SyncAI.Title.Key };
-            yield return new WellKnownKeyTestCase { Name = "settings->combat->aiSync->tooltip", Key = () => WellKnownKeys.Settings.Combat.SyncAI.Tooltip.Key };
-
             yield return new WellKnownKeyTestCase { Name = "settings->networking->title", Key = () => WellKnownKeys.Settings.Networking.Title.Key };
             yield return new WellKnownKeyTestCase { Name = "settings->networking->hostPortStart->title", Key = () => WellKnownKeys.Settings.Networking.HostPortRangeStart.Title.Key };
             yield return new WellKnownKeyTestCase { Name = "settings->networking->hostPortStart->tooltip", Key = () => WellKnownKeys.Settings.Networking.HostPortRangeStart.Tooltip.Key };

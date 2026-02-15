@@ -618,7 +618,7 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
-        public bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound)
+        public bool OnBeforeTurnStart(string unitId, bool actingInSurpriseRound)
         {
             if (Game.Combat.Turn != null && Game.Combat.Turn.IsInProgress)
             {
@@ -640,10 +640,15 @@ namespace WOTRMultiplayer.Services
             return false;
         }
 
-        public bool OnBeforeEndTurn(string unitId)
+        public bool OnBeforeTurnEnd(string unitId)
         {
-            if (Game.Combat.Turn.IsAI || !Game.Combat.Turn.IsInProgress)
+            if (CanEndCombatTurn())
             {
+                if (Game.Combat.Turn.IsAI)
+                {
+                    OnLocalAITurnEnded();
+                }
+
                 Logger.LogInformation("Turn end is allowed. Round={Round}, TurnUnitId={TurnUnitId}, IsAI={IsAI}, UnitId={UnitId}", Game.Combat.Round, Game.Combat.Turn.UnitId, Game.Combat.Turn.IsAI, unitId);
                 ResetCombatTurn();
                 Game.Combat.TriggeredAreaEffects.Clear();
@@ -2104,6 +2109,10 @@ namespace WOTRMultiplayer.Services
 
         protected abstract void OnLocalPlayerTurnStart();
 
+        protected virtual void OnLocalAITurnEnded()
+        {
+        }
+
         protected abstract void Send(object message);
 
         protected abstract void Send(long playerId, object message);
@@ -2131,22 +2140,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerNotification.ShowWarningNotification(messageKey);
             }
-        }
-
-        protected List<NetworkAIAction> GetAIActions()
-        {
-            var settings = SettingsService.GetSettings();
-            if (Game.Combat != null && settings.SyncAICombatActions)
-            {
-                return Game.Combat.AIActions;
-            }
-
-            if (Game.ArmyCombat != null && settings.SyncAICombatActions)
-            {
-                return Game.ArmyCombat.AIActions;
-            }
-
-            return null;
         }
 
         protected bool AddPlayerCrusadeArmyCombatTurnInitialization(int turnNumber, long playerId)
@@ -2963,7 +2956,7 @@ namespace WOTRMultiplayer.Services
         protected void EndLocalTurn()
         {
             Game.Combat.Turn.IsInProgress = false;
-            CombatInteraction.EndTurnBasedCombatTurn();
+            CombatInteraction.EndTurnBasedCombatTurn(Game.Combat.Turn.IsAI);
         }
 
         protected bool IsGameModeAllowedToRun(GameModeType type)
@@ -4532,6 +4525,12 @@ namespace WOTRMultiplayer.Services
             {
                 Game.LastCombatTurn = Game.Combat.Turn;
             }
+        }
+
+        private bool CanEndCombatTurn()
+        {
+            var canEnd = Game.Combat.Turn.IsAI || !Game.Combat.Turn.IsInProgress;
+            return canEnd;
         }
     }
 }

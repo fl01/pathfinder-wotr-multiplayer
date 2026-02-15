@@ -18,12 +18,6 @@ namespace WOTRMultiplayer.Entities.Settings
 
         public TimeSpan NetworkAwaiterTimeout { get; set; }
 
-        public TimeSpan AISyncTimeout { get; set; }
-
-        public bool SyncAICombatActions { get; set; }
-
-        public bool SyncCrusadeArmyAICombatActions { get; set; }
-
         public TimeSpan RestEncounterSyncTimeout { get; set; }
 
         public bool HideServerAddress { get; set; }

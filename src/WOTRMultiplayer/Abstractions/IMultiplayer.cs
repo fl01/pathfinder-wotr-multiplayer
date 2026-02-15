@@ -61,9 +61,9 @@ namespace WOTRMultiplayer.Abstractions
 
         bool CanTickCombatController();
 
-        bool OnBeforeStartTurn(string unitId, bool actingInSurpriseRound);
+        bool OnBeforeTurnStart(string unitId, bool actingInSurpriseRound);
 
-        bool OnBeforeEndTurn(string unitId);
+        bool OnBeforeTurnEnd(string unitId);
 
         void ForceLoadGame(string gameId, string savePath);
 
@@ -128,8 +128,6 @@ namespace WOTRMultiplayer.Abstractions
         void OnAfterTryRollRestRandomEncounter();
 
         void OnInterrupRestBanterBark(NetworkRestBanter networkRestBanter);
-
-        NetworkAIAction OnAfterAISelectedAction(NetworkAIAction networkAIAction);
 
         void OnTransferVendorItem(NetworkVendorItemTransfer networkVendorItemTransfer);
 
@@ -268,6 +266,8 @@ namespace WOTRMultiplayer.Abstractions
         void OnGlobalMapEncounterAvoided();
 
         void OnGlobalMapEncounterRolled(NetworkGlobalMapEncounter globalMapRandomEncounter);
+
+        bool IsSourceOfAIActions();
 
         bool CanControlGlobalMap();
 
@@ -494,5 +494,7 @@ namespace WOTRMultiplayer.Abstractions
         void OnCopyInventoryItem(NetworkItemCopy itemCopy);
 
         bool OnAreaEffectTriggered(NetworkAreaEffect areaEffect);
+
+        void OnAIActionSelected(NetworkAIAction action);
     }
 }

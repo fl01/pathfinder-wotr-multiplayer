@@ -6,12 +6,15 @@ using System.Threading.Tasks;
 using AutoMapper;
 using FluentValidation;
 using Kingmaker;
+using Kingmaker.AI;
+using Kingmaker.AI.Blueprints;
 using Kingmaker.Armies.TacticalCombat;
 using Kingmaker.Armies.TacticalCombat.Blueprints;
 using Kingmaker.Armies.TacticalCombat.Commands;
 using Kingmaker.Armies.TacticalCombat.Controllers;
 using Kingmaker.Controllers.Combat;
 using Kingmaker.Designers;
+using Kingmaker.ElementsSystem;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.Pathfinding;
 using Kingmaker.PubSubSystem;
@@ -136,7 +139,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         public bool IsCombatTurnFinished()
         {
-            var turnStatus = Game.Instance.TurnBasedCombatController.CurrentTurn?.Status ?? TurnBased.Controllers.TurnController.TurnStatus.None;
+            var turnStatus = Game.Instance.TurnBasedCombatController.CurrentTurn?.Status ?? TurnController.TurnStatus.None;
             return turnStatus == TurnController.TurnStatus.None
                 || turnStatus == TurnController.TurnStatus.Ended
                 || turnStatus == TurnController.TurnStatus.Ending;
@@ -148,15 +151,15 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    _logger.LogInformation("Calling CombatController.StartTurn. UnitId={UnitId}", unitId);
                     var currentUnit = _gameStateLookupService.GetUnitEntity(unitId);
                     if (currentUnit == null)
                     {
-                        _logger.LogError("Unable to find unit to call CombatController.StartTurn. UnitId={UnitId}", unitId);
+                        _logger.LogError("Unable to start turn based turn due to missing unit. UnitId={UnitId}", unitId);
                         return;
                     }
 
                     Game.Instance.TurnBasedCombatController.StartTurn(currentUnit);
+                    _logger.LogInformation("Turn based turn has been started. UnitId={UnitId}", unitId);
                 }
                 catch (Exception ex)
                 {
@@ -166,16 +169,21 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
-        public void EndTurnBasedCombatTurn()
+        public void EndTurnBasedCombatTurn(bool isAI)
         {
             _mainThreadAccessor.Post(() =>
             {
                 var turnStatus = Game.Instance.TurnBasedCombatController.CurrentTurn?.Status ?? null;
-                _logger.LogInformation("Ending combat turn if it's not ending yet. TurnStatus={TurnStatus}", turnStatus);
-                if (turnStatus != TurnBased.Controllers.TurnController.TurnStatus.Ending && turnStatus != TurnBased.Controllers.TurnController.TurnStatus.Ended && turnStatus != TurnBased.Controllers.TurnController.TurnStatus.None)
+                if ((turnStatus == TurnController.TurnStatus.Ending && !isAI)
+                    || turnStatus == TurnController.TurnStatus.Ended
+                    || turnStatus == TurnController.TurnStatus.None)
                 {
-                    Game.Instance.TurnBasedCombatController.CurrentTurn?.End();
+                    _logger.LogWarning("Cannot end already finished turn. TurnStatus={TurnStatus}", turnStatus);
+                    return;
                 }
+
+                Game.Instance.TurnBasedCombatController.CurrentTurn?.End();
+                _logger.LogInformation("Turn based turn has been ended. isAI={isAI}, TurnStatus={TurnStatus}", isAI, turnStatus);
             });
         }
 
@@ -437,12 +445,74 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         public bool IsRiderActive()
         {
-            var rider = Game.Instance.TurnBasedCombatController.CurrentTurn?.Rider;
-            var mount = Game.Instance.TurnBasedCombatController.CurrentTurn?.Mount;
-            var isRiderActing = Game.Instance.TurnBasedCombatController.CurrentTurn?.m_RunningCommands.Count > 0
-                || Game.Instance.ProjectileController.HasLaunchedProjectile(rider, mount);
+            if (Game.Instance.TurnBasedCombatController.CurrentTurn == null)
+            {
+                return false;
+            }
+
+            var rider = Game.Instance.TurnBasedCombatController.CurrentTurn.Rider;
+            var mount = Game.Instance.TurnBasedCombatController.CurrentTurn.Mount;
+            var isRiderActing = Game.Instance.TurnBasedCombatController.CurrentTurn.m_RunningCommands.Count > 0
+                || Game.Instance.ProjectileController.HasLaunchedProjectile(rider, mount)
+                || Game.Instance.TurnBasedCombatController.CurrentTurn.IsMoving
+                || rider.Commands.HasAiCommand();
 
             return isRiderActing;
+        }
+        public void ExecuteAIAction(NetworkAIAction networkAIAction)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var unit = _gameStateLookupService.GetUnitEntity(networkAIAction.UnitId);
+                if (unit == null)
+                {
+                    _logger.LogError("Unable to execute ai action due to missing unit. UnitId={UnitId}", networkAIAction.UnitId);
+                    return;
+                }
+
+                var aiAction = _gameStateLookupService.FindAIAction(unit, networkAIAction);
+                if (aiAction == null)
+                {
+                    _logger.LogError("Unable to missing ai action due. UnitId={UnitId}, ActionId={ActionId}", networkAIAction.UnitId, networkAIAction.Id);
+                    return;
+                }
+
+                var targetUnit = _gameStateLookupService.GetUnitEntity(networkAIAction.TargetId);
+                if (networkAIAction.TargetId != null && targetUnit == null)
+                {
+                    _logger.LogWarning("AI action target is missing. UnitId={UnitId}, TargetUnitId={TargetUnitId}", networkAIAction.UnitId, networkAIAction.TargetId);
+                }
+
+                AiBrainController.Context.InitUnit(unit);
+                var path = networkAIAction.DecisionContext.VectorPath.Select(x => x.ToUnityVector3()).ToList();
+                AiBrainController.Context.BestPath = new ForcedPath(path);
+                AiBrainController.Context.BestEnableFiveFootStep = networkAIAction.DecisionContext.BestEnableFiveFootStep;
+
+                try
+                {
+                    AiBrainController.Context.InitAction(aiAction);
+                    aiAction.ApplyAction();
+                    if (aiAction.UseCommand)
+                    {
+                        UnitCommand unitCommand = aiAction.CreateCommand(AiBrainController.Context, targetUnit);
+                        unitCommand.ForcedPath ??= AiBrainController.Context.BestPath;
+                        unitCommand.AiAction = aiAction;
+                        unitCommand.AiEnableFiveFootStep = AiBrainController.Context.BestEnableFiveFootStep;
+                        unit.Commands.Run(unitCommand);
+                    }
+                    if (aiAction.Blueprint is BlueprintAiAction blueprintAiAction)
+                    {
+                        ActionList actions = blueprintAiAction.Actions;
+                        actions?.Run();
+                    }
+                }
+                finally
+                {
+                    AiBrainController.Context.ReleaseUnit();
+                }
+
+                _logger.LogInformation("AI action has been executed. UnitId={UnitId}, TargetUnitId={TargetUnitId}, Id={Id}, Name={Name}", networkAIAction.UnitId, networkAIAction.TargetId, networkAIAction.Id, networkAIAction.Name);
+            });
         }
 
         public void KillUnit(NetworkPlayer player, string unitId)
