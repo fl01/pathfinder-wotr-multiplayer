@@ -1502,15 +1502,6 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        protected override bool EndingAIControlledPlayerCharacter()
-        {
-            var isUnderAI = !Game.Combat.Turn.IsAI
-                && IsControlledByPlayers(Game.Combat.Turn.UnitId)
-                && !GameInteraction.IsDirectlyControllable(Game.Combat.Turn.UnitId);
-
-            return isUnderAI;
-        }
-
         protected override void OnRemoteRestGameModeEnded(long playerId)
         {
             base.OnRemoteRestGameModeEnded(playerId);
