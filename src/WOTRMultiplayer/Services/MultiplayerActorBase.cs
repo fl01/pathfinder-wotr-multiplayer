@@ -3109,19 +3109,20 @@ namespace WOTRMultiplayer.Services
             UpdateGlobalMapCombatResultsUIState();
         }
 
-        protected async Task WaitWhileTrue(Func<bool> condition, string warningMessage)
+        protected async Task WaitWhileTrue(Func<bool> condition, string warningMessage, TimeSpan? awaiterTimeout = null)
         {
             if (condition())
             {
                 Logger.LogWarning(warningMessage);
-                using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+                using var timeout = new CancellationTokenSource(awaiterTimeout ?? TimeSpan.FromMinutes(1));
                 while (condition())
                 {
                     await Task.Delay(10);
 
                     if (timeout.IsCancellationRequested)
                     {
-                        throw new InvalidOperationException($"Awaiter failed due to timeout. WarningText={warningMessage}");
+                        Logger.LogWarning($"Awaiter failed due to timeout. WarningText={warningMessage}");
+                        return;
                     }
                 }
             }

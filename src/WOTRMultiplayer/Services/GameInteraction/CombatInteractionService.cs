@@ -445,20 +445,39 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         public bool IsRiderActive()
         {
-            if (Game.Instance.TurnBasedCombatController.CurrentTurn == null)
+            try
             {
+                if (Game.Instance.TurnBasedCombatController.CurrentTurn == null)
+                {
+                    return false;
+                }
+
+                var rider = Game.Instance.TurnBasedCombatController.CurrentTurn.Rider;
+                var mount = Game.Instance.TurnBasedCombatController.CurrentTurn.Mount;
+                var isRiderActing = Game.Instance.TurnBasedCombatController.CurrentTurn.m_RunningCommands.Count > 0
+                    || !Game.Instance.TurnBasedCombatController.CurrentTurn.m_MountCommands.Empty
+                    || !Game.Instance.TurnBasedCombatController.CurrentTurn.m_RiderCommands.Empty
+                    || Game.Instance.ProjectileController.HasLaunchedProjectile(rider, mount)
+                    || Game.Instance.TurnBasedCombatController.CurrentTurn.IsMoving
+                    || rider.Commands.HasAiCommand()
+                    || rider.Commands.Queue.Count > 0
+                    || mount != null && (mount.Commands.HasAiCommand() || mount.Commands.Queue.Count > 0)
+                    || !(Game.Instance.TurnBasedCombatController.CurrentTurn.SelectedUnit?.Commands.Empty ?? true)
+                    || rider.AreHandsBusyWithAnimation
+                    || mount.AreHandsBusyWithAnimation;
+
+                return isRiderActing;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while checking if rider is active");
                 return false;
             }
-
+        }
+        public bool IsRiderActiveAndHasActions()
+        {
             var rider = Game.Instance.TurnBasedCombatController.CurrentTurn.Rider;
-            var mount = Game.Instance.TurnBasedCombatController.CurrentTurn.Mount;
-            var isRiderActing = Game.Instance.TurnBasedCombatController.CurrentTurn.m_RunningCommands.Count > 0
-                || Game.Instance.ProjectileController.HasLaunchedProjectile(rider, mount)
-                || Game.Instance.TurnBasedCombatController.CurrentTurn.IsMoving
-                || rider.Commands.HasAiCommand()
-                || mount != null && mount.Commands.HasAiCommand();
-
-            return isRiderActing;
+            return IsRiderActive() && rider.HasMoveAction() || rider.HasStandardAction() || rider.HasOffensiveCommand();
         }
 
         public void ExecuteAIAction(NetworkAIAction networkAIAction)
@@ -516,6 +535,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 finally
                 {
                     AiBrainController.Context.ReleaseUnit();
+                    AiBrainController.Context.ReleaseGroup();
                 }
 
                 _logger.LogInformation("AI action has been executed. UnitId={UnitId}, TargetUnitId={TargetUnitId}, Id={Id}, Name={Name}", networkAIAction.UnitId, networkAIAction.TargetId, networkAIAction.Id, networkAIAction.Name);

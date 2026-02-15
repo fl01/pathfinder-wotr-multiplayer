@@ -143,5 +143,10 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void ExecuteAIAction(NetworkAIAction aiAction)
         {
         }
+
+        public bool IsRiderActiveAndHasActions()
+        {
+            return false;
+        }
     }
 }

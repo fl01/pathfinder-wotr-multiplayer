@@ -68,6 +68,8 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         bool IsRiderActive();
 
+        bool IsRiderActiveAndHasActions();
+
         void ExecuteAIAction(NetworkAIAction aiAction);
     }
 }

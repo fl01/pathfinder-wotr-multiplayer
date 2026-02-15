@@ -583,7 +583,7 @@ namespace WOTRMultiplayer.Services
 
             await _queuedActionsRunner.RunAsync(
                  () => CombatInteraction.EndTurnBasedCombatTurn(Game.Combat.Turn.IsAI),
-                 () => WaitWhileTrue(CombatInteraction.IsRiderActive, "Waiting for AI to be inactive before ending turn"),
+                 () => WaitWhileTrue(CombatInteraction.IsRiderActiveAndHasActions, "Waiting for AI to be inactive before ending turn", TimeSpan.FromSeconds(5)),
                  TimeSpan.FromMilliseconds(300));
         }
 

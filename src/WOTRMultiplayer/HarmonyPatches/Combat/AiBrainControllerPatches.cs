@@ -119,31 +119,39 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
         private static void OnAIActionSelected(DecisionContext decisionContext, UnitEntityData aiUnit, AiAction aiAction, UnitEntityData target)
         {
-            if (!Main.Multiplayer.IsActive
-                || !Game.Instance.Player.IsInCombat
-                || aiAction == null
-                || TacticalCombatHelper.IsActive)
+            try
             {
-                return;
-            }
-
-            var action = new NetworkAIAction
-            {
-                Id = aiAction.Blueprint.AssetGuid.ToString(),
-                Name = aiAction.Blueprint.name,
-                ActionType = aiAction.GetType().Name,
-                UnitId = aiUnit.UniqueId,
-                TargetId = target?.UniqueId,
-                DecisionContext = new NetworkAIDecisionContext
+                if (!Main.Multiplayer.IsActive
+                        || !Game.Instance.Player.IsInCombat
+                        || aiAction == null
+                        || TacticalCombatHelper.IsActive)
                 {
-                    BestEnableFiveFootStep = decisionContext.BestEnableFiveFootStep,
-                    VectorPath = decisionContext.BestPath?.vectorPath.Select(v => v.ToNetworkVector3()).ToList() ?? [],
-                    ExpendedActions = [.. decisionContext.ExpendedActions.Select(x => x.Blueprint.AssetGuid.ToString())]
-                },
-                UseCommand = aiAction.UseCommand
-            };
+                    return;
+                }
 
-            Main.Multiplayer.OnAIActionSelected(action);
+                var action = new NetworkAIAction
+                {
+                    Id = aiAction.Blueprint.AssetGuid.ToString(),
+                    Name = aiAction.Blueprint.name,
+                    ActionType = aiAction.GetType().Name,
+                    UnitId = aiUnit.UniqueId,
+                    TargetId = target?.UniqueId,
+                    DecisionContext = new NetworkAIDecisionContext
+                    {
+                        BestEnableFiveFootStep = decisionContext.BestEnableFiveFootStep,
+                        VectorPath = decisionContext.BestPath?.vectorPath.Select(v => v.ToNetworkVector3()).ToList() ?? [],
+                        ExpendedActions = [.. decisionContext.ExpendedActions?.Select(x => x.Blueprint.AssetGuid.ToString()) ?? []]
+                    },
+                    UseCommand = aiAction.UseCommand
+                };
+
+                Main.Multiplayer.OnAIActionSelected(action);
+            }
+            catch (Exception ex)
+            {
+                Main.GetLogger<AiBrainControllerPatches>().LogError(ex, "Error while selecting AI action");
+                throw;
+            }
         }
     }
 }
