@@ -7,5 +7,7 @@ namespace WOTRMultiplayer.Entities.MapObjects
         public NetworkMapObject MapObject { get; set; }
 
         public List<string> Units { get; set; } = [];
+
+        public List<NetworkVector3> VectorPath { get; set; } = [];
     }
 }

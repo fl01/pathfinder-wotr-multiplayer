@@ -6,6 +6,7 @@ using HarmonyLib;
 using Kingmaker;
 using Kingmaker.Assets.Code.UI._ConsoleUI.Overtips;
 using Kingmaker.EntitySystem.Entities;
+using Kingmaker.TurnBasedMode;
 using Kingmaker.UI._ConsoleUI.Overtips;
 using Kingmaker.UI.Common;
 using Kingmaker.UI.Selection;
@@ -59,6 +60,16 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
                 MapObject = CreateMapObject(__instance),
                 Units = [.. Game.Instance.SelectionCharacter.SelectedUnits.Select(x => x.UniqueId)]
             };
+
+            if (Main.Multiplayer.IsInCombat)
+            {
+                var activeUnit = Game.Instance.TurnBasedCombatController.CurrentTurn?.SelectedUnit;
+                if (activeUnit != null)
+                {
+                    var path = PathVisualizer.Instance?.CurrentPathForUnit(activeUnit.View);
+                    networkOvertip.VectorPath = path?.vectorPath?.Select(x => x.ToNetworkVector3()).ToList() ?? [];
+                }
+            }
 
             Main.Multiplayer.OnInteractWithMapObjectOvertip(networkOvertip);
         }

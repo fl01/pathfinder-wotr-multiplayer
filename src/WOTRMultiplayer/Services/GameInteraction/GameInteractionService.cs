@@ -142,6 +142,16 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 using var context = _networkExecutionContext.Value = RemoteExecutionContext.Create(units);
                 context.Overtip = new OvertipInteractionContext { MapObjectId = networkOvertip.MapObject.Id };
 
+                if (networkOvertip.VectorPath != null && networkOvertip.VectorPath.Any())
+                {
+                    if (PathVisualizer.Instance != null)
+                    {
+                        PathVisualizer.Instance.m_CurrentPath = new ForcedPath([.. networkOvertip.VectorPath.Select(x => x.ToUnityVector3())]);
+                        PathVisualizer.Instance.m_CurrentPath.Claim(PathVisualizer.Instance);
+                        _logger.LogInformation("VectorPath for overtip interaction has been set. Path={Path}", networkOvertip.VectorPath);
+                    }
+                }
+
                 var mapObject = _gameStateLookupService.GetMapObject(networkOvertip.MapObject.Id);
                 if (mapObject == null)
                 {
@@ -523,7 +533,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 var caster = _gameStateLookupService.GetUnitEntity(networkActivatableAbility.CasterId);
                 if (caster == null)
                 {
-                    _logger.LogError("Caster of activatable ability doesn't exist. UnitId={UnitId}", networkActivatableAbility.CasterId);
+                    _logger.LogWarning("Caster of activatable ability doesn't exist. UnitId={UnitId}", networkActivatableAbility.CasterId);
                     return;
                 }
 
