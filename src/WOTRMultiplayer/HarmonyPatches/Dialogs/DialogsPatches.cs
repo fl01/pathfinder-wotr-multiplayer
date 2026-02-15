@@ -31,8 +31,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
                 InitiatorUnitId = initiator?.UniqueId,
                 MapObjectId = mapObject?.UniqueId,
                 SpeakerKey = customSpeakerName?.Key,
-                TargetUnitId = unit.UniqueId
+                TargetUnitId = unit?.UniqueId
             };
+
             var canContinue = Main.Multiplayer.StartDialog(networkDialog);
             if (!canContinue
                 || Game.Instance.Player.Dialog.Scheduled != null && string.Equals(dialog.AssetGuid.ToString(), Game.Instance.Player.Dialog.Scheduled.Dialog.AssetGuid.ToString(), StringComparison.OrdinalIgnoreCase))
