@@ -237,7 +237,7 @@
             "combat": {
                 "unitAutokilled": "Auto-killing unit '{0}' ({1}) as it's been killed at {2}",
                 "startupDesync": {
-                    "host": "Combat recovery has been initiated due to desynced {0}'s combat startup sequence",
+                    "host": "Combat recovery has been initiated due to desynced combat startup sequence.\nReason: {0}",
                     "client": "Combat recovery has been initiated by host"
                 },
                 "stageChanged": "Combat stage has been changed from {0} to {1}",

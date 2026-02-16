@@ -353,6 +353,14 @@ namespace WOTRMultiplayer.Services
                     {
                         SetCombatStage(NetworkCombatStage.Preparing);
                     }
+                    else
+                    {
+                        if (!Game.Combat.IsRecovering && (DateTime.UtcNow - Game.Combat.StartedAt) > TimeSpan.FromSeconds(15))
+                        {
+                            var player = GetPlayer(Game.LocalPlayerId);
+                            InitiateCombatRecovering(player);
+                        }
+                    }
                     return false;
                 case NetworkCombatStage.Preparing:
                     if (!Game.Combat.IsPrepared)
@@ -1604,26 +1612,31 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                foreach (var player in GetPlayers())
-                {
-                    DiceRollStorage.UndoClaiming(player.Id);
-                }
-
-                // additional clients, but combat is already in recovering state
-                SetCombatStage(NetworkCombatStage.Idle);
-                Logger.LogWarning("Initiating combat recovery");
-                Game.Combat.IsRecovering = true;
-                Game.Combat.IsPrepared = false;
-                Game.Combat.IsInitialized = false;
-                Game.Combat.IsPlaying = false;
-                Game.Combat.PlayersCombatPreparation.Clear();
-                Game.Combat.PlayersCombatInitialization.Clear();
-                PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.StartupDesync.Host.Key, CombatTextSeverity.Critical, receivedFromPlayer.Name);
-
-                var recoveryMessage = new NotifyCombatRecoveryRequired();
-                Logger.LogWarning("Sending {MessageType} to ALL players", nameof(NotifyCombatRecoveryRequired));
-                Send(recoveryMessage);
+                InitiateCombatRecovering(receivedFromPlayer);
             }
+        }
+
+        private void InitiateCombatRecovering(NetworkPlayer initiator)
+        {
+            foreach (var player in GetPlayers())
+            {
+                DiceRollStorage.UndoClaiming(player.Id);
+            }
+
+            Logger.LogWarning("Initiating combat recovery");
+            Game.Combat.IsRecovering = true;
+            Game.Combat.IsPrepared = false;
+            Game.Combat.IsInitialized = false;
+            Game.Combat.IsPlaying = false;
+            Game.Combat.PlayersCombatPreparation.Clear();
+            Game.Combat.PlayersCombatInitialization.Clear();
+            Game.Combat.StartedAt = DateTime.UtcNow;
+            PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.StartupDesync.Host.Key, CombatTextSeverity.Critical, initiator.Name);
+            SetCombatStage(NetworkCombatStage.Idle);
+
+            var recoveryMessage = new NotifyCombatRecoveryRequired();
+            Logger.LogWarning("Sending {MessageType} to ALL players", nameof(NotifyCombatRecoveryRequired));
+            Send(recoveryMessage);
         }
 
         private void OnClientCombatPreparationCompleted(long receivedFrom, ClientCombatPreparationCompleted message)

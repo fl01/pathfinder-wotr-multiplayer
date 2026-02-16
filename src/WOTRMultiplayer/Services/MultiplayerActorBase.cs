@@ -574,7 +574,7 @@ namespace WOTRMultiplayer.Services
                 Logger.LogWarning("Previous combat has not been disposed correctly");
             }
 
-            Game.Combat = new NetworkCombat();
+            Game.Combat = new NetworkCombat { StartedAt = DateTime.UtcNow };
             Game.LastCombatTurn = null;
 
             var combatState = CombatInteraction.GetCombatState();
