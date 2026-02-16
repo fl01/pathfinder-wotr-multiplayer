@@ -549,7 +549,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     var target = _gameStateLookupService.GetUnitEntity(networkActivatableAbility.TargetId);
 
                     ability.SetIsOn(networkActivatableAbility.IsActive, target);
-                    _logger.LogInformation("Ability has been toggled. UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}, IsOn={IsOn}", caster.UniqueId, ability.UniqueId, ability.NameForAcronym, ability.m_IsOn);
+                    _logger.LogInformation("Ability has been toggled. UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}, IsActive={IsActive}, IsOn={IsOn}", caster.UniqueId, ability.UniqueId, ability.NameForAcronym, networkActivatableAbility.IsActive, ability.m_IsOn);
                 });
             }
             catch (Exception ex)
@@ -2856,8 +2856,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         private ActivatableAbility FindActivatableAbility(UnitEntityData caster, NetworkActivatableAbility activatableAbility)
         {
             var abilities = caster.ActivatableAbilities?.Enumerable ?? [];
-            var ability = abilities.FirstOrDefault(a => string.Equals(a.UniqueId, activatableAbility.Id, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(a.NameForAcronym, activatableAbility.Name, StringComparison.OrdinalIgnoreCase));
+            var ability = abilities.FirstOrDefault(a => string.Equals(a.UniqueId, activatableAbility.Id, StringComparison.OrdinalIgnoreCase));
 
             return ability;
         }
