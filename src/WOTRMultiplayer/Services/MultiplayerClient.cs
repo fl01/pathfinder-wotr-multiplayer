@@ -390,8 +390,7 @@ namespace WOTRMultiplayer.Services
 
             lock (ActionLock)
             {
-                var action = Game.Combat.Turn.AIActions.FirstOrDefault(a => string.Equals(a.Id, networkAIAction.Id, StringComparison.OrdinalIgnoreCase)
-                    && string.Equals(a.TargetId, networkAIAction.TargetId, StringComparison.OrdinalIgnoreCase));
+                var action = Game.Combat.Turn.AIActions.FirstOrDefault(a => string.Equals(a.Id, networkAIAction.Id, StringComparison.OrdinalIgnoreCase));
 
                 if (action != null)
                 {
