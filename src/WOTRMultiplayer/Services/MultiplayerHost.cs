@@ -418,6 +418,7 @@ namespace WOTRMultiplayer.Services
                             nameof(NotifyCombatInitializationRequired), message.CombatSeed, message.State.RoundNumber, message.State.HasSurpriseRound, message.State.Units.Count);
                         Send(message);
 
+                        Game.Combat.IsRecovering = false;
                         Game.Combat.IsInitialized = true;
                         Game.Combat.PlayersCombatInitialization.TryAdd(Game.LocalPlayerId, true);
                     }
@@ -436,7 +437,6 @@ namespace WOTRMultiplayer.Services
                         Logger.LogInformation("Sending {MessageType}", nameof(NotifyCombatInitializationCompleted));
 
                         Game.Combat.IsPlaying = true;
-                        Game.Combat.IsRecovering = false;
                     }
                     return true;
                 default:

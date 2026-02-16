@@ -2766,7 +2766,6 @@ namespace WOTRMultiplayer.Services
         protected void SetCombatStage(NetworkCombatStage combatStage)
         {
             var current = Game.Combat.Stage;
-            Game.Combat.IsRecovering = false;
             Game.Combat.Stage = combatStage;
             Logger.LogInformation("Combat stage has been changed. From={From}, To={To}", current, combatStage);
             PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.StageChanged.Key, CombatTextSeverity.Debug, current, combatStage);

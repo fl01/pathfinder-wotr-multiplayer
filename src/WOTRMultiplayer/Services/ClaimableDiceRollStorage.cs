@@ -66,11 +66,14 @@ namespace WOTRMultiplayer.Services
 
         public void UndoClaiming(long playerId)
         {
-            foreach (var value in _rolls.Values)
+            lock (_actionLock)
             {
-                foreach (var roll in value.Rolls)
+                foreach (var value in _rolls.Values)
                 {
-                    roll.ClaimingList.TryAdd(playerId, true);
+                    foreach (var roll in value.Rolls)
+                    {
+                        roll.ClaimingList.TryAdd(playerId, true);
+                    }
                 }
             }
 

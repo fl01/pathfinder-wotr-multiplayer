@@ -432,10 +432,31 @@ namespace WOTRMultiplayer.Services
             return result;
         }
 
+        private RuleRollD20 RollInitiative(RuleInitiativeRoll ruleInitiativeRoll)
+        {
+            var initiative = CreateInitiativeRoll(NetworkDiceRollType.Hit, ruleInitiativeRoll);
+            var rollIdentifier = initiative.GetIdString();
+
+            var sessionSeed = _multiplayerActorAccessor.Current.SessionSeed;
+            var loadedSaveSeed = _multiplayerActorAccessor.Current.LoadedSaveSeed;
+            var areaSeed = _multiplayerActorAccessor.Current.AreaSeed;
+            var combatSeed = _multiplayerActorAccessor.Current.CombatSeed;
+
+            var identifier = $"{rollIdentifier}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}:{combatSeed}";
+            var (history, result) = RollDice(IdentifierLifetime.Combat, identifier, new DiceFormula(1, DiceType.D20), 0);
+            var rollId = _hashService.Murmur3(identifier);
+            _logger.LogInformation("RuleInitiativeRoll has been rolled deterministicaly. UnitId={UnitId}, Result={Result}, History={History}, RollId={RollId}, Identifier={Identifier}",
+                ruleInitiativeRoll.Initiator.UniqueId, result, history, rollId, identifier);
+
+            var d20 = RuleRollD20.FromInt(ruleInitiativeRoll.Initiator, result);
+            d20.RollHistory = history;
+            return d20;
+        }
+
         private RuleRollD20 RollCastingDefensively(RuleCheckCastingDefensively ruleCheckCastingDefensively)
         {
-            var savingThrow = CreateCastingDefensivelyRoll(NetworkDiceRollType.Hit, ruleCheckCastingDefensively);
-            var rollIdentifier = savingThrow.GetIdString();
+            var castingDefensively = CreateCastingDefensivelyRoll(NetworkDiceRollType.Hit, ruleCheckCastingDefensively);
+            var rollIdentifier = castingDefensively.GetIdString();
 
             var sessionSeed = _multiplayerActorAccessor.Current.SessionSeed;
             var loadedSaveSeed = _multiplayerActorAccessor.Current.LoadedSaveSeed;
@@ -494,6 +515,13 @@ namespace WOTRMultiplayer.Services
             }
 
             return (history, result);
+        }
+
+        private RuleRollD20 RetrieveInitiativeRoll(RuleInitiativeRoll ruleInitiativeRoll)
+        {
+            var roll = CreateInitiativeRoll(NetworkDiceRollType.Hit, ruleInitiativeRoll);
+            var d20 = RetrieveRoll<RuleRollD20>(roll, ruleInitiativeRoll.Initiator);
+            return d20;
         }
 
         private RuleRollD20 RetrieveCheckCastingDefensivelyRoll(RuleCheckCastingDefensively ruleCheckCastingDefensively)
@@ -656,18 +684,17 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldRetrieveRoll(ruleInitiativeRoll))
+                var isRolledDeterministically = IsRolledDeterministically(ruleInitiativeRoll);
+                if (!ShouldRetrieveRoll(ruleInitiativeRoll) && !isRolledDeterministically)
                 {
                     return true;
                 }
 
-                var roll = CreateInitiativeRoll(NetworkDiceRollType.Hit, ruleInitiativeRoll);
-                var d20 = RetrieveRoll<RuleRollD20>(roll, ruleInitiativeRoll.Initiator);
+                var d20 = isRolledDeterministically ? RollInitiative(ruleInitiativeRoll) : RetrieveInitiativeRoll(ruleInitiativeRoll);
                 if (d20 == null)
                 {
                     return true;
                 }
-
 
                 ruleInitiativeRoll.D20 = d20;
                 return false;
@@ -683,7 +710,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldStoreRoll(ruleInitiativeRoll))
+                if (!ShouldStoreRoll(ruleInitiativeRoll) || IsRolledDeterministically(ruleInitiativeRoll))
                 {
                     return;
                 }
@@ -1188,6 +1215,8 @@ namespace WOTRMultiplayer.Services
                     var isHealDamageRolled = currentArea != null && currentArea.IsGlobalMap || !_combatInteractionService.IsInCombat();
                     return isHealDamageRolled;
                 case RuleCheckCastingDefensively:
+                    return true;
+                case RuleInitiativeRoll:
                     return true;
                 default:
                     return false;
