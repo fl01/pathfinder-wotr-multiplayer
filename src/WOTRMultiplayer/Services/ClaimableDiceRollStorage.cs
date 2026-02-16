@@ -64,6 +64,19 @@ namespace WOTRMultiplayer.Services
             return result;
         }
 
+        public void UndoClaiming(long playerId)
+        {
+            foreach (var value in _rolls.Values)
+            {
+                foreach (var roll in value.Rolls)
+                {
+                    roll.ClaimingList.TryAdd(playerId, true);
+                }
+            }
+
+            _logger.LogWarning("Rolls have been unclaimed. PlayerId={PlayerId}", playerId);
+        }
+
         public void Add(int rollId, List<long> claimingList, RollValueBase roll)
         {
             lock (_actionLock)

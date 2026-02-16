@@ -16,5 +16,7 @@ namespace WOTRMultiplayer.Abstractions
         void Add(int rollId, List<long> claimingList, RollValueBase roll);
 
         void Reset();
+
+        void UndoClaiming(long playerId);
     }
 }

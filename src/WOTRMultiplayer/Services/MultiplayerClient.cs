@@ -493,6 +493,7 @@ namespace WOTRMultiplayer.Services
                .On<NotifyCombatTurnSynchronizationRequired>(OnNotifyCombatTurnSynchronizationRequired)
                .On<NotifyCombatTurnStarted>(OnNotifyCombatTurnStarted)
                .On<NotifyAIActionSelected>(OnNotifyAIActionExecuted)
+               .On<NotifyCombatRecoveryRequired>(OnNotifyCombatRecoveryRequired)
 
                // global map & crusade combat
                .On<NotifyGlobalMapRestOpened>(OnNotifyGlobalMapRestOpened)
@@ -591,6 +592,15 @@ namespace WOTRMultiplayer.Services
                // inventory
                .On<NotifyPolymorphicItemCreated>(OnNotifyPolymorphicItemCreated)
                ;
+        }
+
+        private void OnNotifyCombatRecoveryRequired(long receivedFrom, NotifyCombatRecoveryRequired message)
+        {
+            Logger.LogInformation("Received {MessageType}", nameof(NotifyCombatRecoveryRequired));
+
+            PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.StartupDesync.Client.Key, CombatTextSeverity.Critical);
+            SetCombatStage(NetworkCombatStage.Idle);
+            Game.Combat.IsPrepared = false;
         }
 
         private void OnNotifyAIActionExecuted(long receivedFrom, NotifyAIActionSelected message)

@@ -1579,8 +1579,45 @@ namespace WOTRMultiplayer.Services
             Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitsCount={UnitsCount}", nameof(ClientCombatPreparationStarted), receivedFrom, message.Units.Count);
             var units = Mapper.Map<List<NetworkUnit>>(message.Units);
 
-            await WaitWhileTrue(() => Game.Combat == null || Game.Combat.Stage != NetworkCombatStage.Idle, $"Waiting for combat to start to add preparation. PlayerId={receivedFrom}");
-            Game.Combat.PlayersCombatPreparation.TryAdd(receivedFrom, units);
+            var isOk = await WaitWhileTrue(() => Game.Combat == null || Game.Combat.Stage != NetworkCombatStage.Idle, $"Waiting for combat to start to add preparation. PlayerId={receivedFrom}",
+                TimeSpan.FromSeconds(10));
+
+            if (isOk)
+            {
+                Game.Combat.PlayersCombatPreparation.TryAdd(receivedFrom, units);
+                return;
+            }
+
+            lock (ActionLock)
+            {
+                var player = GetPlayer(receivedFrom);
+                if (player == null)
+                {
+                    Logger.LogWarning("Combat startup desync has been detected, but player is missing. Ignoring...");
+                    return;
+                }
+
+                DiceRollStorage.UndoClaiming(receivedFrom);
+
+                // additional clients, but combat is already in recovering state
+                if (Game.Combat.Stage == NetworkCombatStage.Idle)
+                {
+                    return;
+                }
+
+                Logger.LogWarning("Initiating combat recovery");
+                Game.Combat.IsPrepared = false;
+                Game.Combat.IsInitialized = false;
+                Game.Combat.IsPlaying = false;
+                Game.Combat.PlayersCombatPreparation.Clear();
+                Game.Combat.PlayersCombatInitialization.Clear();
+                SetCombatStage(NetworkCombatStage.Idle);
+                PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.StartupDesync.Host.Key, CombatTextSeverity.Critical, player.Name);
+
+                var recoveryMessage = new NotifyCombatRecoveryRequired();
+                Logger.LogWarning("Sending {MessageType} to ALL players", nameof(NotifyCombatRecoveryRequired));
+                Send(recoveryMessage);
+            }
         }
 
         private void OnClientCombatPreparationCompleted(long receivedFrom, ClientCombatPreparationCompleted message)

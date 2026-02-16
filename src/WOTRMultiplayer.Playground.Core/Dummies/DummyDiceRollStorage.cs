@@ -34,5 +34,9 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void Reset()
         {
         }
+
+        public void UndoClaiming(long playerId)
+        {
+        }
     }
 }

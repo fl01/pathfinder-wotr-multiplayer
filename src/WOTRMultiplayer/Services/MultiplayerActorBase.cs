@@ -2768,6 +2768,7 @@ namespace WOTRMultiplayer.Services
             var current = Game.Combat.Stage;
             Game.Combat.Stage = combatStage;
             Logger.LogInformation("Combat stage has been changed. From={From}, To={To}", current, combatStage);
+            PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.StageChanged.Key, CombatTextSeverity.Debug, current, combatStage);
         }
 
         protected string StoreSaveGameContent(byte[] content)
@@ -3105,7 +3106,7 @@ namespace WOTRMultiplayer.Services
             UpdateGlobalMapCombatResultsUIState();
         }
 
-        protected async Task WaitWhileTrue(Func<bool> condition, string warningMessage, TimeSpan? awaiterTimeout = null)
+        protected async Task<bool> WaitWhileTrue(Func<bool> condition, string warningMessage, TimeSpan? awaiterTimeout = null)
         {
             if (condition())
             {
@@ -3118,10 +3119,12 @@ namespace WOTRMultiplayer.Services
                     if (timeout.IsCancellationRequested)
                     {
                         Logger.LogWarning($"Awaiter failed due to timeout. WarningText={warningMessage}");
-                        return;
+                        return false;
                     }
                 }
             }
+
+            return true;
         }
 
         protected void UpdateSaveInfo(string gameId, byte[] content)

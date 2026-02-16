@@ -237,7 +237,8 @@
             NotifyCombatInitializationCompleted,
             NotifyGlobalMapCrusadeArmyLeaderLevelingStarted,
             NotifyGlobalMapLocationMessageAccepted,
-            NotifyAIActionSelected
+            NotifyAIActionSelected,
+            NotifyCombatRecoveryInitiated
         }
 
         public enum Request

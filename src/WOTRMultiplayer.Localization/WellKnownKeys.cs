@@ -928,6 +928,28 @@ public static class WellKnownKeys
                 public static string Key { get; set; }
             }
 
+            [Description("startupDesync")]
+            public static class StartupDesync
+            {
+                [Description("host")]
+                public static class Host
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("client")]
+                public static class Client
+                {
+                    public static string Key { get; set; }
+                }
+            }
+
+            [Description("stageChanged")]
+            public static class StageChanged
+            {
+                public static string Key { get; set; }
+            }
+
             [Description("forcedToStart")]
             public static class ForcedToStart
             {
