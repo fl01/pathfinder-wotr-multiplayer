@@ -19,7 +19,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
         [HarmonyPostfix]
         public static void ActivatableAbility_SetIsOn_Postfix(ActivatableAbility __instance, UnitEntityData target)
         {
-            if (!Main.Multiplayer.IsActive || Game.Instance.CurrentMode == GameModeType.None || PatchesUtils.IsHelperUnit(__instance.Owner.Unit.UniqueId))
+            if (!Main.Multiplayer.IsActive
+                || Game.Instance.CurrentMode == GameModeType.None
+                || PatchesUtils.IsHelperUnit(__instance.Owner.Unit.UniqueId))
             {
                 return;
             }
@@ -31,18 +33,23 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                     Main.GetLogger<ActivatableAbilityPatches>().LogInformation("Mount toggle is ignored. IsActive={IsActive}, TargetId={TargetId}", __instance.m_IsOn, target?.UniqueId);
                     return;
                 }
+
                 var caster = __instance.Owner.Unit;
-                var index = caster.ActivatableAbilities.Enumerable.Where(x => x.Blueprint == __instance.Blueprint).IndexOf(__instance);
                 var ability = new NetworkActivatableAbility
                 {
                     Id = __instance.UniqueId,
                     BlueprintId = __instance.Blueprint.AssetGuid.ToString(),
-                    Index = index,
-                    Name = __instance.Name,
+                    Name = __instance.NameForAcronym,
                     CasterId = caster.UniqueId,
                     TargetId = target?.UniqueId,
                     IsActive = __instance.m_IsOn
                 };
+
+                var shiftersFuryPart = __instance.Owner.Unit.Get<ShiftersFuryPart>();
+                if (shiftersFuryPart != null)
+                {
+                    ability.ShifterFuryIndex = shiftersFuryPart.AppliedFacts.IndexOf(__instance);
+                }
 
                 Main.Multiplayer.OnToggleActivatableAbility(ability);
             }

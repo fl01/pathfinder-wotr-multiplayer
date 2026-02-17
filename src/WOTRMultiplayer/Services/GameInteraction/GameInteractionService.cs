@@ -2855,19 +2855,26 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private ActivatableAbility FindActivatableAbility(UnitEntityData caster, NetworkActivatableAbility activatableAbility)
         {
+            if (activatableAbility.ShifterFuryIndex >= 0)
+            {
+                var shifterFuryPart = caster.Get<ShiftersFuryPart>();
+                if (shifterFuryPart != null && shifterFuryPart.AppliedFacts != null && shifterFuryPart.AppliedFacts.Count > activatableAbility.ShifterFuryIndex)
+                {
+                    var shifterAbility = shifterFuryPart.AppliedFacts[activatableAbility.ShifterFuryIndex];
+                    _logger.LogInformation("Shifter fury abiliy has been found. UnitId={UnitId}, Id={Id}, Name={Name}, Index={Index}", caster.UniqueId, shifterAbility.UniqueId, shifterAbility.NameForAcronym, activatableAbility.ShifterFuryIndex);
+                    return shifterAbility;
+                }
+            }
+
             var abilities = caster.ActivatableAbilities?.Enumerable ?? [];
             var ability = abilities.FirstOrDefault(a => string.Equals(a.UniqueId, activatableAbility.Id, StringComparison.OrdinalIgnoreCase));
-
-            if (ability == null && activatableAbility.Index >= 0)
+            if (ability == null)
             {
                 var sameBlueprint = abilities.Where(x => string.Equals(x.Blueprint.AssetGuid.ToString(), activatableAbility.BlueprintId)).ToList();
-                if (sameBlueprint.Count > activatableAbility.Index)
+                if (sameBlueprint.Count == 1)
                 {
-                    ability = sameBlueprint[activatableAbility.Index];
-                    if (ability.NameForAcronym == activatableAbility.Name)
-                    {
-                        return ability;
-                    }
+                    ability = sameBlueprint.FirstOrDefault();
+                    return ability;
                 }
             }
 

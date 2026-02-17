@@ -12,7 +12,7 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         public string BlueprintId { get; set; }
 
         [ProtoMember(3)]
-        public int Index { get; set; }
+        public int ShifterFuryIndex { get; set; }
 
         [ProtoMember(4)]
         public string Name { get; set; }

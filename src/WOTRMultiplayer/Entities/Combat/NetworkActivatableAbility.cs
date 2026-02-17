@@ -6,7 +6,7 @@
 
         public string BlueprintId { get; set; }
 
-        public int Index { get; set; }
+        public int ShifterFuryIndex { get; set; } = -1;
 
         public string Name { get; set; }
 
