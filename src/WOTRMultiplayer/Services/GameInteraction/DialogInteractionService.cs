@@ -230,9 +230,27 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 }
 
                 modalMessage.m_AcceptButton.Interactable = isInteractable;
+                modalMessage.m_DeclineButton.Interactable = isInteractable;
                 _uiSyncCountersService.UpdateButtonTextCounter(modalMessage.m_AcceptText, readyPlayersCount, totalPlayersCount);
+                _uiSyncCountersService.UpdateButtonTextCounter(modalMessage.m_DeclineText, readyPlayersCount, totalPlayersCount);
 
                 _logger.LogInformation("Dialog popup UI has been updated. IsInteractable={IsInteractable}, ReadyPlayers={ReadyPlayers}, TotalPlayers={TotalPlayers}", isInteractable, readyPlayersCount, totalPlayersCount);
+            });
+        }
+
+        public void AcceptDialogPopup(NetworkDialogPopup networkDialogPopup)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var modalMessage = _uiAccessor.CommonPCView?.m_MessageModalPCView;
+                if (modalMessage?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to close missing dialog popup. AreaName={AreaName}, DialogName={DialogName}, CueName={CueName}", networkDialogPopup.AreaName, networkDialogPopup.DialogName, networkDialogPopup.CueName);
+                    return;
+                }
+
+                modalMessage?.m_AcceptButton.m_OnLeftClick.Invoke();
+                _logger.LogInformation("Dialog popup has been closed. AreaName={AreaName}, DialogName={DialogName}, CueName={CueName}", networkDialogPopup.AreaName, networkDialogPopup.DialogName, networkDialogPopup.CueName);
             });
         }
 
@@ -247,7 +265,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     return;
                 }
 
-                modalMessage?.m_AcceptButton.m_OnLeftClick.Invoke();
+                modalMessage?.m_DeclineButton.m_OnLeftClick.Invoke();
                 _logger.LogInformation("Dialog popup has been closed. AreaName={AreaName}, DialogName={DialogName}, CueName={CueName}", networkDialogPopup.AreaName, networkDialogPopup.DialogName, networkDialogPopup.CueName);
             });
         }

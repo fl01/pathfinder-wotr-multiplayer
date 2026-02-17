@@ -2712,6 +2712,24 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        public void OnDialogPopupAccepted(NetworkDialogPopup networkDialogPopup)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null || !_multiplayerActorAccessor.Host.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnDialogPopupAccepted(networkDialogPopup);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while accepting dialog popup. AreaName={AreaName}, DialogName={DialogName}, CueName={CueName}", networkDialogPopup.AreaName, networkDialogPopup.DialogName, networkDialogPopup.CueName);
+                throw;
+            }
+        }
+
         public void OnDialogPopupClosed(NetworkDialogPopup networkDialogPopup)
         {
             try

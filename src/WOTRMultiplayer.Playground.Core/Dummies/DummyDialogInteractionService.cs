@@ -7,6 +7,10 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
 {
     public class DummyDialogInteractionService : IDialogInteractionService
     {
+        public void AcceptDialogPopup(NetworkDialogPopup networkDialogPopup)
+        {
+        }
+
         public void CloseDialogPopup(NetworkDialogPopup networkDialogPopup)
         {
         }

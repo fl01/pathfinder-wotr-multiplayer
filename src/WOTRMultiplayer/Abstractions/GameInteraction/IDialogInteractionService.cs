@@ -20,6 +20,8 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void CloseDialogPopup(NetworkDialogPopup networkDialogPopup);
 
+        void AcceptDialogPopup(NetworkDialogPopup networkDialogPopup);
+
         void PlayUnableToSelectCueAnimation(string answerName);
     }
 }

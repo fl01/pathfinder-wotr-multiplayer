@@ -184,6 +184,7 @@ namespace WOTRMultiplayer.Services
             if (networkDialog.IsScripted)
             {
                 Game.DialogState = new NetworkDialogState(networkDialog);
+                Logger.LogInformation("Scripted dialog has been started. DialogId={DialogId}, DialogName={Name}", Game.DialogState.Dialog.Id, Game.DialogState.Dialog.Name);
                 return true;
             }
 
@@ -570,6 +571,7 @@ namespace WOTRMultiplayer.Services
                .On<NotifyDialogCueAnswerSuggested>(OnNotifyDialogCueAnswerSuggested)
                .On<NotifyDialogCueAnswerSelected>(OnNotifyDialogCueAnswerSelected)
                .On<NotifyDialogPopupClosed>(OnNotifyDialogPopupClosed)
+               .On<NotifyDialogPopupAccepted>(OnNotifyDialogPopupAccepted)
 
                // vendor interaction
                .On<NotifyVendorDealMade>(OnNotifyVendorDealMade)
@@ -1535,10 +1537,18 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        private void OnNotifyDialogPopupClosed(long playerId, NotifyDialogPopupClosed dialogPopupClosed)
+        private void OnNotifyDialogPopupAccepted(long playerId, NotifyDialogPopupAccepted message)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, AreaName={AreaName}, DialogName={DialogName}, CueName={CueName}", nameof(NotifyDialogPopupShown), playerId, dialogPopupClosed.Popup.AreaName, dialogPopupClosed.Popup.DialogName, dialogPopupClosed.Popup.CueName);
-            var popup = Mapper.Map<NetworkDialogPopup>(dialogPopupClosed.Popup);
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, AreaName={AreaName}, DialogName={DialogName}, CueName={CueName}", nameof(NotifyDialogPopupAccepted), playerId, message.Popup.AreaName, message.Popup.DialogName, message.Popup.CueName);
+            var popup = Mapper.Map<NetworkDialogPopup>(message.Popup);
+
+            DialogInteraction.AcceptDialogPopup(popup);
+        }
+
+        private void OnNotifyDialogPopupClosed(long playerId, NotifyDialogPopupClosed message)
+        {
+            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, AreaName={AreaName}, DialogName={DialogName}, CueName={CueName}", nameof(NotifyDialogPopupClosed), playerId, message.Popup.AreaName, message.Popup.DialogName, message.Popup.CueName);
+            var popup = Mapper.Map<NetworkDialogPopup>(message.Popup);
 
             DialogInteraction.CloseDialogPopup(popup);
         }

@@ -305,6 +305,8 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnDialogPopupShown(NetworkDialogPopup networkDialogPopup);
 
+        void OnDialogPopupAccepted(NetworkDialogPopup networkDialogPopup);
+
         void OnDialogPopupClosed(NetworkDialogPopup networkDialogPopup);
 
         void OnUseInventoryItem(NetworkUseInventoryItem useInventoryItem);

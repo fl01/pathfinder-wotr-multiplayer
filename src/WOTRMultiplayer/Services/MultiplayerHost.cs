@@ -616,6 +616,17 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
+        public void OnDialogPopupAccepted(NetworkDialogPopup networkDialogPopup)
+        {
+            ResetPlayersTracker(Game.PlayersInDialogPopup);
+            var message = new NotifyDialogPopupAccepted
+            {
+                Popup = Mapper.Map<Networking.Messages.Contracts.NetworkDialogPopup>(networkDialogPopup)
+            };
+            Logger.LogInformation("Sending {MessageType}, AreaName={AreaName}, DialogName={DialogName}, CueName={CueName}", nameof(NotifyDialogPopupAccepted), message.Popup.AreaName, message.Popup.DialogName, message.Popup.CueName);
+            Send(message);
+        }
+
         public void OnDialogPopupClosed(NetworkDialogPopup networkDialogPopup)
         {
             ResetPlayersTracker(Game.PlayersInDialogPopup);

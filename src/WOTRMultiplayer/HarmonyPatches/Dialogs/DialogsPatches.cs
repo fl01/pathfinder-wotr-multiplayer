@@ -63,6 +63,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
                 TargetUnitId = unit?.UniqueId,
                 IsScripted = _isScriptedDialog.Value
             };
+            _isScriptedDialog.Value = false;
 
             var canContinue = Main.Multiplayer.StartDialog(networkDialog);
             if (!canContinue

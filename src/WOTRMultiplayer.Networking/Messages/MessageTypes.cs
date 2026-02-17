@@ -239,7 +239,8 @@
             NotifyGlobalMapLocationMessageAccepted,
             NotifyAIActionSelected,
             NotifyCombatRecoveryInitiated,
-            NotifyUnitMovedTo
+            NotifyUnitMovedTo,
+            NotifyDialogPopupAccepted
         }
 
         public enum Request
