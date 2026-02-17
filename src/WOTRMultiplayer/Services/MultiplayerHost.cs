@@ -2222,7 +2222,7 @@ namespace WOTRMultiplayer.Services
                 Main = new NetworkGameMainSettings
                 {
                     LootInCombat = false,
-                    QuickMovement = true
+                    QuickMovement = false
                 },
                 Autopause = new NetworkAutopauseSettings
                 {
