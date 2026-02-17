@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Threading;
 using HarmonyLib;
 using Kingmaker;
+using Kingmaker.AreaLogic.Cutscenes.Commands;
 using Kingmaker.Blueprints.Root;
 using Kingmaker.Controllers.Dialog;
+using Kingmaker.Designers.EventConditionActionSystem.Actions;
 using Kingmaker.DialogSystem.Blueprints;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.Localization;
@@ -15,6 +18,32 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
     [HarmonyPatch]
     public class DialogsPatches
     {
+        private static AsyncLocal<bool> _isScriptedDialog = new();
+
+        [HarmonyPatch(typeof(StartDialog), nameof(StartDialog.RunAction))]
+        [HarmonyPrefix]
+        public static void StartDialog_RunAction_Prefix()
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            _isScriptedDialog.Value = true;
+        }
+
+        [HarmonyPatch(typeof(CommandStartDialog), nameof(CommandStartDialog.OnRun))]
+        [HarmonyPrefix]
+        public static void CommandStartDialog_OnRun_Prefix()
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            _isScriptedDialog.Value = true;
+        }
+
         [HarmonyPatch(typeof(DialogController), nameof(DialogController.StartDialog))]
         [HarmonyPrefix]
         public static bool DialogController_StartDialog_Prefix(BlueprintDialog dialog, UnitEntityData initiator, UnitEntityData unit, MapObjectView mapObject, LocalizedString customSpeakerName)
@@ -31,7 +60,8 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
                 InitiatorUnitId = initiator?.UniqueId,
                 MapObjectId = mapObject?.UniqueId,
                 SpeakerKey = customSpeakerName?.Key,
-                TargetUnitId = unit?.UniqueId
+                TargetUnitId = unit?.UniqueId,
+                IsScripted = _isScriptedDialog.Value
             };
 
             var canContinue = Main.Multiplayer.StartDialog(networkDialog);

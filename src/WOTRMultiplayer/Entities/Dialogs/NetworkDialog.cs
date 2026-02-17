@@ -13,5 +13,7 @@
         public string MapObjectId { get; set; }
 
         public string SpeakerKey { get; set; }
+
+        public bool IsScripted { get; set; }
     }
 }

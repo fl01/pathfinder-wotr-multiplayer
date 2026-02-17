@@ -196,11 +196,11 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
         private static void OnUnitMove(string unitId, Vector3 destination)
         {
             var movementLimit = Game.Instance.TurnBasedCombatController.CurrentTurn?.CurrentMovementLimit;
-            var path = PathVisualizer.Instance.m_CurrentPath?.vectorPath;
+            var path = PathVisualizer.Instance?.m_CurrentPath?.vectorPath;
             var unitMoveTo = new NetworkUnitMoveTo
             {
                 InitiatorUnitId = unitId,
-                VectorPath = [.. path?.Select(x => x.ToNetworkVector3())],
+                VectorPath = [.. path?.Select(x => x.ToNetworkVector3()) ?? []],
                 Destination = destination.ToNetworkVector3(),
                 MovementLimit = movementLimit?.ToString()
             };

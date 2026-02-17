@@ -22,5 +22,8 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
 
         [ProtoMember(6)]
         public string SpeakerKey { get; set; }
+
+        [ProtoMember(7)]
+        public bool IsScripted { get; set; }
     }
 }

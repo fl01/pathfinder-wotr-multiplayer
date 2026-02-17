@@ -312,19 +312,23 @@ namespace WOTRMultiplayer.Services
 
         public bool StartDialog(NetworkDialog networkDialog)
         {
-            var message = new NotifyDialogStarted
-            {
-                Dialog = Mapper.Map<Networking.Messages.Contracts.NetworkDialog>(networkDialog)
-            };
-            Logger.LogInformation("Sending {MessageType}. Id={Id}, Name={Name}, TargetUnitId={TargetUnitId}, InitiatorUnitId={InitiatorUnitId}, MapObjectId={MapObjectId}, SpeakerKey={SpeakerKey}",
-                nameof(NotifyDialogStarted), message.Dialog.Id, message.Dialog.Name, message.Dialog.TargetUnitId, message.Dialog.InitiatorUnitId, message.Dialog.MapObjectId, message.Dialog.SpeakerKey);
-            Send(message);
-
             if (!string.Equals(Game.DialogState?.Dialog.Id, networkDialog.Id, StringComparison.OrdinalIgnoreCase))
             {
                 Game.DialogState = new NetworkDialogState(networkDialog);
             }
 
+            if (!Game.DialogState.Dialog.IsScripted)
+            {
+                var message = new NotifyDialogStarted
+                {
+                    Dialog = Mapper.Map<Networking.Messages.Contracts.NetworkDialog>(networkDialog)
+                };
+                Logger.LogInformation("Sending {MessageType}. Id={Id}, Name={Name}, TargetUnitId={TargetUnitId}, InitiatorUnitId={InitiatorUnitId}, MapObjectId={MapObjectId}, SpeakerKey={SpeakerKey}",
+                    nameof(NotifyDialogStarted), message.Dialog.Id, message.Dialog.Name, message.Dialog.TargetUnitId, message.Dialog.InitiatorUnitId, message.Dialog.MapObjectId, message.Dialog.SpeakerKey);
+                Send(message);
+            }
+
+            Logger.LogInformation("Dialog has been started. DialogId={DialogId}, DialogName={Name}, IsScripted={IsScripted}", Game.DialogState.Dialog.Id, Game.DialogState.Dialog.Name, Game.DialogState.Dialog.IsScripted);
             return true;
         }
 

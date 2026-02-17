@@ -181,6 +181,12 @@ namespace WOTRMultiplayer.Services
 
         public bool StartDialog(NetworkDialog networkDialog)
         {
+            if (networkDialog.IsScripted)
+            {
+                Game.DialogState = new NetworkDialogState(networkDialog);
+                return true;
+            }
+
             if (string.Equals(Game.DialogState?.Dialog.Id, networkDialog.Id, StringComparison.OrdinalIgnoreCase))
             {
                 Logger.LogInformation("Dialog has been initiated, proceeding with default game logic. Id={Id}, Name={Name}", networkDialog.Id, networkDialog.Name);
