@@ -212,20 +212,27 @@ namespace WOTRMultiplayer.Services
                 return false;
             }
 
-            if (!Game.Combat.IsPrepared)
+            try
             {
-                var units = CombatInteraction.GetUnitsInCombat();
-                var message = new ClientCombatPreparationStarted
+                if (!Game.Combat.IsPrepared)
                 {
-                    Units = Mapper.Map<List<Networking.Messages.Contracts.NetworkUnit>>(units),
-                };
-                Logger.LogInformation("Sending {MessageType}. UnitsCount={UnitsCount}", nameof(ClientCombatPreparationStarted), message.Units.Count);
-                Send(message);
-                Game.Combat.IsPrepared = true;
-            }
+                    var units = CombatInteraction.GetUnitsInCombat();
+                    var message = new ClientCombatPreparationStarted
+                    {
+                        Units = Mapper.Map<List<Networking.Messages.Contracts.NetworkUnit>>(units),
+                    };
+                    Logger.LogInformation("Sending {MessageType}. UnitsCount={UnitsCount}", nameof(ClientCombatPreparationStarted), message.Units.Count);
+                    Send(message);
+                    Game.Combat.IsPrepared = true;
+                }
 
-            var canInitializeCombat = Game.Combat != null && Game.Combat.IsInitialized;
-            return canInitializeCombat;
+                return Game.Combat.IsInitialized;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error while initializing combat");
+                throw;
+            }
         }
 
         public bool CanContinueCombat()
@@ -607,11 +614,12 @@ namespace WOTRMultiplayer.Services
             SetCombatStage(NetworkCombatStage.Idle);
         }
 
-        private void OnNotifyAIActionExecuted(long receivedFrom, NotifyAIActionSelected message)
+        private async void OnNotifyAIActionExecuted(long receivedFrom, NotifyAIActionSelected message)
         {
             Logger.LogInformation("Received {MessageType}. UnitId={UnitId}, Id={Id}, Name={Name}, Type={Type}, TargetUnitId={TargetUnitId}, VectorPath={VectorPath}, BestEnableFiveFootStep={BestEnableFiveFootStep}",
                 nameof(NotifyAIActionSelected), message.Action.UnitId, message.Action.Id, message.Action.Name, message.Action.ActionType, message.Action.TargetId, message.Action.DecisionContext.VectorPath, message.Action.DecisionContext.BestEnableFiveFootStep);
 
+            await WaitWhileTrue(() => Game.Combat.Turn == null, "Waiting for turn to initialize before saving AI actions");
             var aiAction = Mapper.Map<NetworkAIAction>(message.Action);
             lock (ActionLock)
             {

@@ -621,24 +621,32 @@ namespace WOTRMultiplayer.Services
 
         public bool OnBeforeTurnStart(string unitId, bool actingInSurpriseRound)
         {
-            if (Game.Combat.Turn != null && Game.Combat.Turn.IsInProgress)
+            try
             {
-                if (!string.Equals(Game.Combat.Turn.UnitId, unitId, StringComparison.OrdinalIgnoreCase))
+                if (Game.Combat.Turn != null && Game.Combat.Turn.IsInProgress)
                 {
-                    Logger.LogWarning("Invalid unit turn start detected. ExpectedUnitId={ExpectedUnitId}, ActualUnitId={ActualUnitId}", Game.Combat.Turn.UnitId, unitId);
-                    InitializeNewTurn(unitId, actingInSurpriseRound);
-                    return false;
+                    if (!string.Equals(Game.Combat.Turn.UnitId, unitId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        Logger.LogWarning("Invalid unit turn start detected. ExpectedUnitId={ExpectedUnitId}, ActualUnitId={ActualUnitId}", Game.Combat.Turn.UnitId, unitId);
+                        InitializeNewTurn(unitId, actingInSurpriseRound);
+                        return false;
+                    }
+
+                    UpdateConfirmedMidCombatUnits();
+                    PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Turn.Started.Key, CombatTextSeverity.Common, new UnitEntityLog(unitId));
+                    Logger.LogInformation("Turn start is allowed. UnitId={UnitId}, IsActingInSurpiseRound={IsActingInSurpiseRound}, TurnUnitId={TurnUnitId}, TurnSeed={TurnSeed}", unitId, actingInSurpriseRound, Game.Combat.Turn.UnitId, Game.Combat.Turn.Seed);
+                    return true;
                 }
 
-                UpdateConfirmedMidCombatUnits();
-                PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Turn.Started.Key, CombatTextSeverity.Common, new UnitEntityLog(unitId));
-                Logger.LogInformation("Turn start is allowed. UnitId={UnitId}, IsActingInSurpiseRound={IsActingInSurpiseRound}, TurnUnitId={TurnUnitId}, TurnSeed={TurnSeed}", unitId, actingInSurpriseRound, Game.Combat.Turn.UnitId, Game.Combat.Turn.Seed);
-                return true;
+                InitializeNewTurn(unitId, actingInSurpriseRound);
+
+                return false;
             }
-
-            InitializeNewTurn(unitId, actingInSurpriseRound);
-
-            return false;
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Unable to start turn");
+                throw;
+            }
         }
 
         public bool OnBeforeTurnEnd(string unitId)
