@@ -453,6 +453,29 @@ namespace WOTRMultiplayer.Services
             return d20;
         }
 
+        private RuleRollD20 RollSpellResistance(RuleSpellResistanceCheck ruleSpellResistanceCheck)
+        {
+            var spellResistance = CreateSpellResistanceCheckRoll(NetworkDiceRollType.Hit, ruleSpellResistanceCheck);
+            var rollIdentifier = spellResistance.GetIdString();
+
+            var sessionSeed = _multiplayerActorAccessor.Current.SessionSeed;
+            var loadedSaveSeed = _multiplayerActorAccessor.Current.LoadedSaveSeed;
+            var areaSeed = _multiplayerActorAccessor.Current.AreaSeed;
+            var combatSeed = _multiplayerActorAccessor.Current.CombatSeed;
+            var combatTurnSeed = _multiplayerActorAccessor.Current.CombatTurnSeed;
+
+            var identifier = $"{rollIdentifier}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}:{combatSeed}:{combatTurnSeed}";
+            var lifetime = combatTurnSeed == null ? IdentifierLifetime.Area : IdentifierLifetime.CombatTurn;
+            var (history, result) = RollDice(lifetime, identifier, new DiceFormula(1, DiceType.D20), 0);
+            var rollId = _hashService.Murmur3(identifier);
+            _logger.LogInformation("RuleSpellResistanceCheck has been rolled deterministicaly. UnitId={UnitId}, Result={Result}, History={History}, RollId={RollId}, Lifetime={Lifetime}, Identifier={Identifier}",
+                ruleSpellResistanceCheck.Initiator.UniqueId, result, history, rollId, lifetime, identifier);
+
+            var d20 = RuleRollD20.FromInt(ruleSpellResistanceCheck.Initiator, result);
+            d20.RollHistory = history;
+            return d20;
+        }
+
         private RuleRollD20 RollCastingDefensively(RuleCheckCastingDefensively ruleCheckCastingDefensively)
         {
             var castingDefensively = CreateCastingDefensivelyRoll(NetworkDiceRollType.Hit, ruleCheckCastingDefensively);
@@ -524,6 +547,13 @@ namespace WOTRMultiplayer.Services
             return d20;
         }
 
+        private RuleRollD20 RetrieveSpellResistance(RuleSpellResistanceCheck ruleSpellResistanceCheck)
+        {
+            var roll = CreateSpellResistanceCheckRoll(NetworkDiceRollType.Hit, ruleSpellResistanceCheck);
+            var d20 = RetrieveRoll<RuleRollD20>(roll, ruleSpellResistanceCheck.Initiator);
+            return d20;
+        }
+
         private RuleRollD20 RetrieveCheckCastingDefensivelyRoll(RuleCheckCastingDefensively ruleCheckCastingDefensively)
         {
             var roll = CreateCastingDefensivelyRoll(NetworkDiceRollType.Hit, ruleCheckCastingDefensively);
@@ -547,13 +577,13 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldRetrieveRoll(ruleSpellResistanceCheck))
+                var isRolledDeterministically = IsRolledDeterministically(ruleSpellResistanceCheck);
+                if (!ShouldRetrieveRoll(ruleSpellResistanceCheck) && !isRolledDeterministically)
                 {
                     return true;
                 }
 
-                var roll = CreateSpellResistanceCheckRoll(NetworkDiceRollType.Hit, ruleSpellResistanceCheck);
-                var d20 = RetrieveRoll<RuleRollD20>(roll, ruleSpellResistanceCheck.Initiator);
+                var d20 = isRolledDeterministically ? RollSpellResistance(ruleSpellResistanceCheck) : RetrieveSpellResistance(ruleSpellResistanceCheck);
                 if (d20 == null)
                 {
                     return true;
@@ -573,7 +603,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldStoreRoll(ruleSpellResistanceCheck) || ruleSpellResistanceCheck.Roll == null)
+                if (!ShouldStoreRoll(ruleSpellResistanceCheck) || IsRolledDeterministically(ruleSpellResistanceCheck) || ruleSpellResistanceCheck.Roll == null)
                 {
                     return;
                 }
@@ -1214,8 +1244,8 @@ namespace WOTRMultiplayer.Services
                 case RuleHealDamage:
                     var isHealDamageRolled = currentArea != null && currentArea.IsGlobalMap || !_combatInteractionService.IsInCombat();
                     return isHealDamageRolled;
+                case RuleSpellResistanceCheck:
                 case RuleCheckCastingDefensively:
-                    return true;
                 case RuleInitiativeRoll:
                     return true;
                 default:
