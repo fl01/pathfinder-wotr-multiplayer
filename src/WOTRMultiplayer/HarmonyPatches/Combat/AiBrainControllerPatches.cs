@@ -6,6 +6,7 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using Kingmaker;
 using Kingmaker.AI;
+using Kingmaker.AI.Blueprints;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.Pathfinding;
 using Kingmaker.RuleSystem;
@@ -87,7 +88,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             {
                 Id = bestActionResult.Blueprint.AssetGuid.ToString(),
                 Name = bestActionResult.Blueprint.name,
-                ActionType = $"{bestActionResult.GetType().Name}_{bestActionResult.Blueprint.GetType().Name}",
+                IsAbility = bestActionResult.Blueprint is BlueprintAiCastSpell,
                 UnitId = unit.UniqueId,
                 TargetId = bestTargetResult?.UniqueId,
                 DecisionContext = new NetworkAIDecisionContext
@@ -98,19 +99,44 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 }
             };
 
-            var possibleOverride = Main.Multiplayer.OnAfterAISelectedAction(action);
-            if (possibleOverride == null)
+            var possibleActionOverride = Main.Multiplayer.OnAfterAISelectedAction(action);
+            if (possibleActionOverride == null)
             {
                 return;
             }
 
-            if (possibleOverride.TargetId != bestTargetResult.UniqueId)
+            var hasBeenModified = false;
+            var previousAction = bestActionResult.Blueprint;
+            if (!string.Equals(possibleActionOverride.Id, bestActionResult.Blueprint.AssetGuid.ToString(), StringComparison.OrdinalIgnoreCase))
             {
-                Main.PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.ActionOverride.Key, CombatTextSeverity.Debug, new UnitEntityLog(unit.UniqueId), possibleOverride.Name, new UnitEntityLog(bestTargetResult.UniqueId), new UnitEntityLog(possibleOverride.TargetId));
-                Main.GetLogger<AiBrainControllerPatches>().LogWarning("AI action target has been overridden. UnitId={UnitId}, ActionId={ActionId}, ActionName={ActionName}, PreviousTarget={PreviousTarget}, NewTarget={NewTarget}", unit.UniqueId, possibleOverride.Id, possibleOverride.Name, bestTargetResult.UniqueId, possibleOverride.TargetId);
-                bestTargetResult = Main.State.GetUnitEntity(possibleOverride.TargetId);
-                var path = new ForcedPath([.. possibleOverride.DecisionContext.VectorPath.Select(x => x.ToUnityVector3())]);
+                var overriddenAction = Main.State.FindAIAction(unit, possibleActionOverride);
+                if (overriddenAction == null)
+                {
+                    Main.PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.ActionOverride.Failed.Key, CombatTextSeverity.Critical, new UnitEntityLog(unit.UniqueId), possibleActionOverride.Name);
+                    Main.GetLogger<AiBrainControllerPatches>().LogError("Unable to find required ai action override. UnitId={UnitId}, ActionId={ActionId}, ActionName={ActionName}", unit.UniqueId, possibleActionOverride.Id, possibleActionOverride.Name);
+                    return;
+                }
+
+                bestActionResult = overriddenAction;
+                hasBeenModified = true;
+            }
+
+            var previousTarget = bestTargetResult.UniqueId;
+            if (!string.Equals(possibleActionOverride.TargetId, previousTarget, StringComparison.OrdinalIgnoreCase))
+            {
+                bestTargetResult = Main.State.GetUnitEntity(possibleActionOverride.TargetId);
+                hasBeenModified = true;
+            }
+
+            if (hasBeenModified)
+            {
+                var path = new ForcedPath([.. possibleActionOverride.DecisionContext.VectorPath.Select(x => x.ToUnityVector3())]);
                 context.BestPath = path;
+
+                Main.PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.ActionOverride.Success.Key, CombatTextSeverity.Debug,
+                    new UnitEntityLog(unit.UniqueId), previousAction.name, new UnitEntityLog(previousTarget), possibleActionOverride.Name, new UnitEntityLog(bestTargetResult.UniqueId));
+                Main.GetLogger<AiBrainControllerPatches>().LogWarning("AI action target has been overridden. UnitId={UnitId}, PreviousActionId={PreviousActionId}, PreviousActionName={PreviousActionName}, PreviousTarget={PreviousTarget}, NewActionId={NewActionId}, NewActionName={NewActionName}, NewTarget={NewTarget}}",
+                    unit.UniqueId, previousAction.AssetGuid.ToString(), previousAction.name, previousTarget, possibleActionOverride.Id, possibleActionOverride.Name, bestTargetResult.UniqueId);
             }
         }
     }

@@ -1183,8 +1183,8 @@ namespace WOTRMultiplayer.Services
             {
                 Action = Mapper.Map<Networking.Messages.Contracts.NetworkAIAction>(aiAction)
             };
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, Id={Id}, Name={Name}, Type={Type}, TargetUnitId={TargetUnitId}, VectorPath={VectorPath}, BestEnableFiveFootStep={BestEnableFiveFootStep}",
-                nameof(NotifyAIActionSelected), message.Action.UnitId, message.Action.Id, message.Action.Name, message.Action.ActionType, message.Action.TargetId, message.Action.DecisionContext.VectorPath, message.Action.DecisionContext.BestEnableFiveFootStep);
+            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, Id={Id}, Name={Name}, IsAbility={IsAbility}, TargetUnitId={TargetUnitId}, VectorPath={VectorPath}, BestEnableFiveFootStep={BestEnableFiveFootStep}",
+                nameof(NotifyAIActionSelected), message.Action.UnitId, message.Action.Id, message.Action.Name, message.Action.IsAbility, message.Action.TargetId, message.Action.DecisionContext.VectorPath, message.Action.DecisionContext.BestEnableFiveFootStep);
             Send(message);
             return null;
         }

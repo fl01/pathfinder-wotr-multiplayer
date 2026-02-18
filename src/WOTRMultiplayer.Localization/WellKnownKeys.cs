@@ -1035,7 +1035,17 @@ public static class WellKnownKeys
             [Description("actionOverride")]
             public static class ActionOverride
             {
-                public static string Key { get; set; }
+                [Description("success")]
+                public static class Success
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("failed")]
+                public static class Failed
+                {
+                    public static string Key { get; set; }
+                }
             }
         }
 

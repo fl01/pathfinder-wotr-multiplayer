@@ -397,16 +397,21 @@ namespace WOTRMultiplayer.Services
 
         public NetworkAIAction OnAfterAISelectedAction(NetworkAIAction networkAIAction)
         {
-            if (Game.Combat?.Turn == null)
+            // crusade combat is fine as of now
+            if (Game.ArmyCombat != null)
             {
                 return null;
             }
 
-            lock (ActionLock)
+            var action = Game.Combat.Turn.AIActions.FirstOrDefault(a => string.Equals(a.Id, networkAIAction.Id, StringComparison.OrdinalIgnoreCase));
+            if (action == null && networkAIAction.IsAbility)
             {
-                var action = Game.Combat.Turn.AIActions.FirstOrDefault(a => string.Equals(a.Id, networkAIAction.Id, StringComparison.OrdinalIgnoreCase));
-                return action;
+                // try to use another action (preferrably ability) if requested ability is not found
+                var firstDifferentAction = Game.Combat.Turn.AIActions.OrderByDescending(x => x.IsAbility).FirstOrDefault(a => !string.Equals(a.Id, networkAIAction.Id, StringComparison.OrdinalIgnoreCase));
+                return firstDifferentAction;
             }
+
+            return action;
         }
 
         protected override DiceRollValueResponse RetrieveRoll(DiceRollValueRequest rollRequest)
@@ -616,15 +621,13 @@ namespace WOTRMultiplayer.Services
 
         private async void OnNotifyAIActionExecuted(long receivedFrom, NotifyAIActionSelected message)
         {
-            Logger.LogInformation("Received {MessageType}. UnitId={UnitId}, Id={Id}, Name={Name}, Type={Type}, TargetUnitId={TargetUnitId}, VectorPath={VectorPath}, BestEnableFiveFootStep={BestEnableFiveFootStep}",
-                nameof(NotifyAIActionSelected), message.Action.UnitId, message.Action.Id, message.Action.Name, message.Action.ActionType, message.Action.TargetId, message.Action.DecisionContext.VectorPath, message.Action.DecisionContext.BestEnableFiveFootStep);
+            Logger.LogInformation("Received {MessageType}. UnitId={UnitId}, Id={Id}, Name={Name}, IsAbility={IsAbility}, TargetUnitId={TargetUnitId}, VectorPath={VectorPath}, BestEnableFiveFootStep={BestEnableFiveFootStep}",
+                nameof(NotifyAIActionSelected), message.Action.UnitId, message.Action.Id, message.Action.Name, message.Action.IsAbility, message.Action.TargetId, message.Action.DecisionContext.VectorPath, message.Action.DecisionContext.BestEnableFiveFootStep);
 
             await WaitWhileTrue(() => Game.Combat.Turn == null, "Waiting for turn to initialize before saving AI actions");
+
             var aiAction = Mapper.Map<NetworkAIAction>(message.Action);
-            lock (ActionLock)
-            {
-                Game.Combat.Turn.AIActions.Add(aiAction);
-            }
+            Game.Combat.Turn.AIActions.Add(aiAction);
         }
 
         private async void OnNotifyGlobalMapCommonPopupShown(long receivedFrom, NotifyGlobalMapCommonPopupShown message)

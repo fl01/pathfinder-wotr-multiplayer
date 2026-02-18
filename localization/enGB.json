@@ -260,7 +260,10 @@
                     "triggered": "Area effect '{0}' ({1}) has been triggered",
                     "missing": "Missing area effect '{0}' ({1}) was not triggered"
                 },
-                "actionOverride": "AI {0} action target has been overridden.\nActionName: {1}\nPrevious Target: {2}\nNew Target: {3}"
+                "actionOverride": {
+                    "success": "{0} action has been modified.\nPrevious: {1} => {2}\nNew:{2} => {3}",
+                    "failed": "AI {0} action has not been found in available actions.\nRequired Action Name:{1}"
+                }
             },
             "tacticalCombat": {
                 "disabledAutoCombat": "Auto combat is disabled within multiplayer session"

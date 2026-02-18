@@ -21,6 +21,6 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         public NetworkAIDecisionContext DecisionContext { get; set; }
 
         [ProtoMember(6)]
-        public string ActionType { get; set; }
+        public bool IsAbility { get; set; }
     }
 }
