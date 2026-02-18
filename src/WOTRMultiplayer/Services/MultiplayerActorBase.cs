@@ -221,9 +221,6 @@ namespace WOTRMultiplayer.Services
             {
                 AbilityUse = Mapper.Map<Networking.Messages.Contracts.NetworkAbilityUse>(abilityUse)
             };
-            Logger.LogInformation("Sending {MessageType}. CasterId={CasterId}, TargetUnitId={TargetUnitId}, TargetPoint={TargetPoint}, AbilityId={AbilityId}, AbilityName={AbilityName}, SpellbookId={SpellbookId}, VectorPathCount={VectorPathCount}, MovementLimit={MovementLimit}",
-                nameof(NotifyAbilityUsed), message.AbilityUse.InitiatorUnitId, message.AbilityUse.Target?.UnitId, message.AbilityUse.Target?.Point, message.AbilityUse.Ability.Id, message.AbilityUse.Ability.Name, message.AbilityUse.Ability.SpellbookId, message.AbilityUse.VectorPath, message.AbilityUse.MovementLimit);
-
             Send(message);
         }
 
@@ -246,8 +243,6 @@ namespace WOTRMultiplayer.Services
             {
                 Attack = Mapper.Map<Networking.Messages.Contracts.NetworkUnitAttack>(networkUnitAttack)
             };
-            Logger.LogInformation("Sending {MessageType}. InitiatorUnitId={InitiatorUnitId}, TargetUnitId={TargetUnitId}, IsFullAttack={IsFullAttack}", nameof(NotifyUnitAttacked), message.Attack.InitiatorUnitId, message.Attack.TargetUnitId, message.Attack.IsFullAttack);
-
             Send(message);
         }
 
@@ -262,9 +257,6 @@ namespace WOTRMultiplayer.Services
             {
                 Ability = Mapper.Map<Networking.Messages.Contracts.NetworkActivatableAbility>(activatableAbilityUse)
             };
-            Logger.LogInformation("Sending {MessageType}. CasterId={CasterId}, TargetId={TargetId}, AbilityId={AbilityId}, IsActive={IsActive}",
-                nameof(NotifyToggleActivatableAbility), message.Ability.CasterId, message.Ability.TargetId, message.Ability.Id, message.Ability.IsActive);
-
             Send(message);
         }
 
@@ -295,8 +287,6 @@ namespace WOTRMultiplayer.Services
             {
                 Click = Mapper.Map<Networking.Messages.Contracts.NetworkClick>(click)
             };
-            Logger.LogInformation("Sending {MessageType}. TargetUnitId={TargetUnitId}, SelectedUnits={SelectedUnits}", nameof(NotifyUnitClicked), message.Click.TargetUnitId, message.Click.SelectedUnits);
-
             Send(message);
         }
 
@@ -311,8 +301,6 @@ namespace WOTRMultiplayer.Services
             {
                 Click = Mapper.Map<Networking.Messages.Contracts.NetworkClick>(click)
             };
-            Logger.LogInformation("Sending {MessageType}. WorldPosition={WorldPosition}, SelectedUnits={SelectedUnits}, MovementLimit={MovementLimit}", nameof(NotifyGroundClicked), click.WorldPosition, click.SelectedUnits, click.MovementLimit);
-
             Send(message);
         }
 
@@ -323,15 +311,12 @@ namespace WOTRMultiplayer.Services
                 return;
             }
 
-            Logger.LogInformation("Sending map object click. WorldPosition={WorldPosition}, SelectedUnits={SelectedUnits}", click.WorldPosition, click.SelectedUnits);
             var message = new NotifyMapObjectClicked
             {
                 Click = Mapper.Map<Networking.Messages.Contracts.NetworkClick>(click)
             };
-
             Send(message);
         }
-
 
         public void OnTransferInventoryItem(NetworkItemsTransfer transferItem)
         {
@@ -339,8 +324,6 @@ namespace WOTRMultiplayer.Services
             {
                 TransferItem = Mapper.Map<Networking.Messages.Contracts.NetworkItemsTransfer>(transferItem)
             };
-
-            Logger.LogInformation("Sending {MessageType}. Items={Items}, Source={Source}, SourceType={SourceType}, Destination={Destination}, DestinationType={DestinationType}", nameof(NotifyInventoryItemTransferred), message.TransferItem.Items.Select(x => x.UniqueId), message.TransferItem.Source.Id, message.TransferItem.Source.Type, message.TransferItem.Destination?.Id, message.TransferItem.Destination?.Type);
             Send(message);
         }
 
@@ -350,8 +333,6 @@ namespace WOTRMultiplayer.Services
             {
                 Entity = Mapper.Map<Networking.Messages.Contracts.NetworkLootableEntity>(networkLootableEntity)
             };
-            Logger.LogInformation("Sending {MessageType}. Id={ContainerId}, Position={Position}, Type={Type}", networkLootableEntity.Id, networkLootableEntity.Position, networkLootableEntity.Type);
-
             Send(message);
         }
 
@@ -361,8 +342,6 @@ namespace WOTRMultiplayer.Services
             {
                 Drop = Mapper.Map<Networking.Messages.Contracts.NetworkDropItem>(dropItem)
             };
-            Logger.LogInformation("Sending {MessageType}. OwnerId={OwnerId}, ItemId={ItemId}, ItemName={ItemName}", nameof(NotifyDropItem), message.Drop.OwnerEntityId, message.Drop.Item.UniqueId, message.Drop.Item.Name);
-
             Send(message);
         }
 
@@ -379,8 +358,6 @@ namespace WOTRMultiplayer.Services
             {
                 UseItem = Mapper.Map<Networking.Messages.Contracts.NetworkUseInventoryItem>(useInventoryItem)
             };
-            Logger.LogInformation("Sending {MessageType}. UserUnitId={UserUnitId}, TargetUnitId={TargetUnitId}, ItemId={ItemId}, ItemName={ItemName}", nameof(NetworkUseInventoryItem), message.UseItem.UserUnitId, message.UseItem.Target?.UnitId, message.UseItem.Item.UniqueId, message.UseItem.Item.Name);
-
             Send(message);
         }
 
@@ -391,12 +368,10 @@ namespace WOTRMultiplayer.Services
                 return;
             }
 
-            Logger.LogInformation("Sending changed active hand equipment set. UnitId={UnitId}, SetIndex={SetIndex}", set.UnitId, set.Index);
             var message = new NotifyActiveHandEquipmentSetChanged
             {
                 Set = Mapper.Map<Networking.Messages.Contracts.NetworkActiveHandEquipmentSet>(set)
             };
-
             Send(message);
         }
 
@@ -411,8 +386,6 @@ namespace WOTRMultiplayer.Services
             {
                 Slot = Mapper.Map<Networking.Messages.Contracts.NetworkEquipmentSlot>(equipmentSlot)
             };
-            Logger.LogInformation("Sending changed equipment slot. SlotType={SlotType}, SlotIndex={SlotIndex}, ItemId={ItemId}, OwnerId={OwnerId}", message.Slot.Position.Type, message.Slot.Position.Index, message.Slot.Item?.UniqueId, message.Slot.OwnerId);
-
             Send(message);
         }
 
@@ -422,8 +395,6 @@ namespace WOTRMultiplayer.Services
             {
                 Overtip = Mapper.Map<Networking.Messages.Contracts.NetworkOvertip>(networkOvertip)
             };
-            Logger.LogInformation("Sending overtip interaction. MapObjectId={MapObjectId}, Units={Units}", message.Overtip.MapObject.Id, message.Overtip.Units);
-
             Send(message);
         }
 
@@ -525,7 +496,6 @@ namespace WOTRMultiplayer.Services
                 PlayerId = Game.LocalPlayerId,
                 Ping = Mapper.Map<Networking.Messages.Contracts.NetworkPing>(ping)
             };
-            Logger.LogInformation("Sending {MessageType}. Type={Type}, WorldPosition={WorldPosition}, TargetUnitId={TargetUnitId}, MapObjectId={MapObjectId}, MapObjectPosition={MapObjectPosition}", nameof(NotifyPingedByPlayer), ping.Type, ping.WorldPosition, ping.UnitId, ping.MapObject?.Id, ping.MapObject?.Position);
             Send(message);
 
             PingInteraction.Create(null, ping);
@@ -536,7 +506,6 @@ namespace WOTRMultiplayer.Services
         {
             var localPlayer = GetPlayer(Game.LocalPlayerId);
             var message = new NotifyCutsceneSkipped { PlayerId = localPlayer.Id };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyCutsceneSkipped), message.PlayerId);
             Send(message);
 
             PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.Cutscenes.Skipped.Key, args: localPlayer.Name);
@@ -562,8 +531,6 @@ namespace WOTRMultiplayer.Services
                 Content = content,
                 Seed = Game.LoadedSaveSeed,
             };
-            Logger.LogInformation("Sending {MessageType}. GameId={GameId}, SavePath={SavePath}, ContentSize={ContentSize}, LoadedSaveSeed={LoadedSaveSeed}", nameof(NotifyGameForceLoaded), message.GameId, Game.StartUp.SavePath, message.Content.Length, message.Seed);
-
             Send(message);
         }
 
@@ -584,7 +551,6 @@ namespace WOTRMultiplayer.Services
                 PlayerId = Game.LocalPlayerId,
                 State = Mapper.Map<Networking.Messages.Contracts.NetworkCombatState>(combatState),
             };
-            Logger.LogInformation("Sending {MessageType}. UnitsCount={UnitsCount}", nameof(NotifyCombatStarted), message.State.Units.Count);
             Send(message);
         }
 
@@ -614,8 +580,6 @@ namespace WOTRMultiplayer.Services
                 UnitId = unitId,
                 TargetUnitId = targetUnitId
             };
-            Logger.LogInformation("Sending {MessageType}. UnitId={Round}, TargetUnitId={TargetUnitId}", nameof(NotifyCombatTurnDelayed), message.UnitId, message.TargetUnitId);
-
             Send(message);
         }
 
@@ -662,7 +626,6 @@ namespace WOTRMultiplayer.Services
 
             if (Game.Combat.Turn.IsLocalPlayer)
             {
-                Logger.LogInformation("Ending player turn. Round={Round}, UnitId={UnitId}", Game.Combat.Round, Game.Combat.Turn.UnitId);
                 var message = new NotifyPlayerCombatTurnEnded { UnitId = Game.Combat.Turn.UnitId, PlayerId = Game.LocalPlayerId };
                 Send(message);
             }
@@ -680,8 +643,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (Game.Combat == null
-                    || Game.Combat.Stage == NetworkCombatStage.Preparing)
+                if (Game.Combat == null || Game.Combat.Stage == NetworkCombatStage.Preparing)
                 {
                     Logger.LogInformation("Unit is allowed to join combat at current stage. UnitId={UnitId}, Stage={Stage}", unitId, Game.Combat?.Stage);
                     return true;
@@ -703,7 +665,6 @@ namespace WOTRMultiplayer.Services
                 var isFirstJoinEvent = !ConfirmReadiness(PlayerTurnReadinessType.UnitJoinedMidCombat, Game.LocalPlayerId, unitId);
                 if (isFirstJoinEvent)
                 {
-                    Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}", nameof(NotifyUnitJoinedMidCombat), unitId);
                     var message = new NotifyUnitJoinedMidCombat { UnitId = unitId, PlayerId = Game.LocalPlayerId };
                     Send(message);
                 }
@@ -748,7 +709,6 @@ namespace WOTRMultiplayer.Services
             }
 
             var message = new NotifyGameModeTypeStarted { PlayerId = Game.LocalPlayerId, Type = type.Name };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, Type={Type}", nameof(NotifyGameModeTypeStarted), message.PlayerId, message.Type);
             Send(message);
         }
 
@@ -773,14 +733,12 @@ namespace WOTRMultiplayer.Services
             }
 
             var message = new NotifyGameModeTypeEnded { PlayerId = Game.LocalPlayerId, Type = type.Name };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, Type={Type}", nameof(NotifyGameModeTypeEnded), message.PlayerId, message.Type);
             Send(message);
         }
 
         public void OnCapitalModeRest()
         {
             var message = new NotifyCapitalModeRestInitiated();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyCapitalModeRestInitiated));
             Send(message);
         }
 
@@ -812,7 +770,6 @@ namespace WOTRMultiplayer.Services
             }
 
             var message = new NotifyRestEnded { PlayerId = Game.LocalPlayerId };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyRestEnded), message.PlayerId);
             Send(message);
         }
 
@@ -823,7 +780,6 @@ namespace WOTRMultiplayer.Services
                 Banter = Mapper.Map<Networking.Messages.Contracts.NetworkRestBanter>(networkBanter),
             };
 
-            Logger.LogInformation("Sending {MessageType}. SpeakerUnitId={SpeakerUnitId}, Key={Key}", nameof(NotifyRestBanterInterrupted), message.Banter.SpeakerUnitId, message.Banter.Key);
             Send(message);
         }
 
@@ -833,7 +789,6 @@ namespace WOTRMultiplayer.Services
             {
                 ItemTransfer = Mapper.Map<Networking.Messages.Contracts.NetworkVendorItemTransfer>(transfer)
             };
-            Logger.LogInformation("Sending {MessageType}. ItemId={ItemId}, Count={Count}, Action={Action}, ActionTarget={ActionTarget}", nameof(NetworkVendorItemTransfer), message.ItemTransfer.Item.UniqueId, message.ItemTransfer.Count, message.ItemTransfer.ItemAction, message.ItemTransfer.ItemActionTarget);
             Send(message);
         }
         public void OnMemorizeSpell(string unitId, NetworkSpellSlot networkSpellSlot, NetworkAbility networkAbility)
@@ -844,9 +799,6 @@ namespace WOTRMultiplayer.Services
                 Slot = Mapper.Map<Networking.Messages.Contracts.NetworkSpellSlot>(networkSpellSlot),
                 Ability = Mapper.Map<Networking.Messages.Contracts.NetworkAbility>(networkAbility),
             };
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, SpellbookId={SpellbookId}, SpellId={SpellId}, SpellLevel={SpellLevel}, SpellName={SpellName}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}",
-                nameof(NotifySpellMemorized), message.UnitId, message.Ability.SpellbookId, message.Ability.Id, message.Ability.SpellLevel, message.Ability.Name, message.Slot?.Index, message.Slot?.Type);
-
             Send(message);
         }
 
@@ -858,9 +810,6 @@ namespace WOTRMultiplayer.Services
                 Slot = Mapper.Map<Networking.Messages.Contracts.NetworkSpellSlot>(networkSpellSlot),
                 Ability = Mapper.Map<Networking.Messages.Contracts.NetworkAbility>(networkAbility),
             };
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, SpellbookId={SpellbookId}, SpellId={SpellId}, SpellLevel={SpellLevel}, SpellName={SpellName}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}",
-                nameof(NotifySpellForgotten), message.UnitId, message.Ability.SpellbookId, message.Ability.Id, message.Ability.SpellLevel, message.Ability.Name, message.Slot.Index, message.Slot.Type);
-
             Send(message);
         }
 
@@ -889,7 +838,6 @@ namespace WOTRMultiplayer.Services
             {
                 MythicClassId = mythicClassId
             };
-            Logger.LogInformation("Sending {MessageType}. MythicClassId={MythicClassId}", nameof(NotifyLevelingMythicClassSelected), mythicClassId);
             Send(message);
         }
 
@@ -904,7 +852,6 @@ namespace WOTRMultiplayer.Services
             {
                 Class = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingClass>(levelingClass)
             };
-            Logger.LogInformation("Sending {MessageType}. Id={Id}, Name={Name}", nameof(NotifyLevelingClassSelected), message.Class.Id, message.Class.Name);
             Send(message);
         }
 
@@ -919,7 +866,6 @@ namespace WOTRMultiplayer.Services
             {
                 Archetype = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingArchetype>(archetype)
             };
-            Logger.LogInformation("Sending {MessageType}. Id={Id}, Name={Name}", nameof(NotifyLevelingClassArchetypeSelected), message.Archetype?.Id, message.Archetype?.Name);
             Send(message);
         }
 
@@ -958,7 +904,6 @@ namespace WOTRMultiplayer.Services
                 Send(phaseChangedMessage);
                 Game.Leveling.PhaseIndex = phase.Index;
                 ResetPlayersTracker(Game.Leveling.PlayerReadiness);
-                Logger.LogInformation("Sending {MessageType}. Index={Index}", nameof(NotifyLevelingPhaseChanged), phaseChangedMessage.Phase.Index);
             }
 
             WitnessLevelingPhase(Game.LocalPlayerId);
@@ -967,7 +912,6 @@ namespace WOTRMultiplayer.Services
                 PlayerId = Game.LocalPlayerId,
                 Phase = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingPhase>(phase)
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, Index={Index}", nameof(NotifyLevelingPhaseWitnessed), message.PlayerId, message.Phase.Index);
             Send(message);
         }
 
@@ -987,7 +931,6 @@ namespace WOTRMultiplayer.Services
                 Send(phaseChangedMessage);
                 Game.StartUp.PhaseType = phase.Type;
                 ResetPlayersTracker(Game.StartUp.ReadyPlayers);
-                Logger.LogInformation("Sending {MessageType}. Type={Type}", nameof(NotifyNewGameSequencePhaseChanged), phaseChangedMessage.Phase.Type);
             }
 
             WitnessNewGameSequencePhase(Game.LocalPlayerId, phase.Type);
@@ -996,7 +939,6 @@ namespace WOTRMultiplayer.Services
                 PlayerId = Game.LocalPlayerId,
                 Phase = Mapper.Map<Networking.Messages.Contracts.NetworkNewGameSequencePhase>(phase)
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, Type={Type}", nameof(NotifyNewGameSequenceWitnessed), message.PlayerId, message.Phase.Type);
             Send(message);
         }
 
@@ -1011,7 +953,6 @@ namespace WOTRMultiplayer.Services
             {
                 Skill = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingSkillPoint>(skill)
             };
-            Logger.LogInformation("Sending {MessageType}. StatType={StatType}", nameof(NotifyLevelingSkillPointIncreased), message.Skill.StatType);
             Send(message);
         }
 
@@ -1026,7 +967,6 @@ namespace WOTRMultiplayer.Services
             {
                 Skill = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingSkillPoint>(skill)
             };
-            Logger.LogInformation("Sending {MessageType}. StatType={StatType}", nameof(NotifyLevelingSkillPointDecreased), message.Skill.StatType);
             Send(message);
         }
 
@@ -1041,7 +981,6 @@ namespace WOTRMultiplayer.Services
             {
                 AbilityScore = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingAbilityScore>(abilityScore)
             };
-            Logger.LogInformation("Sending {MessageType}. StatType={StatType}", nameof(NotifyLevelingAbilityScoreIncreased), message.AbilityScore.StatType);
             Send(message);
         }
 
@@ -1056,7 +995,6 @@ namespace WOTRMultiplayer.Services
             {
                 AbilityScore = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingAbilityScore>(abilityScore)
             };
-            Logger.LogInformation("Sending {MessageType}. StatType={StatType}", nameof(NotifyLevelingAbilityScoreDecreased), message.AbilityScore.StatType);
             Send(message);
         }
 
@@ -1071,7 +1009,6 @@ namespace WOTRMultiplayer.Services
             {
                 Portrait = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingPortrait>(levelingPortrait)
             };
-            Logger.LogInformation("Sending {MessageType}. Name={Name}, CustomId={CustomId}, Category={Category}", nameof(NotifyLevelingPortraitSelected), message.Portrait.Name, message.Portrait.CustomId, message.Portrait.Category);
             Send(message);
         }
 
@@ -1086,7 +1023,6 @@ namespace WOTRMultiplayer.Services
             {
                 Voice = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingVoice>(levelingVoice)
             };
-            Logger.LogInformation("Sending {MessageType}. Id={Id}, GenderId={GenderId}", nameof(NotifyLevelingVoiceSelected), message.Voice.Id, message.Voice.GenderId);
             Send(message);
         }
 
@@ -1101,7 +1037,6 @@ namespace WOTRMultiplayer.Services
             {
                 RaceId = raceId
             };
-            Logger.LogInformation("Sending {MessageType}. RaceId={RaceId}", nameof(NotifyLevelingRaceSelected), message.RaceId);
             Send(message);
         }
 
@@ -1116,7 +1051,6 @@ namespace WOTRMultiplayer.Services
             {
                 GenderId = genderId
             };
-            Logger.LogInformation("Sending {MessageType}. GenderId={GenderId}", nameof(NotifyLevelingGenderSelected), message.GenderId);
             Send(message);
         }
 
@@ -1131,7 +1065,6 @@ namespace WOTRMultiplayer.Services
             {
                 AlignmentId = alignmentId
             };
-            Logger.LogInformation("Sending {MessageType}. AlignmentId={AlignmentId}", nameof(NotifyLevelingAlignmentSelected), message.AlignmentId);
             Send(message);
         }
 
@@ -1146,7 +1079,6 @@ namespace WOTRMultiplayer.Services
             {
                 Name = name
             };
-            Logger.LogInformation("Sending {MessageType}. Name={Name}", nameof(NotifyLevelingNameChanged), message.Name);
             Send(message);
         }
 
@@ -1161,7 +1093,6 @@ namespace WOTRMultiplayer.Services
             {
                 Direction = direction.ToString()
             };
-            Logger.LogInformation("Sending {MessageType}. Direction={Direction}", nameof(NotifyLevelingRacialAbilityScoreBonusChanged), message.Direction);
             Send(message);
         }
 
@@ -1176,7 +1107,6 @@ namespace WOTRMultiplayer.Services
             {
                 Direction = direction.ToString()
             };
-            Logger.LogInformation("Sending {MessageType}. Direction={Direction}", nameof(NotifyLevelingBirthMonthChanged), message.Direction);
             Send(message);
         }
 
@@ -1191,7 +1121,6 @@ namespace WOTRMultiplayer.Services
             {
                 Direction = direction.ToString()
             };
-            Logger.LogInformation("Sending {MessageType}. Direction={Direction}", nameof(NotifyLevelingBirthDayChanged), message.Direction);
             Send(message);
         }
 
@@ -1206,7 +1135,6 @@ namespace WOTRMultiplayer.Services
             {
                 Index = index
             };
-            Logger.LogInformation("Sending {MessageType}. Index={Index}", nameof(NotifyLevelingBodyTypeAppearanceChanged), message.Index);
             Send(message);
         }
 
@@ -1221,7 +1149,6 @@ namespace WOTRMultiplayer.Services
             {
                 Index = index
             };
-            Logger.LogInformation("Sending {MessageType}. Index={Index}", nameof(NotifyLevelingFaceAppearanceChanged), message.Index);
             Send(message);
         }
 
@@ -1236,7 +1163,6 @@ namespace WOTRMultiplayer.Services
             {
                 Index = index
             };
-            Logger.LogInformation("Sending {MessageType}. Index={Index}", nameof(NotifyLevelingScarAppearanceChanged), message.Index);
             Send(message);
         }
 
@@ -1251,7 +1177,6 @@ namespace WOTRMultiplayer.Services
             {
                 Index = index
             };
-            Logger.LogInformation("Sending {MessageType}. Index={Index}", nameof(NotifyLevelingHairStyleAppearanceChanged), message.Index);
             Send(message);
         }
 
@@ -1266,7 +1191,6 @@ namespace WOTRMultiplayer.Services
             {
                 Index = index
             };
-            Logger.LogInformation("Sending {MessageType}. Index={Index}", nameof(NotifyLevelingHornsAppearanceChanged), message.Index);
             Send(message);
         }
 
@@ -1281,7 +1205,6 @@ namespace WOTRMultiplayer.Services
             {
                 Warpaint = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingWarpaint>(levelingWarpaint)
             };
-            Logger.LogInformation("Sending {MessageType}. Index={Index}, PageNumber={PageNumber}", nameof(NotifyLevelingWarpaintAppearanceChanged), message.Warpaint.Index, message.Warpaint.PageNumber);
             Send(message);
         }
 
@@ -1296,7 +1219,6 @@ namespace WOTRMultiplayer.Services
             {
                 Tattoo = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingTattoo>(levelingTattoo)
             };
-            Logger.LogInformation("Sending {MessageType}. Index={Index}, PageNumber={PageNumber}", nameof(NotifyLevelingTattooAppearanceChanged), message.Tattoo.Index, message.Tattoo.PageNumber);
             Send(message);
         }
 
@@ -1311,7 +1233,6 @@ namespace WOTRMultiplayer.Services
             {
                 TextureName = textureName
             };
-            Logger.LogInformation("Sending {MessageType}. TextureName={TextureName}", nameof(NotifyLevelingBodyColorAppearanceChanged), message.TextureName);
             Send(message);
         }
 
@@ -1326,7 +1247,6 @@ namespace WOTRMultiplayer.Services
             {
                 TextureName = textureName
             };
-            Logger.LogInformation("Sending {MessageType}. TextureName={TextureName}", nameof(NotifyLevelingEyesColorAppearanceChanged), message.TextureName);
             Send(message);
         }
 
@@ -1341,7 +1261,6 @@ namespace WOTRMultiplayer.Services
             {
                 TextureName = textureName
             };
-            Logger.LogInformation("Sending {MessageType}. TextureName={TextureName}", nameof(NotifyLevelingHairColorAppearanceChanged), message.TextureName);
             Send(message);
         }
 
@@ -1356,7 +1275,6 @@ namespace WOTRMultiplayer.Services
             {
                 TextureName = textureName
             };
-            Logger.LogInformation("Sending {MessageType}. TextureName={TextureName}", nameof(NotifyLevelingHornsColorAppearanceChanged), message.TextureName);
             Send(message);
         }
 
@@ -1371,7 +1289,6 @@ namespace WOTRMultiplayer.Services
             {
                 Warpaint = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingWarpaint>(levelingWarpaint)
             };
-            Logger.LogInformation("Sending {MessageType}. TextureName={TextureName}, PageNumber={PageNumber}", nameof(NotifyLevelingWarpaintColorAppearanceChanged), message.Warpaint.TextureName, message.Warpaint.PageNumber);
             Send(message);
         }
 
@@ -1386,7 +1303,6 @@ namespace WOTRMultiplayer.Services
             {
                 Tattoo = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingTattoo>(levelingTattoo)
             };
-            Logger.LogInformation("Sending {MessageType}. TextureName={TextureName}, PageNumber={PageNumber}", nameof(NotifyLevelingTattooColorAppearanceChanged), message.Tattoo.TextureName, message.Tattoo.PageNumber);
             Send(message);
         }
 
@@ -1401,7 +1317,6 @@ namespace WOTRMultiplayer.Services
             {
                 TextureName = textureName
             };
-            Logger.LogInformation("Sending {MessageType}. TextureName={TextureName}", nameof(NotifyLevelingPrimaryOutfitColorAppearanceChanged), message.TextureName);
             Send(message);
         }
 
@@ -1416,7 +1331,6 @@ namespace WOTRMultiplayer.Services
             {
                 TextureName = textureName
             };
-            Logger.LogInformation("Sending {MessageType}. TextureName={TextureName}", nameof(NotifyLevelingSecondaryOutfitColorAppearanceChanged), message.TextureName);
             Send(message);
         }
 
@@ -1424,7 +1338,6 @@ namespace WOTRMultiplayer.Services
         {
             ResetPlayersTracker(Game.PlayersInRespecWindow);
             var message = new NotifyLevelingRespecCompleted();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyLevelingRespecCompleted));
             Send(message);
         }
 
@@ -1439,8 +1352,6 @@ namespace WOTRMultiplayer.Services
                 PlayerId = Game.LocalPlayerId,
                 UnitId = unitId
             };
-
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, UnitId={UnitId}", nameof(NotifyLevelingRespecWindowShown), message.PlayerId, message.UnitId);
             Send(message);
         }
 
@@ -1452,7 +1363,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyLevelingRespecLevelUp), message.PlayerId);
             Send(message);
         }
 
@@ -1464,7 +1374,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyLevelingRespecMythicLevelUp), message.PlayerId);
             Send(message);
         }
 
@@ -1479,7 +1388,6 @@ namespace WOTRMultiplayer.Services
             {
                 Feature = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingFeature>(feature)
             };
-            Logger.LogInformation("Sending {MessageType}. FeatureName={FeatureName}, Id={Id}", nameof(NotifyLevelingFeatureSelected), message.Feature.Name, message.Feature.Id);
             Send(message);
         }
 
@@ -1494,7 +1402,6 @@ namespace WOTRMultiplayer.Services
             {
                 Spell = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingSpell>(spell)
             };
-            Logger.LogInformation("Sending {MessageType}. SpellName={SpellName}, SpellId={SpellId}", nameof(NotifyLevelingSpellRemoved), message.Spell.Name, message.Spell.Id);
             Send(message);
         }
 
@@ -1509,7 +1416,6 @@ namespace WOTRMultiplayer.Services
             {
                 Spell = Mapper.Map<Networking.Messages.Contracts.NetworkLevelingSpell>(spell)
             };
-            Logger.LogInformation("Sending {MessageType}. SpellName={SpellName}, SpellId={SpellId}", nameof(NotifyLevelingSpellChosen), message.Spell.Name, message.Spell.Id);
             Send(message);
         }
 
@@ -1520,7 +1426,6 @@ namespace WOTRMultiplayer.Services
             if (CanMakeLevelingDecisions())
             {
                 var message = new NotifyLevelingTerminated();
-                Logger.LogInformation("Sending {MessageType}", nameof(NotifyLevelingTerminated));
                 Send(message);
             }
 
@@ -1553,7 +1458,6 @@ namespace WOTRMultiplayer.Services
             if (CanMakeLevelingDecisions())
             {
                 var message = new NotifyLevelingCompleted();
-                Logger.LogInformation("Sending {MessageType}", nameof(NotifyLevelingCompleted));
                 Send(message);
             }
 
@@ -1583,8 +1487,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyCharacterSelectionWindowShown), message.PlayerId);
             Send(message);
         }
 
@@ -1599,8 +1501,6 @@ namespace WOTRMultiplayer.Services
             {
                 Move = Mapper.Map<Networking.Messages.Contracts.NetworkCharacterMove>(move)
             };
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, Destination={Destination}, Delay={Delay}, Orientation={Orientation}", nameof(NotifyCharacterMove), message.Move.UnitId, message.Move.Destination, message.Move.Delay, message.Move.Orientation);
-
             Send(message);
         }
 
@@ -1616,10 +1516,6 @@ namespace WOTRMultiplayer.Services
                 SourceActionBarSlot = Mapper.Map<Networking.Messages.Contracts.NetworkActionBarSlot>(sourceActionBarSlot),
                 TargetActionBarSlot = Mapper.Map<Networking.Messages.Contracts.NetworkActionBarSlot>(targetActionBarSlot),
             };
-
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, SourceSlotIndex={SourceSlotIndex}, SourceSlotAbilityId={SourceSlotAbilityId}, SourceSlotActivatableAbilityId={SourceSlotActivatableAbilityId}, SourceSlotItemId={SourceSlotItemId}, TargetSlotIndex={TargetSlotIndex}, TargetSlotAbilityId={TargetSlotAbilityId}, TargetSlotActivatableAbilityId={TargetSlotActivatableAbilityId}, TargetSlotItemId={TargetSlotItemId}",
-                nameof(NotifyActionBarSlotMoved), sourceActionBarSlot.UnitId, sourceActionBarSlot.Index, sourceActionBarSlot.Ability?.Id, sourceActionBarSlot.ActivatableAbility?.Id, sourceActionBarSlot.Item?.UniqueId, targetActionBarSlot.Index, targetActionBarSlot.Ability?.Id, targetActionBarSlot.ActivatableAbility?.Id, targetActionBarSlot.Item?.UniqueId);
-
             Send(message);
         }
 
@@ -1634,8 +1530,6 @@ namespace WOTRMultiplayer.Services
             {
                 ActionBarSlot = Mapper.Map<Networking.Messages.Contracts.NetworkActionBarSlot>(actionBarSlot)
             };
-            Logger.LogInformation("Sending {MessageType}. SlotIndex={SlotIndex}, UnitId={UnitId}", nameof(NetworkActionBarSlot), message.ActionBarSlot.Index, message.ActionBarSlot.UnitId);
-
             Send(message);
         }
 
@@ -1645,7 +1539,6 @@ namespace WOTRMultiplayer.Services
             {
                 LockpickInteraction = Mapper.Map<Networking.Messages.Contracts.NetworkLockpickInteraction>(lockpickInteraction)
             };
-            Logger.LogInformation("Sending {MessageType}. MapObjectId={MapObjectId}, MapObjectPosition={MapObjectPosition}, Units={Units}", nameof(NotifyMapObjectLockpicked), message.LockpickInteraction.MapObject.Id, message.LockpickInteraction.MapObject.Position, message.LockpickInteraction.Units);
             Send(message);
         }
 
@@ -1657,7 +1550,6 @@ namespace WOTRMultiplayer.Services
                 IsEnabled = isEnabled,
                 IsForced = isForced
             };
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, IsEnabled={IsEnabled}, IsForced={IsForced}", nameof(NotifyUnitStealthChanged), message.UnitId, message.IsEnabled, message.IsForced);
             Send(message);
         }
 
@@ -1669,7 +1561,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapLocationMessageShown), message.PlayerId);
             Send(message);
 
             UpdateGlobalMapLocationMessageUIState();
@@ -1683,7 +1574,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGroupChangerOpened), message.PlayerId);
             Send(message);
 
             UpdateGroupManagerUIState();
@@ -1697,7 +1587,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifySkipTimeOpened), message.PlayerId);
             Send(message);
 
             UpdateSkipTimeUIState();
@@ -1712,7 +1601,6 @@ namespace WOTRMultiplayer.Services
                 PlayerId = Game.LocalPlayerId,
                 Popup = Mapper.Map<Networking.Messages.Contracts.NetworkDialogPopup>(networkDialogPopup)
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, AreaName={AreaName}, DialogName={DialogName}, CueName={CueName}", nameof(NotifyDialogPopupShown), message.PlayerId, message.Popup.AreaName, message.Popup.DialogName, message.Popup.CueName);
             Send(message);
 
             UpdateDialogPopupState();
@@ -1727,7 +1615,6 @@ namespace WOTRMultiplayer.Services
                 PlayerId = Game.LocalPlayerId,
                 Popup = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapCommonPopup>(globalMapCommonPopup)
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, Type={Type}, LocationId={LocationId}, LocationName={LocationName}", nameof(NotifyGlobalMapCommonPopupShown), message.PlayerId, message.Popup.Type, message.Popup.Location?.Id, message.Popup.Location?.Name);
             Send(message);
 
             UpdateGlobalMapCommonPopupUIState(globalMapCommonPopup);
@@ -1741,7 +1628,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapEncounterMessageShown), message.PlayerId);
             Send(message);
 
             UpdateGlobalMapEncounterMessageUIState();
@@ -1768,7 +1654,6 @@ namespace WOTRMultiplayer.Services
                 TravelerMode = travelerMode.ToString(),
                 MustBeEnforced = HasControlOverUI
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, TravelerMode={TravelerMode}, MustBeEnforced={MustBeEnforced}", nameof(NotifyGlobalMapTravelerModeChanged), message.PlayerId, message.TravelerMode, message.MustBeEnforced);
             Send(message);
 
             UpdateGlobalMapUIState();
@@ -1786,7 +1671,6 @@ namespace WOTRMultiplayer.Services
                 PlayerId = Game.LocalPlayerId,
                 UnitId = unitId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, UnitId={UnitId}", nameof(NotifyCombatUnitKilled), message.PlayerId, message.UnitId);
             Send(message);
         }
 
@@ -1796,7 +1680,6 @@ namespace WOTRMultiplayer.Services
             {
                 TrapDisarm = Mapper.Map<Networking.Messages.Contracts.NetworkTrapDisarm>(trapDisarm)
             };
-            Logger.LogInformation("Sending {MessageType}. TrapId={TrapId}, Position={Position}, Roll={Roll}, IsSuccess={IsSuccess}, UnitId={UnitId}", nameof(NotifyTrapDisarmRolled), message.TrapDisarm.MapObject.Id, message.TrapDisarm.MapObject.Position, message.TrapDisarm.Roll, message.TrapDisarm.IsSuccess, message.TrapDisarm.UnitId);
             Send(message);
         }
 
@@ -1811,7 +1694,6 @@ namespace WOTRMultiplayer.Services
             {
                 AutoUse = Mapper.Map<Networking.Messages.Contracts.NetworkAutoUseAbility>(networkAutoUseAbility)
             };
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}", nameof(NotifyUnitAutoUseAbilityChanged), message.AutoUse.UnitId, message.AutoUse.Ability?.Id, message.AutoUse.Ability?.Name);
             Send(message);
         }
 
@@ -1826,7 +1708,6 @@ namespace WOTRMultiplayer.Services
             {
                 Movement = Mapper.Map<Networking.Messages.Contracts.NetworkUnitMoveTo>(unitMoveTo)
             };
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}", nameof(NetworkUnitMoveTo), message.Movement.InitiatorUnitId);
             Send(message);
         }
 
@@ -1836,7 +1717,6 @@ namespace WOTRMultiplayer.Services
             {
                 Copy = Mapper.Map<Networking.Messages.Contracts.NetworkItemCopy>(itemCopy)
             };
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, ItemName={ItemName}", nameof(NotifyInventoryItemCopied), message.Copy.UnitId, message.Copy.Item.Name);
             Send(message);
         }
 
@@ -1853,7 +1733,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyZoneLootShown), message.PlayerId);
             Send(message);
 
             UpdateZoneLootUIState();
@@ -1867,7 +1746,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyZoneLootClosed), message.PlayerId);
             Send(message);
         }
 
@@ -1885,7 +1763,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyCrusadeArmyBattleResultsShown), message.PlayerId);
             Send(message);
 
             UpdateGlobalMapCrusadeArmyBattleResultsUIState();
@@ -1899,7 +1776,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapCombatResultsShown), message.PlayerId);
             Send(message);
 
             UpdateGlobalMapCombatResultsUIState();
@@ -1913,7 +1789,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyInfoShown), message.PlayerId);
             Send(message);
 
             UpdateGlobalMapCrusadeArmyInfoUIState();
@@ -1927,7 +1802,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyMergeCartClosed), message.PlayerId);
             Send(message);
 
             UpdateGlobalMapCrusadeArmyInfoUIStateAfterMerge();
@@ -1941,7 +1815,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyMergeCartShown), message.PlayerId);
             Send(message);
 
             UpdateGlobalMapCrusadeArmyInfoUIStateOnMerge();
@@ -1955,7 +1828,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmySetLeaderShown), message.PlayerId);
             Send(message);
 
             UpdateGlobalMapCrusadeArmyInfoUIStateOnSetLeader();
@@ -1969,7 +1841,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmySetLeaderClosed), message.PlayerId);
             Send(message);
 
             UpdateGlobalMapCrusadeArmyInfoUIStateAfterSetLeader();
@@ -1983,7 +1854,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyBuyLeaderShown), message.PlayerId);
             Send(message);
 
             UpdateGlobalMapCrusadeArmyBuyLeaderUIState();
@@ -2018,7 +1888,6 @@ namespace WOTRMultiplayer.Services
                         PlayerId = Game.LocalPlayerId,
                         Pause = Mapper.Map<Networking.Messages.Contracts.NetworkForcedPause>(Game.ForcedPause)
                     };
-                    Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, Reason={Reason}, Delay={Delay}", nameof(NotifyGamePauseStarted), pauseStarted.PlayerId, pauseStarted.Pause.Reason, pauseStarted.Pause.RemovalDelay);
                     Send(pauseStarted);
                     return true;
                 }
@@ -2035,7 +1904,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyBuyLeaderClosed), message.PlayerId);
             Send(message);
 
             UpdateGlobalMapCrusadeArmyInfoUIStateAfterBuyLeader();
@@ -2049,7 +1917,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapRecruitmentShown), message.PlayerId);
             Send(message);
 
             UpdateGlobalMapRecruitmentUIState();
@@ -2063,7 +1930,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapRecruitmentClosed), message.PlayerId);
             Send(message);
         }
 
@@ -2078,7 +1944,6 @@ namespace WOTRMultiplayer.Services
             {
                 Army = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapArmy>(globalMapArmy)
             };
-            Logger.LogInformation("Sending {MessageType}. ArmyId={ArmyId}", nameof(NotifyGlobalMapCrusadeArmyLeaderLevelingStarted), message.Army.Id);
             Send(message);
         }
 
@@ -2087,7 +1952,6 @@ namespace WOTRMultiplayer.Services
             AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyLeaderLeveling, Game.LocalPlayerId);
 
             var message = new NotifyGlobalMapCrusadeArmyLeaderLevelingShown();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyLeaderLevelingShown));
             Send(message);
 
             UpdateGlobalMapCrusadeArmyLeaderLevelingUIState();
@@ -2115,7 +1979,6 @@ namespace WOTRMultiplayer.Services
                     PlayerId = playerId,
                     TurnNumber = turnNumber
                 };
-                Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, TurnNumber={TurnNumber}", nameof(NotifyTacticalCombatTurnInitialized), message.PlayerId, message.TurnNumber);
                 Send(message);
             }
 
@@ -2135,14 +1998,12 @@ namespace WOTRMultiplayer.Services
             {
                 EntryPoint = Mapper.Map<Networking.Messages.Contracts.NetworkKingdomEntryPoint>(kingdomEntryPoint)
             };
-            Logger.LogInformation("Sending {MessageType}. EntryPointId={EntryPointId}, SettlementId={SettlementId}, SettlementName={SettlementName}", nameof(NotifyKingdomEntered), message.EntryPoint.Id, message.EntryPoint.Settlement?.Id, message.EntryPoint.Settlement?.Name);
             Send(message);
         }
 
         public void OnExitKingdom()
         {
             var message = new NotifyKingdomExited();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyKingdomExited));
             Send(message);
         }
 
@@ -2153,7 +2014,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyKingdomLoaded), message.PlayerId);
             Send(message);
             UpdateGlobalMapKingdomUIState();
         }
@@ -2164,7 +2024,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyKingdomUnloaded), message.PlayerId);
             Send(message);
             ResetPlayersTracker(Game.PlayersInGlobalMapKingdom);
         }
@@ -2933,10 +2792,6 @@ namespace WOTRMultiplayer.Services
                     RollValue = Mapper.Map<Networking.Messages.Contracts.NetworkRollValue>(roll),
                     PlayerId = request.PlayerId
                 };
-
-                Logger.LogInformation("Sending roll value response. RollId={RollId}, RollType={RollType}, Result={Result}, DamageValuesCount={DamageValuesCount}, RollHistoryCount={RollHistoryCount}, PlayerId={PlayerId}",
-                    response.RollId, roll?.GetType().Name, response.RollValue?.Result, response.RollValue?.DamageValues.Count, response.RollValue?.RollHistory.Count, response.PlayerId);
-
                 Send(playerId, response);
             }
             catch (Exception ex)
@@ -3242,7 +3097,6 @@ namespace WOTRMultiplayer.Services
                     if (CanMakeNewGameSequenceDecisions())
                     {
                         var message = new NotifyNewGameSequenceTerminated();
-                        Logger.LogInformation("Sending {MessageType}", nameof(NotifyNewGameSequenceTerminated));
                         Send(message);
                     }
 
@@ -3259,7 +3113,6 @@ namespace WOTRMultiplayer.Services
                     if (CanMakeNewGameSequenceDecisions())
                     {
                         var message = new NotifyNewGameSequenceLevelingStarted();
-                        Logger.LogInformation("Sending {MessageType}", nameof(NotifyNewGameSequenceLevelingStarted));
                         Send(message);
                     }
                 },
@@ -3434,22 +3287,18 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyKingdomUnloaded(long receivedFrom, NotifyKingdomUnloaded message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}", nameof(NotifyKingdomUnloaded), receivedFrom);
             RemovePlayerFromTracker(Game.PlayersInGlobalMapKingdom, message.PlayerId);
             UpdateGlobalMapUIState();
         }
 
         private void OnNotifyKingdomLoaded(long receivedFrom, NotifyKingdomLoaded message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}", nameof(NotifyKingdomLoaded), receivedFrom);
-
             AddPlayerToTracker(Game.PlayersInGlobalMapKingdom, message.PlayerId);
             UpdateGlobalMapKingdomUIState();
         }
 
         private void OnNotifyKingdomExited(long receivedFrom, NotifyKingdomExited message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}", nameof(NotifyKingdomExited), receivedFrom);
             ResetPlayersTracker(Game.PlayersInGlobalMapKingdom);
             ResetGlobalMapCounters();
 
@@ -3458,8 +3307,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyKingdomEntered(long receivedFrom, NotifyKingdomEntered message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, EntryPointId={EntryPointId}, SettlementId={SettlementId}, SettlementName={SettlementName}", nameof(NotifyKingdomEntered), receivedFrom, message.EntryPoint.Id, message.EntryPoint.Settlement?.Id, message.EntryPoint.Settlement?.Name);
-
             var entryPoint = Mapper.Map<NetworkKingdomEntryPoint>(message.EntryPoint);
             ResetGlobalMapCounters();
 
@@ -3468,8 +3315,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyUnitMovedTo(long receivedFrom, NotifyUnitMovedTo message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitId={UnitId}", nameof(NotifyUnitMovedTo), receivedFrom, message.Movement.InitiatorUnitId);
-
             var unitMoveTo = Mapper.Map<NetworkUnitMoveTo>(message.Movement);
 
             CombatInteraction.MoveUnit(unitMoveTo);
@@ -3479,8 +3324,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyInventoryItemCopied(long receivedFrom, NotifyInventoryItemCopied message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitId={UnitId}, ItemName={ItemName}", nameof(NotifyInventoryItemCopied), receivedFrom, message.Copy.UnitId, message.Copy.Item.Name);
-
             var itemCopy = Mapper.Map<NetworkItemCopy>(message.Copy);
             GameInteraction.CopyInventoryItem(itemCopy);
 
@@ -3489,8 +3332,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyUnitAutoUseAbilityChanged(long receivedFrom, NotifyUnitAutoUseAbilityChanged message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}", nameof(NotifyUnitAutoUseAbilityChanged), receivedFrom, message.AutoUse.UnitId, message.AutoUse.Ability?.Id, message.AutoUse.Ability?.Name);
-
             var autoUseAbility = Mapper.Map<NetworkAutoUseAbility>(message.AutoUse);
             GameInteraction.SetUnitAutoUseAbility(autoUseAbility);
 
@@ -3499,8 +3340,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGamePauseStarted(long receivedFrom, NotifyGamePauseStarted message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, Reason={Reason}, RemovalDelay={RemovalDelay}", nameof(NotifyGamePauseStarted), receivedFrom, message.PlayerId, message.Pause.Reason, message.Pause.RemovalDelay);
-
             var pause = Mapper.Map<NetworkForcedPause>(message.Pause);
             EnsureForcePaused(pause.Reason, pause.RemovalDelay);
             GameInteraction.SetPause(true);
@@ -3510,9 +3349,6 @@ namespace WOTRMultiplayer.Services
 
         private async void OnNotifyTrapDisarmRolled(long receivedFrom, NotifyTrapDisarmRolled message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, TrapId={TrapId}, Position={Position}, Roll={Roll}, IsSuccess={IsSuccess}, UnitId={UnitId}",
-                nameof(NotifyTrapDisarmRolled), receivedFrom, message.TrapDisarm.MapObject.Id, message.TrapDisarm.MapObject.Position, message.TrapDisarm.Roll, message.TrapDisarm.IsSuccess, message.TrapDisarm.UnitId);
-
             OnAfterNetworkMessageHandled(receivedFrom, message);
 
             await WaitWhileTrue(() => GameInteraction.IsUnitBusy(message.TrapDisarm.UnitId), "Waiting for unit to finish actions before applying trap disarm roll");
@@ -3523,8 +3359,6 @@ namespace WOTRMultiplayer.Services
 
         private async void OnNotifyCombatUnitKilled(long receivedFrom, NotifyCombatUnitKilled combatUnitKilled)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, UnitId={UnitId}", nameof(NotifyCombatUnitKilled), receivedFrom, combatUnitKilled.PlayerId, combatUnitKilled.UnitId);
-
             OnAfterNetworkMessageHandled(receivedFrom, combatUnitKilled);
 
             if (Game.Combat == null)
@@ -3546,8 +3380,6 @@ namespace WOTRMultiplayer.Services
 
         private async void OnNotifyCombatStarted(long receivedFrom, NotifyCombatStarted combatStarted)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, UnitsCount={UnitsCount}", nameof(NotifyCombatStarted), receivedFrom, combatStarted.PlayerId, combatStarted.State.Units.Count);
-
             OnAfterNetworkMessageHandled(receivedFrom, combatStarted);
 
             if (Game.Combat != null)
@@ -3583,8 +3415,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyCapitalModeRestInitiated(long receivedFrom, NotifyCapitalModeRestInitiated message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyCapitalModeRestInitiated), receivedFrom);
-
             GameInteraction.InitiateRest();
 
             OnAfterNetworkMessageHandled(receivedFrom, message);
@@ -3593,8 +3423,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapCrusadeArmyLeaderLevelingStarted(long receivedFrom, NotifyGlobalMapCrusadeArmyLeaderLevelingStarted message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, ArmyId={ArmyId}", nameof(NotifyGlobalMapCrusadeArmyLeaderLevelingStarted), receivedFrom, message.Army.Id);
-
             var army = Mapper.Map<NetworkGlobalMapArmy>(message.Army);
             GlobalMapInteraction.StartCrusadeArmyLeaderLeveling(army);
 
@@ -3603,7 +3431,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapCrusadeArmyLeaderLevelingShown(long receivedFrom, NotifyGlobalMapCrusadeArmyLeaderLevelingShown message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyLeaderLevelingShown), receivedFrom, message.PlayerId);
             AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyLeaderLeveling, message.PlayerId);
 
             UpdateGlobalMapCrusadeArmyLeaderLevelingUIState();
@@ -3613,7 +3440,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapCrusadeArmyBuyLeaderShown(long receivedFrom, NotifyGlobalMapCrusadeArmyBuyLeaderShown globalMapCrusadeArmyBuyLeaderShown)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyMergeCartShown), receivedFrom, globalMapCrusadeArmyBuyLeaderShown.PlayerId);
             AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyBuyLeader, globalMapCrusadeArmyBuyLeaderShown.PlayerId);
 
             UpdateGlobalMapCrusadeArmyBuyLeaderUIState();
@@ -3623,7 +3449,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapCrusadeArmySetLeaderShown(long receivedFrom, NotifyGlobalMapCrusadeArmySetLeaderShown globalMapCrusadeArmyInfoSetLeaderShown)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyMergeCartShown), receivedFrom, globalMapCrusadeArmyInfoSetLeaderShown.PlayerId);
             AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmySetLeader, globalMapCrusadeArmyInfoSetLeaderShown.PlayerId);
             UpdateGlobalMapCrusadeArmyInfoUIStateOnSetLeader();
 
@@ -3632,7 +3457,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapCrusadeArmyInfoMergeShown(long receivedFrom, NotifyGlobalMapCrusadeArmyMergeCartShown globalMapCrusadeArmyInfoMergeShown)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapCrusadeArmyMergeCartShown), receivedFrom, globalMapCrusadeArmyInfoMergeShown.PlayerId);
             AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyInfoMerge, globalMapCrusadeArmyInfoMergeShown.PlayerId);
             UpdateGlobalMapCrusadeArmyInfoUIStateOnMerge();
 
@@ -3641,7 +3465,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapCombatResultsShown(long receivedFrom, NotifyGlobalMapCombatResultsShown globalMapCombatResultsShown)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapCombatResultsShown), receivedFrom, globalMapCombatResultsShown.PlayerId);
             AddPlayerToTracker(Game.PlayersInGlobalMapCombatResults, globalMapCombatResultsShown.PlayerId);
 
             UpdateGlobalMapCombatResultsUIState();
@@ -3651,7 +3474,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyCrusadeArmyBattleResultsShown(long receivedFrom, NotifyCrusadeArmyBattleResultsShown crusadeArmyBattleResultsShown)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyCrusadeArmyBattleResultsShown), receivedFrom, crusadeArmyBattleResultsShown.PlayerId);
             AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyBattleResults, crusadeArmyBattleResultsShown.PlayerId);
 
             UpdateGlobalMapCrusadeArmyBattleResultsUIState();
@@ -3661,8 +3483,6 @@ namespace WOTRMultiplayer.Services
 
         private async void OnNotifyTacticalCombatTurnInitialized(long receivedFrom, NotifyTacticalCombatTurnInitialized message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, TurnNumber={TurnNumber}", nameof(NotifyTacticalCombatTurnInitialized), receivedFrom, message.PlayerId, message.TurnNumber);
-
             await WaitWhileTrue(() => Game.ArmyCombat == null || Game.ArmyCombat.Seed == 0 || !CombatInteraction.IsInCrusadeTacticalCombat(), "Crusade army combat has not been started yet");
 
             AddPlayerCrusadeArmyCombatTurnInitialization(message.TurnNumber, message.PlayerId);
@@ -3672,7 +3492,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyPlayerReadyStatusChanged(long receivedFrom, NotifyPlayerReadyStatusChanged readyStatusChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, IsReady={IsReady}", nameof(NotifyPlayerReadyStatusChanged), receivedFrom, readyStatusChanged.PlayerId, readyStatusChanged.IsReady);
             UpdateReadyStatus(readyStatusChanged.PlayerId, readyStatusChanged.IsReady);
 
             OnAfterNetworkMessageHandled(receivedFrom, readyStatusChanged);
@@ -3680,8 +3499,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyCutsceneSkipped(long playerId, NotifyCutsceneSkipped cutsceneSkipped)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}", nameof(NotifyCutsceneSkipped), cutsceneSkipped.PlayerId);
-
             var player = GetPlayer(cutsceneSkipped.PlayerId);
             if (player != null)
             {
@@ -3693,9 +3510,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyPingedByPlayer(long receivedFrom, NotifyPingedByPlayer pingedAt)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, Type={Type}, WorldPosition={WorldPosition}, TargetUnitId={TargetUnitId}, MapObjectId={MapObjectId}, MapObjectPosition={MapObjectPosition}",
-                nameof(NotifyPingedByPlayer), receivedFrom, pingedAt.PlayerId, pingedAt.Ping.Type, pingedAt.Ping.WorldPosition, pingedAt.Ping.UnitId, pingedAt.Ping.MapObject?.Id, pingedAt.Ping.MapObject?.Position);
-
             var ping = Mapper.Map<NetworkPing>(pingedAt.Ping);
 
             var player = GetPlayer(pingedAt.PlayerId);
@@ -3711,7 +3525,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyRestEnded(long receivedFrom, NotifyRestEnded restEnded)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyRestEnded), receivedFrom, restEnded.PlayerId);
             AddPlayerToTracker(Game.Rest.PlayersFinishedRest, restEnded.PlayerId);
 
             UpdateRestResultsUIState();
@@ -3721,7 +3534,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGameModeTypeEnded(long receivedFrom, NotifyGameModeTypeEnded gameModeTypeEnded)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, Type={Type}", nameof(NotifyGameModeTypeEnded), receivedFrom, gameModeTypeEnded.PlayerId, gameModeTypeEnded.Type);
             var gameMode = GameModeType.All.FirstOrDefault(g => string.Equals(g.Name, gameModeTypeEnded.Type, StringComparison.OrdinalIgnoreCase));
             UnregisterGameMode(gameMode, gameModeTypeEnded.PlayerId);
             if (gameMode == GameModeType.Rest)
@@ -3735,7 +3547,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGameModeTypeStarted(long receivedFrom, NotifyGameModeTypeStarted gameModeTypeStarted)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, Type={Type}", nameof(NotifyGameModeTypeStarted), receivedFrom, gameModeTypeStarted.PlayerId, gameModeTypeStarted.Type);
             var gameMode = GameModeType.All.FirstOrDefault(g => string.Equals(g.Name, gameModeTypeStarted.Type, StringComparison.OrdinalIgnoreCase));
             RegisterGameMode(gameMode, gameModeTypeStarted.PlayerId);
 
@@ -3753,8 +3564,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGameForceLoaded(long receivedFrom, NotifyGameForceLoaded gameForceLoaded)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, GameId={GameId}, ContentSize={ContentSize}, LoadedSaveSeed={LoadedSaveSeed}", nameof(NotifyGameForceLoaded), receivedFrom, gameForceLoaded.GameId, gameForceLoaded.Content.Length, gameForceLoaded.Seed);
-
             UpdateSaveInfo(gameForceLoaded.GameId, gameForceLoaded.Content);
 
             Game.LoadedSaveSeed = gameForceLoaded.Seed;
@@ -3766,8 +3575,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyNewGameSequenceWitnessed(long receivedFrom, NotifyNewGameSequenceWitnessed newGameSequenceWitnessed)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyNewGameSequenceWitnessed), newGameSequenceWitnessed.PlayerId, newGameSequenceWitnessed.Phase.Type);
-
             var phase = Mapper.Map<NetworkNewGameSequencePhase>(newGameSequenceWitnessed.Phase);
             WitnessNewGameSequencePhase(newGameSequenceWitnessed.PlayerId, phase.Type);
 
@@ -3776,7 +3583,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyCharacterSelectionWindowShown(long receivedFrom, NotifyCharacterSelectionWindowShown characterSelectionWindowShown)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyCharacterSelectionWindowShown), receivedFrom, characterSelectionWindowShown.PlayerId);
             AddPlayerToTracker(Game.PlayersInCharacterSelectionWindow, characterSelectionWindowShown.PlayerId);
 
             UpdateCharacterSelectionUIState();
@@ -3786,8 +3592,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingRespecMythicLevelUp(long receivedFrom, NotifyLevelingRespecMythicLevelUp levelingRespecMythicLevelUp)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyLevelingRespecMythicLevelUp), receivedFrom, levelingRespecMythicLevelUp.PlayerId);
-
             RemovePlayerFromTracker(Game.PlayersInRespecWindow, levelingRespecMythicLevelUp.PlayerId);
             LevelingInteraction.InitiateLevelingRespecMythicLevelUp();
 
@@ -3806,8 +3610,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingRespecWindowShown(long receivedFrom, NotifyLevelingRespecWindowShown levelingRespecWindowShown)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, UnitId={UnitId}", nameof(NotifyLevelingRespecWindowShown), receivedFrom, levelingRespecWindowShown.PlayerId, levelingRespecWindowShown.UnitId);
-
             AddPlayerToTracker(Game.PlayersInRespecWindow, levelingRespecWindowShown.PlayerId);
 
             UpdateLevelingRespecUIState(levelingRespecWindowShown.UnitId);
@@ -3817,8 +3619,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingRespecCompleted(long receivedFrom, NotifyLevelingRespecCompleted levelingRespecCompleted)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}", nameof(NotifyLevelingRespecCompleted), receivedFrom);
-
             ResetPlayersTracker(Game.PlayersInRespecWindow);
 
             LevelingInteraction.CompleteLevelingRespec();
@@ -3828,8 +3628,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingWarpaintColorAppearanceChanged(long receivedFrom, NotifyLevelingWarpaintColorAppearanceChanged levelingWarpaintColorAppearanceChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, TextureName={TextureName}, PageNumber={PageNumber}", nameof(NotifyLevelingWarpaintColorAppearanceChanged), receivedFrom, levelingWarpaintColorAppearanceChanged.Warpaint.TextureName, levelingWarpaintColorAppearanceChanged.Warpaint.PageNumber);
-
             var levelingWarpaint = Mapper.Map<NetworkLevelingWarpaint>(levelingWarpaintColorAppearanceChanged.Warpaint);
             LevelingInteraction.SelectLevelingWarpaintColorAppearance(levelingWarpaint);
 
@@ -3838,8 +3636,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingWarpaintAppearanceChanged(long receivedFrom, NotifyLevelingWarpaintAppearanceChanged levelingWarpaintAppearanceChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, Index={Index}, PageNumber={PageNumber}", nameof(NotifyLevelingWarpaintAppearanceChanged), receivedFrom, levelingWarpaintAppearanceChanged.Warpaint.Index, levelingWarpaintAppearanceChanged.Warpaint.PageNumber);
-
             var levelingWarpaint = Mapper.Map<NetworkLevelingWarpaint>(levelingWarpaintAppearanceChanged.Warpaint);
             LevelingInteraction.SelectLevelingWarpaintAppearance(levelingWarpaint);
 
@@ -3848,8 +3644,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingTattooColorAppearanceChanged(long receivedFrom, NotifyLevelingTattooColorAppearanceChanged levelingTattooColorAppearanceChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, TextureName={Index}, PageNumber={PageNumber}", nameof(NotifyLevelingTattooColorAppearanceChanged), receivedFrom, levelingTattooColorAppearanceChanged.Tattoo.TextureName, levelingTattooColorAppearanceChanged.Tattoo.PageNumber);
-
             var levelingTattoo = Mapper.Map<NetworkLevelingTattoo>(levelingTattooColorAppearanceChanged.Tattoo);
             LevelingInteraction.SelectLevelingTattooColorAppearance(levelingTattoo);
 
@@ -3858,8 +3652,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingTattooAppearanceChanged(long receivedFrom, NotifyLevelingTattooAppearanceChanged levelingTattooAppearanceChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, Index={Index}, PageNumber={PageNumber}", nameof(NotifyLevelingTattooAppearanceChanged), receivedFrom, levelingTattooAppearanceChanged.Tattoo.Index, levelingTattooAppearanceChanged.Tattoo.PageNumber);
-
             var levelingTattoo = Mapper.Map<NetworkLevelingTattoo>(levelingTattooAppearanceChanged.Tattoo);
             LevelingInteraction.SelectLevelingTattooAppearance(levelingTattoo);
 
@@ -3868,8 +3660,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingScarAppearanceChanged(long receivedFrom, NotifyLevelingScarAppearanceChanged levelingScarAppearanceChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, Index={Index}", nameof(NotifyLevelingScarAppearanceChanged), receivedFrom, levelingScarAppearanceChanged.Index);
-
             LevelingInteraction.SelectLevelingScarAppearance(levelingScarAppearanceChanged.Index);
 
             OnAfterNetworkMessageHandled(receivedFrom, levelingScarAppearanceChanged);
@@ -3877,8 +3667,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingSecondaryOutfitColorAppearanceChanged(long receivedFrom, NotifyLevelingSecondaryOutfitColorAppearanceChanged levelingSecondaryOutfitColorAppearanceChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, TextureName={TextureName}", nameof(NotifyLevelingSecondaryOutfitColorAppearanceChanged), receivedFrom, levelingSecondaryOutfitColorAppearanceChanged.TextureName);
-
             LevelingInteraction.SelectLevelingSecondaryOutfitColorAppearance(levelingSecondaryOutfitColorAppearanceChanged.TextureName);
 
             OnAfterNetworkMessageHandled(receivedFrom, levelingSecondaryOutfitColorAppearanceChanged);
@@ -3886,8 +3674,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingPrimaryOutfitColorAppearanceChanged(long receivedFrom, NotifyLevelingPrimaryOutfitColorAppearanceChanged levelingPrimaryOutfitColorAppearanceChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, TextureName={TextureName}", nameof(NotifyLevelingPrimaryOutfitColorAppearanceChanged), receivedFrom, levelingPrimaryOutfitColorAppearanceChanged.TextureName);
-
             LevelingInteraction.SelectLevelingPrimaryOutfitColorAppearance(levelingPrimaryOutfitColorAppearanceChanged.TextureName);
 
             OnAfterNetworkMessageHandled(receivedFrom, levelingPrimaryOutfitColorAppearanceChanged);
@@ -3895,8 +3681,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingHornsColorAppearanceChanged(long receivedFrom, NotifyLevelingHornsColorAppearanceChanged levelingHornsColorAppearanceChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, TextureName={TextureName}", nameof(NotifyLevelingHornsColorAppearanceChanged), receivedFrom, levelingHornsColorAppearanceChanged.TextureName);
-
             LevelingInteraction.SelectLevelingHornsColorAppearance(levelingHornsColorAppearanceChanged.TextureName);
 
             OnAfterNetworkMessageHandled(receivedFrom, levelingHornsColorAppearanceChanged);
@@ -3904,8 +3688,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingHornsAppearanceChanged(long receivedFrom, NotifyLevelingHornsAppearanceChanged levelingHornsAppearanceChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, Index={Index}", nameof(NotifyLevelingHornsAppearanceChanged), receivedFrom, levelingHornsAppearanceChanged.Index);
-
             LevelingInteraction.SelectLevelingHornsAppearance(levelingHornsAppearanceChanged.Index);
 
             OnAfterNetworkMessageHandled(receivedFrom, levelingHornsAppearanceChanged);
@@ -3913,8 +3695,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingHairStyleAppearanceChanged(long receivedFrom, NotifyLevelingHairStyleAppearanceChanged levelingHairStyleAppearanceChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, Index={Index}", nameof(NotifyLevelingHairStyleAppearanceChanged), receivedFrom, levelingHairStyleAppearanceChanged.Index);
-
             LevelingInteraction.SelectLevelingHairStyleAppearance(levelingHairStyleAppearanceChanged.Index);
 
             OnAfterNetworkMessageHandled(receivedFrom, levelingHairStyleAppearanceChanged);
@@ -3922,8 +3702,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingHairColorAppearanceChanged(long receivedFrom, NotifyLevelingHairColorAppearanceChanged levelingHairColorAppearanceChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, TextureName={TextureName}", nameof(NotifyLevelingHairColorAppearanceChanged), receivedFrom, levelingHairColorAppearanceChanged.TextureName);
-
             LevelingInteraction.SelectLevelingHairColorAppearance(levelingHairColorAppearanceChanged.TextureName);
 
             OnAfterNetworkMessageHandled(receivedFrom, levelingHairColorAppearanceChanged);
@@ -3931,8 +3709,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingFaceAppearanceChanged(long receivedFrom, NotifyLevelingFaceAppearanceChanged levelingFaceAppearanceChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, Index={Index}", nameof(NotifyLevelingFaceAppearanceChanged), receivedFrom, levelingFaceAppearanceChanged.Index);
-
             LevelingInteraction.SelectLevelingFaceAppearance(levelingFaceAppearanceChanged.Index);
 
             OnAfterNetworkMessageHandled(receivedFrom, levelingFaceAppearanceChanged);
@@ -3940,8 +3716,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingEyesColorAppearanceChanged(long receivedFrom, NotifyLevelingEyesColorAppearanceChanged levelingEyesColorAppearanceChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, TextureName={TextureName}", nameof(NotifyLevelingEyesColorAppearanceChanged), receivedFrom, levelingEyesColorAppearanceChanged.TextureName);
-
             LevelingInteraction.SelectLevelingEyesColorAppearance(levelingEyesColorAppearanceChanged.TextureName);
 
             OnAfterNetworkMessageHandled(receivedFrom, levelingEyesColorAppearanceChanged);
@@ -3949,8 +3723,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingBodyColorAppearanceChanged(long receivedFrom, NotifyLevelingBodyColorAppearanceChanged levelingBodyColorAppearanceChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, TextureName={TextureName}", nameof(NotifyLevelingBodyColorAppearanceChanged), receivedFrom, levelingBodyColorAppearanceChanged.TextureName);
-
             LevelingInteraction.SelectLevelingBodyColorAppearance(levelingBodyColorAppearanceChanged.TextureName);
 
             OnAfterNetworkMessageHandled(receivedFrom, levelingBodyColorAppearanceChanged);
@@ -3958,8 +3730,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingBodyTypeAppearanceChanged(long receivedFrom, NotifyLevelingBodyTypeAppearanceChanged levelingBodyTypeAppearanceChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, Index={Index}", nameof(NotifyLevelingBodyTypeAppearanceChanged), receivedFrom, levelingBodyTypeAppearanceChanged.Index);
-
             LevelingInteraction.SelectLevelingBodyTypeAppearance(levelingBodyTypeAppearanceChanged.Index);
 
             OnAfterNetworkMessageHandled(receivedFrom, levelingBodyTypeAppearanceChanged);
@@ -3967,7 +3737,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyDialogPopupShown(long receivedFrom, NotifyDialogPopupShown dialogPopupShown)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, AreaName={AreaName}, DialogName={DialogName}, CueName={CueName}", nameof(NotifyDialogPopupShown), receivedFrom, dialogPopupShown.PlayerId, dialogPopupShown.Popup.AreaName, dialogPopupShown.Popup.DialogName, dialogPopupShown.Popup.CueName);
             AddPlayerToTracker(Game.PlayersInDialogPopup, dialogPopupShown.PlayerId);
 
             UpdateDialogPopupState();
@@ -3977,8 +3746,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyInventoryItemTransferred(long receivedFrom, NotifyInventoryItemTransferred itemTransferred)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, Items={Items}, Source={Source}, Destination={Destination}", nameof(NotifyInventoryItemTransferred), receivedFrom, itemTransferred.TransferItem.Items.Select(x => x.UniqueId), itemTransferred.TransferItem.Source.Id, itemTransferred.TransferItem.Destination?.Id);
-
             var transferItem = Mapper.Map<NetworkItemsTransfer>(itemTransferred.TransferItem);
             GameInteraction.TransferInventoryItems(transferItem);
 
@@ -3987,8 +3754,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyZoneLootClosed(long receivedFrom, NotifyZoneLootClosed zoneLootClosed)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyZoneLootClosed), receivedFrom, zoneLootClosed.PlayerId);
-
             RemovePlayerFromTracker(Game.PlayersInZoneLoot, zoneLootClosed.PlayerId);
             UpdateZoneLootUIState();
 
@@ -3997,8 +3762,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyZoneLootShown(long receivedFrom, NotifyZoneLootShown zoneLootShown)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyZoneLootShown), receivedFrom, zoneLootShown.PlayerId);
-
             AddPlayerToTracker(Game.PlayersInZoneLoot, zoneLootShown.PlayerId);
             UpdateZoneLootUIState();
 
@@ -4007,8 +3770,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapEncounterMessageShown(long receivedFrom, NotifyGlobalMapEncounterMessageShown globalMapEncounterMessageShown)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapEncounterMessageShown), receivedFrom, globalMapEncounterMessageShown.PlayerId);
-
             AddPlayerToTracker(Game.PlayersInGlobalMapEncounterMessage, globalMapEncounterMessageShown.PlayerId);
             UpdateGlobalMapEncounterMessageUIState();
 
@@ -4017,8 +3778,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGroupChangerOpened(long receivedFrom, NotifyGroupChangerOpened groupChangerVisible)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGroupChangerOpened), receivedFrom, groupChangerVisible.PlayerId);
-
             AddPlayerToTracker(Game.PlayersInGroupChanger, groupChangerVisible.PlayerId);
             UpdateGroupManagerUIState();
 
@@ -4027,8 +3786,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapLocationMessageShown(long receivedFrom, NotifyGlobalMapLocationMessageShown globalMapLocationMessageShown)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapLocationMessageShown), receivedFrom, globalMapLocationMessageShown.PlayerId);
-
             AddPlayerToTracker(Game.PlayersInGlobalMapLocationMessage, globalMapLocationMessageShown.PlayerId);
             UpdateGlobalMapLocationMessageUIState();
 
@@ -4037,8 +3794,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifySkipTimeOpened(long receivedFrom, NotifySkipTimeOpened skipTimeOpened)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifySkipTimeOpened), receivedFrom, skipTimeOpened.PlayerId);
-
             AddPlayerToTracker(Game.PlayersInSkipTime, skipTimeOpened.PlayerId);
             GameInteraction.OpenSkipTimeUI();
 
@@ -4049,8 +3804,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyUnitStealthChanged(long receivedFrom, NotifyUnitStealthChanged unitStealthChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitId={Round}, IsEnabled={IsEnabled}, IsForced={IsForced}", nameof(NotifyUnitStealthChanged), receivedFrom, unitStealthChanged.UnitId, unitStealthChanged.IsEnabled, unitStealthChanged.IsForced);
-
             GameInteraction.ChangeUnitStealth(unitStealthChanged.UnitId, unitStealthChanged.IsEnabled, unitStealthChanged.IsForced);
 
             OnAfterNetworkMessageHandled(receivedFrom, unitStealthChanged);
@@ -4058,8 +3811,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyCombatTurnDelayed(long receivedFrom, NotifyCombatTurnDelayed combatTurnDelayed)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitId={Round}, TargetUnitId={TargetUnitId}", nameof(NotifyCombatTurnDelayed), receivedFrom, combatTurnDelayed.UnitId, combatTurnDelayed.TargetUnitId);
-
             Game.Combat.Turn.IsInProgress = false;
             CombatInteraction.DelayCombatTurn(combatTurnDelayed.UnitId, combatTurnDelayed.TargetUnitId);
 
@@ -4068,7 +3819,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyMapObjectLockpicked(long receivedFrom, NotifyMapObjectLockpicked mapObjectLockpicked)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, MapObjectId={MapObjectId}, MapObjectPosition={MapObjectPosition}, Units={Units}", nameof(NotifyMapObjectLockpicked), receivedFrom, mapObjectLockpicked.LockpickInteraction.MapObject.Id, mapObjectLockpicked.LockpickInteraction.MapObject.Position, mapObjectLockpicked.LockpickInteraction.Units);
             var lockpickInteraction = Mapper.Map<NetworkLockpickInteraction>(mapObjectLockpicked.LockpickInteraction);
 
             GameInteraction.LockpickMapObject(lockpickInteraction);
@@ -4078,9 +3828,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyActionBarSlotMoved(long receivedFrom, NotifyActionBarSlotMoved actionBarSlotMoved)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitId={UnitId}, SourceSlotIndex={SourceSlotIndex}, SourceSlotAbilityId={SourceSlotAbilityId}, SourceSlotActivatableAbilityId={SourceSlotActivatableAbilityId}, SourceSlotItemId={SourceSlotItemId}, TargetSlotIndex={TargetSlotIndex}, TargetSlotAbilityId={TargetSlotAbilityId}, TargetSlotActivatableAbilityId={TargetSlotActivatableAbilityId}, TargetSlotItemId={TargetSlotItemId}",
-                nameof(NotifyActionBarSlotMoved), receivedFrom, actionBarSlotMoved.SourceActionBarSlot.UnitId, actionBarSlotMoved.SourceActionBarSlot.Index, actionBarSlotMoved.SourceActionBarSlot.Ability?.Id, actionBarSlotMoved.SourceActionBarSlot.ActivatableAbility?.Id, actionBarSlotMoved.SourceActionBarSlot.Item?.UniqueId, actionBarSlotMoved.TargetActionBarSlot.Index, actionBarSlotMoved.TargetActionBarSlot.Ability?.Id, actionBarSlotMoved.TargetActionBarSlot.ActivatableAbility?.Id, actionBarSlotMoved.TargetActionBarSlot.Item?.UniqueId);
-
             var sourceActionBarSlot = Mapper.Map<NetworkActionBarSlot>(actionBarSlotMoved.SourceActionBarSlot);
             var targetActionBarSlot = Mapper.Map<NetworkActionBarSlot>(actionBarSlotMoved.TargetActionBarSlot);
 
@@ -4091,8 +3838,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyActionBarSlotCleared(long receivedFrom, NotifyActionBarSlotCleared actionBarSlotCleared)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitId={UnitId}, SlotIndex={SlotIndex}", nameof(NotifyActionBarSlotCleared), receivedFrom, actionBarSlotCleared.ActionBarSlot.UnitId, actionBarSlotCleared.ActionBarSlot.Index);
-
             var actionBarSlot = Mapper.Map<NetworkActionBarSlot>(actionBarSlotCleared.ActionBarSlot);
 
             GameInteraction.ClearActionBarSlot(actionBarSlot);
@@ -4102,8 +3847,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyCharacterMove(long receivedFrom, NotifyCharacterMove characterMove)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitId={UnitId}, Destination={Destination}, Delay={Delay}, Orientation={Orientation}", nameof(NotifyCharacterMove), receivedFrom, characterMove.Move.UnitId, characterMove.Move.Destination, characterMove.Move.Delay, characterMove.Move.Orientation);
-
             var move = Mapper.Map<NetworkCharacterMove>(characterMove.Move);
             GameInteraction.MoveNonCombatCharacter(move);
 
@@ -4112,10 +3855,9 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGroundClicked(long receivedFrom, NotifyGroundClicked clicked)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, SelectedUnits={SelectedUnits}, WorldPosition={WorldPosition}, MovementLimit={MovementLimit}", nameof(NotifyGroundClicked), receivedFrom, clicked.Click.SelectedUnits.Count, clicked.Click.WorldPosition, clicked.Click.MovementLimit);
             if (Game.Combat == null)
             {
-                Logger.LogWarning($"{nameof(NotifyGroundClicked)} is ignored out of combat");
+                Logger.LogWarning($"{nameof(NotifyGroundClicked)} is ignored outside of combat");
                 return;
             }
 
@@ -4127,8 +3869,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyUnitClicked(long receivedFrom, NotifyUnitClicked clicked)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, TargetUnitId={TargetUnitId}, SelectedUnits={SelectedUnits}", nameof(NotifyUnitClicked), receivedFrom, clicked.Click.TargetUnitId, clicked.Click.SelectedUnits.Count);
-
             // Combat Unit clicks are usually followed up with UnitAttack command
             // UnitAttack commands are synced separately as we can enforce specific rules like fullattack
             // so this must be skiped to avoid command duplication
@@ -4147,8 +3887,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyMapObjectClicked(long receivedFrom, NotifyMapObjectClicked clicked)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, TargetUnitId={TargetUnitId}, SelectedUnits={SelectedUnits}", nameof(NotifyMapObjectClicked), receivedFrom, clicked.Click.TargetUnitId, clicked.Click.SelectedUnits.Count);
-
             var click = Mapper.Map<NetworkClick>(clicked.Click);
             GameInteraction.ClickMapObject(click);
 
@@ -4157,8 +3895,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyToggleActivatableAbility(long receivedFrom, NotifyToggleActivatableAbility activatableAbility)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, CasterId={CasterId}, AbilityId={AbilityId}, IsActive={IsActive}", nameof(NotifyToggleActivatableAbility), receivedFrom, activatableAbility.Ability.CasterId, activatableAbility.Ability.Id, activatableAbility.Ability.IsActive);
-
             var ability = Mapper.Map<NetworkActivatableAbility>(activatableAbility.Ability);
             GameInteraction.ToggleActivatableAbility(ability);
 
@@ -4167,9 +3903,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyAbilityUsed(long receivedFrom, NotifyAbilityUsed message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, CasterId={CasterId}, AbilityId={AbilityId}, AbilityName={AbilityName}, TargetUnitId={TargetUnitId}, TargetPoint={TargetPoint}, MovementLimit={MovementLimit}",
-                nameof(NotifyAbilityUsed), receivedFrom, message.AbilityUse.InitiatorUnitId, message.AbilityUse.Ability.Id, message.AbilityUse.Ability.Name, message.AbilityUse.Target?.UnitId, message.AbilityUse.Target?.Point, message.AbilityUse.MovementLimit);
-
             var ability = Mapper.Map<NetworkAbilityUse>(message.AbilityUse);
             CombatInteraction.UseAbility(ability);
 
@@ -4178,9 +3911,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyUnitAttacked(long receivedFrom, NotifyUnitAttacked unitAttacked)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, InitiatorUnitId={InitiatorUnitId}, TargetUnitId={TargetUnitId}, IsFullAttack={IsFullAttack}, IsSingleAttack={IsSingleAttack}, MovementLimit={MovementLimit}",
-                nameof(NotifyUnitAttacked), receivedFrom, unitAttacked.Attack.InitiatorUnitId, unitAttacked.Attack.TargetUnitId, unitAttacked.Attack.IsFullAttack, unitAttacked.Attack.IsSingleAttack, unitAttacked.Attack.MovementLimit);
-
             var attack = Mapper.Map<NetworkUnitAttack>(unitAttacked.Attack);
             CombatInteraction.AttackUnit(attack);
 
@@ -4189,8 +3919,6 @@ namespace WOTRMultiplayer.Services
 
         private async void OnNotifyPlayerCombatTurnEnded(long receivedFrom, NotifyPlayerCombatTurnEnded combatTurnEnded)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, UnitId={UnitId}", nameof(NotifyPlayerCombatTurnEnded), receivedFrom, combatTurnEnded.PlayerId, combatTurnEnded.UnitId);
-
             await WaitWhileTrue(CombatInteraction.IsRiderActive, "Waiting for all combat commands to finish before ending turn");
 
             EndLocalTurn();
@@ -4200,7 +3928,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyActiveHandEquipmentSetChanged(long receivedFrom, NotifyActiveHandEquipmentSetChanged changed)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitId={UnitId}, SetIndex={SetIndex}", nameof(NotifyEquipmentSlotChanged), receivedFrom, changed.Set.UnitId, changed.Set.Index);
             var set = Mapper.Map<NetworkActiveHandEquipmentSet>(changed.Set);
             GameInteraction.SetActiveHandEquipmentSet(set);
 
@@ -4209,7 +3936,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyEquipmentSlotChanged(long receivedFrom, NotifyEquipmentSlotChanged slotChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, SlotType={SlotType}, SlotIndex={SlotIndex}, ItemId={ItemId}, OwnerId={OwnerId}", nameof(NotifyEquipmentSlotChanged), receivedFrom, slotChanged.Slot.Position.Type, slotChanged.Slot.Position.Index, slotChanged.Slot.Item?.UniqueId, slotChanged.Slot.OwnerId);
             var slot = Mapper.Map<NetworkEquipmentSlot>(slotChanged.Slot);
             GameInteraction.UpdateEquipmentSlot(slot);
 
@@ -4218,8 +3944,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyDropItem(long receivedFrom, NotifyDropItem item)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, OwnerId={OwnerId}, ItemId={ItemId}, ItemName={ItemName}", nameof(NotifyDropItem), receivedFrom, item.Drop.OwnerEntityId, item.Drop.Item.UniqueId, item.Drop.Item.Name);
-
             var dropItem = Mapper.Map<NetworkDropItem>(item.Drop);
             GameInteraction.DropItem(dropItem);
 
@@ -4228,8 +3952,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyInventoryItemUsed(long receivedFrom, NotifyInventoryItemUsed inventoryItemUsed)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UserUnitId={UserUnitId}, TargetUnitId={TargetUnitId}, ItemId={ItemId}, ItemName={ItemName}", nameof(NetworkUseInventoryItem), receivedFrom, inventoryItemUsed.UseItem.UserUnitId, inventoryItemUsed.UseItem.Target?.UnitId, inventoryItemUsed.UseItem.Item.UniqueId, inventoryItemUsed.UseItem.Item.Name);
-
             var useItem = Mapper.Map<NetworkUseInventoryItem>(inventoryItemUsed.UseItem);
             GameInteraction.UseInventoryItem(useItem);
 
@@ -4238,7 +3960,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyContainerSkinned(long receivedFrom, NotifyLootableEntitySkinned notifyLootableEntitySkinned)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, Id={Id}, Position={Position}, Type={Type}", nameof(NotifyLootableEntitySkinned), receivedFrom, notifyLootableEntitySkinned.Entity.Id, notifyLootableEntitySkinned.Entity.Position, notifyLootableEntitySkinned.Entity.Type);
             var container = Mapper.Map<NetworkLootableEntity>(notifyLootableEntitySkinned.Entity);
             GameInteraction.SkinLootContainer(container);
 
@@ -4247,7 +3968,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyOvertipInteracted(long receivedFrom, NotifyOvertipInteracted interacted)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, MapObjectId={MapObjectId}, UnitsCount={UnitsCount}", nameof(NotifyOvertipInteracted), receivedFrom, interacted.Overtip.MapObject.Id, interacted.Overtip.Units);
             var overtip = Mapper.Map<NetworkOvertip>(interacted.Overtip);
             GameInteraction.InteractWithOvertip(overtip);
 
@@ -4256,7 +3976,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyUnitJoinedMidCombat(long receivedFrom, NotifyUnitJoinedMidCombat combat)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, UnitId={UnitId}", nameof(NotifyUnitJoinedMidCombat), receivedFrom, combat.PlayerId, combat.UnitId);
             AddPlayerReadyStatus(PlayerTurnReadinessType.UnitJoinedMidCombat, combat.PlayerId, combat.UnitId);
 
             OnAfterNetworkMessageHandled(receivedFrom, combat);
@@ -4264,7 +3983,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyRestBanterInterrupted(long receivedFrom, NotifyRestBanterInterrupted interrupted)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, SpeakerUnitId={SpeakerUnitId}, Key={Key}", nameof(NotifyRestBanterInterrupted), receivedFrom, interrupted.Banter.SpeakerUnitId, interrupted.Banter.Key);
             var banter = Mapper.Map<NetworkRestBanter>(interrupted.Banter);
             GameInteraction.TryInterruptRestBanter(banter);
 
@@ -4273,8 +3991,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyVendorItemTransferred(long receivedFrom, NotifyVendorItemTransferred message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, ItemId={ItemId}, Count={Count}, Action={Action}, ActionTarget={ActionTarget}", nameof(NotifyVendorItemTransferred), receivedFrom, message.ItemTransfer.Item.UniqueId, message.ItemTransfer.Count, message.ItemTransfer.ItemAction, message.ItemTransfer.ItemActionTarget);
-
             var transfer = Mapper.Map<NetworkVendorItemTransfer>(message.ItemTransfer);
             GameInteraction.TransferVendorItem(transfer);
 
@@ -4283,9 +3999,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifySpellForgotten(long receivedFrom, NotifySpellForgotten message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitId={UnitId}, SpellbookId={SpellbookId}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}",
-                nameof(NotifySpellForgotten), receivedFrom, message.UnitId, message.Ability.SpellbookId, message.Slot.Index, message.Slot.Type);
-
             var slot = Mapper.Map<NetworkSpellSlot>(message.Slot);
             var ability = Mapper.Map<NetworkAbility>(message.Ability);
 
@@ -4296,9 +4009,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifySpellMemorized(long receivedFrom, NotifySpellMemorized message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitId={UnitId}, SpellbookId={SpellbookId}, SpellId={SpellId}, SpellLevel={SpellLevel}, SpellName={SpellName}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}",
-                nameof(NotifySpellMemorized), receivedFrom, message.UnitId, message.Ability.SpellbookId, message.Ability.Id, message.Ability.SpellLevel, message.Ability.Name, message.Slot?.Index, message.Slot?.Type);
-
             var slot = Mapper.Map<NetworkSpellSlot>(message.Slot);
             var ability = Mapper.Map<NetworkAbility>(message.Ability);
 
@@ -4309,8 +4019,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingPortraitSelected(long receivedFrom, NotifyLevelingPortraitSelected levelingPortraitSelected)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, Name={Name}, CustomId={CustomId}, Category={Category}", nameof(NotifyLevelingPortraitSelected), receivedFrom, levelingPortraitSelected.Portrait.Name, levelingPortraitSelected.Portrait.CustomId, levelingPortraitSelected.Portrait.Category);
-
             var levelingPortrait = Mapper.Map<NetworkLevelingPortrait>(levelingPortraitSelected.Portrait);
             LevelingInteraction.SelectLevelingPortrait(levelingPortrait);
 
@@ -4319,8 +4027,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingVoiceSelected(long receivedFrom, NotifyLevelingVoiceSelected levelingVoiceSelected)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, Id={Id}, GenderId={GenderId}", nameof(NotifyLevelingVoiceSelected), receivedFrom, levelingVoiceSelected.Voice.Id, levelingVoiceSelected.Voice.GenderId);
-
             var levelingVoice = Mapper.Map<NetworkLevelingVoice>(levelingVoiceSelected.Voice);
             LevelingInteraction.SelectLevelingVoice(levelingVoice);
 
@@ -4329,8 +4035,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingAlignmentSelected(long receivedFrom, NotifyLevelingAlignmentSelected levelingAlignmentSelected)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, AlignmentId={AlignmentId}", nameof(NotifyLevelingGenderSelected), receivedFrom, levelingAlignmentSelected.AlignmentId);
-
             LevelingInteraction.SelectLevelingAlignment(levelingAlignmentSelected.AlignmentId);
 
             OnAfterNetworkMessageHandled(receivedFrom, levelingAlignmentSelected);
@@ -4338,8 +4042,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingNameChanged(long receivedFrom, NotifyLevelingNameChanged levelingNameChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, Name={Name}", nameof(NotifyLevelingGenderSelected), receivedFrom, levelingNameChanged.Name);
-
             LevelingInteraction.SetLevelingName(levelingNameChanged.Name);
 
             OnAfterNetworkMessageHandled(receivedFrom, levelingNameChanged);
@@ -4347,8 +4049,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingGenderSelected(long receivedFrom, NotifyLevelingGenderSelected levelingGenderSelected)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, GenderId={GenderId}", nameof(NotifyLevelingGenderSelected), receivedFrom, levelingGenderSelected.GenderId);
-
             LevelingInteraction.SelectLevelingGender(levelingGenderSelected.GenderId);
 
             OnAfterNetworkMessageHandled(receivedFrom, levelingGenderSelected);
@@ -4356,8 +4056,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingRaceSelected(long receivedFrom, NotifyLevelingRaceSelected levelingRaceSelected)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, RaceId={RaceId}", nameof(NotifyLevelingRaceSelected), receivedFrom, levelingRaceSelected.RaceId);
-
             LevelingInteraction.SelectLevelingRace(levelingRaceSelected.RaceId);
 
             OnAfterNetworkMessageHandled(receivedFrom, levelingRaceSelected);
@@ -4365,8 +4063,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingRacialAbilityScoreBonusChanged(long receivedFrom, NotifyLevelingRacialAbilityScoreBonusChanged racialAbilityScoreBonusChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, Direction={Direction}", nameof(NotifyLevelingRaceSelected), receivedFrom, racialAbilityScoreBonusChanged.Direction);
-
             var direction = Mapper.Map<NetworkLevelingSequenceDirection>(racialAbilityScoreBonusChanged.Direction);
 
             LevelingInteraction.ChangeLevelingRacialAbilityScoreBonus(direction);
@@ -4376,8 +4072,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingBirthDayChanged(long receivedFrom, NotifyLevelingBirthDayChanged levelingBirthDayChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, Direction={Direction}", nameof(NotifyLevelingBirthDayChanged), receivedFrom, levelingBirthDayChanged.Direction);
-
             var direction = Mapper.Map<NetworkLevelingSequenceDirection>(levelingBirthDayChanged.Direction);
 
             LevelingInteraction.ChangeLevelingBirthDay(direction);
@@ -4387,8 +4081,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingBirthMonthChanged(long receivedFrom, NotifyLevelingBirthMonthChanged levelingBirthMonthChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, Direction={Direction}", nameof(NotifyLevelingBirthMonthChanged), receivedFrom, levelingBirthMonthChanged.Direction);
-
             var direction = Mapper.Map<NetworkLevelingSequenceDirection>(levelingBirthMonthChanged.Direction);
 
             LevelingInteraction.ChangeLevelingBirthMonth(direction);
@@ -4398,8 +4090,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingAbilityScoreDecreased(long receivedFrom, NotifyLevelingAbilityScoreDecreased levelingAbilityScoreDecreased)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, StatType={StatType}", nameof(NotifyLevelingAbilityScoreDecreased), receivedFrom, levelingAbilityScoreDecreased.AbilityScore.StatType);
-
             var abilityScore = Mapper.Map<NetworkLevelingAbilityScore>(levelingAbilityScoreDecreased.AbilityScore);
             LevelingInteraction.DecreaseLevelingAbilityScore(abilityScore);
 
@@ -4408,8 +4098,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingAbilityScoreIncreased(long receivedFrom, NotifyLevelingAbilityScoreIncreased levelingAbilityScoreIncreased)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, StatType={StatType}", nameof(NotifyLevelingAbilityScoreIncreased), receivedFrom, levelingAbilityScoreIncreased.AbilityScore.StatType);
-
             var abilityScore = Mapper.Map<NetworkLevelingAbilityScore>(levelingAbilityScoreIncreased.AbilityScore);
             LevelingInteraction.IncreaseLevelingAbilityScore(abilityScore);
 
@@ -4418,7 +4106,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingCompleted(long receivedFrom, NotifyLevelingCompleted completed)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}", nameof(NotifyLevelingCompleted), receivedFrom);
             LevelingInteraction.CompleteLeveling();
 
             OnAfterNetworkMessageHandled(receivedFrom, completed);
@@ -4426,7 +4113,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingTerminated(long receivedFrom, NotifyLevelingTerminated terminated)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}", nameof(NotifyLevelingTerminated), receivedFrom);
             LevelingInteraction.TerminateLeveling();
 
             OnAfterNetworkMessageHandled(receivedFrom, terminated);
@@ -4434,7 +4120,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingSpellRemoved(long receivedFrom, NotifyLevelingSpellRemoved removed)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, SpellName={SpellName}, SpellId={SpellId}", nameof(NotifyLevelingSpellRemoved), receivedFrom, removed.Spell.Name, removed.Spell.Id);
             var spell = Mapper.Map<NetworkLevelingSpell>(removed.Spell);
             LevelingInteraction.RemoveLevelingSpell(spell);
 
@@ -4443,7 +4128,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingSpellChosen(long receivedFrom, NotifyLevelingSpellChosen chosen)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, SpellName={SpellName}, SpellId={SpellId}", nameof(NotifyLevelingSpellChosen), receivedFrom, chosen.Spell.Name, chosen.Spell.Id);
             var spell = Mapper.Map<NetworkLevelingSpell>(chosen.Spell);
             LevelingInteraction.SelectLevelingSpell(spell);
 
@@ -4452,7 +4136,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingFeatureSelected(long receivedFrom, NotifyLevelingFeatureSelected selected)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, FeatureName={FeatureName}, FeatureId={FeatureId}", nameof(NotifyLevelingFeatureSelected), receivedFrom, selected.Feature.Name, selected.Feature.Id);
             var feature = Mapper.Map<NetworkLevelingFeature>(selected.Feature);
             LevelingInteraction.SelectLevelingFeature(feature);
 
@@ -4461,7 +4144,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingSkillPointDecreased(long receivedFrom, NotifyLevelingSkillPointDecreased decreased)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, StatType={StatType}", nameof(NotifyLevelingSkillPointDecreased), receivedFrom, decreased.Skill.StatType);
             var skillPoint = Mapper.Map<NetworkLevelingSkillPoint>(decreased.Skill);
             LevelingInteraction.DecreaseLevelingSkillPoint(skillPoint);
             OnAfterNetworkMessageHandled(receivedFrom, decreased);
@@ -4469,7 +4151,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingSkillPointIncreased(long receivedFrom, NotifyLevelingSkillPointIncreased increased)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, StatType={StatType}", nameof(NotifyLevelingSkillPointIncreased), receivedFrom, increased.Skill.StatType);
             var skillPoint = Mapper.Map<NetworkLevelingSkillPoint>(increased.Skill);
             LevelingInteraction.IncreaseLevelingSkillPoint(skillPoint);
 
@@ -4478,7 +4159,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingPhaseChanged(long receivedFrom, NotifyLevelingPhaseChanged levelingPhaseChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, Index={Index}", nameof(NotifyLevelingPhaseChanged), receivedFrom, levelingPhaseChanged.Phase.Index);
             var phase = Mapper.Map<NetworkLevelingPhase>(levelingPhaseChanged.Phase);
             ResetPlayersTracker(Game.Leveling.PlayerReadiness);
             LevelingInteraction.SwitchLevelingPhase(phase);
@@ -4488,8 +4168,6 @@ namespace WOTRMultiplayer.Services
 
         private async void OnNotifyLevelingPhaseWitnessed(long receivedFrom, NotifyLevelingPhaseWitnessed levelingPhaseWitnessed)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyLevelingPhaseWitnessed), receivedFrom, levelingPhaseWitnessed.PlayerId);
-
             // leveling is always created at the host first and later on on clients as a part of leveling confirmation
             // but not in case when game is forcing leveling ui to open for everyone at the same time => means there is some racing there
             await WaitWhileTrue(() => Game.Leveling == null, "Received leveling witness notification, but leveling has not been started yet.");
@@ -4501,8 +4179,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingClassArchetypeSelected(long receivedFrom, NotifyLevelingClassArchetypeSelected message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, Id={Id}, Name={Name}", nameof(NotifyLevelingClassArchetypeSelected), receivedFrom, message.Archetype?.Id, message.Archetype?.Name);
-
             var archetype = Mapper.Map<NetworkLevelingArchetype>(message.Archetype);
             LevelingInteraction.SelectLevelingClassArchetype(archetype);
 
@@ -4512,7 +4188,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingMythicClassSelected(long receivedFrom, NotifyLevelingMythicClassSelected mythicClassSelected)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, MythicClassId={MythicClassId}", nameof(NotifyLevelingMythicClassSelected), receivedFrom, mythicClassSelected.MythicClassId);
             LevelingInteraction.SelectMythicLevelingClass(mythicClassSelected.MythicClassId);
 
             OnAfterNetworkMessageHandled(receivedFrom, mythicClassSelected);
@@ -4520,8 +4195,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLevelingClassSelected(long receivedFrom, NotifyLevelingClassSelected message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, ClassId={ClassId}", nameof(NotifyLevelingClassSelected), receivedFrom, message.Class.Id, message.Class.Name);
-
             var levelingClass = Mapper.Map<NetworkLevelingClass>(message.Class);
             LevelingInteraction.SelectLevelingClass(levelingClass);
 

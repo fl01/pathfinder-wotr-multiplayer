@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using WOTRMultiplayer.Logging.Attributes;
 
 namespace WOTRMultiplayer.Networking.Messages.Game
 {
@@ -7,9 +8,11 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     public class ClientCombatTurnStarted
     {
         [ProtoMember(1)]
+        [LogMe]
         public string UnitId { get; set; }
 
         [ProtoMember(2)]
+        [LogMe]
         public int Round { get; set; }
     }
 }

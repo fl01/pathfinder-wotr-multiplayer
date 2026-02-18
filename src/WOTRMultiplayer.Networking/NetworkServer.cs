@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using BeetleX;
 using BeetleX.EventArgs;
 using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Logging.Extensions;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Awaiters;
 using WOTRMultiplayer.Networking.Messages;
@@ -158,6 +159,7 @@ namespace WOTRMultiplayer.Networking
 
             try
             {
+                _logger.LogObject(LogLevel.Information, "Receiving {MessageType}. ReceivedFrom={ReceivedFrom}", args.Message, args.Session.Id);
                 handler(args.NetSession.ID, args.Message);
             }
             catch (Exception ex)

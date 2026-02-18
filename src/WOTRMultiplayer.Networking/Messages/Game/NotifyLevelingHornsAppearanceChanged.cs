@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using WOTRMultiplayer.Logging.Attributes;
 
 namespace WOTRMultiplayer.Networking.Messages.Game
 {
@@ -7,6 +8,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     public class NotifyLevelingHornsAppearanceChanged
     {
         [ProtoMember(1)]
+        [LogMe]
         public int Index { get; set; }
     }
 }

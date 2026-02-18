@@ -1,5 +1,8 @@
-﻿using Serilog;
+﻿using System;
+using System.Collections.Generic;
+using Serilog;
 using WOTRMultiplayer.Logging.Enrichers;
+using WOTRMultiplayer.Logging.Object;
 using WOTRMultiplayer.Logging.Sinks;
 
 namespace WOTRMultiplayer.Logging
@@ -8,22 +11,24 @@ namespace WOTRMultiplayer.Logging
     {
         private readonly static object _consoleSinkRoot = new();
 
-        public static ILogger Create(bool addConsoleSink, string baseFolder, Serilog.Events.LogEventLevel consoleMinLevel, Serilog.Events.LogEventLevel fileMinLevel)
+        public static ILogger Create(bool addDebugConsoleSink, string baseFolder, Serilog.Events.LogEventLevel consoleMinLevel, Serilog.Events.LogEventLevel fileMinLevel, IEnumerable<Type> loggableObjects)
         {
-            var template = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level}] {SourceContext}: {Message:lj}{NewLine}{Exception}";
-            var logConfig = new LoggerConfiguration();
+            ObjectLoggingMetadata.Initialize(loggableObjects);
 
-            if (addConsoleSink)
+            var template = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level}] {SourceContext}: {Message:lj}{NewLine}{Exception}";
+            var logConfig = new LoggerConfiguration()
+                .Enrich.With(new ClassNameEnricher());
+
+            if (addDebugConsoleSink)
             {
                 ConfigureConsoleSink(logConfig, template);
             }
+            else
+            {
+                logConfig.WriteTo.Console(outputTemplate: template, restrictedToMinimumLevel: consoleMinLevel);
+            }
 
-            logConfig
-                .WriteTo.Console(outputTemplate: template, restrictedToMinimumLevel: consoleMinLevel)
-                .WriteTo.File($"{baseFolder}/logs/wotr-multiplayer-.log", restrictedToMinimumLevel: fileMinLevel, outputTemplate: template, rollingInterval: RollingInterval.Day)
-                .Enrich.FromLogContext()
-                .Enrich.With(new ClassNameEnricher())
-                ;
+            logConfig.WriteTo.File($"{baseFolder}/logs/wotr-multiplayer-.log", restrictedToMinimumLevel: fileMinLevel, outputTemplate: template, rollingInterval: RollingInterval.Day);
 
             return logConfig.CreateLogger();
         }

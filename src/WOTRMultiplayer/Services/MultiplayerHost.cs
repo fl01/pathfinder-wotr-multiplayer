@@ -26,6 +26,7 @@ using WOTRMultiplayer.Entities.Leveling;
 using WOTRMultiplayer.Entities.Rest;
 using WOTRMultiplayer.Entities.Settings;
 using WOTRMultiplayer.Entities.Units;
+using WOTRMultiplayer.Logging.Extensions;
 using WOTRMultiplayer.Networking;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Messages.Game;
@@ -121,7 +122,6 @@ namespace WOTRMultiplayer.Services
                 Title = Game.StartUp.Title,
                 Characters = Mapper.Map<List<Networking.Messages.Contracts.NetworkCharacter>>(Game.Characters)
             };
-            Logger.LogInformation("Sending {MessageType} to ALL players. Portraits={Portraits}", nameof(NotifyLobbyCharactersChanged), charactersChanged.Characters.Select(x => x.Portrait));
             Send(charactersChanged);
 
             OnCharactersChanged?.Invoke(Game.StartUp.Title, Game.Characters);
@@ -200,8 +200,6 @@ namespace WOTRMultiplayer.Services
                 Content = content,
                 Seed = Game.LoadedSaveSeed
             };
-
-            Logger.LogInformation("Sending {MessageType}. GameId={GameId}, ContentSize={ContentSize}, LoadedSaveSeed={LoadedSaveSeed}", nameof(NotifyLobbySaveGameChanged), saveGameChanged.GameId, saveGameChanged.Content?.Length, saveGameChanged.Seed);
             Send(saveGameChanged);
 
             TryStartSavedGame();
@@ -224,7 +222,6 @@ namespace WOTRMultiplayer.Services
             {
                 Transition = Mapper.Map<Networking.Messages.Contracts.NetworkAreaTransition>(areaTransition)
             };
-            Logger.LogInformation("Sending {MessageType}. AreaExitId={AreaExitId}, IsActionsTransition={IsActionsTransition}, FromAreaId={FromAreaId}, FromAreaName={FromAreaName}, ToAreaId={ToAreaId}, ToAreaName={ToAreaName}", nameof(NotifyPartyAreaTransitioned), message.Transition.AreaExitId, message.Transition.IsActionsTransition, message.Transition.From.Id, message.Transition.From.Name, message.Transition.To.Id, message.Transition.To.Name);
             Send(message);
         }
 
@@ -296,8 +293,6 @@ namespace WOTRMultiplayer.Services
                 return;
             }
 
-            Logger.LogInformation("Sending selected answer to clients. DialogName={DialogName}, CueName={CueName}, AnswerName={AnswerName}, ManualUnitSelectionId={ManualUnitSelectionId}", Game.DialogState.Dialog.Id, Game.DialogState.Answer.CueName, Game.DialogState.Answer.AnswerName, Game.DialogState.Answer.ManualUnitSelectionId);
-
             var message = new NotifyDialogCueAnswerSelected
             {
                 Dialog = Mapper.Map<Networking.Messages.Contracts.NetworkDialog>(Game.DialogState.Dialog),
@@ -323,8 +318,6 @@ namespace WOTRMultiplayer.Services
                 {
                     Dialog = Mapper.Map<Networking.Messages.Contracts.NetworkDialog>(networkDialog)
                 };
-                Logger.LogInformation("Sending {MessageType}. Id={Id}, Name={Name}, TargetUnitId={TargetUnitId}, InitiatorUnitId={InitiatorUnitId}, MapObjectId={MapObjectId}, SpeakerKey={SpeakerKey}",
-                    nameof(NotifyDialogStarted), message.Dialog.Id, message.Dialog.Name, message.Dialog.TargetUnitId, message.Dialog.InitiatorUnitId, message.Dialog.MapObjectId, message.Dialog.SpeakerKey);
                 Send(message);
             }
 
@@ -374,7 +367,6 @@ namespace WOTRMultiplayer.Services
                         {
                             Discrepancy = Mapper.Map<Networking.Messages.Contracts.NetworkCombatUnitDiscrepancy>(discrepantUnits),
                         };
-                        Logger.LogInformation("Sending {MessageType}. DiscrepantUnits={DiscrepantUnits}", nameof(NotifyCombatPreparationRequired), preparationRequiredMessage.Discrepancy.Units);
                         Send(preparationRequiredMessage);
                         Game.Combat.IsPrepared = true;
                         _ = FixCombatUnitDiscrepancyAsync(discrepantUnits);
@@ -418,8 +410,6 @@ namespace WOTRMultiplayer.Services
                             TriggeredAreaEffects = Mapper.Map<List<Networking.Messages.Contracts.NetworkAreaEffect>>(Game.Combat.TriggeredAreaEffects)
                         };
                         Game.Combat.TriggeredAreaEffects.Clear();
-                        Logger.LogInformation("Sending {MessageType}. CombatSeed={CombatSeed}, RoundNumber={RoundNumber}, HasSurprisingRound={HasSurprisingRound}, UnitsInCombat={UnitsInCombat}, TriggeredAreaEffects={TriggeredAreaEffects}",
-                            nameof(NotifyCombatInitializationRequired), message.CombatSeed, message.State.RoundNumber, message.State.HasSurpriseRound, message.State.Units.Count);
                         Send(message);
 
                         Game.Combat.IsRecovering = false;
@@ -438,8 +428,6 @@ namespace WOTRMultiplayer.Services
                     {
                         var message = new NotifyCombatInitializationCompleted();
                         Send(message);
-                        Logger.LogInformation("Sending {MessageType}", nameof(NotifyCombatInitializationCompleted));
-
                         Game.Combat.IsPlaying = true;
                     }
                     return true;
@@ -468,8 +456,6 @@ namespace WOTRMultiplayer.Services
             {
                 Check = Mapper.Map<Networking.Messages.Contracts.NetworkPerceptionCheck>(check)
             };
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, MapObjectId={MapObjectId}, Roll={Roll}", nameof(NotifyPerceptionCheckRolled), message.Check.UnitId, message.Check.MapObject.Id, check.Roll);
-
             Send(message);
         }
 
@@ -479,9 +465,6 @@ namespace WOTRMultiplayer.Services
             {
                 Check = Mapper.Map<Networking.Messages.Contracts.NetworkInspectionKnowledgeCheck>(check)
             };
-            Logger.LogInformation("Sending {MessageType}. TargetUnitId={TargetUnitId}, InitiatorUnitId={InitiatorUnitId}, StatType={StatType}, DC={DC}, RollResult={RollResult}",
-                nameof(NotifyInspectionKnowledgeCheckRolled), message.Check.TargetUnitId, message.Check.InitiatorUnitId, message.Check.StatType, message.Check.DC, message.Check.RollResult);
-
             Send(message);
         }
 
@@ -491,14 +474,11 @@ namespace WOTRMultiplayer.Services
             {
                 Check = Mapper.Map<Networking.Messages.Contracts.NetworkStealthPerceptionCheck>(check)
             };
-            Logger.LogInformation("Sending {MessageType}. InitiatorId={InitiatorId}, Roll={Roll}, StealthedUnitId={StealthedUnitId}, IsSuccess={IsSuccess}", nameof(NetworkStealthPerceptionCheck), message.Check.InitiatorId, message.Check.Roll, message.Check.StealthedUnitId, message.Check.IsSuccess);
-
             Send(message);
         }
 
         public bool OnSpawnCampPlace(NetworkVector3 position)
         {
-            Logger.LogInformation("Sending spawn camp event. Position={Position}", position);
             var message = new NotifySpawnCampPlace
             {
                 Position = Mapper.Map<Networking.Messages.Contracts.NetworkVector3>(position)
@@ -511,7 +491,6 @@ namespace WOTRMultiplayer.Services
         public void OnCampingUseHealingSpellsChanged(bool isOn)
         {
             var message = new NotifyCampingUseHealingSpellsChanged { IsOn = isOn };
-            Logger.LogInformation("Sending {MessageType}. IsOn={IsOn}", nameof(NotifyCampingUseHealingSpellsChanged), isOn);
             Send(message);
         }
 
@@ -521,18 +500,11 @@ namespace WOTRMultiplayer.Services
             {
                 State = Mapper.Map<Networking.Messages.Contracts.NetworkCampingState>(state)
             };
-
-            Logger.LogInformation("Sending {MessageType}.CookingBlueprintRecipeId={CookingBlueprintRecipeId}, PotionBlueprintRecipeId={PotionBlueprintRecipeId}, ScrollBlueprintRecipeId={ScrollBlueprintRecipeId}, IterationsCount={IterationsCount}, AutotuneIterations={AutotuneIterations}", nameof(NotifyCampingStateChanged),
-                message.State.CookingBlueprintRecipeId, message.State.PotionBlueprintRecipeId, message.State.ScrollBlueprintRecipeId, message.State.IterationsCount, message.State.AutotuneIterationsStatus);
-
             Send(message);
         }
 
         public void OnCampingUnitsRoleChanged(List<NetworkCampingRole> roles)
         {
-            var rolesData = string.Join(" ,", roles.Select(r => $"[RoleType={r.RoleType} PrimaryUnit={r.PrimaryUnitId} SecondaryUnit={r.SecondaryUnitId}]"));
-            Logger.LogInformation("Sending {MessageType}. RolesCount={RolesCount}, RolesData={RolesData}", nameof(NotifyCampingStateChanged), roles.Count, rolesData);
-
             var message = new NotifyCampingUnitsRoleChanged
             {
                 Roles = Mapper.Map<List<Networking.Messages.Contracts.NetworkCampingRole>>(roles),
@@ -571,14 +543,12 @@ namespace WOTRMultiplayer.Services
         public void OnMakeVendorDeal()
         {
             var message = new NotifyVendorDealMade();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyVendorDealMade));
             Send(message);
         }
 
         public void OnCloseVendorWindow()
         {
             var message = new NotifyVendorWindowClosed();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyVendorWindowClosed));
             Send(message);
         }
 
@@ -612,7 +582,6 @@ namespace WOTRMultiplayer.Services
             ResetPlayersTracker(Game.PlayersInGroupChanger);
 
             var message = new NotifyGroupChangerClosed();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGroupChangerClosed));
             Send(message);
         }
 
@@ -623,7 +592,6 @@ namespace WOTRMultiplayer.Services
             {
                 Popup = Mapper.Map<Networking.Messages.Contracts.NetworkDialogPopup>(networkDialogPopup)
             };
-            Logger.LogInformation("Sending {MessageType}, AreaName={AreaName}, DialogName={DialogName}, CueName={CueName}", nameof(NotifyDialogPopupAccepted), message.Popup.AreaName, message.Popup.DialogName, message.Popup.CueName);
             Send(message);
         }
 
@@ -634,7 +602,6 @@ namespace WOTRMultiplayer.Services
             {
                 Popup = Mapper.Map<Networking.Messages.Contracts.NetworkDialogPopup>(networkDialogPopup)
             };
-            Logger.LogInformation("Sending {MessageType}, AreaName={AreaName}, DialogName={DialogName}, CueName={CueName}", nameof(NotifyDialogPopupClosed), message.Popup.AreaName, message.Popup.DialogName, message.Popup.CueName);
             Send(message);
         }
 
@@ -655,8 +622,6 @@ namespace WOTRMultiplayer.Services
             {
                 UnitId = unitId
             };
-
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}", nameof(NotifyGroupChangerUnitClicked), message.UnitId);
             Send(message);
 
             return true;
@@ -665,8 +630,6 @@ namespace WOTRMultiplayer.Services
         public void OnAcceptGroupChangerParty()
         {
             var message = new NotifyGroupChangerPartyAccepted();
-
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGroupChangerPartyAccepted));
             Send(message);
             ResetPlayersTracker(Game.PlayersInGroupChanger);
         }
@@ -674,21 +637,18 @@ namespace WOTRMultiplayer.Services
         public void OnGlobalMapRestOpened()
         {
             var message = new NotifyGlobalMapRestOpened();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapRestOpened));
             Send(message);
         }
 
         public void OnRestWindowClosed()
         {
             var message = new NotifyRestWindowClosed();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyRestWindowClosed));
             Send(message);
         }
 
         public void OnGlobalMapGroupChangerOpened()
         {
             var message = new NotifyGlobalMapGroupChangerOpened();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapGroupChangerOpened));
             Send(message);
         }
 
@@ -700,7 +660,6 @@ namespace WOTRMultiplayer.Services
                 Travel = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapTravel>(globalMapTravel),
                 Party = Mapper.Map<List<Networking.Messages.Contracts.NetworkUnit>>(party)
             };
-            Logger.LogInformation("Sending {MessageType}. Type={Type}, MovementPoints={MovementPoints}, FromClick={FromClick}, DestinationId={DestinationId}, DestinationName={DestinationName}", nameof(NotifyGlobalMapTravelStarted), message.Travel.Type, message.Travel.Traveler.MovementPoints, message.Travel.FromClick, message.Travel.Destination.Id, message.Travel.Destination.Name);
             Send(message);
         }
 
@@ -710,7 +669,6 @@ namespace WOTRMultiplayer.Services
             {
                 Army = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapArmy>(globalMapArmy)
             };
-            Logger.LogInformation("Sending {MessageType}. ArmyId={ArmyId}", nameof(NotifyGlobalMapSelectedArmyChanged), message.Army?.Id);
             Send(message);
         }
 
@@ -720,7 +678,6 @@ namespace WOTRMultiplayer.Services
             {
                 IsEnabled = isEnabled
             };
-            Logger.LogInformation("Sending {MessageType}. IsEnabled={IsEnabled}", nameof(NotifyGlobalMapAutoCrusadeCombatChanged), message.IsEnabled);
             Send(message);
         }
 
@@ -729,7 +686,6 @@ namespace WOTRMultiplayer.Services
             ResetPlayersTracker(Game.PlayersInSkipTime);
 
             var message = new NotifySkipTimeClosed();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifySkipTimeClosed));
             Send(message);
         }
 
@@ -739,14 +695,12 @@ namespace WOTRMultiplayer.Services
             {
                 Hours = hours
             };
-            Logger.LogInformation("Sending {MessageType}. Hours={Hours}", nameof(NotifySkipTimeHoursChanged), message.Hours);
             Send(message);
         }
 
         public void OnSkipTimeStarted()
         {
             var message = new NotifySkipTimeStarted();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifySkipTimeStarted));
             Send(message);
         }
 
@@ -776,7 +730,6 @@ namespace WOTRMultiplayer.Services
                 Traveler = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapTraveler>(globalMapTraveler),
                 Party = Mapper.Map<List<Networking.Messages.Contracts.NetworkUnit>>(party)
             };
-            Logger.LogInformation("Sending {MessageType}. EdgePosition={EdgePosition}", nameof(NotifyGlobalMapTravelContinued), message.Traveler.Position?.EdgePosition);
             Send(message);
         }
 
@@ -788,7 +741,6 @@ namespace WOTRMultiplayer.Services
                 Traveler = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapTraveler>(globalMapTraveler),
                 Party = Mapper.Map<List<Networking.Messages.Contracts.NetworkUnit>>(party)
             };
-            Logger.LogInformation("Sending {MessageType}. EdgePosition={EdgePosition}", nameof(NotifyGlobalMapTravelStopped), message.Traveler.Position?.EdgePosition);
             Send(message);
         }
 
@@ -798,21 +750,18 @@ namespace WOTRMultiplayer.Services
             {
                 Popup = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapCommonPopup>(globalMapCommonPopup)
             };
-            Logger.LogInformation("Sending {MessageType}. Type={Type}, LocationId={LocationId}, LocationName={LocationName}", nameof(NotifyGlobalMapCommonPopupAccepted), message.Popup.Type, message.Popup.Location?.Id, message.Popup.Location?.Name);
             Send(message);
         }
 
         public void OnGlobalMapEncounterAccepted()
         {
             var message = new NotifyGlobalMapEncounterAccepted();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapEncounterAccepted));
             Send(message);
         }
 
         public void OnGlobalMapEncounterAvoided()
         {
             var message = new NotifyGlobalMapEncounterAvoided();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapEncounterAvoided));
             Send(message);
         }
 
@@ -822,14 +771,12 @@ namespace WOTRMultiplayer.Services
             {
                 Encounter = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapEncounter>(globalMapEncounter)
             };
-            Logger.LogInformation("Sending {MessageType}. Seed={Seed}, EncounterId={EncounterId}, Position={Position}, Avoidance={Avoidance}", nameof(NotifyGlobalMapEncounterRolled), message.Encounter.Seed, message.Encounter.BlueprintId, message.Encounter.Position, message.Encounter.AvoidanceResult);
             Send(message);
         }
 
         public void OnGlobalMapSkipDay()
         {
             var message = new NotifyGlobalMapDaySkipped();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapDaySkipped));
             Send(message);
         }
 
@@ -839,21 +786,18 @@ namespace WOTRMultiplayer.Services
             {
                 RemoveLoot = removeUncollectedLoot
             };
-            Logger.LogInformation("Sending {MessageType}. RemoveLoot={RemoveLoot}", nameof(NotifyZoneLootRemoveToggleChanged), message.RemoveLoot);
             Send(message);
         }
 
         public void OnZoneLootCompleted()
         {
             var message = new NotifyZoneLootCompleted();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyZoneLootCompleted));
             Send(message);
         }
 
         public void OnZoneLootLeft()
         {
             var message = new NotifyZoneLootLeft();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyZoneLootLeft));
             Send(message);
         }
 
@@ -862,7 +806,6 @@ namespace WOTRMultiplayer.Services
             ResetPlayersTracker(Game.PlayersInCharacterSelectionWindow);
 
             var message = new NotifyCharacterSelectionWindowAccepted();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyCharacterSelectionWindowAccepted));
             Send(message);
         }
 
@@ -871,7 +814,6 @@ namespace WOTRMultiplayer.Services
             ResetPlayersTracker(Game.PlayersInCharacterSelectionWindow);
 
             var message = new NotifyCharacterSelectionWindowClosed();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyCharacterSelectionWindowClosed));
             Send(message);
         }
 
@@ -881,7 +823,6 @@ namespace WOTRMultiplayer.Services
             {
                 UnitId = unitId
             };
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}", nameof(NotifyCharacterSelectionToggleChanged), unitId);
             Send(message);
         }
 
@@ -891,8 +832,6 @@ namespace WOTRMultiplayer.Services
             {
                 Difficulty = difficulty
             };
-            Logger.LogInformation("Sending {MessageType}. Difficulty={Difficulty}", nameof(NotifyNewGameDifficultyChanged), message.Difficulty);
-
             Send(message);
         }
 
@@ -908,7 +847,6 @@ namespace WOTRMultiplayer.Services
             {
                 PolymorphicItem = Mapper.Map<Networking.Messages.Contracts.NetworkPolymorphicItem>(polymorphicItem)
             };
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, ItemName={ItemName}, SlotType={SlotType}", nameof(NotifyPolymorphicItemCreated), message.PolymorphicItem.UnitId, message.PolymorphicItem.Item.Name, message.PolymorphicItem.Position.Type);
             Send(message);
 
             return true;
@@ -918,7 +856,6 @@ namespace WOTRMultiplayer.Services
         {
             ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyBattleResults);
             var message = new NotifyCrusadeArmyBattleResultsClosed();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyCrusadeArmyBattleResultsClosed));
             Send(message);
         }
 
@@ -926,7 +863,6 @@ namespace WOTRMultiplayer.Services
         {
             ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyBattleResults);
             var message = new NotifyCrusadeArmyBattleResultsManualCombatStarted();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyCrusadeArmyBattleResultsManualCombatStarted));
             Send(message);
         }
 
@@ -934,7 +870,6 @@ namespace WOTRMultiplayer.Services
         {
             ResetPlayersTracker(Game.PlayersInGlobalMapLocationMessage);
             var message = new NotifyGlobalMapLocationMessageAccepted();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapLocationMessageAccepted));
             Send(message);
         }
 
@@ -946,7 +881,6 @@ namespace WOTRMultiplayer.Services
             {
                 PlayerId = Game.LocalPlayerId
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}", nameof(NotifyGlobalMapLocationMessageClosed), message.PlayerId);
             Send(message);
 
             UpdateGlobalMapLocationMessageUIState();
@@ -961,7 +895,6 @@ namespace WOTRMultiplayer.Services
                 PlayerId = Game.LocalPlayerId,
                 Popup = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapCommonPopup>(globalMapCommonPopup)
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, Type={Type}, LocationId={LocationId}, LocationName={LocationName}", nameof(NotifyGlobalMapCommonPopupDeclined), message.PlayerId, message.Popup.Type, message.Popup.Location?.Id, message.Popup.Location?.Name);
             Send(message);
         }
 
@@ -969,7 +902,6 @@ namespace WOTRMultiplayer.Services
         {
             ResetPlayersTracker(Game.PlayersInGlobalMapCombatResults);
             var message = new NotifyGlobalMapCombatResultsClosed();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCombatResultsClosed));
             Send(message);
         }
 
@@ -996,7 +928,6 @@ namespace WOTRMultiplayer.Services
                 AreaSeed = Game.ArmyCombat.AreaSeed,
                 Seed = Game.ArmyCombat.Seed
             };
-            Logger.LogInformation("Sending {MessageType}. AreaSeed={AreaSeed}, Seed={Seed}", nameof(NotifyTacticalCombatInitialized), message.AreaSeed, message.Seed);
             Send(message);
         }
 
@@ -1006,7 +937,6 @@ namespace WOTRMultiplayer.Services
             {
                 Command = Mapper.Map<Networking.Messages.Contracts.NetworkTacticalUnitUseAbilityCommand>(tacticalUnitUseAbilityCommand)
             };
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, AbilityId={AbilityId}, Path={Path}", nameof(NotifyTacticalUnitUseAbilityCommandExecuted), message.Command.InitiatorUnitId, message.Command.Ability.Id, message.Command.VectorPath);
             Send(message);
         }
 
@@ -1016,7 +946,6 @@ namespace WOTRMultiplayer.Services
             {
                 Command = Mapper.Map<Networking.Messages.Contracts.NetworkTacticalUnitAttackCommand>(tacticalUnitAttackCommand)
             };
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, TargetId={TargetId}, Path={Path}", nameof(NotifyTacticalUnitAttackCommandExecuted), message.Command.UnitId, message.Command.TargetUnitId, message.Command.Path);
             Send(message);
         }
 
@@ -1026,14 +955,12 @@ namespace WOTRMultiplayer.Services
             {
                 Command = Mapper.Map<Networking.Messages.Contracts.NetworkTacticalUnitMoveToCommand>(tacticalUnitMoveToCommand)
             };
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, Path={Path}", nameof(NotifyTacticalUnitMoveToCommandExecuted), message.Command.UnitId, message.Command.Path);
             Send(message);
         }
 
         public bool OnTacticalCombatTotalDefenseUsed()
         {
             var message = new NotifyTacticalCombatTotalDefenseUsed();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyTacticalCombatTotalDefenseUsed));
             Send(message);
             return true;
         }
@@ -1041,7 +968,6 @@ namespace WOTRMultiplayer.Services
         public bool OnTacticalCombatTurnPostponed()
         {
             var message = new NotifyTacticalCombatTurnPostponed();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyTacticalCombatTurnPostponed));
             Send(message);
             return true;
         }
@@ -1049,7 +975,6 @@ namespace WOTRMultiplayer.Services
         public void OnTacticalCombatRetreat()
         {
             var message = new NotifyTacticalCombatRetreated();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyTacticalCombatRetreated));
             Send(message);
         }
 
@@ -1058,35 +983,30 @@ namespace WOTRMultiplayer.Services
             ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyInfo);
 
             var message = new NotifyGlobalMapCrusadeArmyInfoClosed();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyInfoClosed));
             Send(message);
         }
 
         public void OnGlobalMapCrusadeArmyMoveSquadsToMainArmy()
         {
             var message = new NotifyGlobalMapCrusadeArmySquadsMovedToMainArmy();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmySquadsMovedToMainArmy));
             Send(message);
         }
 
         public void OnGlobalMapCrusadeArmyMoveSquadsToSecondArmy()
         {
             var message = new NotifyGlobalMapCrusadeArmySquadsMovedToSecondArmy();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmySquadsMovedToSecondArmy));
             Send(message);
         }
 
         public void OnGlobalMapCrusadeArmyInfoNextMergeArmy()
         {
             var message = new NotifyGlobalMapCrusadeArmyInfoNextMergeArmySelected();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyInfoNextMergeArmySelected));
             Send(message);
         }
 
         public void OnGlobalMapCrusadeArmyInfoPrevMergeArmy()
         {
             var message = new NotifyGlobalMapCrusadeArmyInfoPrevMergeArmySelected();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyInfoPrevMergeArmySelected));
             Send(message);
         }
 
@@ -1097,35 +1017,30 @@ namespace WOTRMultiplayer.Services
                 Type = armyLeaderActionType.ToString(),
                 Leader = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapArmyLeader>(globalMapArmyLeader)
             };
-            Logger.LogInformation("Sending {MessageType}. LeaderId={LeaderId}, BlueprintId={BlueprintId}, Type={Type}", nameof(NotifyGlobalMapCrusadeArmyLeaderActionExecuted), message.Leader?.Id, message.Leader?.BlueprintId, message.Type);
             Send(message);
         }
 
         public void OnGlobalMapMergeArmies()
         {
             var message = new NotifyGlobalMapCrusadeArmiesMerging();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmiesMerging));
             Send(message);
         }
 
         public void OnGlobalMapCreateCrusadeArmy()
         {
             var message = new NotifyGlobalMapCrusadeArmyCreated();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyCreated));
             Send(message);
         }
 
         public void OnGlobalMapCrusadeArmyMainCartClosed()
         {
             var message = new NotifyGlobalMapCrusadeArmyMainCartClosed();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyMainCartClosed));
             Send(message);
         }
 
         public void OnGlobalMapCrusadeArmyRecruitCartClosed()
         {
             var message = new NotifyGlobalMapCrusadeArmyRecruitCartClosed();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyRecruitCartClosed));
             Send(message);
         }
 
@@ -1135,7 +1050,6 @@ namespace WOTRMultiplayer.Services
             {
                 Order = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapUnitRecruitmentOrder>(globalMapUnitRecruitmentOrder)
             };
-            Logger.LogInformation("Sending {MessageType}. UnitBlueprintId={UnitBlueprintId}, Count={Count}, ArmyId={ArmyId}, Type={Type}", nameof(NotifyGlobalMapUnitsRecruited), message.Order.BlueprintId, message.Order.Count, message.Order.ArmyId, message.Order.Type);
             Send(message);
         }
 
@@ -1147,7 +1061,6 @@ namespace WOTRMultiplayer.Services
             {
                 Army = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapArmy>(globalMapArmy),
             };
-            Logger.LogInformation("Sending {MessageType}. ArmyId={ArmyId}", nameof(NotifyGlobalMapCrusadeArmyDismissed), message.Army.Id);
             Send(message);
         }
 
@@ -1155,7 +1068,6 @@ namespace WOTRMultiplayer.Services
         {
             ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyLeaderLeveling);
             var message = new NotifyGlobalMapCrusadeArmyLeaderLevelingClosed();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyLeaderLevelingClosed));
             Send(message);
         }
 
@@ -1163,7 +1075,6 @@ namespace WOTRMultiplayer.Services
         {
             ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyLeaderLeveling);
             var message = new NotifyGlobalMapCrusadeArmyLeaderLevelingConfirmed();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyLeaderLevelingConfirmed));
             Send(message);
         }
 
@@ -1173,7 +1084,6 @@ namespace WOTRMultiplayer.Services
             {
                 Id = skillId
             };
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmyLeaderLevelingSkillSelected));
             Send(message);
         }
 
@@ -1183,8 +1093,6 @@ namespace WOTRMultiplayer.Services
             {
                 Action = Mapper.Map<Networking.Messages.Contracts.NetworkAIAction>(aiAction)
             };
-            Logger.LogInformation("Sending {MessageType}. UnitId={UnitId}, Id={Id}, Name={Name}, IsAbility={IsAbility}, TargetUnitId={TargetUnitId}, VectorPath={VectorPath}, BestEnableFiveFootStep={BestEnableFiveFootStep}",
-                nameof(NotifyAIActionSelected), message.Action.UnitId, message.Action.Id, message.Action.Name, message.Action.IsAbility, message.Action.TargetId, message.Action.DecisionContext.VectorPath, message.Action.DecisionContext.BestEnableFiveFootStep);
             Send(message);
             return null;
         }
@@ -1195,7 +1103,6 @@ namespace WOTRMultiplayer.Services
             {
                 Spell = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapMagicSpell>(globalMagicSpell),
             };
-            Logger.LogInformation("Sending {MessageType}. SpellId={SpellId}, SpellName={SpellName}, TargetArmies={TargetArmies}, LocationId={LocationId}", nameof(NotifyGlobalMapMagicSpellUsed), message.Spell.Id, message.Spell.Name, message.Spell.TargetArmies, message.Spell.Location?.Id);
             Send(message);
         }
 
@@ -1205,7 +1112,6 @@ namespace WOTRMultiplayer.Services
             {
                 Order = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapResourceOrder>(globalMapResourceOrder)
             };
-            Logger.LogInformation("Sending {MessageType}. FinalCost={FinalCost}, FinanceCount={FinanceCount}, MaterialsCount={MaterialsCount}", nameof(NotifyGlobalMapResourcesBought), message.Order.FinalCost, message.Order.FinanceCount, message.Order.MaterialCount);
             Send(message);
         }
 
@@ -1215,42 +1121,36 @@ namespace WOTRMultiplayer.Services
             {
                 Army = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapArmy>(globalMapArmy)
             };
-            Logger.LogInformation("Sending {MessageType}. ArmyId={ArmyId}, Name={Name}", nameof(NotifyGlobalMapCrusadeArmyInfoCartNameChanged), message.Army.Id, message.Army.Name);
             Send(message);
         }
 
         public void OnGlobalMapCrusadeArmySetLeaderClear()
         {
             var message = new NotifyGlobalMapCrusadeArmySetLeaderClearClicked();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmySetLeaderClearClicked));
             Send(message);
         }
 
         public void OnGlobalMapCrusadeArmySetLeaderRecruit()
         {
             var message = new NotifyGlobalMapCrusadeArmySetLeaderRecruitClicked();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapCrusadeArmySetLeaderRecruitClicked));
             Send(message);
         }
 
         public void OnGlobalMapRecruitmentMercReroll()
         {
             var message = new NotifyGlobalMapRecruitmentMercenariesRerolled();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapRecruitmentMercenariesRerolled));
             Send(message);
         }
 
         public void OnGlobalMapRecruitmentNextArmy()
         {
             var message = new NotifyGlobalMapRecruitmentNextArmySelected();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapRecruitmentNextArmySelected));
             Send(message);
         }
 
         public void OnGlobalMapRecruitmentPrevArmy()
         {
             var message = new NotifyGlobalMapRecruitmentPrevArmySelected();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyGlobalMapRecruitmentPrevArmySelected));
             Send(message);
         }
 
@@ -1260,7 +1160,6 @@ namespace WOTRMultiplayer.Services
             {
                 SquadSlot = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapArmySquadSlot>(globalMapArmySquadSlot),
             };
-            Logger.LogInformation("Sending {MessageType}. ArmyId={SourceArmyId}, SquadId={SourceSquadId}, Position={SourcePosition}", nameof(NotifyGlobalMapCrusadeArmySquadDismissed), message.SquadSlot.ArmyId, message.SquadSlot.SquadId, message.SquadSlot.Position);
             Send(message);
         }
 
@@ -1270,7 +1169,6 @@ namespace WOTRMultiplayer.Services
             {
                 SquadSlot = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapArmySquadSlot>(globalMapArmySquadSlot),
             };
-            Logger.LogInformation("Sending {MessageType}. ArmyId={SourceArmyId}, SquadId={SourceSquadId}, Position={SourcePosition}", nameof(NotifyGlobalMapCrusadeArmyMergedInOne), message.SquadSlot.ArmyId, message.SquadSlot.SquadId, message.SquadSlot.Position);
             Send(message);
             return true;
         }
@@ -1282,7 +1180,6 @@ namespace WOTRMultiplayer.Services
                 SquadSlot = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapArmySquadSlot>(globalMapArmySquadSlot),
                 Count = count
             };
-            Logger.LogInformation("Sending {MessageType}. ArmyId={SourceArmyId}, SquadId={SourceSquadId}, Position={SourcePosition}, Count={Count}", nameof(NotifyGlobalMapCrusadeArmySquadSplitted), message.SquadSlot.ArmyId, message.SquadSlot.SquadId, message.SquadSlot.Position, count);
             Send(message);
             return true;
         }
@@ -1295,8 +1192,6 @@ namespace WOTRMultiplayer.Services
                 TargetSquadSlot = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapArmySquadSlot>(targetSquadSlot),
                 Count = count
             };
-            Logger.LogInformation("Sending {MessageType}. SourceArmyId={SourceArmyId}, SourceSquadId={SourceSquadId}, SourcePosition={SourcePosition}, TargetArmyId={TargetArmyId}, TargetSquadId={TargetSquadId}, TargetPosition={TargetPosition}, Count={Count}", nameof(NotifyGlobalMapCrusadeArmySquadsMerged),
-                message.SourceSquadSlot.ArmyId, message.SourceSquadSlot.SquadId, message.SourceSquadSlot.Position, message.TargetSquadSlot.ArmyId, message.TargetSquadSlot.SquadId, message.TargetSquadSlot.Position, count);
             Send(message);
         }
 
@@ -1307,8 +1202,6 @@ namespace WOTRMultiplayer.Services
                 SourceSquadSlot = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapArmySquadSlot>(sourceSquadSlot),
                 TargetSquadSlot = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapArmySquadSlot>(targetSquadSlot),
             };
-            Logger.LogInformation("Sending {MessageType}. SourceArmyId={SourceArmyId}, SourceSquadId={SourceSquadId}, SourcePosition={SourcePosition}, TargetArmyId={TargetArmyId}, TargetSquadId={TargetSquadId}, TargetPosition={TargetPosition}", nameof(NotifyGlobalMapCrusadeArmySquadsSwitched),
-                message.SourceSquadSlot.ArmyId, message.SourceSquadSlot.SquadId, message.SourceSquadSlot.Position, message.TargetSquadSlot.ArmyId, message.TargetSquadSlot.SquadId, message.TargetSquadSlot.Position);
             Send(message);
         }
 
@@ -1320,8 +1213,6 @@ namespace WOTRMultiplayer.Services
                 TargetSquadSlot = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapArmySquadSlot>(targetSquadSlot),
                 Count = count
             };
-            Logger.LogInformation("Sending {MessageType}. SourceArmyId={SourceArmyId}, SourceSquadId={SourceSquadId}, SourcePosition={SourcePosition}, TargetArmyId={TargetArmyId}, TargetSquadId={TargetSquadId}, TargetPosition={TargetPosition}, Count={Count}", nameof(NotifyGlobalMapCrusadeArmySquadSplitRequested),
-                message.SourceSquadSlot.ArmyId, message.SourceSquadSlot.SquadId, message.SourceSquadSlot.Position, message.TargetSquadSlot.ArmyId, message.TargetSquadSlot.SquadId, message.TargetSquadSlot.Position, count);
             Send(message);
         }
 
@@ -1330,7 +1221,6 @@ namespace WOTRMultiplayer.Services
             base.OnStartRest();
 
             var message = new NotifyRestStarted();
-            Logger.LogInformation("Sending {MessageType}", nameof(NotifyRestStarted));
             Send(message);
         }
 
@@ -1374,11 +1264,13 @@ namespace WOTRMultiplayer.Services
 
         protected override void Send(object message)
         {
+            Logger.LogObject(LogLevel.Information, "Sending {MessageType}.", message);
             _networkServer.SendAll(message);
         }
 
         protected override void Send(long playerId, object message)
         {
+            Logger.LogObject(LogLevel.Information, "Sending {MessageType} to Player {PlayerId}.", playerId, message);
             _networkServer.Send(playerId, message);
         }
 
@@ -1437,7 +1329,6 @@ namespace WOTRMultiplayer.Services
                                 UnitId = Game.Combat.Turn.UnitId,
                             };
                             Send(playerId, desyncedTurnStartMessage);
-                            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, UnitId={UnitId}", nameof(NotifyInvalidCombatTurnStarted), playerId, desyncedTurnStartMessage.UnitId);
                         }
 
                         return;
@@ -1462,7 +1353,6 @@ namespace WOTRMultiplayer.Services
                             TriggeredAreaEffects = Mapper.Map<List<Networking.Messages.Contracts.NetworkAreaEffect>>(Game.Combat.TriggeredAreaEffects)
                         };
                         Game.Combat.TriggeredAreaEffects.Clear();
-                        Logger.LogInformation("Sending {MessageType}. TurnSeed={TurnSeed}, TriggeredAreaEffects={TriggeredAreaEffects}", syncMessage.TurnSeed, syncMessage.TriggeredAreaEffects);
                         Send(syncMessage);
                     }
 
@@ -1503,7 +1393,7 @@ namespace WOTRMultiplayer.Services
 
         protected override void OnAfterNetworkMessageHandled(long senderPlayerId, object message)
         {
-            Logger.LogInformation("Resending message. ExceptPlayerId={ExceptPlayerId}, MessageType={MessageType}", senderPlayerId, message.GetType().Name);
+            Logger.LogDebug("Resending message. ExceptPlayerId={ExceptPlayerId}, MessageType={MessageType}", senderPlayerId, message.GetType().Name);
             _networkServer.SendAllExcept(senderPlayerId, message);
         }
 
@@ -1592,8 +1482,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapCommonPopupShown(long receivedFrom, NotifyGlobalMapCommonPopupShown globalMapCommonPopupShown)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, Type={Type}, LocationId={LocationId}, LocationName={LocationName}", nameof(NotifyGlobalMapCommonPopupShown), receivedFrom, globalMapCommonPopupShown.PlayerId, globalMapCommonPopupShown.Popup.Type, globalMapCommonPopupShown.Popup.Location?.Id.Length, globalMapCommonPopupShown.Popup.Location?.Name);
-
             AddPlayerToTracker(Game.PlayersInGlobalMapCommonPopup, globalMapCommonPopupShown.PlayerId);
             var popup = Mapper.Map<NetworkGlobalMapCommonPopup>(globalMapCommonPopupShown.Popup);
             UpdateGlobalMapCommonPopupUIState(popup);
@@ -1603,7 +1491,6 @@ namespace WOTRMultiplayer.Services
 
         private async void OnClientCombatPreparationStarted(long receivedFrom, ClientCombatPreparationStarted message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, UnitsCount={UnitsCount}", nameof(ClientCombatPreparationStarted), receivedFrom, message.Units.Count);
             var units = Mapper.Map<List<NetworkUnit>>(message.Units);
 
             var isOk = await WaitWhileTrue(() => Game.Combat == null || Game.Combat.Stage != NetworkCombatStage.Idle, $"Waiting for combat to start to add preparation. PlayerId={receivedFrom}",
@@ -1653,28 +1540,22 @@ namespace WOTRMultiplayer.Services
             SetCombatStage(NetworkCombatStage.Idle);
 
             var recoveryMessage = new NotifyCombatRecoveryRequired();
-            Logger.LogWarning("Sending {MessageType} to ALL players", nameof(NotifyCombatRecoveryRequired));
             Send(recoveryMessage);
         }
 
         private void OnClientCombatPreparationCompleted(long receivedFrom, ClientCombatPreparationCompleted message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, Units={Units}", nameof(ClientCombatPreparationCompleted), receivedFrom, message.PlayerId, message.Units.Select(x => x.Id));
             Game.Combat.PlayersCombatPreparation.TryRemove(message.PlayerId, out _);
             Logger.LogInformation("Combat preparation updated. ConfirmedPlayer={ConfirmedPlayer}, PlayersLeft={PlayersLeft}", message.PlayerId, Game.Combat.PlayersCombatPreparation.Keys);
         }
 
         private void OnClientTogglePauseOff(long receivedFrom, ClientTogglePauseOff message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(ClientTogglePauseOff), receivedFrom, message.PlayerId);
-
             TryEndForcedPause();
         }
 
         private void OnNotifyGlobalMapRecruitmentClosed(long receivedFrom, NotifyGlobalMapRecruitmentClosed message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapRecruitmentClosed), receivedFrom, message.PlayerId);
-            // no need for specific removal as recruitment is already closed
             ResetPlayersTracker(Game.PlayersInGlobalMapRecruitment);
 
             OnAfterNetworkMessageHandled(receivedFrom, message);
@@ -1682,8 +1563,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapRecruitmentShown(long receivedFrom, NotifyGlobalMapRecruitmentShown message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapRecruitmentShown), receivedFrom, message.PlayerId);
-
             AddPlayerToTracker(Game.PlayersInGlobalMapRecruitment, message.PlayerId);
             UpdateGlobalMapRecruitmentUIState();
 
@@ -1692,7 +1571,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapCrusadeArmyBuyLeaderClosed(long receivedFrom, NotifyGlobalMapCrusadeArmyBuyLeaderClosed message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapTravelerModeChanged), receivedFrom, message.PlayerId);
             RemovePlayerFromTracker(Game.PlayersInGlobalMapCrusadeArmyBuyLeader, message.PlayerId);
             UpdateGlobalMapCrusadeArmyInfoUIStateAfterBuyLeader();
 
@@ -1701,7 +1579,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapCrusadeArmySetLeaderClosed(long receivedFrom, NotifyGlobalMapCrusadeArmySetLeaderClosed message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapTravelerModeChanged), receivedFrom, message.PlayerId);
             RemovePlayerFromTracker(Game.PlayersInGlobalMapCrusadeArmySetLeader, message.PlayerId);
             UpdateGlobalMapCrusadeArmyInfoUIStateAfterSetLeader();
 
@@ -1710,7 +1587,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapCrusadeArmyInfoShown(long receivedFrom, NotifyGlobalMapCrusadeArmyInfoShown message)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapCombatResultsShown), receivedFrom, message.PlayerId);
             AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyInfo, message.PlayerId);
 
             UpdateGlobalMapCrusadeArmyInfoUIState();
@@ -1720,7 +1596,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapCrusadeArmyMergeCartClosed(long receivedFrom, NotifyGlobalMapCrusadeArmyMergeCartClosed globalMapCrusadeArmyInfoMergeClosed)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapTravelerModeChanged), receivedFrom, globalMapCrusadeArmyInfoMergeClosed.PlayerId);
             RemovePlayerFromTracker(Game.PlayersInGlobalMapCrusadeArmyInfoMerge, globalMapCrusadeArmyInfoMergeClosed.PlayerId);
             UpdateGlobalMapCrusadeArmyInfoUIStateAfterMerge();
 
@@ -1729,8 +1604,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyTacticalCombatInitializationConfirmed(long receivedFrom, NotifyTacticalCombatInitializationConfirmed tacticalCombatInitializationConfirmed)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}", nameof(NotifyGlobalMapTravelerModeChanged), receivedFrom, tacticalCombatInitializationConfirmed.PlayerId);
-
             Game.ArmyCombat.PlayersCombatInitialization.TryAdd(tacticalCombatInitializationConfirmed.PlayerId, true);
 
             Game.ArmyCombat.IsInitialized = TryConfirmTacticalCombatInitialization();
@@ -1738,8 +1611,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapTravelerModeChanged(long receivedFrom, NotifyGlobalMapTravelerModeChanged globalMapTravelerModeChanged)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, TravelerMode={TravelerMode}, MustBeEnforced={MustBeEnforced}", nameof(NotifyGlobalMapTravelerModeChanged), globalMapTravelerModeChanged.PlayerId, globalMapTravelerModeChanged.TravelerMode, globalMapTravelerModeChanged.MustBeEnforced);
-
             var travelerMode = Mapper.Map<NetworkGlobalMapTravelerMode>(globalMapTravelerModeChanged.TravelerMode);
             RegisterGlobalMapMode(globalMapTravelerModeChanged.PlayerId, travelerMode);
             UpdateGlobalMapUIState();
@@ -1749,8 +1620,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyPolymorphicItemCreationRequested(long playerId, NotifyPolymorphicItemCreationRequested polymorphicItemCreationRequested)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, UnitId={UnitId}, ItemName={ItemName}, SlotType={SlotType}", nameof(NotifyPolymorphicItemCreationRequested), playerId, polymorphicItemCreationRequested.PolymorphicItem.UnitId, polymorphicItemCreationRequested.PolymorphicItem.Item.Name, polymorphicItemCreationRequested.PolymorphicItem.Position.Type);
-
             var polymorphicItem = Mapper.Map<NetworkPolymorphicItem>(polymorphicItemCreationRequested.PolymorphicItem);
             GameInteraction.CreateAndEquipPolymorphicItem(polymorphicItem, createContext: false);
 
@@ -1759,7 +1628,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnClientGameAutoPaused(long playerId, ClientGameAutoPaused clientGameAutoPaused)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, Reason={Reason}, RemovalDelay={RemovalDelay}", nameof(ClientGameAutoPaused), playerId, clientGameAutoPaused.Pause.Reason, clientGameAutoPaused.Pause.RemovalDelay);
             var pause = Mapper.Map<NetworkForcedPause>(clientGameAutoPaused.Pause);
             lock (ActionLock)
             {
@@ -1770,8 +1638,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnClientCharacterLevelingRequested(long playerId, ClientCharacterLevelingRequested characterLevelingRequested)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, UnitId={UnitId}, Type={Type}", nameof(ClientCharacterLevelingRequested), playerId, characterLevelingRequested.UnitId, characterLevelingRequested.Type);
-
             if (!Enum.TryParse<NetworkLevelingType>(characterLevelingRequested.Type, true, out var levelingType))
             {
                 Logger.LogError("Invalid char gen screen type value. Value={Value}", characterLevelingRequested.Type);
@@ -1796,8 +1662,6 @@ namespace WOTRMultiplayer.Services
 
         private async void OnRandomEncounterContextRequest(long receivedFrom, RandomEncounterContextRequest request)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}", nameof(RandomEncounterContextRequest), receivedFrom);
-
             var randomEncounterIndex = request.SleepPhase - 1;
             var timeout = Task.Delay(request.Timeout);
             await WaitWhileTrue(() => !timeout.IsCompleted && (Game.Rest == null || Game.Rest.RandomEncounters.Count <= randomEncounterIndex),
@@ -1808,22 +1672,17 @@ namespace WOTRMultiplayer.Services
             {
                 Encounter = Mapper.Map<Networking.Messages.Contracts.NetworkRandomEncounter>(encounter)
             };
-
-            Logger.LogInformation("Sending {MessageType}. IsAvailable={IsAvailable}", response.Encounter != null);
-
             Send(receivedFrom, response);
         }
 
         private void OnClientCombatTurnSynchronized(long playerId, ClientCombatTurnSynchronized synchronized)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, UnitId={UnitId}", nameof(ClientCombatTurnSynchronized), playerId, synchronized.UnitId);
             AddPlayerReadyStatus(PlayerTurnReadinessType.UnitSynchronization, playerId, synchronized.UnitId);
             TryStartTurn();
         }
 
         private void OnClientCombatTurnStarted(long playerId, ClientCombatTurnStarted started)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, Round={Round}, UnitId={UnitId}", nameof(ClientCombatTurnStarted), playerId, started.Round, started.UnitId);
             AddPlayerReadyStatus(PlayerTurnReadinessType.Start, playerId, started.UnitId);
 
             TryStartTurn();
@@ -1831,8 +1690,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnClientCombatInitializationCompleted(long playerId, ClientCombatInitializationCompleted message)
         {
-            Logger.LogInformation("Received {MessageType}", nameof(ClientCombatInitializationCompleted), playerId);
-
             if (!Game.Combat.PlayersCombatInitialization.TryAdd(playerId, true))
             {
                 Logger.LogWarning("Received duplicate client initialization. PlayerId={PlayerId}", playerId);
@@ -1841,9 +1698,6 @@ namespace WOTRMultiplayer.Services
 
         private async void OnClientDialogStartRequested(long playerId, ClientDialogStartRequested requested)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, DialogId={DialogId}, DialogName={DialogName}, TargetUnitId={TargetUnitId}, InitiatorUnitId={InitiatorUnitId}, MapObjectId={MapObjectId}, SpeakerKey={SpeakerKey}",
-                nameof(ClientDialogStartRequested), playerId, requested.Dialog.Id, requested.Dialog.Name, requested.Dialog.TargetUnitId, requested.Dialog.InitiatorUnitId, requested.Dialog.MapObjectId, requested.Dialog.SpeakerKey);
-
             var dialog = Mapper.Map<NetworkDialog>(requested.Dialog);
             var hasBeenStarted = await DialogInteraction.StartDialogAsync(dialog);
             if (hasBeenStarted)
@@ -1856,15 +1710,11 @@ namespace WOTRMultiplayer.Services
             {
                 Dialog = Mapper.Map<Networking.Messages.Contracts.NetworkDialog>(Game.DialogState.Dialog)
             };
-            Logger.LogInformation("Sending {MessageType}. Id={Id}, Name={Name}, TargetUnitId={TargetUnitId}, InitiatorUnitId={InitiatorUnitId}, MapObjectId={MapObjectId}, SpeakerKey={SpeakerKey}",
-                nameof(NotifyDialogStarted), message.Dialog.Id, message.Dialog.Name, message.Dialog.TargetUnitId, message.Dialog.InitiatorUnitId, message.Dialog.MapObjectId, message.Dialog.SpeakerKey);
             Send(message);
         }
 
         private async void OnClientDialogCueAnswerSuggested(long playerId, ClientDialogCueAnswerSuggested message)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, DialogId={DialogId}, DialogName={DialogName}, CueName={CueName}, AnswerName={AnswerName}", nameof(ClientDialogCueAnswerSuggested), playerId, message.Dialog.Id, message.Dialog.Name, message.CueName, message.AnswerName);
-
             await WaitWhileTrue(() => Game.DialogState == null, "Waiting for dialog to initialize before suggesting cue answer");
 
             Game.DialogState.AnswerSuggestions.AddOrUpdate(playerId, message.AnswerName, (key, existing) =>
@@ -1881,15 +1731,11 @@ namespace WOTRMultiplayer.Services
                 CueName = message.CueName,
                 Suggestions = Mapper.Map<List<Networking.Messages.Contracts.NetworkDialogAnswerSuggestion>>(suggestions),
             };
-            Logger.LogInformation("Sending {MessageType}. DialogId={DialogId}, DialogName={DialogName}, CueName={CueName}, SuggestionsCount={SuggestionsCount}",
-                nameof(NotifyDialogCueAnswerSuggested), cueAnswerSuggested.Dialog.Id, cueAnswerSuggested.Dialog.Name, cueAnswerSuggested.CueName, cueAnswerSuggested.Suggestions.Count);
             Send(cueAnswerSuggested);
         }
 
         private async void OnClientDialogCueWitnessed(long playerId, ClientDialogCueWitnessed message)
         {
-            Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, DialogId={DialogId}, DialogName={DialogName}, CueName={CueName}", nameof(ClientDialogCueWitnessed), playerId, message.Dialog.Id, message.Dialog.Name, message.CueName);
-
             await WaitWhileTrue(() => Game.DialogState == null, "Waiting for dialog to initialize before witnessing cue");
 
             AddCueWitness(message.CueName, playerId);
@@ -1900,7 +1746,6 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, RollId={RollId}, UnitId={UnitId}, RuleName={RuleName}, CombatTurnUnitId={CombatTurnUnitId}", nameof(DiceRollValueRequest), playerId, request.RollId, request.UnitId, request.RuleName, request.CombatTurnUnitId);
                 // roll storage (location) is dynamic in combat and depends on TurnOwner
                 var (shouldBeProxied, playerToAsk) = ShouldRollBeProxied(playerId, request);
                 if (!shouldBeProxied)
@@ -1918,7 +1763,6 @@ namespace WOTRMultiplayer.Services
                 };
                 Logger.LogInformation("Asking another client for a roll. PlayerToAsk={PlayerToAsk}, PlayerId={PlayerId}, RollId={RollId}, UnitId={UnitId}, Timeout={Timeout}", playerToAsk, message.PlayerId, message.RollId, message.UnitId, message.Timeout);
                 var rollFromAnotherClient = await _networkServer.SendAndWaitForAsync<DiceRollValueResponse>(playerToAsk.Value, message);
-                Logger.LogInformation("Sending roll to a client. PlayerId={PlayerId}, RollId={RollId}", playerId, rollFromAnotherClient.RollId);
                 Send(playerId, rollFromAnotherClient);
             }
             catch (Exception ex)
@@ -1962,8 +1806,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyLobbySyncStatusChanged(long receivedFrom, NotifyLobbySyncStatusChanged lobbySyncStatusChanged)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}, PlayerId={PlayerId}, Status={Status}", nameof(NotifyLobbySyncStatusChanged), receivedFrom, lobbySyncStatusChanged.PlayerId, lobbySyncStatusChanged.Status);
-
             var status = Mapper.Map<NetworkLobbySyncStatus>(lobbySyncStatusChanged.Status);
             UpdateLobbySyncStatus(lobbySyncStatusChanged.PlayerId, status);
 
@@ -1974,7 +1816,6 @@ namespace WOTRMultiplayer.Services
 
         private void OnClientAreaLoaded(long receivedFrom, ClientAreaLoaded clientAreaLoaded)
         {
-            Logger.LogInformation("Received {MessageType}. ReceivedFrom={ReceivedFrom}", nameof(ClientAreaLoaded), receivedFrom);
             lock (ActionLock)
             {
                 EnsureForcePaused(NetworkForcedPauseReason.AreaLoading);
@@ -2010,8 +1851,6 @@ namespace WOTRMultiplayer.Services
                     GameSettings = Mapper.Map<Networking.Messages.Contracts.NetworkGameSettings>(settings),
                     SessionSeed = Game.SessionSeed
                 };
-                Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, Settings={Settings}", nameof(GameServerConnectionSucceeded), message.ClientPlayerId, message.GameSettings);
-
                 Send(playerId, message);
             }
         }
@@ -2057,7 +1896,7 @@ namespace WOTRMultiplayer.Services
 
                 InvokeOnPlayersChanged();
                 var playersChanged = CreateNotifyLobbyPlayersChanged();
-                Logger.LogInformation("Sending {MessageType}", nameof(NotifyLobbyPlayersChanged));
+                Logger.LogObject(LogLevel.Information, "Sending {MessageType} to all EXCEPT Player {PlayerId}.", playerId, playersChanged);
                 _networkServer.SendAllExcept(playerId, playersChanged);
                 ShowPlayerDisconnectedMessage(removedPlayer);
 
@@ -2073,7 +1912,6 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                Logger.LogInformation("Received {MessageType}. PlayerId={PlayerId}, Name={Name}", nameof(ClientGameServerConnectionConfirmed), playerId, connectionConfirmed.PlayerName);
                 lock (ActionLock)
                 {
                     var existingPlayer = GetPlayer(playerId);
@@ -2098,7 +1936,6 @@ namespace WOTRMultiplayer.Services
                     Logger.LogInformation("Player content has been checked. PlayerId={PlayerId}, DiscrepantDLCs={DiscrepantDLCs}, DiscrepantMods={DiscrepantMods}", existingPlayer.Id, existingPlayer.ContentState.DiscrepantDLCs.Count, existingPlayer.ContentState.DiscrepantMods.Count);
 
                     var playersChanged = CreateNotifyLobbyPlayersChanged();
-                    Logger.LogInformation("Sending {MessageType} to ALL players", nameof(NotifyLobbyPlayersChanged));
                     Send(playersChanged);
 
                     var lobbyCharactersChanged = new NotifyLobbyCharactersChanged
@@ -2106,7 +1943,6 @@ namespace WOTRMultiplayer.Services
                         Title = Game.StartUp?.Title,
                         Characters = Mapper.Map<List<Networking.Messages.Contracts.NetworkCharacter>>(Game.Characters)
                     };
-                    Logger.LogInformation("Sending {MessageType} to new player. PlayerId={PlayerId}", nameof(NotifyLobbyCharactersChanged), playerId);
                     Send(playerId, lobbyCharactersChanged);
 
                     InvokeOnPlayersChanged();
@@ -2344,8 +2180,6 @@ namespace WOTRMultiplayer.Services
                             var party = CombatInteraction.GetParty();
                             message.Party = Mapper.Map<List<Networking.Messages.Contracts.NetworkUnit>>(party);
                         }
-
-                        Logger.LogInformation("Sending {MessageType}. AreaSeed={AreaSeed}. Party={Party}", nameof(NotifyGamePauseEnded), message.AreaSeed, message.Party);
                         Send(message);
 
                         Game.ForcedPause = null;
@@ -2391,8 +2225,6 @@ namespace WOTRMultiplayer.Services
                 UnitId = Game.Leveling.UnitId,
                 Type = Game.Leveling.Type.ToString()
             };
-            Logger.LogInformation("Sending {MessageType}. PlayerId={PlayerId}, UnitId={UnitId}, Type={Type}", nameof(NotifyLevelingStarted), playerId, message.UnitId, message.Type);
-
             if (playerId.HasValue)
             {
                 Send(playerId.Value, message);

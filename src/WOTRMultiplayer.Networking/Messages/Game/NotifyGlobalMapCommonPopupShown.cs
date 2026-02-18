@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using WOTRMultiplayer.Logging.Attributes;
 using WOTRMultiplayer.Networking.Messages.Contracts;
 
 namespace WOTRMultiplayer.Networking.Messages.Game
@@ -8,9 +9,11 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     public class NotifyGlobalMapCommonPopupShown
     {
         [ProtoMember(1)]
+        [LogMe]
         public long PlayerId { get; set; }
 
         [ProtoMember(2)]
+        [LogMe]
         public NetworkGlobalMapCommonPopup Popup { get; set; }
     }
 }

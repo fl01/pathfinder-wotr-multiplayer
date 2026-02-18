@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ProtoBuf;
+using WOTRMultiplayer.Logging.Attributes;
 using WOTRMultiplayer.Networking.Messages.Contracts;
 
 namespace WOTRMultiplayer.Networking.Messages.Lobby
@@ -9,6 +10,7 @@ namespace WOTRMultiplayer.Networking.Messages.Lobby
     public class NotifyLobbyPlayersChanged
     {
         [ProtoMember(1)]
+        [LogMe]
         public List<NetworkPlayer> Players { get; set; } = [];
     }
 }

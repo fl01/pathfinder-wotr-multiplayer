@@ -67,7 +67,7 @@ namespace WOTRMultiplayer.UI
             {
                 var portrait = allSprites[i];
 
-                keyValuePairs.TryAdd(portrait.name, portrait as T);
+                keyValuePairs.TryAdd(portrait.name, portrait);
             }
 
             return keyValuePairs;

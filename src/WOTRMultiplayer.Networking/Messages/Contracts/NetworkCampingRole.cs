@@ -13,5 +13,10 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
 
         [ProtoMember(3)]
         public string SecondaryUnitId { get; set; }
+
+        public override string ToString()
+        {
+            return $"{{RoleType={RoleType}, PrimaryUnit={PrimaryUnitId},SecondaryUnit={SecondaryUnitId}}}";
+        }
     }
 }

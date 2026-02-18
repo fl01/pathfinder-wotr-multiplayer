@@ -18,7 +18,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
     [HarmonyPatch]
     public class DialogsPatches
     {
-        private static AsyncLocal<bool> _isScriptedDialog = new();
+        private static readonly AsyncLocal<bool> _isScriptedDialog = new();
 
         [HarmonyPatch(typeof(StartDialog), nameof(StartDialog.RunAction))]
         [HarmonyPrefix]

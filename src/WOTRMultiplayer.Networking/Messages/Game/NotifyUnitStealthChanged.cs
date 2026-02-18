@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using WOTRMultiplayer.Logging.Attributes;
 
 namespace WOTRMultiplayer.Networking.Messages.Game
 {
@@ -7,12 +8,15 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     public class NotifyUnitStealthChanged
     {
         [ProtoMember(1)]
+        [LogMe]
         public string UnitId { get; set; }
 
         [ProtoMember(2)]
+        [LogMe]
         public bool IsEnabled { get; set; }
 
         [ProtoMember(3)]
+        [LogMe]
         public bool IsForced { get; set; }
     }
 }

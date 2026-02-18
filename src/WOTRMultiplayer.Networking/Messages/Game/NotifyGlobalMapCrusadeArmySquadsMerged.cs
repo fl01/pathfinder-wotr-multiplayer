@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using WOTRMultiplayer.Logging.Attributes;
 using WOTRMultiplayer.Networking.Messages.Contracts;
 
 namespace WOTRMultiplayer.Networking.Messages.Game
@@ -8,12 +9,15 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     public class NotifyGlobalMapCrusadeArmySquadsMerged
     {
         [ProtoMember(1)]
+        [LogMe]
         public NetworkGlobalMapArmySquadSlot SourceSquadSlot { get; set; }
 
         [ProtoMember(2)]
+        [LogMe]
         public NetworkGlobalMapArmySquadSlot TargetSquadSlot { get; set; }
 
         [ProtoMember(3)]
+        [LogMe]
         public int Count { get; set; }
     }
 }

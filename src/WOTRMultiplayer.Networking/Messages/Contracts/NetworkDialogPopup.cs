@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using WOTRMultiplayer.Logging.Attributes;
 
 namespace WOTRMultiplayer.Networking.Messages.Contracts
 {
@@ -6,12 +7,15 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
     public class NetworkDialogPopup
     {
         [ProtoMember(1)]
+        [LogMe]
         public string AreaName { get; set; }
 
         [ProtoMember(2)]
+        [LogMe]
         public string DialogName { get; set; }
 
         [ProtoMember(3)]
+        [LogMe]
         public string CueName { get; set; }
     }
 }

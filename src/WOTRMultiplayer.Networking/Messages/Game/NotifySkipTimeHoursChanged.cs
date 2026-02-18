@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using WOTRMultiplayer.Logging.Attributes;
 
 namespace WOTRMultiplayer.Networking.Messages.Game
 {
@@ -7,6 +8,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     public class NotifySkipTimeHoursChanged
     {
         [ProtoMember(1)]
+        [LogMe]
         public float Hours { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using ProtoBuf;
+using WOTRMultiplayer.Logging.Attributes;
 using WOTRMultiplayer.Networking.Awaiters;
 
 namespace WOTRMultiplayer.Networking.Messages.Requests
@@ -9,9 +10,11 @@ namespace WOTRMultiplayer.Networking.Messages.Requests
     public class RandomEncounterContextRequest : IAwaitableRequest
     {
         [ProtoMember(1)]
+        [LogMe]
         public TimeSpan Timeout { get; set; }
 
         [ProtoMember(2)]
+        [LogMe]
         public int SleepPhase { get; set; }
 
         public string GetKey()

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -17,6 +19,7 @@ using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.Config.Mapping;
 using WOTRMultiplayer.Networking.Extensions;
+using WOTRMultiplayer.Networking.Messages;
 using WOTRMultiplayer.Services;
 using WOTRMultiplayer.Services.GameInteraction;
 using WOTRMultiplayer.Services.Hashing;
@@ -39,7 +42,8 @@ namespace WOTRMultiplayer.Config.DI
             var consoleLogLevel = (LogEventLevel)settings.ConsoleMinimumLogLevel;
             var fileLogLevel = (LogEventLevel)settings.FileMinimumLogLevel;
 
-            Log.Logger = Logging.LoggerFactory.Create(settings.UseDebugConsole, modFolder, consoleLogLevel, fileLogLevel);
+            var loggableObjects = typeof(MessageTypes).Assembly.GetTypes().Where(x => x.GetCustomAttribute<BeetleX.Packets.MessageTypeAttribute>() != null).ToList();
+            Log.Logger = Logging.LoggerFactory.Create(settings.UseDebugConsole, modFolder, consoleLogLevel, fileLogLevel, loggableObjects);
 
             serviceCollection.AddLogging(x =>
             {

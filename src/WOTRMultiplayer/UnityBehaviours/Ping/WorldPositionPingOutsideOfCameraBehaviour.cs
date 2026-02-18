@@ -76,7 +76,7 @@ namespace WOTRMultiplayer.UnityBehaviours.Ping
                 : base((JsonConstructorMark)default)
             {
                 // actual value of this.Portrait property is never used, just need to make sure it doesn't fail with NRE (PointMarker.Init)
-                this.Descriptor = new Kingmaker.UnitLogic.UnitDescriptor((JsonConstructorMark)default);
+                this.Descriptor = new Kingmaker.UnitLogic.UnitDescriptor(default);
                 var settings = new Kingmaker.UI.UnitSettings.UnitUISettings(this.Descriptor)
                 {
                     m_IgnoreOriginalPortrait = true,

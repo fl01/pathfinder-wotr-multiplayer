@@ -1,5 +1,5 @@
 ﻿using ProtoBuf;
-
+using WOTRMultiplayer.Logging.Attributes;
 namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
@@ -7,6 +7,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     public class NotifyLevelingRespecMythicLevelUp
     {
         [ProtoMember(1)]
+        [LogMe]
         public long PlayerId { get; set; }
     }
 }

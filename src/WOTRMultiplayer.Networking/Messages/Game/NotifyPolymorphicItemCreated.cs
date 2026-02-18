@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using WOTRMultiplayer.Logging.Attributes;
 using WOTRMultiplayer.Networking.Messages.Contracts;
 
 namespace WOTRMultiplayer.Networking.Messages.Game
@@ -8,6 +9,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     public class NotifyPolymorphicItemCreated
     {
         [ProtoMember(1)]
+        [LogMe]
         public NetworkPolymorphicItem PolymorphicItem { get; set; }
     }
 }

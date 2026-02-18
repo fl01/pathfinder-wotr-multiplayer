@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using WOTRMultiplayer.Logging.Attributes;
 
 namespace WOTRMultiplayer.Networking.Messages.Lobby
 {
@@ -7,9 +8,11 @@ namespace WOTRMultiplayer.Networking.Messages.Lobby
     public class NotifyPlayerReadyStatusChanged
     {
         [ProtoMember(1)]
+        [LogMe]
         public long PlayerId { get; set; }
 
         [ProtoMember(2)]
+        [LogMe]
         public bool IsReady { get; set; }
     }
 }

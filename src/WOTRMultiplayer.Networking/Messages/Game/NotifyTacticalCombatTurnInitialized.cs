@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using WOTRMultiplayer.Logging.Attributes;
 
 namespace WOTRMultiplayer.Networking.Messages.Game
 {
@@ -7,9 +8,11 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     public class NotifyTacticalCombatTurnInitialized
     {
         [ProtoMember(1)]
+        [LogMe]
         public long PlayerId { get; set; }
 
         [ProtoMember(2)]
+        [LogMe]
         public int TurnNumber { get; set; }
     }
 }

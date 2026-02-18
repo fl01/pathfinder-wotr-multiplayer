@@ -1,5 +1,6 @@
 ﻿using System;
 using ProtoBuf;
+using WOTRMultiplayer.Logging.Attributes;
 
 namespace WOTRMultiplayer.Networking.Messages.Contracts
 {
@@ -7,9 +8,11 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
     public class NetworkForcedPause
     {
         [ProtoMember(1)]
+        [LogMe]
         public string Reason { get; set; }
 
         [ProtoMember(2)]
+        [LogMe]
         public TimeSpan? RemovalDelay { get; set; }
     }
 }

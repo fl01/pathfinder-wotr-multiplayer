@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using WOTRMultiplayer.Logging.Attributes;
 
 namespace WOTRMultiplayer.Networking.Messages.Contracts
 {
@@ -6,6 +7,7 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
     public class NetworkGlobalMapKingdomSettlement
     {
         [ProtoMember(1)]
+        [LogMe]
         public string Id { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading.Tasks;
 using BeetleX.Clients;
 using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Logging.Extensions;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Awaiters;
 
@@ -138,6 +139,7 @@ namespace WOTRMultiplayer.Networking
 
             try
             {
+                _logger.LogObject(LogLevel.Information, "Receiving {MessageType}.", message);
                 handler(NetworkingConsts.HostPlayerId, message);
             }
             catch (Exception ex)

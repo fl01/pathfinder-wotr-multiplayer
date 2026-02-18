@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using WOTRMultiplayer.Logging.Attributes;
 using WOTRMultiplayer.Networking.Messages.Contracts;
 
 namespace WOTRMultiplayer.Networking.Messages.Game
@@ -8,6 +9,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     public class NotifyPerceptionCheckRolled
     {
         [ProtoMember(1)]
+        [LogMe]
         public NetworkPerceptionCheck Check { get; set; }
     }
 }

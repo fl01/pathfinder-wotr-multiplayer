@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using WOTRMultiplayer.Logging.Attributes;
 
 namespace WOTRMultiplayer.Networking.Messages.Contracts
 {
@@ -6,15 +7,18 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
     public class NetworkUnit
     {
         [ProtoMember(1)]
+        [LogMe]
         public string Id { get; set; }
 
         [ProtoMember(2)]
+        [LogMe]
         public NetworkVector3 Position { get; set; }
 
         [ProtoMember(3)]
         public float Orientation { get; set; }
 
         [ProtoMember(4)]
+        [LogMe]
         public NetworkUnitTurnBasedInfo TurnBasedInfo { get; set; }
 
         [ProtoMember(5)]

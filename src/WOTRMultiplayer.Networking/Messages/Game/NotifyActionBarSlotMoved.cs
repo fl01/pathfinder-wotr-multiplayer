@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using WOTRMultiplayer.Logging.Attributes;
 using WOTRMultiplayer.Networking.Messages.Contracts;
 
 namespace WOTRMultiplayer.Networking.Messages.Game
@@ -8,9 +9,11 @@ namespace WOTRMultiplayer.Networking.Messages.Game
     public class NotifyActionBarSlotMoved
     {
         [ProtoMember(1)]
+        [LogMe]
         public NetworkActionBarSlot SourceActionBarSlot { get; set; }
 
         [ProtoMember(2)]
+        [LogMe]
         public NetworkActionBarSlot TargetActionBarSlot { get; set; }
     }
 }

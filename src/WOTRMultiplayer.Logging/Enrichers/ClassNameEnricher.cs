@@ -21,7 +21,6 @@ namespace WOTRMultiplayer.Logging.Enrichers
                         logEvent.AddOrUpdateProperty(new LogEventProperty("SourceContext", new ScalarValue(lastElement)));
                     }
                 }
-
             }
         }
     }

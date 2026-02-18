@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using WOTRMultiplayer.Logging.Attributes;
 
 namespace WOTRMultiplayer.Networking.Messages.Lobby
 {
@@ -7,6 +8,7 @@ namespace WOTRMultiplayer.Networking.Messages.Lobby
     public class NotifyNewGameDifficultyChanged
     {
         [ProtoMember(1)]
+        [LogMe]
         public string Difficulty { get; set; }
     }
 }
