@@ -8,7 +8,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
     {
         [HarmonyPatch(typeof(UnitEntityData), nameof(UnitEntityData.JoinCombat))]
         [HarmonyPrefix]
-        public static bool UnitEntityData_JoinCombat_Prefix(UnitEntityData __instance)
+        public static bool UnitEntityData_JoinCombat_Prefix(UnitEntityData __instance, bool notSurprised)
         {
             if (!Main.Multiplayer.IsActive)
             {

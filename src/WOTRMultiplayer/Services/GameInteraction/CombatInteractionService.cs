@@ -837,6 +837,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     }
 
                     UpdateUnit(unit, networkUnit, updatePosition: true);
+                    UpdateUnitCombatState(unit, networkUnit.CombatState);
 
                     if (!requiresFullUpdate)
                     {
@@ -861,6 +862,11 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 _logger.LogError(ex, "Unable to update combat state. RoundNumber={RoundNumber}, UnitsCount={UnitsCount}, IsFullUpdate={IsFullUpdate}", networkCombatState.RoundNumber, networkCombatState.Units.Count, requiresFullUpdate);
                 throw;
             }
+        }
+
+        private void UpdateUnitCombatState(UnitEntityData unit, NetworkUnitCombatState combatState)
+        {
+            unit.CombatState.NotSurprised = combatState.NotSurprised;
         }
 
         private void UpdateUnit(UnitEntityData unit, NetworkUnit remoteUnit, bool updatePosition)

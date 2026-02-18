@@ -11,5 +11,8 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
 
         [ProtoMember(2)]
         public List<string> EngagedBy { get; set; } = [];
+
+        [ProtoMember(3)]
+        public bool NotSurprised { get; set; }
     }
 }
