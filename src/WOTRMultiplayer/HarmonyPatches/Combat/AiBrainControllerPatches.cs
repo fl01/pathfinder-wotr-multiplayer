@@ -13,7 +13,6 @@ using Kingmaker.RuleSystem;
 using Kingmaker.UnitLogic;
 using Kingmaker.UnitLogic.Commands.Base;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.Abstractions.GameInteraction.CombatLog;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.Services.Random;
@@ -112,7 +111,6 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 var overriddenAction = Main.State.FindAIAction(unit, possibleActionOverride);
                 if (overriddenAction == null)
                 {
-                    Main.PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.ActionOverride.Failed.Key, CombatTextSeverity.Critical, new UnitEntityLog(unit.UniqueId), possibleActionOverride.Name);
                     Main.GetLogger<AiBrainControllerPatches>().LogError("Unable to find required ai action override. UnitId={UnitId}, ActionId={ActionId}, ActionName={ActionName}", unit.UniqueId, possibleActionOverride.Id, possibleActionOverride.Name);
                     return;
                 }
@@ -133,9 +131,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 var path = new ForcedPath([.. possibleActionOverride.DecisionContext.VectorPath.Select(x => x.ToUnityVector3())]);
                 context.BestPath = path;
 
-                Main.PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.ActionOverride.Success.Key, CombatTextSeverity.Debug,
-                    new UnitEntityLog(unit.UniqueId), previousAction.name, new UnitEntityLog(previousTarget), possibleActionOverride.Name, new UnitEntityLog(bestTargetResult.UniqueId));
-                Main.GetLogger<AiBrainControllerPatches>().LogWarning("AI action target has been overridden. UnitId={UnitId}, PreviousActionId={PreviousActionId}, PreviousActionName={PreviousActionName}, PreviousTarget={PreviousTarget}, NewActionId={NewActionId}, NewActionName={NewActionName}, NewTarget={NewTarget}}",
+                Main.GetLogger<AiBrainControllerPatches>().LogWarning("AI action target has been overridden. UnitId={UnitId}, PreviousActionId={PreviousActionId}, PreviousActionName={PreviousActionName}, PreviousTarget={PreviousTarget}, NewActionId={NewActionId}, NewActionName={NewActionName}, NewTarget={NewTarget}",
                     unit.UniqueId, previousAction.AssetGuid.ToString(), previousAction.name, previousTarget, possibleActionOverride.Id, possibleActionOverride.Name, bestTargetResult.UniqueId);
             }
         }

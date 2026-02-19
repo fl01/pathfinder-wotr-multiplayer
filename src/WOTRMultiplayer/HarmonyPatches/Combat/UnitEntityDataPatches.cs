@@ -15,7 +15,8 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 return true;
             }
 
-            return Main.Multiplayer.CanUnitJoinCombat(__instance.UniqueId);
+            var canContinue = Main.Multiplayer.CanUnitJoinCombat(__instance.UniqueId);
+            return canContinue;
         }
     }
 }

@@ -149,5 +149,9 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
             return Task.FromResult(false);
         }
+
+        public void MakeUnitTargetable(string unitId, bool isTargetable)
+        {
+        }
     }
 }

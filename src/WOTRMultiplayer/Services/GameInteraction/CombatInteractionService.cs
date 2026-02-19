@@ -394,6 +394,39 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 _logger.LogInformation("Retreated from tactical combat");
             });
         }
+
+        public void MakeUnitTargetable(string unitId, bool isTargetable)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                try
+                {
+                    var unit = _gameStateLookupService.GetUnitEntity(unitId);
+                    if (unit == null)
+                    {
+                        _logger.LogWarning("Unable to change unit targetable feature due to missing unit. UnitId={UnitId}", unitId);
+                        return;
+                    }
+
+                    if (isTargetable)
+                    {
+                        unit.Descriptor.State.Features.IsUntargetable.Release();
+                    }
+                    else
+                    {
+                        unit.Descriptor.State.Features.IsUntargetable.Retain();
+                    }
+
+                    _logger.LogInformation("Unit targetable feature has been updated. UnitId={UnitId}, IsTargetable={IsTargetable}", unitId, unit.Descriptor.State.Features.IsUntargetable.Value);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Unable to make change unit targetable feature. UnitId={UnitId}, IsTargetable={IsTargetable}", unitId, isTargetable);
+                    throw;
+                }
+            });
+        }
+
         public void MoveUnit(NetworkUnitMoveTo unitMoveTo)
         {
             _mainThreadAccessor.Post(() =>

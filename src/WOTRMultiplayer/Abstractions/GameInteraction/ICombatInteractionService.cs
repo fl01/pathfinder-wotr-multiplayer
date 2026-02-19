@@ -69,5 +69,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         bool IsRiderActive();
 
         void MoveUnit(NetworkUnitMoveTo unitMoveTo);
+
+        void MakeUnitTargetable(string unitId, bool isTargetable);
     }
 }

@@ -10,6 +10,7 @@ namespace WOTRMultiplayer.Networking
         {
             BufferPool.BUFFER_SIZE = NetworkingConsts.BufferSize;
             BufferPool.POOL_SIZE = 2048;
+            BufferPool.POOL_MAX_SIZE = 61440;
             var client = SocketFactory.CreateClient<BeetleTcpClient>(new Messages.ProtobufClientPacket(), host, port);
             return client;
         }

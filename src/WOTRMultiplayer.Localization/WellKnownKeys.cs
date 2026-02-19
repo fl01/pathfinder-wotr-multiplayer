@@ -1031,22 +1031,6 @@ public static class WellKnownKeys
                     public static string Key { get; set; }
                 }
             }
-
-            [Description("actionOverride")]
-            public static class ActionOverride
-            {
-                [Description("success")]
-                public static class Success
-                {
-                    public static string Key { get; set; }
-                }
-
-                [Description("failed")]
-                public static class Failed
-                {
-                    public static string Key { get; set; }
-                }
-            }
         }
 
         [Description("tacticalCombat")]

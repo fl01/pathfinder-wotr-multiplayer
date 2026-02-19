@@ -4,6 +4,6 @@
     {
         public const long HostPlayerId = -1;
 
-        public const int BufferSize = 8192;
+        public const int BufferSize = 32768;
     }
 }
