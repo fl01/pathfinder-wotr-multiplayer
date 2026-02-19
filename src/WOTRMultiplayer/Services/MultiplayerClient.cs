@@ -440,6 +440,17 @@ namespace WOTRMultiplayer.Services
             return false;
         }
 
+        protected override void OnLocalPlayerTurnEnd()
+        {
+            base.OnLocalPlayerTurnEnd();
+
+            if (Game.Combat.Turn.AIActions.Count > 0)
+            {
+                Game.Combat.Turn.AIActions.Clear();
+                Logger.LogInformation("AI actions have been cleared");
+            }
+        }
+
         protected override void SetupNetworkMessageHandlers()
         {
             _networkClient.OnError = OnNetworkClientError;
@@ -1335,7 +1346,6 @@ namespace WOTRMultiplayer.Services
                 await Task.Delay(delay);
             }
 
-            Game.Combat.Turn.AIActions.Clear();
             SetCombatTurnStage(NetworkCombatTurnStage.Playing);
             CombatInteraction.StartTurnBasedCombatTurn(Game.Combat.Turn.UnitId);
         }

@@ -34,6 +34,18 @@ namespace WOTRMultiplayer.Services
         private readonly HashSet<string> _importantCutsceneAreas = new([
             "EstrodTower" // - using columns to damage enemies
             ], StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<WellKnownDiceFormulaKind, WellKnownDiceFormula> _wellKnownDiceFormulas = new()
+        {
+            { WellKnownDiceFormulaKind.RuleCheckCastingDefensively, new WellKnownDiceFormula { Formula = new DiceFormula(1, DiceType.D20), Rerolls = 0} },
+            { WellKnownDiceFormulaKind.RuleInitiativeRoll, new WellKnownDiceFormula { Formula = new DiceFormula(1, DiceType.D20), Rerolls = 0} },
+            { WellKnownDiceFormulaKind.RuleSpellResistanceCheck, new WellKnownDiceFormula { Formula = new DiceFormula(1, DiceType.D20), Rerolls = 0} },
+            { WellKnownDiceFormulaKind.RuleAttackRoll, new WellKnownDiceFormula { Formula = new DiceFormula(1, DiceType.D20), Rerolls = 0} },
+            { WellKnownDiceFormulaKind.RuleCheckConcentration, new WellKnownDiceFormula { Formula = new DiceFormula(1, DiceType.D20), Rerolls = 0} },
+            { WellKnownDiceFormulaKind.RuleSkillCheck, new WellKnownDiceFormula { Formula = new DiceFormula(1, DiceType.D20), Rerolls = 0} },
+
+            { WellKnownDiceFormulaKind.CriticalAttackRoll, new WellKnownDiceFormula { Formula = new DiceFormula(1, DiceType.D20), Rerolls = 0} },
+            { WellKnownDiceFormulaKind.FortificationAttackRoll, new WellKnownDiceFormula { Formula = new DiceFormula(1, DiceType.D100), Rerolls = 0} },
+        };
 
         public MultiplayerRollProcessor(
             ILogger<MultiplayerRollProcessor> logger,
@@ -218,13 +230,13 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldRetrieveRoll(ruleAttackRoll))
+                var isRolledDeterministically = IsRolledDeterministically(ruleAttackRoll, RuleAttackRollSubType.Concealment);
+                if (!ShouldRetrieveRoll(ruleAttackRoll) && !isRolledDeterministically)
                 {
                     return true;
                 }
 
-                var roll = CreateAttackOvercomeConcealmentRoll(NetworkDiceRollType.Hit, ruleAttackRoll);
-                var d100 = RetrieveRoll<RuleRollD100>(roll, ruleAttackRoll.Initiator);
+                var d100 = isRolledDeterministically ? RollAttackOvercomeConcealment(ruleAttackRoll) : RetrieveAttackOvercomeConcealment(ruleAttackRoll);
                 if (d100 == null)
                 {
                     return true;
@@ -244,7 +256,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldStoreRoll(ruleAttackRoll) || ruleAttackRoll.MissChanceRoll == null)
+                if (!ShouldStoreRoll(ruleAttackRoll) || IsRolledDeterministically(ruleAttackRoll, RuleAttackRollSubType.Concealment) || ruleAttackRoll.MissChanceRoll == null)
                 {
                     return;
                 }
@@ -263,13 +275,13 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldRetrieveRoll(ruleAttackRoll))
+                var isRolledDeterministically = IsRolledDeterministically(ruleAttackRoll, RuleAttackRollSubType.Fortification);
+                if (!ShouldRetrieveRoll(ruleAttackRoll) && !isRolledDeterministically)
                 {
                     return true;
                 }
 
-                var roll = CreateFortificationAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll);
-                var d100 = RetrieveRoll<RuleRollD100>(roll, ruleAttackRoll.Initiator);
+                var d100 = isRolledDeterministically ? RollFortificationAttackRoll(ruleAttackRoll) : RetrieveFortificationAttackRoll(ruleAttackRoll);
                 if (d100 == null)
                 {
                     return true;
@@ -289,27 +301,35 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldRetrieveRoll(ruleAttackRoll))
+                if (ruleAttackRoll.IsCriticalRoll)
+                {
+                    var isCriticalRolledDeterministically = IsRolledDeterministically(ruleAttackRoll, RuleAttackRollSubType.Critical);
+                    if (!ShouldRetrieveRoll(ruleAttackRoll) && !isCriticalRolledDeterministically)
+                    {
+                        return true;
+                    }
+
+                    var criticalD20 = isCriticalRolledDeterministically ? RollCriticalAttackRoll(ruleAttackRoll) : RetrieveCriticalAttackRoll(ruleAttackRoll);
+                    if (criticalD20 == null)
+                    {
+                        return true;
+                    }
+                    ruleAttackRoll.CriticalConfirmationD20 = criticalD20;
+                    return false;
+                }
+
+                var isRolledDeterministically = IsRolledDeterministically(ruleAttackRoll, RuleAttackRollSubType.None);
+                if (!ShouldRetrieveRoll(ruleAttackRoll) && !isRolledDeterministically)
                 {
                     return true;
                 }
 
-                var roll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll, ruleAttackRoll.IsCriticalRoll);
-                var d20 = RetrieveRoll<RuleRollD20>(roll, ruleAttackRoll.Initiator);
+                var d20 = isRolledDeterministically ? RollAttackRoll(ruleAttackRoll) : RetrieveAttackRoll(ruleAttackRoll);
                 if (d20 == null)
                 {
                     return true;
                 }
-
-                if (ruleAttackRoll.IsCriticalRoll)
-                {
-                    ruleAttackRoll.CriticalConfirmationD20 = d20;
-                }
-                else
-                {
-                    ruleAttackRoll.D20 = d20;
-                }
-
+                ruleAttackRoll.D20 = d20;
                 return false;
             }
             catch (Exception ex)
@@ -328,15 +348,19 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                var roll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll, false);
-                SaveIntRollValue(roll, ruleAttackRoll.D20);
-                if (ruleAttackRoll.IsCriticalRoll)
+                if (!IsRolledDeterministically(ruleAttackRoll, RuleAttackRollSubType.None))
                 {
-                    var criticalRoll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll, true);
+                    var roll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll, isCriticalRoll: false);
+                    SaveIntRollValue(roll, ruleAttackRoll.D20);
+                }
+
+                if (ruleAttackRoll.IsCriticalRoll && !IsRolledDeterministically(ruleAttackRoll, RuleAttackRollSubType.Critical))
+                {
+                    var criticalRoll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll, isCriticalRoll: true);
                     SaveIntRollValue(criticalRoll, ruleAttackRoll.CriticalConfirmationD20);
                 }
 
-                if (ruleAttackRoll.FortificationRoll != null)
+                if (ruleAttackRoll.FortificationRoll != null && !IsRolledDeterministically(ruleAttackRoll, RuleAttackRollSubType.Fortification))
                 {
                     var fortificationRoll = CreateFortificationAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll);
                     SaveIntRollValue(fortificationRoll, ruleAttackRoll.FortificationRoll);
@@ -393,186 +417,6 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        private int? RetrieveHealDamageRoll(RuleHealDamage ruleHealDamage, bool isTacticalCombat)
-        {
-            var roll = CreateHealDamageRoll(NetworkDiceRollType.Hit, ruleHealDamage, isTacticalCombat);
-            var rollId = GetDiceRollId(roll);
-            if (rollId == null)
-            {
-                _logger.LogWarning("Heal Damage retrieving has been skipped due to unability to generate rollId. InitiatorName={InitiatorName}, InitiatorId={InitiatorId}", ruleHealDamage.Initiator?.CharacterName, ruleHealDamage.Initiator?.UniqueId);
-                return null;
-            }
-
-            var networkRoll = _multiplayerActorAccessor.Current.RetrieveRoll<NetworkIntRollValue>(rollId.Value, roll.RuleName, ruleHealDamage.Initiator.UniqueId);
-            if (networkRoll == null)
-            {
-                _logger.LogCritical("Failed to acquire heal damage roll from remote player which guarantees desync in the game. RollId={RollId}", rollId.Value);
-                _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.Rolls.MissingHealingRoll.Key, CombatTextSeverity.Critical, new UnitEntityLog(ruleHealDamage.Initiator.UniqueId));
-                return null;
-            }
-
-            return networkRoll.Value;
-        }
-
-        private int RollHealDamage(RuleHealDamage ruleHealDamage, bool isTacticalCombat, DiceFormula diceFormula)
-        {
-            var healDamage = CreateHealDamageRoll(NetworkDiceRollType.Hit, ruleHealDamage, isTacticalCombat);
-            var rollIdentifier = healDamage.GetIdString();
-
-            var sessionSeed = _multiplayerActorAccessor.Current.SessionSeed;
-            var loadedSaveSeed = _multiplayerActorAccessor.Current.LoadedSaveSeed;
-            var areaSeed = _multiplayerActorAccessor.Current.AreaSeed;
-
-            var identifier = $"{rollIdentifier}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}";
-            var (history, result) = RollDice(IdentifierLifetime.Area, identifier, diceFormula, 0);
-            var rollId = _hashService.Murmur3(identifier);
-            _logger.LogInformation("RuleHealDamage has been rolled deterministicaly. UnitId={UnitId}, Result={Result}, History={History}, RollId={RollId}, Identifier={Identifier}",
-                ruleHealDamage.Initiator.UniqueId, result, history, rollId, identifier);
-
-            return result;
-        }
-
-        private RuleRollD20 RollInitiative(RuleInitiativeRoll ruleInitiativeRoll)
-        {
-            var initiative = CreateInitiativeRoll(NetworkDiceRollType.Hit, ruleInitiativeRoll);
-            var rollIdentifier = initiative.GetIdString();
-
-            var sessionSeed = _multiplayerActorAccessor.Current.SessionSeed;
-            var loadedSaveSeed = _multiplayerActorAccessor.Current.LoadedSaveSeed;
-            var areaSeed = _multiplayerActorAccessor.Current.AreaSeed;
-            var combatSeed = _multiplayerActorAccessor.Current.CombatSeed;
-
-            var identifier = $"{rollIdentifier}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}:{combatSeed}";
-            var (history, result) = RollDice(IdentifierLifetime.Combat, identifier, new DiceFormula(1, DiceType.D20), 0);
-            var rollId = _hashService.Murmur3(identifier);
-            _logger.LogInformation("RuleInitiativeRoll has been rolled deterministicaly. UnitId={UnitId}, Result={Result}, History={History}, RollId={RollId}, Identifier={Identifier}",
-                ruleInitiativeRoll.Initiator.UniqueId, result, history, rollId, identifier);
-
-            var d20 = RuleRollD20.FromInt(ruleInitiativeRoll.Initiator, result);
-            d20.RollHistory = history;
-            return d20;
-        }
-
-        private RuleRollD20 RollSpellResistance(RuleSpellResistanceCheck ruleSpellResistanceCheck)
-        {
-            var spellResistance = CreateSpellResistanceCheckRoll(NetworkDiceRollType.Hit, ruleSpellResistanceCheck);
-            var rollIdentifier = spellResistance.GetIdString();
-
-            var sessionSeed = _multiplayerActorAccessor.Current.SessionSeed;
-            var loadedSaveSeed = _multiplayerActorAccessor.Current.LoadedSaveSeed;
-            var areaSeed = _multiplayerActorAccessor.Current.AreaSeed;
-            var combatSeed = _multiplayerActorAccessor.Current.CombatSeed;
-            var combatTurnSeed = _multiplayerActorAccessor.Current.CombatTurnSeed;
-
-            var identifier = $"{rollIdentifier}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}:{combatSeed}:{combatTurnSeed}";
-            var lifetime = combatTurnSeed == null ? IdentifierLifetime.Area : IdentifierLifetime.CombatTurn;
-            var (history, result) = RollDice(lifetime, identifier, new DiceFormula(1, DiceType.D20), 0);
-            var rollId = _hashService.Murmur3(identifier);
-            _logger.LogInformation("RuleSpellResistanceCheck has been rolled deterministicaly. UnitId={UnitId}, Result={Result}, History={History}, RollId={RollId}, Lifetime={Lifetime}, Identifier={Identifier}",
-                ruleSpellResistanceCheck.Initiator.UniqueId, result, history, rollId, lifetime, identifier);
-
-            var d20 = RuleRollD20.FromInt(ruleSpellResistanceCheck.Initiator, result);
-            d20.RollHistory = history;
-            return d20;
-        }
-
-        private RuleRollD20 RollCastingDefensively(RuleCheckCastingDefensively ruleCheckCastingDefensively)
-        {
-            var castingDefensively = CreateCastingDefensivelyRoll(NetworkDiceRollType.Hit, ruleCheckCastingDefensively);
-            var rollIdentifier = castingDefensively.GetIdString();
-
-            var sessionSeed = _multiplayerActorAccessor.Current.SessionSeed;
-            var loadedSaveSeed = _multiplayerActorAccessor.Current.LoadedSaveSeed;
-            var areaSeed = _multiplayerActorAccessor.Current.AreaSeed;
-            var combatSeed = _multiplayerActorAccessor.Current.CombatSeed;
-            var combatTurnSeed = _multiplayerActorAccessor.Current.CombatTurnSeed;
-
-            var identifier = $"{rollIdentifier}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}:{combatSeed}:{combatTurnSeed}";
-            var lifetime = combatTurnSeed == null ? IdentifierLifetime.Area : IdentifierLifetime.CombatTurn;
-            var (history, result) = RollDice(lifetime, identifier, new DiceFormula(1, DiceType.D20), 0);
-            var rollId = _hashService.Murmur3(identifier);
-            _logger.LogInformation("RuleCheckCastingDefensively has been rolled deterministicaly. UnitId={UnitId}, Result={Result}, History={History}, RollId={RollId}, Lifetime={Lifetime}, Identifier={Identifier}",
-                ruleCheckCastingDefensively.Initiator.UniqueId, result, history, rollId, lifetime, identifier);
-
-            var d20 = RuleRollD20.FromInt(ruleCheckCastingDefensively.Initiator, result);
-            d20.RollHistory = history;
-            return d20;
-        }
-
-        private RuleRollD20 RollSavingThrow(RuleSavingThrow ruleSavingThrow)
-        {
-            var savingThrow = CreateSavingThrowRoll(NetworkDiceRollType.Hit, ruleSavingThrow);
-            var rollIdentifier = savingThrow.GetIdString();
-
-            var sessionSeed = _multiplayerActorAccessor.Current.SessionSeed;
-            var loadedSaveSeed = _multiplayerActorAccessor.Current.LoadedSaveSeed;
-            var areaSeed = _multiplayerActorAccessor.Current.AreaSeed;
-
-            var identifier = $"{rollIdentifier}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}";
-            var (history, result) = RollDice(IdentifierLifetime.Area, identifier, ruleSavingThrow.D20);
-            var rollId = _hashService.Murmur3(identifier);
-            _logger.LogInformation("RuleSavingThrow has been rolled deterministicaly. UnitId={UnitId}, Result={Result}, History={History}, RollId={RollId}, Identifier={Identifier}",
-                ruleSavingThrow.Initiator.UniqueId, result, history, rollId, identifier);
-
-            var d20 = RuleRollD20.FromInt(ruleSavingThrow.Initiator, result);
-            d20.RollHistory = history;
-            return d20;
-        }
-
-        private (List<int> history, int result) RollDice(IdentifierLifetime lifetime, string identifier, RuleRollDice ruleRollDice)
-        {
-            return RollDice(lifetime, identifier, ruleRollDice.DiceFormula, ruleRollDice.m_RerollAmount);
-        }
-
-        private (List<int> history, int result) RollDice(IdentifierLifetime lifetime, string identifier, DiceFormula diceFormula, int rerollAmount)
-        {
-            var random = _valueGenerator.GetRandom(lifetime, identifier);
-            var history = new List<int>();
-            var result = 0;
-            var rerolls = rerollAmount;
-            while (rerolls >= 0)
-            {
-                result = diceFormula.Roll(random);
-                history.Add(result);
-                rerolls--;
-            }
-
-            return (history, result);
-        }
-
-        private RuleRollD20 RetrieveInitiativeRoll(RuleInitiativeRoll ruleInitiativeRoll)
-        {
-            var roll = CreateInitiativeRoll(NetworkDiceRollType.Hit, ruleInitiativeRoll);
-            var d20 = RetrieveRoll<RuleRollD20>(roll, ruleInitiativeRoll.Initiator);
-            return d20;
-        }
-
-        private RuleRollD20 RetrieveSpellResistance(RuleSpellResistanceCheck ruleSpellResistanceCheck)
-        {
-            var roll = CreateSpellResistanceCheckRoll(NetworkDiceRollType.Hit, ruleSpellResistanceCheck);
-            var d20 = RetrieveRoll<RuleRollD20>(roll, ruleSpellResistanceCheck.Initiator);
-            return d20;
-        }
-
-        private RuleRollD20 RetrieveCheckCastingDefensivelyRoll(RuleCheckCastingDefensively ruleCheckCastingDefensively)
-        {
-            var roll = CreateCastingDefensivelyRoll(NetworkDiceRollType.Hit, ruleCheckCastingDefensively);
-            var d20 = RetrieveRoll<RuleRollD20>(roll, ruleCheckCastingDefensively.Initiator);
-            return d20;
-        }
-
-        private RuleRollD20 RetrieveSavingThrow(RuleSavingThrow ruleSavingThrow)
-        {
-            var savingThrow = CreateSavingThrowRoll(NetworkDiceRollType.Hit, ruleSavingThrow);
-            var d20 = RetrieveRoll<RuleRollD20>(savingThrow, ruleSavingThrow.Initiator);
-            if (d20 == null)
-            {
-                _logger.LogInformation("Roll retrieving context={StackTrace}", Environment.StackTrace);
-            }
-
-            return d20;
-        }
-
         public bool OnBeforeRuleSpellResistanceCheckRoll(RuleSpellResistanceCheck ruleSpellResistanceCheck)
         {
             try
@@ -622,17 +466,13 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldRetrieveRoll(ruleCheckConcentration))
+                var isRolledDeterministically = IsRolledDeterministically(ruleCheckConcentration);
+                if (!ShouldRetrieveRoll(ruleCheckConcentration) && !isRolledDeterministically)
                 {
                     return true;
                 }
 
-                var roll = CreateConcentrationRoll(NetworkDiceRollType.Hit, ruleCheckConcentration);
-                var d20 = RetrieveRoll<RuleRollD20>(roll, ruleCheckConcentration.Initiator);
-                if (d20 == null)
-                {
-                    return true;
-                }
+                var d20 = isRolledDeterministically ? RollCheckConcentration(ruleCheckConcentration) : RetrieveCheckConcentration(ruleCheckConcentration);
 
                 ruleCheckConcentration.ResultRollRaw = d20;
                 return false;
@@ -648,7 +488,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldStoreRoll(ruleCheckConcentration))
+                if (!ShouldStoreRoll(ruleCheckConcentration) || IsRolledDeterministically(ruleCheckConcentration))
                 {
                     return;
                 }
@@ -667,16 +507,15 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldRetrieveRoll(ruleSkillCheck))
+                var isRolledDeterministically = IsRolledDeterministically(ruleSkillCheck);
+                if (!ShouldRetrieveRoll(ruleSkillCheck) && !isRolledDeterministically)
                 {
                     return true;
                 }
 
-                var roll = CreateSkillCheckRoll(NetworkDiceRollType.Hit, ruleSkillCheck);
-                var d20 = RetrieveRoll<RuleRollD20>(roll, ruleSkillCheck.Initiator);
+                var d20 = isRolledDeterministically ? RollSkillCheck(ruleSkillCheck) : RetrieveSkillCheck(ruleSkillCheck);
                 if (d20 == null)
                 {
-                    _logger.LogInformation("Roll retrieving context={StackTrace}", Environment.StackTrace);
                     return true;
                 }
 
@@ -694,7 +533,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldStoreRoll(ruleSkillCheck))
+                if (!ShouldStoreRoll(ruleSkillCheck) || IsRolledDeterministically(ruleSkillCheck))
                 {
                     return;
                 }
@@ -708,7 +547,6 @@ namespace WOTRMultiplayer.Services
                 throw;
             }
         }
-
 
         public bool OnBeforeRuleInitiativeRoll(RuleInitiativeRoll ruleInitiativeRoll)
         {
@@ -759,13 +597,13 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldRetrieveRoll(ruleConcealmentCheck))
+                var isRolledDeterministically = IsRolledDeterministically(ruleConcealmentCheck);
+                if (!ShouldRetrieveRoll(ruleConcealmentCheck) && !isRolledDeterministically)
                 {
                     return true;
                 }
 
-                var roll = CreateConcealmentRoll(NetworkDiceRollType.Hit, ruleConcealmentCheck);
-                var d100 = RetrieveRoll<RuleRollD100>(roll, ruleConcealmentCheck.Initiator);
+                var d100 = isRolledDeterministically ? RollConcealmentCheck(ruleConcealmentCheck) : RetrieveConcealmentCheck(ruleConcealmentCheck);
                 if (d100 == null)
                 {
                     return true;
@@ -785,7 +623,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldStoreRoll(ruleConcealmentCheck) || ruleConcealmentCheck.ConcealmentValue <= 0)
+                if (!ShouldStoreRoll(ruleConcealmentCheck) || IsRolledDeterministically(ruleConcealmentCheck) || ruleConcealmentCheck.ConcealmentValue <= 0)
                 {
                     return;
                 }
@@ -1237,20 +1075,38 @@ namespace WOTRMultiplayer.Services
 
             switch (rule)
             {
-                case RuleSavingThrow savingThrow:
-                    var isSavingThrowRolled = currentArea != null && currentArea.IsGlobalMap
-                        || _combatInteractionService.IsInCombat() && _gameInteractionService.IsDeadOrMissing(savingThrow.Initiator.UniqueId);
-                    return isSavingThrowRolled;
+                case RuleSavingThrow:
+                case RuleSkillCheck:
+                    var rulebookEvent = (RulebookEvent)rule;
+                    var IsGlobalMapOrMissingInitiator = currentArea != null && currentArea.IsGlobalMap
+                        || _combatInteractionService.IsInCombat() && _gameInteractionService.IsDeadOrMissing(rulebookEvent.Initiator.UniqueId);
+                    return IsGlobalMapOrMissingInitiator;
                 case RuleHealDamage:
-                    var isHealDamageRolled = currentArea != null && currentArea.IsGlobalMap || !_combatInteractionService.IsInCombat();
-                    return isHealDamageRolled;
                 case RuleSpellResistanceCheck:
                 case RuleCheckCastingDefensively:
                 case RuleInitiativeRoll:
+                case RuleConcealmentCheck:
+                case RuleCheckConcentration:
                     return true;
                 default:
                     return false;
             }
+        }
+
+        private bool IsRolledDeterministically(RuleAttackRoll ruleAttackRoll, RuleAttackRollSubType subType)
+        {
+            var isRolled = subType switch
+            {
+                RuleAttackRollSubType.Concealment => true,
+                RuleAttackRollSubType.Fortification => true,
+                RuleAttackRollSubType.Critical => true,
+
+                // default attack roll
+                RuleAttackRollSubType.None => false,
+                _ => false,
+            };
+
+            return isRolled;
         }
 
         private bool IsRollOwner(object rule)
@@ -1716,6 +1572,349 @@ namespace WOTRMultiplayer.Services
             };
 
             return roll;
+        }
+
+        private WellKnownDiceFormula GetDiceFormula(WellKnownDiceFormulaKind wellKnownDiceFormula)
+        {
+            if (!_wellKnownDiceFormulas.TryGetValue(wellKnownDiceFormula, out var formula))
+            {
+                _logger.LogError("Dice formula is missing. Kind={Kind}", wellKnownDiceFormula);
+            }
+
+            return formula;
+        }
+
+        private int RollHealDamage(RuleHealDamage ruleHealDamage, bool isTacticalCombat, DiceFormula diceFormula)
+        {
+            var healDamage = CreateHealDamageRoll(NetworkDiceRollType.Hit, ruleHealDamage, isTacticalCombat);
+            var deterministicRoll = RollDice(healDamage, diceFormula, 0);
+            return deterministicRoll.Result;
+        }
+
+        private RuleRollD20 RollInitiative(RuleInitiativeRoll ruleInitiativeRoll)
+        {
+            var initiative = CreateInitiativeRoll(NetworkDiceRollType.Hit, ruleInitiativeRoll);
+            var formula = GetDiceFormula(WellKnownDiceFormulaKind.RuleInitiativeRoll);
+            if (formula == null)
+            {
+                return null;
+            }
+
+            var deterministicRoll = RollDice(initiative, formula.Formula, formula.Rerolls);
+
+            var d20 = RuleRollD20.FromInt(ruleInitiativeRoll.Initiator, deterministicRoll.Result);
+            d20.RollHistory = deterministicRoll.History;
+            return d20;
+        }
+
+        private RuleRollD20 RollSpellResistance(RuleSpellResistanceCheck ruleSpellResistanceCheck)
+        {
+            var spellResistance = CreateSpellResistanceCheckRoll(NetworkDiceRollType.Hit, ruleSpellResistanceCheck);
+            var formula = GetDiceFormula(WellKnownDiceFormulaKind.RuleSpellResistanceCheck);
+            if (formula == null)
+            {
+                return null;
+            }
+
+            var deterministicRoll = RollDice(spellResistance, formula.Formula, formula.Rerolls);
+
+            var d20 = RuleRollD20.FromInt(ruleSpellResistanceCheck.Initiator, deterministicRoll.Result);
+            d20.RollHistory = deterministicRoll.History;
+            return d20;
+        }
+
+        private RuleRollD20 RollCastingDefensively(RuleCheckCastingDefensively ruleCheckCastingDefensively)
+        {
+            var castingDefensively = CreateCastingDefensivelyRoll(NetworkDiceRollType.Hit, ruleCheckCastingDefensively);
+            var formula = GetDiceFormula(WellKnownDiceFormulaKind.RuleCheckCastingDefensively);
+            if (formula == null)
+            {
+                return null;
+            }
+
+            var deterministicRoll = RollDice(castingDefensively, formula.Formula, formula.Rerolls);
+            var d20 = RuleRollD20.FromInt(ruleCheckCastingDefensively.Initiator, deterministicRoll.Result);
+            d20.RollHistory = deterministicRoll.History;
+            return d20;
+        }
+
+        private RuleRollD100 RollAttackOvercomeConcealment(RuleAttackRoll ruleAttackRoll)
+        {
+            var attackOvercomeConcealment = CreateAttackOvercomeConcealmentRoll(NetworkDiceRollType.Hit, ruleAttackRoll);
+            var deterministicRoll = RollDice(attackOvercomeConcealment, ruleAttackRoll.MissChanceRoll);
+
+            var d100 = RuleRollD100.FromInt(ruleAttackRoll.Initiator, deterministicRoll.Result);
+            d100.RollHistory = deterministicRoll.History;
+            return d100;
+        }
+
+        private RuleRollD100 RollFortificationAttackRoll(RuleAttackRoll ruleAttackRoll)
+        {
+            var fortificationAttackRoll = CreateFortificationAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll);
+            var formula = GetDiceFormula(WellKnownDiceFormulaKind.FortificationAttackRoll);
+            if (formula == null)
+            {
+                return null;
+            }
+            var deterministicRoll = RollDice(fortificationAttackRoll, formula.Formula, formula.Rerolls);
+
+            var d100 = RuleRollD100.FromInt(ruleAttackRoll.Initiator, deterministicRoll.Result);
+            d100.RollHistory = deterministicRoll.History;
+            return d100;
+        }
+
+        private RuleRollD20 RollAttackRoll(RuleAttackRoll ruleAttackRoll)
+        {
+            var attackRoll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll, isCriticalRoll: false);
+            var formula = GetDiceFormula(WellKnownDiceFormulaKind.RuleAttackRoll);
+            if (formula == null)
+            {
+                return null;
+            }
+            var deterministicRoll = RollDice(attackRoll, formula.Formula, formula.Rerolls);
+
+            var d20 = RuleRollD20.FromInt(ruleAttackRoll.Initiator, deterministicRoll.Result);
+            d20.RollHistory = deterministicRoll.History;
+            return d20;
+        }
+
+        private RuleRollD20 RollCriticalAttackRoll(RuleAttackRoll ruleAttackRoll)
+        {
+            var fortificationAttackRoll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll, isCriticalRoll: true);
+            var formula = GetDiceFormula(WellKnownDiceFormulaKind.CriticalAttackRoll);
+            if (formula == null)
+            {
+                return null;
+            }
+            var deterministicRoll = RollDice(fortificationAttackRoll, formula.Formula, formula.Rerolls);
+
+            var d20 = RuleRollD20.FromInt(ruleAttackRoll.Initiator, deterministicRoll.Result);
+            d20.RollHistory = deterministicRoll.History;
+            return d20;
+        }
+
+        private RuleRollD20 RollSavingThrow(RuleSavingThrow ruleSavingThrow)
+        {
+            var savingThrow = CreateSavingThrowRoll(NetworkDiceRollType.Hit, ruleSavingThrow);
+            var deterministicRoll = RollDice(savingThrow, ruleSavingThrow.D20);
+
+            var d20 = RuleRollD20.FromInt(ruleSavingThrow.Initiator, deterministicRoll.Result);
+            d20.RollHistory = deterministicRoll.History;
+            return d20;
+        }
+
+        private RuleRollD20 RollSkillCheck(RuleSkillCheck ruleSkillCheck)
+        {
+            var skillCheck = CreateSkillCheckRoll(NetworkDiceRollType.Hit, ruleSkillCheck);
+            var formula = GetDiceFormula(WellKnownDiceFormulaKind.RuleSkillCheck);
+            if (formula == null)
+            {
+                return null;
+            }
+            var deterministicRoll = RollDice(skillCheck, formula.Formula, formula.Rerolls);
+
+            var d20 = RuleRollD20.FromInt(ruleSkillCheck.Initiator, deterministicRoll.Result);
+            d20.RollHistory = deterministicRoll.History;
+            return d20;
+        }
+
+        private RuleRollD100 RollConcealmentCheck(RuleConcealmentCheck ruleConcealmentCheck)
+        {
+            var concealment = CreateConcealmentRoll(NetworkDiceRollType.Hit, ruleConcealmentCheck);
+            var deterministicRoll = RollDice(concealment, ruleConcealmentCheck.Roll);
+
+            var d100 = RuleRollD100.FromInt(ruleConcealmentCheck.Initiator, deterministicRoll.Result);
+            d100.RollHistory = deterministicRoll.History;
+            return d100;
+        }
+
+        private RuleRollD20 RollCheckConcentration(RuleCheckConcentration ruleCheckConcentration)
+        {
+            var concentration = CreateConcentrationRoll(NetworkDiceRollType.Hit, ruleCheckConcentration);
+            var formula = GetDiceFormula(WellKnownDiceFormulaKind.RuleCheckConcentration);
+            if (formula == null)
+            {
+                return null;
+            }
+            var deterministicRoll = RollDice(concentration, formula.Formula, formula.Rerolls);
+
+            var d20 = RuleRollD20.FromInt(ruleCheckConcentration.Initiator, deterministicRoll.Result);
+            d20.RollHistory = deterministicRoll.History;
+            return d20;
+        }
+
+        private DeterministicRollOutcome RollDice(NetworkDiceRollBase roll, RuleRollDice ruleRollDice)
+        {
+            return RollDice(roll, ruleRollDice.DiceFormula, ruleRollDice.m_RerollAmount);
+        }
+
+        private DeterministicRollOutcome RollDice(NetworkDiceRollBase roll, DiceFormula diceFormula, int rerollAmount)
+        {
+            try
+            {
+                var rollIdentifier = roll.GetIdString();
+
+                var sessionSeed = _multiplayerActorAccessor.Current.SessionSeed;
+                var loadedSaveSeed = _multiplayerActorAccessor.Current.LoadedSaveSeed;
+                var areaSeed = _multiplayerActorAccessor.Current.AreaSeed;
+                var combatSeed = _multiplayerActorAccessor.Current.CombatSeed;
+                var combatTurnSeed = _multiplayerActorAccessor.Current.CombatTurnSeed;
+                var crusadeCombatSeed = _multiplayerActorAccessor.Current.CrusadeArmyCombatSeed;
+
+                var lifetime = combatTurnSeed == null ? IdentifierLifetime.Area : IdentifierLifetime.CombatTurn;
+
+                var identifier = $"{rollIdentifier}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}:{combatSeed}:{combatTurnSeed}:{crusadeCombatSeed}";
+                var (history, result) = RollDice(lifetime, identifier, diceFormula, rerollAmount);
+                var outcome = new DeterministicRollOutcome
+                {
+                    History = history,
+                    Identifier = identifier,
+                    Result = result,
+                    RollId = _hashService.Murmur3(identifier)
+                };
+
+                _logger.LogInformation("{RuleName} has been rolled deterministicaly. UnitId={UnitId}, RollId={RollId}, Result={Result}, History={History}, Identifier={Identifier}",
+                    roll.RuleName, roll.InitiatorId, outcome.RollId, outcome.Result, outcome.History, outcome.Identifier);
+
+                return outcome;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error rolling dice roll deterministically");
+                throw;
+            }
+        }
+
+        private (List<int> history, int result) RollDice(IdentifierLifetime lifetime, string identifier, DiceFormula diceFormula, int rerollAmount)
+        {
+            var random = _valueGenerator.GetRandom(lifetime, identifier);
+            var history = new List<int>();
+            var result = 0;
+            var rerolls = rerollAmount;
+            while (rerolls >= 0)
+            {
+                result = diceFormula.Roll(random);
+                history.Add(result);
+                rerolls--;
+            }
+
+            return (history, result);
+        }
+
+        private RuleRollD100 RetrieveFortificationAttackRoll(RuleAttackRoll ruleAttackRoll)
+        {
+            var roll = CreateFortificationAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll);
+            var d100 = RetrieveRoll<RuleRollD100>(roll, ruleAttackRoll.Initiator);
+            return d100;
+        }
+
+        private RuleRollD100 RetrieveAttackOvercomeConcealment(RuleAttackRoll ruleAttackRoll)
+        {
+            var roll = CreateAttackOvercomeConcealmentRoll(NetworkDiceRollType.Hit, ruleAttackRoll);
+            var d100 = RetrieveRoll<RuleRollD100>(roll, ruleAttackRoll.Initiator);
+            return d100;
+        }
+
+        private RuleRollD20 RetrieveCriticalAttackRoll(RuleAttackRoll ruleAttackRoll)
+        {
+            var roll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll, isCriticalRoll: true);
+            var d20 = RetrieveRoll<RuleRollD20>(roll, ruleAttackRoll.Initiator);
+            return d20;
+        }
+
+        private RuleRollD20 RetrieveAttackRoll(RuleAttackRoll ruleAttackRoll)
+        {
+            var roll = CreateAttackRoll(NetworkDiceRollType.Hit, ruleAttackRoll, isCriticalRoll: false);
+            var d20 = RetrieveRoll<RuleRollD20>(roll, ruleAttackRoll.Initiator);
+            return d20;
+        }
+
+        private RuleRollD20 RetrieveInitiativeRoll(RuleInitiativeRoll ruleInitiativeRoll)
+        {
+            var roll = CreateInitiativeRoll(NetworkDiceRollType.Hit, ruleInitiativeRoll);
+            var d20 = RetrieveRoll<RuleRollD20>(roll, ruleInitiativeRoll.Initiator);
+            return d20;
+        }
+
+        private RuleRollD20 RetrieveSpellResistance(RuleSpellResistanceCheck ruleSpellResistanceCheck)
+        {
+            var roll = CreateSpellResistanceCheckRoll(NetworkDiceRollType.Hit, ruleSpellResistanceCheck);
+            var d20 = RetrieveRoll<RuleRollD20>(roll, ruleSpellResistanceCheck.Initiator);
+            return d20;
+        }
+
+        private RuleRollD20 RetrieveCheckCastingDefensivelyRoll(RuleCheckCastingDefensively ruleCheckCastingDefensively)
+        {
+            var roll = CreateCastingDefensivelyRoll(NetworkDiceRollType.Hit, ruleCheckCastingDefensively);
+            var d20 = RetrieveRoll<RuleRollD20>(roll, ruleCheckCastingDefensively.Initiator);
+            return d20;
+        }
+
+        private RuleRollD100 RetrieveConcealmentCheck(RuleConcealmentCheck ruleConcealmentCheck)
+        {
+            var roll = CreateConcealmentRoll(NetworkDiceRollType.Hit, ruleConcealmentCheck);
+            var d100 = RetrieveRoll<RuleRollD100>(roll, ruleConcealmentCheck.Initiator);
+            return d100;
+        }
+
+        private RuleRollD20 RetrieveSavingThrow(RuleSavingThrow ruleSavingThrow)
+        {
+            var savingThrow = CreateSavingThrowRoll(NetworkDiceRollType.Hit, ruleSavingThrow);
+            var d20 = RetrieveRoll<RuleRollD20>(savingThrow, ruleSavingThrow.Initiator);
+            if (d20 == null)
+            {
+                _logger.LogError("Roll retrieving context={StackTrace}", Environment.StackTrace);
+            }
+
+            return d20;
+        }
+
+        private RuleRollD20 RetrieveSkillCheck(RuleSkillCheck ruleSkillCheck)
+        {
+            var roll = CreateSkillCheckRoll(NetworkDiceRollType.Hit, ruleSkillCheck);
+            var d20 = RetrieveRoll<RuleRollD20>(roll, ruleSkillCheck.Initiator);
+            if (d20 == null)
+            {
+                _logger.LogError("Roll retrieving context={StackTrace}", Environment.StackTrace);
+            }
+
+            return d20;
+        }
+
+        private RuleRollD20 RetrieveCheckConcentration(RuleCheckConcentration ruleCheckConcentration)
+        {
+            var roll = CreateConcentrationRoll(NetworkDiceRollType.Hit, ruleCheckConcentration);
+            var d20 = RetrieveRoll<RuleRollD20>(roll, ruleCheckConcentration.Initiator);
+            return d20;
+        }
+
+        private int? RetrieveHealDamageRoll(RuleHealDamage ruleHealDamage, bool isTacticalCombat)
+        {
+            var roll = CreateHealDamageRoll(NetworkDiceRollType.Hit, ruleHealDamage, isTacticalCombat);
+            var rollId = GetDiceRollId(roll);
+            if (rollId == null)
+            {
+                _logger.LogWarning("Heal Damage retrieving has been skipped due to unability to generate rollId. InitiatorName={InitiatorName}, InitiatorId={InitiatorId}", ruleHealDamage.Initiator?.CharacterName, ruleHealDamage.Initiator?.UniqueId);
+                return null;
+            }
+
+            var networkRoll = _multiplayerActorAccessor.Current.RetrieveRoll<NetworkIntRollValue>(rollId.Value, roll.RuleName, ruleHealDamage.Initiator.UniqueId);
+            if (networkRoll == null)
+            {
+                _logger.LogCritical("Failed to acquire heal damage roll from remote player which guarantees desync in the game. RollId={RollId}", rollId.Value);
+                _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.Rolls.MissingHealingRoll.Key, CombatTextSeverity.Critical, new UnitEntityLog(ruleHealDamage.Initiator.UniqueId));
+                return null;
+            }
+
+            return networkRoll.Value;
+        }
+
+        private enum RuleAttackRollSubType
+        {
+            None,
+            Critical,
+            Concealment,
+            Fortification
         }
     }
 }
