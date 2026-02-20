@@ -128,9 +128,9 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnInteractWithMapObjectOvertip(NetworkOvertip networkOvertip);
 
-        void OnAreaScenesLoaded();
-
         void OnAreaLoadingComplete();
+
+        void OnAreaLoaded();
 
         bool CanUnitJoinCombat(string unitId);
 
@@ -365,5 +365,7 @@ namespace WOTRMultiplayer.Abstractions
         void OnKingdomLoaded();
 
         void OnKingdomUnloaded();
+
+        void ForceUnpause();
     }
 }

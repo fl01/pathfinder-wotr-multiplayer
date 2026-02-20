@@ -146,6 +146,10 @@
                 "ping": {
                     "title": "Ping",
                     "tooltip": "Ping at specific position/unit/map object/etc..."
+                },
+                "forceUnpause": {
+                    "title": "Force Unpause",
+                    "tooltip": "Completly removes local pause. Use this in case of any bugs with synced pause"
                 }
             },
             "dangerZone": {

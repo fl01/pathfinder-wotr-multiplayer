@@ -398,8 +398,9 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
-        public virtual void OnAreaLoadingComplete()
+        public virtual void OnAreaLoaded()
         {
+            Logger.LogInformation("OnAreaLoaded");
             Game.ForcedPause?.ReadyPlayers.Add(Game.LocalPlayerId);
 
             if (Game.CurrentArea.IsGlobalMap)
@@ -413,10 +414,9 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnAreaScenesLoaded()
+        public void OnAreaLoadingComplete()
         {
             Game.CurrentArea = GameInteraction.GetCurrentArea();
-
             Logger.LogInformation("Area scenes loaded. Chapter={Chapter}, AreaName={AreaName}", Game.CurrentArea.Chapter, Game.CurrentArea.Name);
 
             SetLobbyStage(NetworkLobbyStage.Playing);
@@ -1904,39 +1904,49 @@ namespace WOTRMultiplayer.Services
             UpdateGlobalMapCrusadeArmyBuyLeaderUIState();
         }
 
+        public void ForceUnpause()
+        {
+            lock (ActionLock)
+            {
+                Game.ForcedPause = null;
+                GameInteraction.SetPause(false);
+            }
+        }
+
         public bool TogglePause(bool isPaused)
         {
             lock (ActionLock)
             {
-                if (isPaused)
+                // unpaused => paused
+                if (!isPaused)
                 {
-                    var canContinue = OnToggleOffPause(out var showReason);
-                    if (canContinue)
+                    if (Game.ForcedPause == null)
                     {
-                        return true;
+                        EnsureForcePaused(NetworkForcedPauseReason.Manual, removalDelay: null);
+                        Game.ForcedPause.ReadyPlayers.Add(Game.LocalPlayerId);
+
+                        var pauseStarted = new NotifyGamePauseStarted
+                        {
+                            PlayerId = Game.LocalPlayerId,
+                            Pause = Mapper.Map<Networking.Messages.Contracts.NetworkForcedPause>(Game.ForcedPause)
+                        };
+                        Send(pauseStarted);
                     }
 
-                    if (showReason)
-                    {
-                        ShowForcedPauseReason();
-                    }
-                    return false;
-                }
-
-                if (Game.ForcedPause == null || Game.ForcedPause.Reason == NetworkForcedPauseReason.Manual)
-                {
-                    EnsureForcePaused(NetworkForcedPauseReason.Manual, removalDelay: null);
-                    Game.ForcedPause.ReadyPlayers.Add(Game.LocalPlayerId);
-
-                    var pauseStarted = new NotifyGamePauseStarted
-                    {
-                        PlayerId = Game.LocalPlayerId,
-                        Pause = Mapper.Map<Networking.Messages.Contracts.NetworkForcedPause>(Game.ForcedPause)
-                    };
-                    Send(pauseStarted);
                     return true;
                 }
 
+                // paused => unpaused
+                var canContinue = OnToggleOffPause(out var showReason);
+                if (canContinue)
+                {
+                    return true;
+                }
+
+                if (showReason)
+                {
+                    ShowForcedPauseReason();
+                }
                 return false;
             }
         }
@@ -2502,7 +2512,7 @@ namespace WOTRMultiplayer.Services
                     Reason = reason,
                     RemovalDelay = removalDelay,
                 };
-                Logger.LogInformation("Forced pause has been initialized. Delay={Delay}", removalDelay);
+                Logger.LogInformation("Forced pause has been initialized. Reason={Reason}, RemovalDelay={RemovalDelay}", reason, removalDelay);
             }
         }
 
@@ -3024,9 +3034,14 @@ namespace WOTRMultiplayer.Services
 
         protected int GetSyncedPlayersCount()
         {
+            return GetSyncedPlayers().Count;
+        }
+
+        protected List<NetworkPlayer> GetSyncedPlayers()
+        {
             lock (ActionLock)
             {
-                return Game.Players.Count(x => x.LobbySyncStatus == NetworkLobbySyncStatus.Succeed);
+                return [.. Game.Players.Where(x => x.LobbySyncStatus == NetworkLobbySyncStatus.Succeed)];
             }
         }
 
@@ -3396,7 +3411,10 @@ namespace WOTRMultiplayer.Services
         private void OnNotifyGamePauseStarted(long receivedFrom, NotifyGamePauseStarted message)
         {
             var pause = Mapper.Map<NetworkForcedPause>(message.Pause);
-            EnsureForcePaused(pause.Reason, pause.RemovalDelay);
+            lock (ActionLock)
+            {
+                EnsureForcePaused(pause.Reason, pause.RemovalDelay);
+            }
             GameInteraction.SetPause(true);
 
             OnAfterNetworkMessageHandled(receivedFrom, message);

@@ -82,6 +82,9 @@ namespace WOTRMultiplayer.Services.Settings
         {
             [Description("ping")]
             public static WellKnownSettingKey<KeyBindingPair> Ping { get; } = new(new KeyBindingPair { GameModesGroup = Kingmaker.UI.KeyboardAccess.GameModesGroup.All, Binding1 = new KeyBindingData { IsShiftDown = true, Key = UnityEngine.KeyCode.T } });
+
+            [Description("force-unpause")]
+            public static WellKnownSettingKey<KeyBindingPair> ForceUnpause { get; } = new(new KeyBindingPair { GameModesGroup = Kingmaker.UI.KeyboardAccess.GameModesGroup.All, Binding1 = new KeyBindingData { IsCtrlDown = true, IsShiftDown = true, Key = UnityEngine.KeyCode.F12 } });
         }
 
         [Description("danger-zone")]

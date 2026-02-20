@@ -132,21 +132,7 @@ namespace WOTRMultiplayer.Services.PubSub
 
         public void OnAreaScenesLoaded()
         {
-            try
-            {
-                if (ActorAccessor.Current == null)
-                {
-                    return;
-                }
-
-                Logger.LogInformation("OnAreaScenesLoaded");
-                ActorAccessor.Current.OnAreaScenesLoaded();
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Unable to handle OnAreaScenesLoaded event");
-                throw;
-            }
+            Logger.LogInformation("OnAreaScenesLoaded");
         }
 
         private void OnPartyChanged()

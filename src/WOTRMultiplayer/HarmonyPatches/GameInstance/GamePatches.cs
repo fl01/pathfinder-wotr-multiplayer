@@ -21,6 +21,25 @@ namespace WOTRMultiplayer.HarmonyPatches.GameInstance
     [HarmonyPatch]
     public class GamePatches
     {
+        [HarmonyPatch(typeof(Game), nameof(Game.LoadArea), [typeof(BlueprintArea), typeof(BlueprintAreaEnterPoint), typeof(AutoSaveMode), typeof(bool), typeof(SaveInfo), typeof(Action)])]
+        [HarmonyPrefix]
+        public static void Game_LoadArea_Prefix(ref Action callback)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            if (callback == null)
+            {
+                callback = Main.Multiplayer.OnAreaLoaded;
+            }
+            else
+            {
+                callback += Main.Multiplayer.OnAreaLoaded;
+            }
+        }
+
         [HarmonyPatch(typeof(Game), nameof(Game.LoadGame))]
         [HarmonyPrefix]
         public static void Game_LoadGame_Prefix(SaveInfo saveInfo)
@@ -193,9 +212,15 @@ namespace WOTRMultiplayer.HarmonyPatches.GameInstance
 
         private static void TogglePause(Game game)
         {
+            if (!Main.Multiplayer.IsActive)
+            {
+                game.IsPaused = !game.IsPaused;
+                return;
+            }
+
             var isPaused = game.IsPaused;
             var canTogglePause = Main.Multiplayer.TogglePause(isPaused);
-            if (!Main.Multiplayer.IsActive || canTogglePause)
+            if (canTogglePause)
             {
                 game.IsPaused = !game.IsPaused;
             }

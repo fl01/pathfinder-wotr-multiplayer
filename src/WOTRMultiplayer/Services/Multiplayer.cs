@@ -4131,6 +4131,24 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        public void OnAreaLoaded()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnAreaLoaded();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while completing area load");
+                throw;
+            }
+        }
+
         public bool CanLeaveCombat()
         {
             try

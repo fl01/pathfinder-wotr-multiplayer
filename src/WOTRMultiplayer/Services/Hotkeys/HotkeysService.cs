@@ -46,6 +46,7 @@ namespace WOTRMultiplayer.Services.Hotkeys
             _bindings.Clear();
 
             ConfigureHotkey(WellKnownSettings.Hotkeys.Ping, OnPingHotkey);
+            ConfigureHotkey(WellKnownSettings.Hotkeys.ForceUnpause, OnForceUnpause);
         }
 
         public void ConfigureHotkey(WellKnownSettingKey<KeyBindingPair> hotkey, Action hotkeyHandler)
@@ -99,6 +100,11 @@ namespace WOTRMultiplayer.Services.Hotkeys
             }
 
             _multiplayerActorAccessor.Current.OnPing(ping);
+        }
+
+        private void OnForceUnpause()
+        {
+            _multiplayerActorAccessor.Current.ForceUnpause();
         }
     }
 }

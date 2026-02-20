@@ -86,7 +86,7 @@ namespace WOTRMultiplayer.Playground.Client
                     client.ReadyChanged();
                     break;
                 case CommandVerbs.ClientLoadedCommandVerb:
-                    client.OnAreaLoadingComplete();
+                    client.OnAreaLoaded();
                     break;
                 case CommandVerbs.GameModeStartedCommandVerb gameModeStart:
                     var start = GameModeType.All.First(m => m.Index == (int)gameModeStart.GameModeTypeId);

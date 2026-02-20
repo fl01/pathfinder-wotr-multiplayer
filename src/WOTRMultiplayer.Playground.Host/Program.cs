@@ -115,7 +115,7 @@ namespace WOTRMultiplayer.Playground.Host
                         host.MoveNonCombatCharacter(move);
                         break;
                     case "loaded":
-                        host.OnAreaScenesLoaded();
+                        host.OnAreaLoadingComplete();
                         break;
                     case "leave-area":
                         var transition = new NetworkAreaTransition { AreaExitId = "1b018b52-c1be-40bf-8937-1f2a77b96049" };

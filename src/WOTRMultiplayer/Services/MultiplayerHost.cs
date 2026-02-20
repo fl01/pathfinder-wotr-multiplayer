@@ -206,14 +206,14 @@ namespace WOTRMultiplayer.Services
             return true;
         }
 
-        public override void OnAreaLoadingComplete()
+        public override void OnAreaLoaded()
         {
-            base.OnAreaLoadingComplete();
+            base.OnAreaLoaded();
 
             var areaSeed = CreateRandomSeed();
             SetAreaSeed(areaSeed);
 
-            TryEndForcedPause();
+            TryEndForcedPause(Game.LocalPlayerId);
         }
 
         public void OnAreaTransition(NetworkAreaTransition areaTransition)
@@ -528,7 +528,10 @@ namespace WOTRMultiplayer.Services
                 if (encounterContext.Recording.RandomUnitSeed.HasValue)
                 {
                     var settings = SettingsService.GetSettings();
-                    EnsureForcePaused(NetworkForcedPauseReason.RestEncounterLoading, settings.ForcedPauseRandomEncounterTerminationDelay);
+                    lock (ActionLock)
+                    {
+                        EnsureForcePaused(NetworkForcedPauseReason.RestEncounterLoading, settings.ForcedPauseRandomEncounterTerminationDelay);
+                    }
                     CombatInteraction.UpdateIsInCombatStatus();
                     GameInteraction.SetPause(true);
                 }
@@ -1239,7 +1242,7 @@ namespace WOTRMultiplayer.Services
         protected override bool OnToggleOffPause(out bool showReason)
         {
             showReason = true;
-            return TryEndForcedPause();
+            return TryEndForcedPause(Game.LocalPlayerId);
         }
 
         protected override DiceRollValueResponse RetrieveRoll(DiceRollValueRequest rollRequest)
@@ -1454,7 +1457,7 @@ namespace WOTRMultiplayer.Services
             if (Game.ForcedPause != null)
             {
                 Game.ForcedPause.ReadyPlayers.Add(Game.LocalPlayerId);
-                TryEndForcedPause();
+                TryEndForcedPause(Game.LocalPlayerId);
             }
         }
 
@@ -1467,7 +1470,7 @@ namespace WOTRMultiplayer.Services
                 lock (ActionLock)
                 {
                     Game.ForcedPause.ReadyPlayers.Add(playerId);
-                    TryEndForcedPause();
+                    TryEndForcedPause(Game.LocalPlayerId);
                 }
             }
         }
@@ -1615,7 +1618,16 @@ namespace WOTRMultiplayer.Services
 
         private void OnClientTogglePauseOff(long receivedFrom, ClientTogglePauseOff message)
         {
-            TryEndForcedPause();
+            lock (ActionLock)
+            {
+                if (Game.ForcedPause != null && (Game.ForcedPause.Reason == NetworkForcedPauseReason.AreaLoading || Game.ForcedPause.IsLifting))
+                {
+                    Logger.LogWarning("Skipping unpause request for AreaLoading pause");
+                    return;
+                }
+            }
+
+            TryEndForcedPause(message.PlayerId);
         }
 
         private void OnNotifyGlobalMapRecruitmentClosed(long receivedFrom, NotifyGlobalMapRecruitmentClosed message)
@@ -1884,7 +1896,7 @@ namespace WOTRMultiplayer.Services
             OnAfterNetworkMessageHandled(receivedFrom, lobbySyncStatusChanged);
         }
 
-        private void OnClientAreaLoaded(long receivedFrom, ClientAreaLoaded clientAreaLoaded)
+        private void OnClientAreaLoaded(long receivedFrom, ClientAreaLoaded message)
         {
             lock (ActionLock)
             {
@@ -1892,7 +1904,7 @@ namespace WOTRMultiplayer.Services
                 Game.ForcedPause.ReadyPlayers.Add(receivedFrom);
             }
 
-            TryEndForcedPause();
+            TryEndForcedPause(receivedFrom);
         }
 
         private void OnPlayerConnected(long playerId)
@@ -1974,7 +1986,7 @@ namespace WOTRMultiplayer.Services
 
                 RefreshUIOnPlayerDisconnect(removedPlayer.Id);
 
-                TryEndForcedPause();
+                TryEndForcedPause(Game.LocalPlayerId);
             }
         }
 
@@ -2214,20 +2226,44 @@ namespace WOTRMultiplayer.Services
             DialogInteraction.SetDialogContinueButtonState(true);
         }
 
-        private bool TryEndForcedPause()
+        private List<NetworkPlayer> GetPlayersNotReadyToUnpause(long requestedByPlayerId)
+        {
+            var result = new List<NetworkPlayer>();
+            var players = GetSyncedPlayers();
+            foreach (var player in players)
+            {
+                if (player.Id == requestedByPlayerId
+                    || Game.ForcedPause.ReadyPlayers.Contains(player.Id)
+                    || Game.ForcedPause.Reason != NetworkForcedPauseReason.AreaLoading && player.Id == Game.LocalPlayerId && !GameInteraction.IsPaused)
+                {
+                    continue;
+                }
+
+                result.Add(player);
+            }
+
+            return result;
+        }
+
+        private bool TryEndForcedPause(long requestedByPlayerId)
         {
             try
             {
-                Logger.LogInformation("Checking if forced pause could be removed. PauseIsNull={PauseIsNull}, IsLifting={IsLifting}", Game.ForcedPause == null, Game.ForcedPause?.IsLifting);
+                Logger.LogInformation("Checking if forced pause could be removed. PauseIsNull={PauseIsNull}, IsLifting={IsLifting}, RequestedByPlayer={RequestedByPlayer}", Game.ForcedPause == null, Game.ForcedPause?.IsLifting, requestedByPlayerId);
 
-                if (Game.ForcedPause == null || Game.ForcedPause.IsLifting)
+                if (Game.ForcedPause == null)
+                {
+                    return true;
+                }
+
+                if (Game.ForcedPause.IsLifting)
                 {
                     return false;
                 }
 
                 lock (ActionLock)
                 {
-                    var missingPlayer = GetPlayers().Where(x => !Game.ForcedPause.ReadyPlayers.Contains(x.Id)).ToList();
+                    var missingPlayer = GetPlayersNotReadyToUnpause(requestedByPlayerId);
                     if (missingPlayer.Any())
                     {
                         Logger.LogInformation("Not everyone is ready, forced pause will remain. MissingPlayers={MissingPlayers}", missingPlayer.Select(x => x.Name));
@@ -2237,24 +2273,32 @@ namespace WOTRMultiplayer.Services
                     var removalDelay = Game.ForcedPause.RemovalDelay;
                     var delay = removalDelay.HasValue ? Task.Delay(removalDelay.Value) : Task.CompletedTask;
                     Game.ForcedPause.IsLifting = true;
-                    Logger.LogInformation("Forced pause will be lifted soon. Delay={Delay}", removalDelay.GetValueOrDefault());
+                    Logger.LogInformation("Forced pause will be lifted soon. Reason={Reason}, RemovalDelay={RemovalDelay}", Game.ForcedPause.Reason, removalDelay.GetValueOrDefault());
                     delay.ContinueWith(x =>
                     {
-                        var message = new NotifyGamePauseEnded
+                        try
                         {
-                            AreaSeed = Game.ForcedPause.Reason == NetworkForcedPauseReason.AreaLoading ? Game.CurrentArea.Seed : null,
-                        };
+                            var message = new NotifyGamePauseEnded
+                            {
+                                AreaSeed = Game.ForcedPause.Reason == NetworkForcedPauseReason.AreaLoading ? Game.CurrentArea.Seed : null,
+                            };
 
-                        if (GameInteraction.IsPaused && Game.ForcedPause.Reason == NetworkForcedPauseReason.AreaLoading)
-                        {
-                            var party = CombatInteraction.GetParty();
-                            message.Party = Mapper.Map<List<Networking.Messages.Contracts.NetworkUnit>>(party);
+                            if (GameInteraction.IsPaused && Game.ForcedPause.Reason == NetworkForcedPauseReason.AreaLoading)
+                            {
+                                var party = CombatInteraction.GetParty();
+                                message.Party = Mapper.Map<List<Networking.Messages.Contracts.NetworkUnit>>(party);
+                            }
+                            Send(message);
+
+                            Game.ForcedPause = null;
+                            GameInteraction.SetPause(false);
+                            Logger.LogInformation("Forced pause has been lifted");
                         }
-                        Send(message);
-
-                        Game.ForcedPause = null;
-                        GameInteraction.SetPause(false);
-                        Logger.LogInformation("Forced pause has been lifted");
+                        catch (Exception ex)
+                        {
+                            Logger.LogError(ex, "Error while unpausing after delay");
+                            throw;
+                        }
                     });
                     return true;
                 }
