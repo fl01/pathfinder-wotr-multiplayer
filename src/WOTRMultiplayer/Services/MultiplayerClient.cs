@@ -667,6 +667,11 @@ namespace WOTRMultiplayer.Services
 
         private async void OnNotifyAIActionExecuted(long receivedFrom, NotifyAIActionSelected message)
         {
+            if (Game.ArmyCombat != null)
+            {
+                return;
+            }
+
             await WaitWhileTrue(() => Game.Combat.Turn == null, "Waiting for turn to initialize before saving AI actions");
 
             var aiAction = Mapper.Map<NetworkAIAction>(message.Action);

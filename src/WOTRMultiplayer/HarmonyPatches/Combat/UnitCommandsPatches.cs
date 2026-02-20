@@ -136,6 +136,12 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                     return;
                 }
 
+                // Tactical combat - TotalDefense
+                if (string.Equals(__instance.Ability.Blueprint.AssetGuid.ToString(), "5fcc24b820f55104892097782b92228e", StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
                 OnAbilityUse(__instance);
             }
             catch (Exception ex)

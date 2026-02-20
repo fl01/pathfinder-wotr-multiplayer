@@ -2799,6 +2799,11 @@ namespace WOTRMultiplayer.Services
 
         protected bool IsCasterControlledByLocalPlayer(string sourceUnitId)
         {
+            if (Game.ArmyCombat?.Turn != null)
+            {
+                return HasControlOverUI && !Game.ArmyCombat.Turn.IsAI;
+            }
+
             if (Game.Combat == null)
             {
                 return IsControlledByLocalPlayer(sourceUnitId);
