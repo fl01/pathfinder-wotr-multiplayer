@@ -39,6 +39,8 @@ namespace WOTRMultiplayer.Entities.Combat
 
         public HashSet<string> ConfirmedMidCombatUnits { get; set; } = [];
 
+        public HashSet<string> UntargetableUnits { get; set; } = [];
+
         public HashSet<NetworkAreaEffect> TriggeredAreaEffects { get; set; } = [];
 
         public DateTime StartedAt { get; set; }

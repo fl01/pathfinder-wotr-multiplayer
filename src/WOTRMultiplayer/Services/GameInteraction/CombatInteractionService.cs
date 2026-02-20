@@ -417,7 +417,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                         unit.Descriptor.State.Features.IsUntargetable.Retain();
                     }
 
-                    _logger.LogInformation("Unit targetable feature has been updated. UnitId={UnitId}, IsTargetable={IsTargetable}", unitId, unit.Descriptor.State.Features.IsUntargetable.Value);
+                    _logger.LogInformation("Unit targetable feature has been updated. UnitId={UnitId}, IsUntargetable={IsUntargetable}", unitId, unit.Descriptor.State.Features.IsUntargetable.Value);
                 }
                 catch (Exception ex)
                 {
