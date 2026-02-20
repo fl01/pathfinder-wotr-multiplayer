@@ -509,5 +509,7 @@ namespace WOTRMultiplayer.Abstractions
         void OnKingdomLoaded();
 
         void OnKingdomUnloaded();
+
+        bool CanLeaveCombat();
     }
 }

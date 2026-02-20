@@ -356,6 +356,8 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnUnitMoveTo(NetworkUnitMoveTo unitMoveTo);
 
+        bool CanLeaveCombat();
+
         void OnEnterKingdom(NetworkKingdomEntryPoint kingdomEntryPoint);
 
         void OnExitKingdom();

@@ -411,10 +411,14 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     if (isTargetable)
                     {
                         unit.Descriptor.State.Features.IsUntargetable.Release();
+                        unit.Group.IsInCombat--;
+                        Game.Instance.Player.Group.IsInCombat--;
                     }
                     else
                     {
                         unit.Descriptor.State.Features.IsUntargetable.Retain();
+                        unit.Group.IsInCombat++;
+                        Game.Instance.Player.Group.IsInCombat++;
                     }
 
                     _logger.LogInformation("Unit targetable feature has been updated. UnitId={UnitId}, IsUntargetable={IsUntargetable}", unitId, unit.Descriptor.State.Features.IsUntargetable.Value);

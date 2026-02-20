@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Kingmaker.GameModes;
 using Kingmaker.Items.Slots;
+using Kingmaker.UnitLogic.Commands;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.GameInteraction;
@@ -4127,6 +4128,25 @@ namespace WOTRMultiplayer.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while selecting AI action. AIUnitId={AIUnitId}", networkAIAction?.UnitId);
+                throw;
+            }
+        }
+
+        public bool CanLeaveCombat()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor == null)
+                {
+                    return true;
+                }
+
+                var canLeave = _multiplayerActorAccessor.Current.CanLeaveCombat();
+                return canLeave;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while leaving combat");
                 throw;
             }
         }
