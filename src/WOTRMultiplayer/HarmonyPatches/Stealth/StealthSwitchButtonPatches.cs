@@ -3,7 +3,6 @@ using Kingmaker.EntitySystem.Entities;
 using Kingmaker.UI.ActionBar;
 using Kingmaker.UI.MVVM._VM.ActionBar;
 using Kingmaker.UI.MVVM._VM.Party;
-using Kingmaker.UnitLogic.Mechanics.Actions;
 
 namespace WOTRMultiplayer.HarmonyPatches.Stealth
 {
@@ -44,18 +43,6 @@ namespace WOTRMultiplayer.HarmonyPatches.Stealth
             }
 
             Main.Multiplayer.OnSetUnitStealthEnabled(__instance.UnitEntityData.UniqueId, enabled, isForced: false);
-        }
-
-        [HarmonyPatch(typeof(ContextActionHideInPlainSight), nameof(ContextActionHideInPlainSight.RunAction))]
-        [HarmonyPrefix]
-        public static void ContextActionHideInPlainSight_RunAction_Prefix(ContextActionHideInPlainSight __instance)
-        {
-            if (!Main.Multiplayer.IsActive)
-            {
-                return;
-            }
-
-            Main.Multiplayer.OnSetUnitStealthEnabled(__instance.Target.Unit.UniqueId, isEnabled: true, isForced: true);
         }
     }
 }

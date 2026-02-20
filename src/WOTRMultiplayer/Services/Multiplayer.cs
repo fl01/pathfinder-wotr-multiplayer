@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using Kingmaker.GameModes;
 using Kingmaker.Items.Slots;
-using Kingmaker.UnitLogic.Commands;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.GameInteraction;

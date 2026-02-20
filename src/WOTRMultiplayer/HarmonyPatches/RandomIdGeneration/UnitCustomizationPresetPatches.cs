@@ -39,7 +39,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
 
             match = match.RemoveInstruction().Insert(newInstructions);
 
-            Main.GetLogger<EntitiesIdsPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
+            Main.GetLogger<UnitCustomizationPresetPatches>().LogInformation("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
@@ -52,10 +52,14 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
 
             try
             {
-                var uniqueId = $"{blueprintUnit.name}:{nameof(UnitCustomizationPreset.SelectVariation)}";
-                var variationIndex = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, uniqueId, 0, variations.Count);
+                var sessionSeed = Main.Multiplayer.GetSessionSeed();
+                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
+                var areaSeed = Main.Multiplayer.GetAreaSeed();
+
+                var identifier = $"{blueprintUnit.name}:{nameof(UnitCustomizationPreset.SelectVariation)}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}";
+                var variationIndex = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, 0, variations.Count);
                 var variation = variations[variationIndex];
-                Main.GetLogger<UnitCustomizationPresetPatches>().LogDebug("Unit variation has been selected. Id={Id}, Race={Race}, Gender={Gender}, PrefabId={PrefabId}", uniqueId, variation.Race, variation.Gender, variation.Prefab.AssetId);
+                Main.GetLogger<UnitCustomizationPresetPatches>().LogDebug("Unit variation has been selected. Race={Race}, Gender={Gender}, PrefabId={PrefabId}, Identifier={Identifier}", variation.Race, variation.Gender, variation.Prefab.AssetId, identifier);
 
                 return variation;
             }
