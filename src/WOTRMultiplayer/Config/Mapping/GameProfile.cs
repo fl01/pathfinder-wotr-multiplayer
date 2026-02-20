@@ -5,6 +5,7 @@ using Kingmaker.EntitySystem.Entities;
 using Kingmaker.Kingdom.Settlements;
 using Kingmaker.UnitLogic;
 using Kingmaker.UnitLogic.Abilities;
+using Kingmaker.UnitLogic.Abilities.Blueprints;
 using Kingmaker.UnitLogic.Buffs;
 using Kingmaker.UnitLogic.Parts;
 using Kingmaker.Utility;
@@ -195,18 +196,28 @@ namespace WOTRMultiplayer.Config.Mapping
                 return null;
             }
 
+            var rods = abilityData.CasterUnitPartSpecialMetamagic?.m_MetamagicRodMechanics ?? [];
+            var abilityRange = abilityData.OverrideRange ?? abilityData.Range;
+            // so far only Reach metamagic (Lesser Reach Wand) requires special case in case of healing spells (cure wounds)
+            var sourceAbility = rods.Count > 0 && rods.Any(r => r.rodMechanics.Metamagic == Metamagic.Reach)
+                && (abilityRange is AbilityRange.Touch or AbilityRange.Close or AbilityRange.Medium)
+                && abilityData.ConvertedFrom != null
+                && abilityData.ConvertedFrom.GetConversions().Count() == 0
+                    ? abilityData.ConvertedFrom
+                    : abilityData;
+
             var ability = new NetworkAbility
             {
-                Id = abilityData.UniqueId,
-                Name = abilityData.NameForAcronym,
-                BlueprintId = abilityData.Blueprint.AssetGuid.ToString(),
-                SpellbookId = abilityData.Spellbook?.Blueprint.AssetGuid.ToString(),
-                ConvertedFromId = abilityData.ConvertedFrom?.UniqueId,
-                SpellLevel = abilityData.SpellLevel,
-                Metamagic = (int?)abilityData.MetamagicData?.MetamagicMask,
-                ParamSpellLevel = abilityData.ParamSpellLevel,
-                ParamSpellBookId = abilityData.ParamSpellbook?.Blueprint.AssetGuid.ToString(),
-                ParamSpellSlot = context.Mapper.Map<NetworkAbilityParamSpellSlot>(abilityData.ParamSpellSlot)
+                Id = sourceAbility.UniqueId,
+                Name = sourceAbility.NameForAcronym,
+                BlueprintId = sourceAbility.Blueprint.AssetGuid.ToString(),
+                SpellbookId = sourceAbility.Spellbook?.Blueprint.AssetGuid.ToString(),
+                ConvertedFromId = sourceAbility.ConvertedFrom?.UniqueId,
+                SpellLevel = sourceAbility.SpellLevel,
+                Metamagic = (int?)sourceAbility.MetamagicData?.MetamagicMask,
+                ParamSpellLevel = sourceAbility.ParamSpellLevel,
+                ParamSpellBookId = sourceAbility.ParamSpellbook?.Blueprint.AssetGuid.ToString(),
+                ParamSpellSlot = context.Mapper.Map<NetworkAbilityParamSpellSlot>(sourceAbility.ParamSpellSlot)
             };
 
             return ability;
