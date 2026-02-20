@@ -63,11 +63,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
             _mapper = mapper;
         }
 
-        public void UpdateIsInCombatStatus()
-        {
-            Game.Instance.Player.UpdateIsInCombat();
-        }
-
         public bool IsInCombat()
         {
             return Game.Instance.Player.IsInCombat;

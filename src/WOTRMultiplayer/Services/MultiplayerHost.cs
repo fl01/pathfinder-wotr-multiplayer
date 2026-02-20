@@ -532,7 +532,6 @@ namespace WOTRMultiplayer.Services
                     {
                         EnsureForcePaused(NetworkForcedPauseReason.RestEncounterLoading, settings.ForcedPauseRandomEncounterTerminationDelay);
                     }
-                    CombatInteraction.UpdateIsInCombatStatus();
                     GameInteraction.SetPause(true);
                 }
             }

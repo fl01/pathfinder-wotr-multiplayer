@@ -16,8 +16,6 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         bool IsInCrusadeTacticalCombat();
 
-        void UpdateIsInCombatStatus();
-
         NetworkCombatState GetCombatState();
 
         List<NetworkUnit> GetUnitsInCombat();

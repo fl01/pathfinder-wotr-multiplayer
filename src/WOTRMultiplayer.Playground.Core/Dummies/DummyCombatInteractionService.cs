@@ -59,10 +59,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
             return false;
         }
 
-        public void UpdateIsInCombatStatus()
-        {
-        }
-
         public bool IsInCrusadeTacticalCombat()
         {
             return false;

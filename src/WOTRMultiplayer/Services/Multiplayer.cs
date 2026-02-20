@@ -962,7 +962,6 @@ namespace WOTRMultiplayer.Services
                 if (_gameInteractionService.RemoteContext?.RandomEncounter != null)
                 {
                     _gameInteractionService.RemoteContext.RandomEncounter = null;
-                    _combatInteractionService.UpdateIsInCombatStatus();
                 }
             }
             catch (Exception ex)
