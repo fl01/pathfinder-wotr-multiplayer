@@ -36,15 +36,21 @@ namespace WOTRMultiplayer.Services
             ], StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<WellKnownDiceFormulaKind, WellKnownDiceFormula> _wellKnownDiceFormulas = new()
         {
-            { WellKnownDiceFormulaKind.RuleCheckCastingDefensively, new WellKnownDiceFormula { Formula = new DiceFormula(1, DiceType.D20), Rerolls = 0} },
-            { WellKnownDiceFormulaKind.RuleInitiativeRoll, new WellKnownDiceFormula { Formula = new DiceFormula(1, DiceType.D20), Rerolls = 0} },
-            { WellKnownDiceFormulaKind.RuleSpellResistanceCheck, new WellKnownDiceFormula { Formula = new DiceFormula(1, DiceType.D20), Rerolls = 0} },
-            { WellKnownDiceFormulaKind.RuleAttackRoll, new WellKnownDiceFormula { Formula = new DiceFormula(1, DiceType.D20), Rerolls = 0} },
-            { WellKnownDiceFormulaKind.RuleCheckConcentration, new WellKnownDiceFormula { Formula = new DiceFormula(1, DiceType.D20), Rerolls = 0} },
-            { WellKnownDiceFormulaKind.RuleSkillCheck, new WellKnownDiceFormula { Formula = new DiceFormula(1, DiceType.D20), Rerolls = 0} },
+            { WellKnownDiceFormulaKind.RuleCheckCastingDefensively, new WellKnownDiceFormula(new DiceFormula(1, DiceType.D20), 0) },
+            { WellKnownDiceFormulaKind.RuleInitiativeRoll, new WellKnownDiceFormula(new DiceFormula(1, DiceType.D20),  0) },
+            { WellKnownDiceFormulaKind.RuleSpellResistanceCheck, new WellKnownDiceFormula(new DiceFormula(1, DiceType.D20),  0) },
+            { WellKnownDiceFormulaKind.RuleAttackRoll, new WellKnownDiceFormula(new DiceFormula(1, DiceType.D20), 0) },
+            { WellKnownDiceFormulaKind.RuleCheckConcentration, new WellKnownDiceFormula(new DiceFormula(1, DiceType.D20), 0) },
+            { WellKnownDiceFormulaKind.RuleSkillCheck, new WellKnownDiceFormula(new DiceFormula(1, DiceType.D20), 0) },
+            { WellKnownDiceFormulaKind.RuleDispelMagic, new WellKnownDiceFormula(new DiceFormula(1, DiceType.D20), 0) },
 
-            { WellKnownDiceFormulaKind.CriticalAttackRoll, new WellKnownDiceFormula { Formula = new DiceFormula(1, DiceType.D20), Rerolls = 0} },
-            { WellKnownDiceFormulaKind.FortificationAttackRoll, new WellKnownDiceFormula { Formula = new DiceFormula(1, DiceType.D100), Rerolls = 0} },
+            { WellKnownDiceFormulaKind.SpellFailureRoll, new WellKnownDiceFormula(new DiceFormula(1, DiceType.D100), 0) },
+            { WellKnownDiceFormulaKind.ArcaneSpellFailureRoll, new WellKnownDiceFormula(new DiceFormula(1, DiceType.D100), 0) },
+
+            { WellKnownDiceFormulaKind.AttackParryData, new WellKnownDiceFormula(new DiceFormula(1, DiceType.D20), 0) },
+
+            { WellKnownDiceFormulaKind.CriticalAttackRoll, new WellKnownDiceFormula(new DiceFormula(1, DiceType.D20), 0) },
+            { WellKnownDiceFormulaKind.FortificationAttackRoll, new WellKnownDiceFormula(new DiceFormula(1, DiceType.D100), 0) },
         };
 
         public MultiplayerRollProcessor(
@@ -173,12 +179,13 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldRetrieveRoll(ruleHealDamage) && !IsRolledDeterministically(ruleHealDamage) || diceFormula.Rolls == 0 && diceFormula.Dice == DiceType.Zero)
+                var isRolledDeterministically = IsRolledDeterministically(ruleHealDamage);
+                if (!ShouldRetrieveRoll(ruleHealDamage) && !isRolledDeterministically || diceFormula.Rolls == 0 && diceFormula.Dice == DiceType.Zero)
                 {
                     return true;
                 }
 
-                var result = IsRolledDeterministically(ruleHealDamage) ? RollHealDamage(ruleHealDamage, isTacticalCombat, diceFormula) : RetrieveHealDamageRoll(ruleHealDamage, isTacticalCombat);
+                var result = isRolledDeterministically ? RollHealDamage(ruleHealDamage, isTacticalCombat, diceFormula) : RetrieveHealDamageRoll(ruleHealDamage, isTacticalCombat);
                 if (result == null)
                 {
                     return true;
@@ -642,13 +649,13 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldRetrieveRoll(parryData))
+                var isRolledDeterministically = IsRolledDeterministically(parryData);
+                if (!ShouldRetrieveRoll(parryData) && !isRolledDeterministically)
                 {
                     return true;
                 }
 
-                var roll = CreateParryRoll(NetworkDiceRollType.Hit, parryData);
-                var d20 = RetrieveRoll<RuleRollD20>(roll, parryData.Initiator);
+                var d20 = isRolledDeterministically ? RollAttackParryData(parryData) : RetrieveAttackParryData(parryData);
                 if (d20 == null)
                 {
                     return true;
@@ -668,7 +675,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldStoreRoll(parryData))
+                if (!ShouldStoreRoll(parryData) || IsRolledDeterministically(parryData))
                 {
                     return;
                 }
@@ -687,13 +694,13 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldRetrieveRoll(ruleDispelMagic))
+                var isRolledDeterministically = IsRolledDeterministically(ruleDispelMagic);
+                if (!ShouldRetrieveRoll(ruleDispelMagic) && !isRolledDeterministically)
                 {
                     return true;
                 }
 
-                var roll = CreateDispelMagicRoll(NetworkDiceRollType.Hit, ruleDispelMagic);
-                var d20 = RetrieveRoll<RuleRollD20>(roll, ruleDispelMagic.Initiator);
+                var d20 = isRolledDeterministically ? RollDispelMagic(ruleDispelMagic) : RetrieveDispelMagic(ruleDispelMagic);
                 if (d20 == null)
                 {
                     return true;
@@ -713,7 +720,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldStoreRoll(ruleDispelMagic))
+                if (!ShouldStoreRoll(ruleDispelMagic) || IsRolledDeterministically(ruleDispelMagic))
                 {
                     return;
                 }
@@ -732,13 +739,13 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldRetrieveRoll(ruleEnterStealth) || ruleEnterStealth.D20.ResultOverride == 20)
+                var isRolledDeterministically = IsRolledDeterministically(ruleEnterStealth);
+                if (!ShouldRetrieveRoll(ruleEnterStealth) && !isRolledDeterministically || ruleEnterStealth.D20.ResultOverride == 20)
                 {
                     return true;
                 }
 
-                var roll = CreateEnterStealthRoll(NetworkDiceRollType.Hit, ruleEnterStealth);
-                var d20 = RetrieveRoll<RuleRollD20>(roll, ruleEnterStealth.Initiator);
+                var d20 = isRolledDeterministically ? RollEnterStealth(ruleEnterStealth) : RetrieveEnterStealth(ruleEnterStealth);
                 if (d20 == null)
                 {
                     return true;
@@ -759,7 +766,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldStoreRoll(ruleEnterStealth) || ruleEnterStealth.D20.ResultOverride == 20)
+                if (!ShouldStoreRoll(ruleEnterStealth) || IsRolledDeterministically(ruleEnterStealth) || ruleEnterStealth.D20.ResultOverride == 20)
                 {
                     return;
                 }
@@ -957,13 +964,17 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldRetrieveRoll(ruleCastSpell))
+                var isRolledDeterministically = IsRolledDeterministically(ruleCastSpell);
+                if (!ShouldRetrieveRoll(ruleCastSpell) && !isRolledDeterministically)
                 {
                     return true;
                 }
 
-                var roll = CreateCastSpellRoll(NetworkDiceRollType.Hit, ruleCastSpell, isSpellFailure);
-                var d100 = RetrieveRoll<RuleRollD100>(roll, ruleCastSpell.Initiator);
+                var d100 = isRolledDeterministically ?
+                    isSpellFailure ? RollSpellFailureRoll(ruleCastSpell)
+                        : RollArcaneSpellFailureRoll(ruleCastSpell)
+                    : RetrieveCastSpellRoll(ruleCastSpell, isSpellFailure);
+
                 if (d100 == null)
                 {
                     return true;
@@ -977,6 +988,7 @@ namespace WOTRMultiplayer.Services
                 {
                     ruleCastSpell.ArcaneSpellFailureRoll = d100;
                 }
+
                 return false;
             }
             catch (Exception ex)
@@ -990,7 +1002,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (!ShouldStoreRoll(ruleCastSpell))
+                if (!ShouldStoreRoll(ruleCastSpell) || IsRolledDeterministically(ruleCastSpell))
                 {
                     return;
                 }
@@ -1087,6 +1099,10 @@ namespace WOTRMultiplayer.Services
                 case RuleInitiativeRoll:
                 case RuleConcealmentCheck:
                 case RuleCheckConcentration:
+                case RuleEnterStealth:
+                case RuleCastSpell:
+                case RuleDispelMagic:
+                case RuleAttackRoll.ParryData:
                     return true;
                 default:
                     return false;
@@ -1137,12 +1153,6 @@ namespace WOTRMultiplayer.Services
             {
                 switch (rule)
                 {
-                    case RuleEnterStealth:
-                        var rulebookEvent = (RulebookEvent)rule;
-                        var areaName = _multiplayerActorAccessor.Current.CurrentArea.Name;
-                        var isMeaningfulEvent = !_combatInteractionService.IsInCombat() || !areaName.StartsWith("GrayGarrison", StringComparison.OrdinalIgnoreCase)
-                            || _combatInteractionService.IsInCombat(rulebookEvent.Initiator.UniqueId);
-                        return isMeaningfulEvent;
                     case RuleCalculateDamage:
                     case RuleHealDamage:
                     case RuleDealDamage:
@@ -1693,6 +1703,37 @@ namespace WOTRMultiplayer.Services
             return d20;
         }
 
+
+        private RuleRollD100 RollSpellFailureRoll(RuleCastSpell ruleCastSpell)
+        {
+            var spellFailureRoll = CreateCastSpellRoll(NetworkDiceRollType.Hit, ruleCastSpell, isSpellFailure: true);
+            var formula = GetDiceFormula(WellKnownDiceFormulaKind.SpellFailureRoll);
+            if (formula == null)
+            {
+                return null;
+            }
+            var deterministicRoll = RollDice(spellFailureRoll, formula.Formula, formula.Rerolls);
+
+            var d100 = RuleRollD100.FromInt(ruleCastSpell.Initiator, deterministicRoll.Result);
+            d100.RollHistory = deterministicRoll.History;
+            return d100;
+        }
+
+        private RuleRollD100 RollArcaneSpellFailureRoll(RuleCastSpell ruleCastSpell)
+        {
+            var spellFailureRoll = CreateCastSpellRoll(NetworkDiceRollType.Hit, ruleCastSpell, isSpellFailure: false);
+            var formula = GetDiceFormula(WellKnownDiceFormulaKind.ArcaneSpellFailureRoll);
+            if (formula == null)
+            {
+                return null;
+            }
+            var deterministicRoll = RollDice(spellFailureRoll, formula.Formula, formula.Rerolls);
+
+            var d100 = RuleRollD100.FromInt(ruleCastSpell.Initiator, deterministicRoll.Result);
+            d100.RollHistory = deterministicRoll.History;
+            return d100;
+        }
+
         private RuleRollD20 RollSavingThrow(RuleSavingThrow ruleSavingThrow)
         {
             var savingThrow = CreateSavingThrowRoll(NetworkDiceRollType.Hit, ruleSavingThrow);
@@ -1718,6 +1759,31 @@ namespace WOTRMultiplayer.Services
             return d20;
         }
 
+        private RuleRollD20 RollDispelMagic(RuleDispelMagic ruleDispelMagic)
+        {
+            var dispelMagic = CreateDispelMagicRoll(NetworkDiceRollType.Hit, ruleDispelMagic);
+            var formula = GetDiceFormula(WellKnownDiceFormulaKind.RuleDispelMagic);
+            if (formula == null)
+            {
+                return null;
+            }
+            var deterministicRoll = RollDice(dispelMagic, formula.Formula, formula.Rerolls);
+
+            var d20 = RuleRollD20.FromInt(ruleDispelMagic.Initiator, deterministicRoll.Result);
+            d20.RollHistory = deterministicRoll.History;
+            return d20;
+        }
+
+        private RuleRollD20 RollEnterStealth(RuleEnterStealth ruleEnterStealth)
+        {
+            var enterStealth = CreateEnterStealthRoll(NetworkDiceRollType.Hit, ruleEnterStealth);
+            var deterministicRoll = RollDice(enterStealth, ruleEnterStealth.D20);
+
+            var d20 = RuleRollD20.FromInt(ruleEnterStealth.Initiator, deterministicRoll.Result);
+            d20.RollHistory = deterministicRoll.History;
+            return d20;
+        }
+
         private RuleRollD100 RollConcealmentCheck(RuleConcealmentCheck ruleConcealmentCheck)
         {
             var concealment = CreateConcealmentRoll(NetworkDiceRollType.Hit, ruleConcealmentCheck);
@@ -1726,6 +1792,21 @@ namespace WOTRMultiplayer.Services
             var d100 = RuleRollD100.FromInt(ruleConcealmentCheck.Initiator, deterministicRoll.Result);
             d100.RollHistory = deterministicRoll.History;
             return d100;
+        }
+
+        private RuleRollD20 RollAttackParryData(RuleAttackRoll.ParryData parryData)
+        {
+            var concentration = CreateParryRoll(NetworkDiceRollType.Hit, parryData);
+            var formula = GetDiceFormula(WellKnownDiceFormulaKind.AttackParryData);
+            if (formula == null)
+            {
+                return null;
+            }
+            var deterministicRoll = RollDice(concentration, formula.Formula, formula.Rerolls);
+
+            var d20 = RuleRollD20.FromInt(parryData.Initiator, deterministicRoll.Result);
+            d20.RollHistory = deterministicRoll.History;
+            return d20;
         }
 
         private RuleRollD20 RollCheckConcentration(RuleCheckConcentration ruleCheckConcentration)
@@ -1857,6 +1938,13 @@ namespace WOTRMultiplayer.Services
             return d100;
         }
 
+        private RuleRollD100 RetrieveCastSpellRoll(RuleCastSpell ruleCastSpell, bool isSpellFailure)
+        {
+            var roll = CreateCastSpellRoll(NetworkDiceRollType.Hit, ruleCastSpell, isSpellFailure);
+            var d100 = RetrieveRoll<RuleRollD100>(roll, ruleCastSpell.Initiator);
+            return d100;
+        }
+
         private RuleRollD20 RetrieveSavingThrow(RuleSavingThrow ruleSavingThrow)
         {
             var savingThrow = CreateSavingThrowRoll(NetworkDiceRollType.Hit, ruleSavingThrow);
@@ -1878,6 +1966,27 @@ namespace WOTRMultiplayer.Services
                 _logger.LogError("Roll retrieving context={StackTrace}", Environment.StackTrace);
             }
 
+            return d20;
+        }
+
+        private RuleRollD20 RetrieveAttackParryData(RuleAttackRoll.ParryData parryData)
+        {
+            var roll = CreateParryRoll(NetworkDiceRollType.Hit, parryData);
+            var d20 = RetrieveRoll<RuleRollD20>(roll, parryData.Initiator);
+            return d20;
+        }
+
+        private RuleRollD20 RetrieveDispelMagic(RuleDispelMagic ruleDispelMagic)
+        {
+            var roll = CreateDispelMagicRoll(NetworkDiceRollType.Hit, ruleDispelMagic);
+            var d20 = RetrieveRoll<RuleRollD20>(roll, ruleDispelMagic.Initiator);
+            return d20;
+        }
+
+        private RuleRollD20 RetrieveEnterStealth(RuleEnterStealth ruleEnterStealth)
+        {
+            var roll = CreateEnterStealthRoll(NetworkDiceRollType.Hit, ruleEnterStealth);
+            var d20 = RetrieveRoll<RuleRollD20>(roll, ruleEnterStealth.Initiator);
             return d20;
         }
 

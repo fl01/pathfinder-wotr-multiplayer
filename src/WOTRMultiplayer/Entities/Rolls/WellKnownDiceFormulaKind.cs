@@ -8,7 +8,13 @@
         RuleAttackRoll,
         RuleCheckConcentration,
         RuleSkillCheck,
+        RuleDispelMagic,
 
+        // RuleCastSpell
+        SpellFailureRoll,
+        ArcaneSpellFailureRoll,
+
+        AttackParryData,
         // subtypes of RuleAttackRoll
         CriticalAttackRoll,
         FortificationAttackRoll
