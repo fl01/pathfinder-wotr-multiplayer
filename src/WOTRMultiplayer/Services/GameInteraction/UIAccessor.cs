@@ -1,6 +1,7 @@
 ﻿using Kingmaker;
 using Kingmaker.Settings;
 using Kingmaker.UI.MVVM._PCView.CharGen;
+using Kingmaker.UI.MVVM._PCView.CityBuilder;
 using Kingmaker.UI.MVVM._PCView.CombatLog;
 using Kingmaker.UI.MVVM._PCView.Common;
 using Kingmaker.UI.MVVM._PCView.Common.MessageModal;
@@ -50,6 +51,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
         public GlobalMapPCView GlobalMapPCView => Game.Instance.RootUiContext.m_UIView as GlobalMapPCView;
 
         public KingdomPCView KingdomPCView => Game.Instance.RootUiContext.m_UIView as KingdomPCView;
+
+        public CityBuilderPCView CityBuilderPCView => Game.Instance.RootUiContext.m_UIView as CityBuilderPCView;
 
         public NewGamePCView NewGamePCView => MainMenuPCView?.NewGamePCView;
 

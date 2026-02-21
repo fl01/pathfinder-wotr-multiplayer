@@ -521,5 +521,11 @@ namespace WOTRMultiplayer.Abstractions
         void OnKingdomEventCancelled();
 
         void OnKingdomEventDropped(NetworkKingdomEvent kingdomEvent);
+
+        void OnKingdomEnterSettlement(NetworkKingdomSettlement kingdomSettlement, bool requiresUnloadEvent, bool exitSettlementToGlobalMap);
+
+        void OnKingdomLeaveSettlement();
+
+        void OnKingdomSettlementLoaded();
     }
 }

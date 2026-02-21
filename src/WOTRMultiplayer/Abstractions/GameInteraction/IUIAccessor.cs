@@ -1,4 +1,5 @@
 ﻿using Kingmaker.UI.MVVM._PCView.CharGen;
+using Kingmaker.UI.MVVM._PCView.CityBuilder;
 using Kingmaker.UI.MVVM._PCView.CombatLog;
 using Kingmaker.UI.MVVM._PCView.Common;
 using Kingmaker.UI.MVVM._PCView.Common.MessageModal;
@@ -36,6 +37,8 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         GlobalMapPCView GlobalMapPCView { get; }
 
         KingdomPCView KingdomPCView { get; }
+
+        CityBuilderPCView CityBuilderPCView { get; }
 
         CommonPCView CommonPCView { get; }
 

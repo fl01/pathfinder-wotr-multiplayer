@@ -313,5 +313,17 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void DropKingdomEvent(NetworkKingdomEvent kingdomEvent)
         {
         }
+
+        public void EnterSettlement(NetworkKingdomSettlement kingdomSettlement, bool requiresUnloadEvent, bool exitSettlementToGlobalMap)
+        {
+        }
+
+        public void LeaveSettlement()
+        {
+        }
+
+        public void UpdateSettlementUIState(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
+        {
+        }
     }
 }

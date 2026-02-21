@@ -2,6 +2,7 @@
 using Kingmaker.Kingdom.UI;
 using Kingmaker.UI.Kingdom;
 using Kingmaker.Utility;
+using Owlcat.Runtime.UI.Controls.Button;
 using WOTRMultiplayer.Entities.GlobalMap.Kingdom;
 
 namespace WOTRMultiplayer.HarmonyPatches.GlobalMap.Kingdom
@@ -126,7 +127,6 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap.Kingdom
             Main.Multiplayer.OnKingdomEventCancelled();
         }
 
-
         [HarmonyPatch(typeof(KingdomUIEventWindowFooterSolutionGroup), nameof(KingdomUIEventWindowFooterSolutionGroup.Initialize))]
         [HarmonyPostfix]
         public static void KingdomUIEventWindowFooterSolutionGroup_Initialize_Postfix(KingdomUIEventWindowFooterSolutionGroup __instance)
@@ -143,6 +143,24 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap.Kingdom
                 {
                     solution.Toggle.interactable = false;
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(KingdomUISettlementWindow), nameof(KingdomUISettlementWindow.Show))]
+        [HarmonyPostfix]
+        public static void KingdomUISettlementWindow_Show_Postfix(KingdomUISettlementWindow __instance)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            var canControl = Main.Multiplayer.CanControlGlobalMap();
+            __instance.m_Enter.Interactable = __instance.m_Enter.Interactable && canControl;
+            var upgradeButton = __instance.m_UpgradeBlock?.GetComponentInChildren<OwlcatButton>();
+            if (upgradeButton != null)
+            {
+                upgradeButton.Interactable = upgradeButton.Interactable && canControl;
             }
         }
 

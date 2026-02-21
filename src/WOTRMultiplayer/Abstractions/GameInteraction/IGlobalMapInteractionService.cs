@@ -158,5 +158,11 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void CancelKingdomEvent();
 
         void DropKingdomEvent(NetworkKingdomEvent kingdomEvent);
+
+        void EnterSettlement(NetworkKingdomSettlement kingdomSettlement, bool requiresUnloadEvent, bool exitSettlementToGlobalMap);
+
+        void LeaveSettlement();
+
+        void UpdateSettlementUIState(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
     }
 }

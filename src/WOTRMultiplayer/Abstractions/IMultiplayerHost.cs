@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Kingmaker.UI.Kingdom;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.Area;
 using WOTRMultiplayer.Entities.Combat.Crusades;
@@ -191,5 +190,9 @@ namespace WOTRMultiplayer.Abstractions
         void OnKingdomEventCancelled();
 
         void OnKingdomEventDropped(NetworkKingdomEvent kingdomEvent);
+
+        void OnKingdomEnterSettlement(NetworkKingdomSettlement kingdomSettlement, bool requiresUnloadEvent, bool exitSettlementToGlobalMap);
+
+        void OnKingdomLeaveSettlement();
     }
 }

@@ -254,7 +254,10 @@
             NotifyKingdomEventSolutionSelected,
             NotifyKingdomEventStarted,
             NotifyKingdomEventCancelled,
-            NotifyKingdomEventDropped
+            NotifyKingdomEventDropped,
+            NotifyKingdomSettlementEntered,
+            NotifyKingdomSettlementLeft,
+            NotifyKingdomSettlementLoaded
         }
 
         public enum Request

@@ -256,6 +256,11 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private void CreateWorldPositionPing(NetworkPlayer player, Vector3 position)
         {
+            if (ClickPointerManager.Instance == null)
+            {
+                return;
+            }
+
             // this is a placeholder that needs to be replaced with something good
             var pingObject = UnityEngine.Object.Instantiate(ClickPointerManager.Instance.PointerPrefab.gameObject);
             var decayingBehaviour = pingObject.AddComponent<WorldPositionPingBehaviour>();

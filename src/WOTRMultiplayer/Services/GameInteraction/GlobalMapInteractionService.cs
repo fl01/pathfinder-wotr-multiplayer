@@ -9,6 +9,7 @@ using Kingmaker.Blueprints.Area;
 using Kingmaker.Blueprints.Root.Strings;
 using Kingmaker.Crusade.GlobalMagic;
 using Kingmaker.ElementsSystem;
+using Kingmaker.EntitySystem.Persistence;
 using Kingmaker.Globalmap;
 using Kingmaker.Globalmap.State;
 using Kingmaker.Globalmap.View;
@@ -26,6 +27,7 @@ using Kingmaker.UI.MVVM._PCView.Crusade.Armies;
 using Kingmaker.UI.MVVM._PCView.Crusade.ArmyInfo;
 using Kingmaker.UI.MVVM._PCView.Crusade.Recruit;
 using Kingmaker.UI.MVVM._VM.Crusade.ArmyInfo;
+using Kingmaker.UI.Settlement;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
 using TMPro;
@@ -1583,6 +1585,74 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                 eventWindowFooter.m_KingdomEventView.DropEvent();
                 _logger.LogInformation("Kingdom event has been dropped. EventId={EventId}", eventWindowFooter.m_KingdomEventView.Event.EventBlueprint.AssetGuid.ToString());
+            });
+        }
+
+        public void EnterSettlement(NetworkKingdomSettlement kingdomSettlement, bool requiresUnloadEvent, bool exitSettlementToGlobalMap)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var settlement = _gameStateLookupService.GetKingdomSettlement(kingdomSettlement);
+                if (settlement == null)
+                {
+                    _logger.LogError("Unable to enter missing settlement. Id={Id}", kingdomSettlement.Id);
+                    return;
+                }
+
+                KingdomState.Instance.ExitSettlementToGlobalMap = exitSettlementToGlobalMap;
+                KingdomState.Instance.CurrentSettlement = settlement;
+                if (requiresUnloadEvent)
+                {
+                    EventBus.RaiseEvent<IKingdomSceneHandler>(x => x.OnKingdomSceneWillUnload());
+                }
+
+                Game.Instance.LoadArea(settlement.SettlementBuildArea, AutoSaveMode.None, null);
+                _logger.LogInformation("Kingdom settlement entering process has been initiated. SettlementId={SettlementId}, SettlementName={SettlementName}, RequiresUnloadEvent={RequiresUnloadEvent}, ExitSettlementToGlobalMap={ExitSettlementToGlobalMap}", settlement.UniqueId, settlement.Name, requiresUnloadEvent, exitSettlementToGlobalMap);
+            });
+        }
+
+        public void LeaveSettlement()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.CityBuilderPCView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to update settlement ui due to missing CityBuilderPCView");
+                    return;
+                }
+
+                view.ViewModel.LeaveCityBuilder();
+                _logger.LogError("Kingdom settlement has been left.");
+            });
+        }
+
+        public void UpdateSettlementUIState(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = _uiAccessor.CityBuilderPCView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to update settlement ui due to missing CityBuilderPCView");
+                    return;
+                }
+
+                var toolbar = UnityEngine.Object.FindObjectOfType<SettlementToolbar>();
+                if (toolbar != null)
+                {
+                    var buttonText = toolbar.m_BuyResourceButton.GetComponentInChildren<TextMeshProUGUI>();
+                    _uiSyncCountersService.UpdateButtonTextCounter(buttonText, readyPlayersCount, totalPlayersCount);
+                    toolbar.m_BuyResourceButton.Interactable = isInteractable;
+                }
+
+                var statsController = UnityEngine.Object.FindObjectOfType<KingdomStatsController>();
+                if (statsController != null)
+                {
+                    statsController.m_Content.m_BuyResourceButton.Interactable = isInteractable;
+                }
+
+                _logger.LogInformation("Settlement UI has been updated. IsInteractable={IsInteractable}, ReadyPlayers={ReadyPlayers}, TotalPlayers={TotalPlayers}", isInteractable, readyPlayersCount, totalPlayersCount);
             });
         }
 

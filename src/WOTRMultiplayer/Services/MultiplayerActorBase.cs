@@ -2082,6 +2082,7 @@ namespace WOTRMultiplayer.Services
             };
             Send(message);
             ResetPlayersTracker(Game.PlayersInGlobalMapKingdom);
+            ResetPlayersTracker(Game.PlayersInSettlement);
             Game.PlayersInKingdomNavigationType.Clear();
         }
 
@@ -2093,6 +2094,17 @@ namespace WOTRMultiplayer.Services
                 PlayerId = Game.LocalPlayerId
             };
             Send(message);
+        }
+
+        public void OnKingdomSettlementLoaded()
+        {
+            AddPlayerToTracker(Game.PlayersInSettlement, Game.LocalPlayerId);
+            var message = new NotifyKingdomSettlementLoaded
+            {
+                PlayerId = Game.LocalPlayerId
+            };
+            Send(message);
+            UpdateSettlementUIState();
         }
 
         protected abstract DiceRollValueResponse RetrieveRoll(DiceRollValueRequest rollRequest);
@@ -2479,10 +2491,24 @@ namespace WOTRMultiplayer.Services
 
         protected void UpdateGlobalMapKingdomUIState()
         {
-            var readyPlayers = Game.PlayersInGlobalMapKingdom.Count;
-            var totalPlayers = GetSyncedPlayersCount();
-            var canUse = HasControlOverUI && readyPlayers >= totalPlayers;
-            GlobalMapInteraction.UpdateKingdomUIState(canUse, readyPlayers, totalPlayers);
+            lock (ActionLock)
+            {
+                var readyPlayers = Game.PlayersInGlobalMapKingdom.Count;
+                var totalPlayers = GetSyncedPlayersCount();
+                var canUse = HasControlOverUI && readyPlayers >= totalPlayers;
+                GlobalMapInteraction.UpdateKingdomUIState(canUse, readyPlayers, totalPlayers);
+            }
+        }
+
+        protected void UpdateSettlementUIState()
+        {
+            lock (ActionLock)
+            {
+                var readyPlayers = Game.PlayersInSettlement.Count;
+                var totalPlayers = GetSyncedPlayersCount();
+                var canUse = HasControlOverUI && readyPlayers >= totalPlayers;
+                GlobalMapInteraction.UpdateSettlementUIState(canUse, readyPlayers, totalPlayers);
+            }
         }
 
         protected void ResetPlayersTracker(HashSet<long> tracker)
@@ -3300,6 +3326,9 @@ namespace WOTRMultiplayer.Services
                 .On<NotifyKingdomLoaded>(OnNotifyKingdomLoaded)
                 .On<NotifyKingdomUnloaded>(OnNotifyKingdomUnloaded)
 
+                // kingdom
+                .On<NotifyKingdomSettlementLoaded>(OnNotifyKingdomSettlementLoaded)
+
                 // mapobjects
                 .On<NotifyOvertipInteracted>(OnNotifyOvertipInteracted)
                 .On<NotifyTrapDisarmRolled>(OnNotifyTrapDisarmRolled)
@@ -3364,6 +3393,12 @@ namespace WOTRMultiplayer.Services
                 // movement
                 .On<NotifyUnitMovedTo>(OnNotifyUnitMovedTo)
                 ;
+        }
+
+        private void OnNotifyKingdomSettlementLoaded(long receivedFrom, NotifyKingdomSettlementLoaded message)
+        {
+            AddPlayerToTracker(Game.PlayersInSettlement, message.PlayerId);
+            UpdateSettlementUIState();
         }
 
         private void OnNotifyKingdomUnloaded(long receivedFrom, NotifyKingdomUnloaded message)

@@ -604,6 +604,8 @@ namespace WOTRMultiplayer.Services
                .On<NotifyKingdomEventStarted>(OnNotifyKingdomEventStarted)
                .On<NotifyKingdomEventCancelled>(OnNotifyKingdomEventCancelled)
                .On<NotifyKingdomEventDropped>(OnNotifyKingdomEventDropped)
+               .On<NotifyKingdomSettlementEntered>(OnNotifyKingdomSettlementEntered)
+               .On<NotifyKingdomSettlementLeft>(OnNotifyKingdomSettlementLeft)
 
                // dialogs
                .On<NotifyDialogStarted>(OnNotifyDialogStarted)
@@ -639,6 +641,17 @@ namespace WOTRMultiplayer.Services
                // inventory
                .On<NotifyPolymorphicItemCreated>(OnNotifyPolymorphicItemCreated)
                ;
+        }
+
+        private void OnNotifyKingdomSettlementLeft(long receivedFrom, NotifyKingdomSettlementLeft message)
+        {
+            GlobalMapInteraction.LeaveSettlement();
+        }
+
+        private void OnNotifyKingdomSettlementEntered(long receivedFrom, NotifyKingdomSettlementEntered message)
+        {
+            var settlement = Mapper.Map<NetworkKingdomSettlement>(message.Settlement);
+            GlobalMapInteraction.EnterSettlement(settlement, message.RequiresUnloadEvent, message.ExitSettlementToGlobalMap);
         }
 
         private void OnNotifyKingdomEventDropped(long receivedFrom, NotifyKingdomEventDropped message)

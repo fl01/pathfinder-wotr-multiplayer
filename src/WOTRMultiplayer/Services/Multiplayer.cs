@@ -4338,6 +4338,60 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        public void OnKingdomEnterSettlement(NetworkKingdomSettlement kingdomSettlement, bool requiresUnloadEvent, bool exitSettlementToGlobalMap)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnKingdomEnterSettlement(kingdomSettlement, requiresUnloadEvent, exitSettlementToGlobalMap);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while entering kingdom settlement. Id={Id}, Name={Name}", kingdomSettlement.Id, kingdomSettlement.Name);
+                throw;
+            }
+        }
+
+        public void OnKingdomLeaveSettlement()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.OnKingdomLeaveSettlement();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while leaving kingdom settlement");
+                throw;
+            }
+        }
+
+        public void OnKingdomSettlementLoaded()
+        {
+            try
+            {
+                if (_multiplayerActorAccessor == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnKingdomSettlementLoaded();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while loading kingdom settlement");
+                throw;
+            }
+        }
+
         private void ShowMultiplayerLobbyWindow()
         {
             _logger.LogInformation("Opening lobby window");

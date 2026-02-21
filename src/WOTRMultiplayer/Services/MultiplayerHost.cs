@@ -1129,6 +1129,23 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
+        public void OnKingdomEnterSettlement(NetworkKingdomSettlement kingdomSettlement, bool requiresUnloadEvent, bool exitSettlementToGlobalMap)
+        {
+            var message = new NotifyKingdomSettlementEntered
+            {
+                Settlement = Mapper.Map<Networking.Messages.Contracts.NetworkKingdomSettlement>(kingdomSettlement),
+                RequiresUnloadEvent = requiresUnloadEvent,
+                ExitSettlementToGlobalMap = exitSettlementToGlobalMap
+            };
+            Send(message);
+        }
+
+        public void OnKingdomLeaveSettlement()
+        {
+            var message = new NotifyKingdomSettlementLeft();
+            Send(message);
+        }
+
         public NetworkAIAction OnAfterAISelectedAction(NetworkAIAction aiAction)
         {
             var message = new NotifyAIActionSelected
