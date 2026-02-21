@@ -5,6 +5,7 @@ using Kingmaker;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.TurnBasedMode;
 using Kingmaker.UnitLogic;
+using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.UnitLogic.Class.Kineticist;
 using Kingmaker.UnitLogic.Commands;
 using Kingmaker.UnitLogic.Commands.Base;
@@ -47,6 +48,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 {
                     var unitPartMagus = __instance.Executor.Get<UnitPartMagus>();
                     var unitPartTouch = __instance.Executor.Get<UnitPartTouch>();
+                    var actionStates = Game.Instance.TurnBasedCombatController.CurrentTurn.GetActionsStates(__instance.Executor);
                     if (unitPartMagus != null
                         && __instance.TargetUnit != null
                         && !unitPartMagus.EldritchArcher
@@ -55,7 +57,10 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                         && unitPartMagus.Spellstrike.Active
                         && unitPartMagus.IsSpellFromMagusSpellList(unitPartTouch.Ability.Data)
                         && __instance.Executor.IsEnemy(__instance.TargetUnit)
-                        && __instance.Executor.GetThreatHand() != null)
+                        && __instance.Executor.GetThreatHand() != null
+                        && actionStates != null
+                            && (actionStates.Standard.CurrentAbility is AbilityData standardAbility && standardAbility == turnTouchAbility.StickyTouch
+                                || actionStates.Swift.CurrentAbility is AbilityData swiftAbility && swiftAbility == turnTouchAbility.StickyTouch))
                     {
                         Main.GetLogger<UnitCommandsPatches>().LogWarning("Skipping attack command use as it's a part of magus combat. UnitId={UnitId}, TargetUnitId={TargetUnitId}", __instance.Executor.UniqueId, __instance.Target.UniqueId);
                         return;
