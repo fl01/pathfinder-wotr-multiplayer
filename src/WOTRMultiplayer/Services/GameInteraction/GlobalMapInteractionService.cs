@@ -28,6 +28,7 @@ using Kingmaker.UI.MVVM._PCView.Crusade.ArmyInfo;
 using Kingmaker.UI.MVVM._PCView.Crusade.Recruit;
 using Kingmaker.UI.MVVM._VM.Crusade.ArmyInfo;
 using Kingmaker.UI.Settlement;
+using Kingmaker.Utility;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
 using TMPro;
@@ -1654,6 +1655,72 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                 _logger.LogInformation("Settlement UI has been updated. IsInteractable={IsInteractable}, ReadyPlayers={ReadyPlayers}, TotalPlayers={TotalPlayers}", isInteractable, readyPlayersCount, totalPlayersCount);
             });
+        }
+
+        public void SellSettlementBuilding(NetworkKingdomSettlementBuilding kingdomSettlementBuilding)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var building = FindSettlementBuilding(kingdomSettlementBuilding);
+                if (building == null)
+                {
+                    _logger.LogError("Unable to find building to sell. BlueprintId={BlueprintId}, Slots={Slots}", kingdomSettlementBuilding.BlueprintId, kingdomSettlementBuilding.Slots);
+                    return;
+                }
+
+                EventBus.RaiseEvent<ISettlementBuildSell>(x => x.OnBuildSell(building));
+                _logger.LogInformation("Settlement building has been sold. BlueprintId={BlueprintId}, Slots={Slots}", kingdomSettlementBuilding.BlueprintId, kingdomSettlementBuilding.Slots);
+            });
+        }
+
+        public void BuildSettlementBuilding(NetworkKingdomSettlementBuilding kingdomSettlementBuilding)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                // it looks like you can only build single slot buildings, however, SettlementBuilding contains a reference to array of slots
+                // will see if this needs to be addressed later
+                var slotToBuild = kingdomSettlementBuilding.Slots.FirstOrDefault();
+                var settlement = KingdomState.Instance.CurrentSettlement;
+                var slot = settlement.Topology.m_SlotsByUid.FirstOrDefault(x => IsSameSettlementSlot(x.Value, slotToBuild)).Value;
+                if (slot == null)
+                {
+                    _logger.LogError("Unable to find building slot to build. Slot={Slot}", slotToBuild);
+                    return;
+                }
+                var building = ResourcesLibrary.TryGetBlueprint<BlueprintSettlementBuilding>(kingdomSettlementBuilding.BlueprintId);
+                if (building == null)
+                {
+                    _logger.LogError("Unable to find building to build. BlueprintId={BlueprintId}", kingdomSettlementBuilding.BlueprintId);
+                    return;
+                }
+
+                settlement.Build(building, slot, false);
+                _logger.LogInformation("Settlement building has been built. BlueprintId={BlueprintId}, Slot={Slot}", kingdomSettlementBuilding.BlueprintId, slotToBuild);
+            });
+        }
+
+        private SettlementBuilding FindSettlementBuilding(NetworkKingdomSettlementBuilding kingdomSettlementBuilding)
+        {
+            var building = KingdomState.Instance.CurrentSettlement.Buildings.FirstOrDefault(b =>
+                            string.Equals(b.Blueprint.AssetGuid.ToString(), kingdomSettlementBuilding.BlueprintId, StringComparison.OrdinalIgnoreCase)
+                            && AreSameSettlementSlots(b.Slots, kingdomSettlementBuilding.Slots));
+
+            return building;
+        }
+
+        private bool AreSameSettlementSlots(IEnumerable<SettlementGridTopology.Slot> buildingSlots, List<NetworkKingdomSettlementSlot> networkKingdomSettlementSlots)
+        {
+            var slots = buildingSlots.ToList();
+            var same = slots.Count == networkKingdomSettlementSlots.Count
+                && slots.All(s => networkKingdomSettlementSlots.FirstOrDefault(n => IsSameSettlementSlot(s, n)) != null);
+            return same;
+        }
+
+        private bool IsSameSettlementSlot(SettlementGridTopology.Slot buildingSlot, NetworkKingdomSettlementSlot networkKingdomSettlementSlot)
+        {
+            var same = string.Equals(buildingSlot.SlotId, networkKingdomSettlementSlot.Id, StringComparison.OrdinalIgnoreCase) &&
+                buildingSlot.X == networkKingdomSettlementSlot.X && buildingSlot.Y == networkKingdomSettlementSlot.Y;
+            return same;
         }
 
         private (KingdomEventHandCartController, KingdomEventUIView) FindEvent(NetworkKingdomEvent networkKingdomEvent)

@@ -194,5 +194,9 @@ namespace WOTRMultiplayer.Abstractions
         void OnKingdomEnterSettlement(NetworkKingdomSettlement kingdomSettlement, bool requiresUnloadEvent, bool exitSettlementToGlobalMap);
 
         void OnKingdomLeaveSettlement();
+
+        void OnKingdomSettlementBuldingSold(NetworkKingdomSettlementBuilding kingdomSettlementBuilding);
+
+        void OnKingdomSettlementBuilt(NetworkKingdomSettlementBuilding kingdomSettlementBuilding);
     }
 }

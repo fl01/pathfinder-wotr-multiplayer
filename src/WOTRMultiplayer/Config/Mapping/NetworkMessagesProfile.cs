@@ -370,6 +370,12 @@ namespace WOTRMultiplayer.Config.Mapping
 
             CreateMap<NetworkKingdomEventSolution, Networking.Messages.Contracts.NetworkKingdomEventSolution>()
                 .ReverseMap();
+
+            CreateMap<NetworkKingdomSettlementBuilding, Networking.Messages.Contracts.NetworkKingdomSettlementBuilding>()
+                .ReverseMap();
+
+            CreateMap<NetworkKingdomSettlementSlot, Networking.Messages.Contracts.NetworkKingdomSettlementSlot>()
+                .ReverseMap();
         }
     }
 }

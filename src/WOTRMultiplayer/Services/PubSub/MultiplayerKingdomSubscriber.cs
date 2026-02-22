@@ -1,8 +1,10 @@
 ﻿using System;
 using AutoMapper;
 using Kingmaker.Kingdom;
+using Kingmaker.Kingdom.Settlements;
 using Kingmaker.Kingdom.UI;
 using Kingmaker.UI.Kingdom;
+using Kingmaker.UI.Settlement;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.PubSub;
@@ -13,7 +15,9 @@ namespace WOTRMultiplayer.Services.PubSub
     public class MultiplayerKingdomSubscriber : MultiplayerSubscriberBase,
         IMultiplayerGlobalSubscriber,
         IKingdomNavigationHandler,
-        IEventSceneHandler
+        IEventSceneHandler,
+        ISettlementBuildSell,
+        ISettlementBuildingHandler
     {
         public MultiplayerKingdomSubscriber(
             ILogger<MultiplayerKingdomSubscriber> logger,
@@ -21,6 +25,44 @@ namespace WOTRMultiplayer.Services.PubSub
             IMapper mapper)
             : base(logger, multiplayerActorAccessor, mapper)
         {
+        }
+
+        public void OnBuildingStarted(SettlementState settlement, SettlementBuilding building)
+        {
+            try
+            {
+                if (ActorAccessor.Current == null || ActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                var kingdomSettlementBuilding = Mapper.Map<NetworkKingdomSettlementBuilding>(building);
+                ActorAccessor.Host.OnKingdomSettlementBuilt(kingdomSettlementBuilding);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Unable to handle settlement building built event");
+                throw;
+            }
+        }
+
+        public void OnBuildSell(SettlementBuilding building)
+        {
+            try
+            {
+                if (ActorAccessor.Current == null || ActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                var kingdomSettlementBuilding = Mapper.Map<NetworkKingdomSettlementBuilding>(building);
+                ActorAccessor.Host.OnKingdomSettlementBuldingSold(kingdomSettlementBuilding);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Unable to handle settlement building sold event");
+                throw;
+            }
         }
 
         public void OnEventSelected(KingdomEventUIView kingdomEventUIView, KingdomEventHandCartController cart)

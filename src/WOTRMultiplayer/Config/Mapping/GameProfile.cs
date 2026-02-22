@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AutoMapper;
 using Kingmaker.EntitySystem.Entities;
@@ -55,6 +56,46 @@ namespace WOTRMultiplayer.Config.Mapping
 
             CreateMap<KingdomEventUIView, NetworkKingdomEvent>().ConstructUsing(x => Create(x))
                 .ForAllMembers(x => x.Ignore());
+
+            CreateMap<SettlementBuilding, NetworkKingdomSettlementBuilding>().ConstructUsing(Create)
+                .ForAllMembers(x => x.Ignore());
+
+            CreateMap<SettlementGridTopology.Slot, NetworkKingdomSettlementSlot>().ConstructUsing(x => Create(x))
+                .ForAllMembers(x => x.Ignore());
+        }
+
+        private NetworkKingdomSettlementSlot Create(SettlementGridTopology.Slot slot)
+        {
+            if (slot == null)
+            {
+                return null;
+            }
+
+            var kingdomSettlementSlot = new NetworkKingdomSettlementSlot
+            {
+                Id = slot.SlotId,
+                X = slot.X,
+                Y = slot.Y
+            };
+
+            return kingdomSettlementSlot;
+        }
+
+        private NetworkKingdomSettlementBuilding Create(SettlementBuilding settlementBuilding, ResolutionContext context)
+        {
+            if (settlementBuilding == null)
+            {
+                return null;
+            }
+
+            var kingdomSettlementBuilding = new NetworkKingdomSettlementBuilding
+            {
+                Id = settlementBuilding.UniqueId,
+                BlueprintId = settlementBuilding.Blueprint.AssetGuid.ToString(),
+                Slots = context.Mapper.Map<List<NetworkKingdomSettlementSlot>>(settlementBuilding.Slots)
+            };
+
+            return kingdomSettlementBuilding;
         }
 
         private NetworkKingdomEvent Create(KingdomEventUIView kingdomEventUIView)

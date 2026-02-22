@@ -164,5 +164,9 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void LeaveSettlement();
 
         void UpdateSettlementUIState(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
+
+        void SellSettlementBuilding(NetworkKingdomSettlementBuilding kingdomSettlementBuilding);
+
+        void BuildSettlementBuilding(NetworkKingdomSettlementBuilding kingdomSettlementBuilding);
     }
 }

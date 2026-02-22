@@ -257,7 +257,9 @@
             NotifyKingdomEventDropped,
             NotifyKingdomSettlementEntered,
             NotifyKingdomSettlementLeft,
-            NotifyKingdomSettlementLoaded
+            NotifyKingdomSettlementLoaded,
+            NotifyKingdomSettlementBuildingSold,
+            NotifyKingdomSettlementBuildingBuilt
         }
 
         public enum Request

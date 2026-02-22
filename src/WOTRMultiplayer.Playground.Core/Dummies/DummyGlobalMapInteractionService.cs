@@ -325,5 +325,13 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void UpdateSettlementUIState(bool isInteractable, int readyPlayersCount, int totalPlayersCount)
         {
         }
+
+        public void SellSettlementBuilding(NetworkKingdomSettlementBuilding kingdomSettlementBuilding)
+        {
+        }
+
+        public void BuildSettlementBuilding(NetworkKingdomSettlementBuilding kingdomSettlementBuilding)
+        {
+        }
     }
 }

@@ -1146,6 +1146,24 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
+        public void OnKingdomSettlementBuldingSold(NetworkKingdomSettlementBuilding kingdomSettlementBuilding)
+        {
+            var message = new NotifyKingdomSettlementBuildingSold
+            {
+                Building = Mapper.Map<Networking.Messages.Contracts.NetworkKingdomSettlementBuilding>(kingdomSettlementBuilding)
+            };
+            Send(message);
+        }
+
+        public void OnKingdomSettlementBuilt(NetworkKingdomSettlementBuilding kingdomSettlementBuilding)
+        {
+            var message = new NotifyKingdomSettlementBuildingBuilt
+            {
+                Building = Mapper.Map<Networking.Messages.Contracts.NetworkKingdomSettlementBuilding>(kingdomSettlementBuilding)
+            };
+            Send(message);
+        }
+
         public NetworkAIAction OnAfterAISelectedAction(NetworkAIAction aiAction)
         {
             var message = new NotifyAIActionSelected
