@@ -1195,7 +1195,10 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 var newPosition = networkUnit.Position.ToUnityVector3();
                 _logger.LogInformation("Updating unit position. UnitId={UnitId}, PreviousPosition={PreviousPosition}, NewPosition={NewPosition}", unit.UniqueId, unit.Position.ToString("F4"), newPosition.ToString("F4"));
-                unit.Translocate(newPosition, unit.Orientation);
+                unit.CombatState.PreventAttacksOfOpporunityNextFrame = true;
+                unit.View.transform.position = newPosition;
+                unit.Position = newPosition;
+                //unit.Translocate(newPosition, unit.Orientation);
             }
         }
     }
