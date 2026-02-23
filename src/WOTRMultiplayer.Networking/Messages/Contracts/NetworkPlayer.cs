@@ -29,5 +29,10 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         [ProtoMember(6)]
         [LogMe]
         public bool IsHost { get; set; }
+
+        public override string ToString()
+        {
+            return Id.ToString();
+        }
     }
 }

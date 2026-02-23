@@ -67,6 +67,8 @@ namespace WOTRMultiplayer.Services
 
         public int? CombatTurnSeed => Game.Combat?.Turn?.Seed;
 
+        public int? LastCombatTurnSeed => Game.LastCombatTurn?.Seed;
+
         public int? CrusadeArmyCombatAreaSeed => Game.ArmyCombat?.AreaSeed;
 
         public int? CrusadeArmyCombatSeed => Game.ArmyCombat?.Seed;

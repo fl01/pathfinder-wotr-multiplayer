@@ -12,6 +12,8 @@ namespace WOTRMultiplayer.Entities.AreaEffects
 
         public List<string> UnitsInside { get; set; } = [];
 
+        public NetworkAreaEffectType Type { get; set; }
+
         public override string ToString()
         {
             return Id.ToString();

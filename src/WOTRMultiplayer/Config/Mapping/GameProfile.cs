@@ -8,6 +8,7 @@ using Kingmaker.Kingdom.UI;
 using Kingmaker.UnitLogic;
 using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.UnitLogic.Abilities.Blueprints;
+using Kingmaker.UnitLogic.Abilities.Components.AreaEffects;
 using Kingmaker.UnitLogic.Buffs;
 using Kingmaker.UnitLogic.Parts;
 using Kingmaker.Utility;
@@ -141,8 +142,14 @@ namespace WOTRMultiplayer.Config.Mapping
                 Id = areaEffectEntityData.UniqueId,
                 Name = areaEffectEntityData.Blueprint.name,
                 Position = areaEffectEntityData.m_Position.ToNetworkVector3(),
-                UnitsInside = [.. areaEffectEntityData.m_UnitsInside.Select(x => x.Reference.UniqueId)]
+                UnitsInside = [.. areaEffectEntityData.m_UnitsInside.Select(x => x.Reference.UniqueId)],
+                Type = NetworkAreaEffectType.Common
             };
+
+            if (areaEffectEntityData.Blueprint.Components?.Any(c => c is AreaEffectPit) ?? false)
+            {
+                areaEffect.Type = NetworkAreaEffectType.Pit;
+            }
 
             return areaEffect;
         }

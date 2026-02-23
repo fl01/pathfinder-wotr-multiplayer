@@ -31,9 +31,6 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         public NetworkUnitBuffCollection BuffCollection { get; set; }
 
         [ProtoMember(8)]
-        public NetworkUnitPartInPit UnitPartInPit { get; set; }
-
-        [ProtoMember(9)]
         public NetworkUnitPartKineticist UnitPartKineticist { get; set; }
 
         public override string ToString()

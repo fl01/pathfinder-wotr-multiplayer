@@ -88,7 +88,6 @@ namespace WOTRMultiplayer
                 harmony.PatchAll(Assembly.GetExecutingAssembly());
                 var patchedMethods = harmony.GetPatchedMethods().Count();
                 _logger.LogInformation("Harmony patching has been finished. PatchedMethods={PatchedMethods}", patchedMethods);
-
                 AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
                 TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
             }

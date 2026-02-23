@@ -21,5 +21,7 @@ namespace WOTRMultiplayer.Abstractions.Random
         System.Random GetRandom(IdentifierLifetime lifetime, string identifier);
 
         NetworkVector2 GetRandomUnitCircle(IdentifierLifetime lifetime, string identifier);
+
+        NetworkVector3 GetRandomUnitSphere(IdentifierLifetime lifetime, string identifier);
     }
 }

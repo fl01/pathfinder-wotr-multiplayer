@@ -100,6 +100,10 @@ namespace WOTRMultiplayer.HarmonyPatches.ContextActions
                 var areaSeed = Main.Multiplayer.GetAreaSeed();
                 var combatSeed = Main.Multiplayer.GetCombatSeed();
                 var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
+                if (combatSeed != 0 && combatTurnSeed == 0) // combat mid turn action like area effect trigger
+                {
+                    combatTurnSeed = Main.Multiplayer.GetLastCombatTurnSeed();
+                }
                 var armyCombatSeed = Main.Multiplayer.GetCrusadeArmyCombatSeed();
 
                 var unitId = contextActionRandomize.AbilityContext.MaybeOwner?.UniqueId;

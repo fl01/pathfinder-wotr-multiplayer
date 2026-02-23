@@ -50,7 +50,6 @@ namespace WOTRMultiplayer.Networking
 
             Server.ServerOptions.DefaultListen.StartRegionPort = hostPortRangeStart;
             Server.ServerOptions.DefaultListen.EndRegionPort = hostPortRangeEnd;
-            Server.ServerOptions.BufferSize = NetworkingConsts.BufferSize;
             Server.OnMessageReceive(OnMissingMessageHandler);
             Server.OnOpened(OnOpened);
             Server.OnLog(OnServerLog)

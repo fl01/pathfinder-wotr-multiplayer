@@ -9,5 +9,9 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         [ProtoMember(1)]
         [LogMe]
         public bool IsCharging { get; set; }
+
+        [ProtoMember(2)]
+        [LogMe]
+        public NetworkUnitProneState Prone { get; set; }
     }
 }

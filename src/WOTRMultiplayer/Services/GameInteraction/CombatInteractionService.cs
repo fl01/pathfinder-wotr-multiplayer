@@ -20,7 +20,6 @@ using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.UnitLogic.Class.Kineticist;
 using Kingmaker.UnitLogic.Commands;
 using Kingmaker.UnitLogic.Commands.Base;
-using Kingmaker.UnitLogic.Parts;
 using Kingmaker.Utility;
 using Microsoft.Extensions.Logging;
 using TurnBased.Controllers;
@@ -710,12 +709,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     BuffCollection = _buffInteractionService.GetUnitBuffs(unitEntity)
                 };
 
-                var pitPart = unitEntity.Get<UnitPartInPit>();
-                if (pitPart != null)
-                {
-                    unit.UnitPartInPit = new NetworkUnitPartInPit { CurrentRoundSeconds = pitPart.CurrentRoundSeconds };
-                }
-
                 var kineticist = unitEntity.Get<UnitPartKineticist>();
                 if (kineticist != null)
                 {
@@ -795,9 +788,17 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     continue;
                 }
 
-                areaEffect.Blueprint.HandleRound(areaEffect.m_Context, areaEffect);
+                switch (triggered.Type)
+                {
+                    case NetworkAreaEffectType.Common:
+                        areaEffect.Blueprint.HandleRound(areaEffect.m_Context, areaEffect);
+                        break;
+                    case NetworkAreaEffectType.Pit:
+                        break;
+                }
+
+                _logger.LogInformation("Area effect has been triggered. Id={Id}, Name={Name}, Type={Type}", triggered.Id, triggered.Name, triggered.Type);
                 _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.Combat.AreaEffects.Triggered.Key, CombatTextSeverity.Debug, triggered.Name, triggered.Id);
-                _logger.LogInformation("Area effect has been triggered. Id={Id}, Name={Name}", areaEffect.UniqueId, areaEffect.Blueprint.name);
             }
         }
 
@@ -834,7 +835,12 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 },
                 State = new NetworkUnitState
                 {
-                    IsCharging = combatUnit.Descriptor.State.IsCharging
+                    IsCharging = combatUnit.Descriptor.State.IsCharging,
+                    Prone = new NetworkUnitProneState
+                    {
+                        Active = combatUnit.Descriptor.State.Prone.Active,
+                        ShouldBeActive = combatUnit.Descriptor.State.Prone.ShouldBeActive,
+                    }
                 }
             };
             return descriptor;
@@ -898,7 +904,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                     if (requiresFullUpdate)
                     {
-                        UpdateUnitState(unit, networkUnit.Descriptor.State);
                         UpdateUnitTurnBasedInfo(unit, networkUnit.TurnBasedInfo);
                     }
                 }
@@ -931,6 +936,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
             UpdateUnitParts(unit, remoteUnit);
             UpdateUnitHealth(unit, remoteUnit);
+            UpdateUnitState(unit, remoteUnit.Descriptor.State);
 
             if (updatePosition)
             {
@@ -941,7 +947,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
         private void UpdateUnitParts(UnitEntityData unit, NetworkUnit networkUnit)
         {
             UpdateUnitPartKineticist(unit, networkUnit);
-            UpdateUnitPartInPit(unit, networkUnit);
         }
 
         private void UpdateUnitPartKineticist(UnitEntityData unit, NetworkUnit networkUnit)
@@ -969,25 +974,11 @@ namespace WOTRMultiplayer.Services.GameInteraction
             }
         }
 
-        private void UpdateUnitPartInPit(UnitEntityData unit, NetworkUnit networkUnit)
-        {
-            if (networkUnit.UnitPartInPit == null)
-            {
-                return;
-            }
-
-            var unitPart = unit.Get<UnitPartInPit>();
-            if (unitPart != null)
-            {
-                unitPart.CurrentRoundSeconds = networkUnit.UnitPartInPit.CurrentRoundSeconds;
-                unitPart.State = networkUnit.UnitPartInPit.State;
-                _logger.LogInformation("UnitPartInPit has been updated. UnitId={UnitId}, State={State}, CurrentRoundSeconds={CurrentRoundSeconds}", unit.UniqueId, unitPart.State, unitPart.CurrentRoundSeconds);
-            }
-        }
-
         private void UpdateUnitState(UnitEntityData unit, NetworkUnitState state)
         {
             unit.State.IsCharging = state.IsCharging;
+            unit.State.Prone.Active = state.Prone.Active;
+            unit.State.Prone.ShouldBeActive = state.Prone.ShouldBeActive;
         }
 
         private void UpdateUnitHealth(UnitEntityData unit, NetworkUnit networkUnit)

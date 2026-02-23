@@ -18,11 +18,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 return true;
             }
 
-            var networkAreaEffect = new NetworkAreaEffect
-            {
-                Id = areaEffect.UniqueId,
-                Name = areaEffect.Blueprint.name
-            };
+            var networkAreaEffect = Main.Mapper.Map<NetworkAreaEffect>(areaEffect);
             var canContinue = Main.Multiplayer.OnAreaEffectTriggered(networkAreaEffect);
             return canContinue;
         }

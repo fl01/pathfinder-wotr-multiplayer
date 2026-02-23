@@ -342,9 +342,6 @@ namespace WOTRMultiplayer.Config.Mapping
             CreateMap<NetworkAreaEffect, Networking.Messages.Contracts.NetworkAreaEffect>()
                 .ReverseMap();
 
-            CreateMap<NetworkUnitPartInPit, Networking.Messages.Contracts.NetworkUnitPartInPit>()
-                .ReverseMap();
-
             CreateMap<NetworkUnitPartKineticist, Networking.Messages.Contracts.NetworkUnitPartKineticist>()
                 .ReverseMap();
 

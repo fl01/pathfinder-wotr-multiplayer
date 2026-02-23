@@ -326,11 +326,6 @@ namespace WOTRMultiplayer.Services
             }
 
             var canTrigger = Game.Combat.Turn != null;
-            if (!canTrigger)
-            {
-                Logger.LogWarning("Area effect trigger has been denied. Id={Id}, Name={Name}", areaEffect.Id, areaEffect.Name);
-            }
-
             return canTrigger;
         }
 

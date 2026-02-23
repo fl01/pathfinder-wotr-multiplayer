@@ -285,6 +285,8 @@ namespace WOTRMultiplayer.Abstractions
 
         int GetCombatTurnSeed();
 
+        int GetLastCombatTurnSeed();
+
         int GetCrusadeArmyCombatSeed();
 
         int GetSessionSeed();

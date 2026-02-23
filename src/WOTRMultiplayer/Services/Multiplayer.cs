@@ -984,6 +984,12 @@ namespace WOTRMultiplayer.Services
             return seed;
         }
 
+        public int GetLastCombatTurnSeed()
+        {
+            var seed = _multiplayerActorAccessor.Current?.LastCombatTurnSeed ?? 0;
+            return seed;
+        }
+
         public int GetCrusadeArmyCombatSeed()
         {
             return _multiplayerActorAccessor.Current?.CrusadeArmyCombatSeed ?? 0;

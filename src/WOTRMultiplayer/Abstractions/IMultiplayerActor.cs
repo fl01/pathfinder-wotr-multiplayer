@@ -67,6 +67,8 @@ namespace WOTRMultiplayer.Abstractions
 
         int? CombatTurnSeed { get; }
 
+        int? LastCombatTurnSeed { get; }
+
         int? CombatSeed { get; }
 
         int? CrusadeArmyCombatAreaSeed { get; }

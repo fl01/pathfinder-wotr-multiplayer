@@ -1303,9 +1303,8 @@ namespace WOTRMultiplayer.Services
 
         public bool OnAreaEffectTriggered(NetworkAreaEffect areaEffect)
         {
-            if (Game.Combat != null && Game.Combat.Turn == null)
+            if (Game.Combat != null && Game.Combat.Turn == null && Game.Combat.TriggeredAreaEffects.Add(areaEffect))
             {
-                Game.Combat.TriggeredAreaEffects.Add(areaEffect);
                 Logger.LogWarning("Area effect has been triggered in combat mid turn. Id={Id}, Name={Name}", areaEffect.Id, areaEffect.Name);
                 PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.AreaEffects.Triggered.Key, Abstractions.GameInteraction.CombatLog.CombatTextSeverity.Debug, areaEffect.Name, areaEffect.Id);
             }

@@ -30,9 +30,9 @@ namespace WOTRMultiplayer.Services.Random
             _hashService = hashService;
         }
 
-        public Guid CreateGuid(IdentifierLifetime lifetime, string seed)
+        public Guid CreateGuid(IdentifierLifetime lifetime, string identifier)
         {
-            var actualSeed = _hashService.Murmur3(seed);
+            var actualSeed = _hashService.Murmur3(identifier);
             var generator = GetSeededGenerator(lifetime, actualSeed);
             var guidBytes = new byte[16];
             generator.Random.NextBytes(guidBytes);
@@ -40,9 +40,9 @@ namespace WOTRMultiplayer.Services.Random
             return guid;
         }
 
-        public NetworkVector2 GetRandomUnitCircle(IdentifierLifetime lifetime, string seed)
+        public NetworkVector2 GetRandomUnitCircle(IdentifierLifetime lifetime, string identifier)
         {
-            var actualSeed = _hashService.Murmur3(seed);
+            var actualSeed = _hashService.Murmur3(identifier);
             var generator = GetSeededGenerator(lifetime, actualSeed);
 
             float angle = generator.Random.NextFloat(0, 1f) * Mathf.PI * 2f;
@@ -52,6 +52,26 @@ namespace WOTRMultiplayer.Services.Random
             var y = Mathf.Sin(angle) * radius;
 
             var point = new NetworkVector2(x, y);
+            return point;
+        }
+
+        public NetworkVector3 GetRandomUnitSphere(IdentifierLifetime lifetime, string identifier)
+        {
+            var actualSeed = _hashService.Murmur3(identifier);
+            var generator = GetSeededGenerator(lifetime, actualSeed);
+
+            var spin = generator.Random.NextDouble();
+            var height = generator.Random.NextDouble();
+
+            var theta = 2.0 * Math.PI * spin;
+            var phi = Math.Acos(2.0 * height - 1.0);
+            var sinPhi = Math.Sin(phi);
+
+            var x = (float)(sinPhi * Math.Cos(theta));
+            var y = (float)(sinPhi * Math.Sin(theta));
+            var z = (float)Math.Cos(phi);
+
+            var point = new NetworkVector3(x, y, z);
             return point;
         }
 

@@ -18,6 +18,9 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         [ProtoMember(4)]
         public List<string> UnitsInside { get; set; } = [];
 
+        [ProtoMember(5)]
+        public string Type { get; set; }
+
         public override string ToString()
         {
             return Id.ToString();

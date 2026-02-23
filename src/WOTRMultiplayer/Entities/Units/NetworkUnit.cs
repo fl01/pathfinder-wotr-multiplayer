@@ -18,8 +18,6 @@ namespace WOTRMultiplayer.Entities.Units
 
         public NetworkUnitBuffCollection BuffCollection { get; set; }
 
-        public NetworkUnitPartInPit UnitPartInPit { get; set; }
-
         public NetworkUnitPartKineticist UnitPartKineticist { get; set; }
 
         public override bool Equals(object obj)
