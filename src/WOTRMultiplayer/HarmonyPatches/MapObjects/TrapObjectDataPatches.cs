@@ -133,7 +133,7 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
                 var sessionSeed = Main.Multiplayer.GetSessionSeed();
                 var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
 
-                var identifier = $"{nameof(SimpleTrapObjectView)}:{nameof(OnRollTrapDisableDC)}:{simpleTrapObjectView.UniqueId}:{blueprintTrap.name}:{blueprintTrap.AssetGuid}:{blueprintTrap.DisableDC.from}:{blueprintTrap.DisableDC.to}_{sessionSeed}:{loadedSaveSeed}";
+                var identifier = $"{nameof(SimpleTrapObjectView)}:{nameof(OnRollTrapDisableDC)}:{blueprintTrap.name}:{blueprintTrap.AssetGuid}:{blueprintTrap.DisableDC.from}:{blueprintTrap.DisableDC.to}_{sessionSeed}:{loadedSaveSeed}";
                 var disableDC = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, blueprintTrap.DisableDC.from, blueprintTrap.DisableDC.to);
                 Main.GetLogger<TrapObjectDataPatches>().LogInformation("Trap disable dc has been rolled. TrapId={TrapId}, Result={Result}, Identifier={Identifier}", simpleTrapObjectView.UniqueId, disableDC, identifier);
                 return disableDC;
@@ -157,14 +157,14 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
                 var sessionSeed = Main.Multiplayer.GetSessionSeed();
                 var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
 
-                var identifier = $"{nameof(SimpleTrapObjectView)}:{nameof(OnRollTrapPerceptionDC)}:{simpleTrapObjectView.UniqueId}:{blueprintTrap.name}:{blueprintTrap.AssetGuid}:{blueprintTrap.PerceptionDC.from}:{blueprintTrap.PerceptionDC.to}_{sessionSeed}:{loadedSaveSeed}";
+                var identifier = $"{nameof(SimpleTrapObjectView)}:{nameof(OnRollTrapPerceptionDC)}:{blueprintTrap.name}:{blueprintTrap.AssetGuid}:{blueprintTrap.PerceptionDC.from}:{blueprintTrap.PerceptionDC.to}_{sessionSeed}:{loadedSaveSeed}";
                 var perceptionDC = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, blueprintTrap.PerceptionDC.from, blueprintTrap.PerceptionDC.to);
-                Main.GetLogger<TrapObjectDataPatches>().LogInformation("Trap perception dc has been rolled. TrapId={TrapId}, AbilityName={AbilityName}, Result={Result}, Identifier={Identifier}", simpleTrapObjectView.UniqueId, perceptionDC, identifier);
+                Main.GetLogger<TrapObjectDataPatches>().LogInformation("Trap perception dc has been rolled. TrapId={TrapId}, Result={Result}, Identifier={Identifier}", simpleTrapObjectView.UniqueId, perceptionDC, identifier);
                 return perceptionDC;
             }
             catch (Exception ex)
             {
-                Main.GetLogger<TrapObjectDataPatches>().LogError(ex, "Error while rolling trap perception dc.  TrapId={TrapId, AbilityName={AbilityName}", simpleTrapObjectView.UniqueId);
+                Main.GetLogger<TrapObjectDataPatches>().LogError(ex, "Error while rolling trap perception dc. TrapId={TrapId}", simpleTrapObjectView.UniqueId);
                 throw;
             }
         }
