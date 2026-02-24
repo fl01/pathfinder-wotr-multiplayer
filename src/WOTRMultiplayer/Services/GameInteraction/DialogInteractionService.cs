@@ -140,7 +140,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         private void DoSelectAnswer(BlueprintAnswer answerBlueprint, string manualUnitSelectionId)
         {
             ResetSuggestedDialogAnswers();
-            var unit = manualUnitSelectionId == null ? null : Game.Instance.Player.PartyAndPets.FirstOrDefault(u => string.Equals(u.UniqueId, manualUnitSelectionId));
+            var unit = manualUnitSelectionId == null ? null : _gameStateLookupService.GetUnitEntity(manualUnitSelectionId);
             Game.Instance.DialogController.SelectAnswer(answerBlueprint, unit);
         }
 

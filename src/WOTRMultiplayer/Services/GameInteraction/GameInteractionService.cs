@@ -52,7 +52,6 @@ using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.UnitLogic.ActivatableAbilities;
 using Kingmaker.UnitLogic.Commands;
 using Kingmaker.UnitLogic.FactLogic;
-using Kingmaker.Utility;
 using Kingmaker.View.MapObjects;
 using Kingmaker.View.MapObjects.Traps;
 using Kingmaker.View.MapObjects.Traps.Simple;
@@ -593,7 +592,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                     foreach (var item in networkItemsTransfer.Items)
                     {
-                        var containerItems = matchedItems.Get(item);
+                        matchedItems.TryGetValue(item, out var containerItems);
                         MatchSameNumberOfItems(containerItems, item.Count, matchedItem =>
                         {
                             _logger.LogInformation("Transfering item. Name={Name}, Id={Id}, Count={Count}, Source={Source}, SourceIsStash={SourceIsStash}, Destination={Destination}, DestinationIsStash={DestinationIsStash}", matchedItem.Name, matchedItem.UniqueId, matchedItem.Count, sourceCollection.OwnerRef.Entity?.UniqueId, sourceCollection.IsSharedStash, destinationCollection.OwnerRef.Entity.UniqueId, destinationCollection.IsSharedStash);
@@ -2651,7 +2650,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return itemSlot;
         }
 
-        private TargetWrapper CreateTargetWrapper(NetworkTargetWrapper networkTargetWrapper)
+        private Kingmaker.Utility.TargetWrapper CreateTargetWrapper(NetworkTargetWrapper networkTargetWrapper)
         {
             if (networkTargetWrapper == null)
             {
@@ -2660,7 +2659,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
             var point = networkTargetWrapper.Point.ToUnityVector3();
             var unit = _gameStateLookupService.GetUnitEntity(networkTargetWrapper.UnitId);
-            var wrapper = new TargetWrapper(point, networkTargetWrapper.Orientation, unit);
+            var wrapper = new Kingmaker.Utility.TargetWrapper(point, networkTargetWrapper.Orientation, unit);
             return wrapper;
         }
 
@@ -2795,7 +2794,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     var lookupTargets = mapObject != null ? [mapObject]
                         : _gameStateLookupService.GetNeareastLootableMapObjects(lootableEntity.Position);
 
-                    var mapObjectContainers = lookupTargets.Select(x => ((InteractionLootPart)x.Interactions.FindOrDefault(i => i is InteractionLootPart)).Loot);
+                    var mapObjectContainers = lookupTargets.Select(x => ((InteractionLootPart)x.Interactions.FirstOrDefault(i => i is InteractionLootPart)).Loot);
                     return mapObjectContainers;
             }
         }

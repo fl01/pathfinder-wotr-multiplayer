@@ -53,7 +53,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
                 var identifier = $"{nameof(CueSelection)}:{nameof(SelectRandomDialogCue)}:{Game.Instance.CurrentlyLoadedArea.name}:{cues.Count}:{Game.Instance.DialogController?.Dialog?.name}:{minInclusive}:{maxExclusive}:{sessionSeed}:{loadedSaveSeed}:{areaSeed}";
                 int index = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, minInclusive, maxExclusive);
                 var cue = cues[index];
-                Main.GetLogger<CueSelectionPatches>().LogInformation("Dialog has been selected. Result={Count}, CueName={CueName}, MinRange={MinRange}, MaxRange={MaxRange}, Identifier={Identifier}", index, cue.name, minInclusive, maxExclusive, identifier);
+                Main.GetLogger<CueSelectionPatches>().LogInformation("Dialog cue has been selected. Index={Index}, CueName={CueName}, MinRange={MinRange}, MaxRange={MaxRange}, Identifier={Identifier}", index, cue.name, minInclusive, maxExclusive, identifier);
                 return index;
             }
             catch (System.Exception ex)

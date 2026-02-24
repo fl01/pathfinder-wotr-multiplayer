@@ -878,7 +878,7 @@ namespace WOTRMultiplayer.Services
 
         public void OnGlobalMapLocationMessageClosed()
         {
-            RemovePlayerFromTracker(Game.PlayersInGlobalMapLocationMessage, Game.LocalPlayerId);
+            ResetPlayersTracker(Game.PlayersInGlobalMapLocationMessage);
 
             var message = new NotifyGlobalMapLocationMessageClosed
             {
