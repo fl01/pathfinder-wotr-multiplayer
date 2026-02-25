@@ -127,11 +127,11 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 hasBeenModified = true;
             }
 
+            var path = new ForcedPath([.. possibleActionOverride.DecisionContext.VectorPath.Select(x => x.ToUnityVector3())]);
+            context.BestPath = path;
+
             if (hasBeenModified)
             {
-                var path = new ForcedPath([.. possibleActionOverride.DecisionContext.VectorPath.Select(x => x.ToUnityVector3())]);
-                context.BestPath = path;
-
                 Main.GetLogger<AiBrainControllerPatches>().LogWarning("AI action target has been overridden. UnitId={UnitId}, PreviousActionId={PreviousActionId}, PreviousActionName={PreviousActionName}, PreviousTarget={PreviousTarget}, NewActionId={NewActionId}, NewActionName={NewActionName}, NewTarget={NewTarget}",
                     unit.UniqueId, previousAction.AssetGuid.ToString(), previousAction.name, previousTarget, possibleActionOverride.Id, possibleActionOverride.Name, bestTargetResult.UniqueId);
             }
