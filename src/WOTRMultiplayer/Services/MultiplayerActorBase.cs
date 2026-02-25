@@ -1742,6 +1742,16 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
+        public void OnTrapActivation(string unitId, NetworkMapObject trapObject)
+        {
+            var message = new NotifyTrapActivated
+            {
+                UnitId = unitId,
+                Trap = Mapper.Map<Networking.Messages.Contracts.NetworkMapObject>(trapObject)
+            };
+            Send(message);
+        }
+
         public void OnUnitAutoUseAbilityChanged(NetworkAutoUseAbility networkAutoUseAbility)
         {
             if (!IsControlledByLocalPlayer(networkAutoUseAbility.UnitId))
@@ -3445,7 +3455,16 @@ namespace WOTRMultiplayer.Services
 
                 // movement
                 .On<NotifyUnitMovedTo>(OnNotifyUnitMovedTo)
+
+                // map objects
+                .On<NotifyTrapActivated>(OnNotifyTrapActivated)
                 ;
+        }
+
+        private void OnNotifyTrapActivated(long receivedFrom, NotifyTrapActivated message)
+        {
+            var trapObject = Mapper.Map<NetworkMapObject>(message.Trap);
+            GameInteraction.ActivateTrap(message.UnitId, trapObject);
         }
 
         private void OnNotifyCustomSpellRemoved(long receivedFrom, NotifyCustomSpellRemoved message)

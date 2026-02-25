@@ -2392,55 +2392,108 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
+        public void ActivateTrap(string unitId, NetworkMapObject trapObject)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                try
+                {
+                    var mapObject = _gameStateLookupService.GetMapObject(trapObject.Id);
+                    if (mapObject == null)
+                    {
+                        _logger.LogWarning("Unable to find trap to activate. TrapId={TrapId}", trapObject.Id);
+                        return;
+                    }
+
+                    if (mapObject is not TrapObjectData trapData)
+                    {
+                        _logger.LogError("Specified mapObject is not a trap. TrapId={TrapId}", trapObject.Id);
+                        return;
+                    }
+
+                    if (!trapData.TrapActive)
+                    {
+                        return;
+                    }
+
+                    var triggeredUnit = _gameStateLookupService.GetUnitEntity(unitId);
+                    if (triggeredUnit == null)
+                    {
+                        _logger.LogError("Unable to find unit who triggered trap. UnitId={UnitId}", unitId);
+                        return;
+                    }
+
+                    EventBus.RaiseEvent<ITrapActivationHandler>(x => x.HandleTrapActivation(triggeredUnit, trapData.View));
+                    trapData.RunTrapActions();
+                    trapData.Deactivate(false);
+                    trapData.View.PostSoundEvent(trapData.Settings.TriggerSound);
+                    _logger.LogInformation("Trap has been activated. TrapId={TrapId}, UnitId={UnitId}", trapData.UniqueId, unitId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error while activating trap. TrapId={TrapId}, UnitId={UnitId}", trapObject.Id, unitId);
+                    throw;
+                }
+            });
+        }
+
         public void ApplyTrapDisarm(NetworkTrapDisarm trapDisarm)
         {
             _mainThreadAccessor.Post(() =>
             {
-                var mapObject = _gameStateLookupService.GetMapObject(trapDisarm.MapObject.Id);
-                if (mapObject == null)
+                try
                 {
-                    _logger.LogWarning("Unable to find trap to apply disarm check. It's either already disabled or invalid id. TrapId={TrapId}", trapDisarm.MapObject.Id);
-                    return;
-                }
+                    var mapObject = _gameStateLookupService.GetMapObject(trapDisarm.MapObject.Id);
+                    if (mapObject == null)
+                    {
+                        _logger.LogWarning("Unable to find trap to apply disarm check. It's either already disabled or invalid id. TrapId={TrapId}", trapDisarm.MapObject.Id);
+                        return;
+                    }
 
-                if (mapObject is not TrapObjectData trapData)
+                    if (mapObject is not TrapObjectData trapData)
+                    {
+                        _logger.LogError("Trap disarm can't be applied to a non-TrapObjectData. TrapId={TrapId}", trapDisarm.MapObject.Id);
+                        return;
+                    }
+
+                    if (!trapData.TrapActive)
+                    {
+                        return;
+                    }
+
+                    var unit = _gameStateLookupService.GetUnitEntity(trapDisarm.UnitId);
+                    if (unit == null)
+                    {
+                        _logger.LogError("Unable to find unit who interacted with a trap. TrapId={TrapId}, UnitId={UnitId}", trapDisarm.MapObject.Id, trapDisarm.UnitId);
+                        return;
+                    }
+
+                    // copy-paste of TrapObjectData.Interact
+                    if (trapDisarm.IsSuccess)
+                    {
+                        trapData.RunDisableActions(unit);
+                        trapData.View.PostSoundEvent(trapData.Settings.DisabledSound);
+                        trapData.Deactivate(true);
+                        EventBus.RaiseEvent<IDisarmTrapHandler>(x => x.HandleDisarmTrapSuccess(unit, trapData.View));
+                        return;
+                    }
+
+                    if (trapDisarm.Roll <= trapData.DisableDC - trapData.DisableTriggerMargin)
+                    {
+                        EventBus.RaiseEvent<IDisarmTrapHandler>(x => x.HandleDisarmTrapCriticalFail(unit, trapData.View));
+                        trapData.TriggerTrap(unit);
+                        return;
+                    }
+
+                    trapData.View.PostSoundEvent(trapData.Settings.DisableFailSound);
+                    EventBus.RaiseEvent<IDisarmTrapHandler>(x => x.HandleDisarmTrapFail(unit, trapData.View));
+                    _logger.LogWarning("Trap disarm roll has been applied. TrapId={TrapId}, Roll={Roll}, DC={DC}", trapDisarm.MapObject.Id, trapDisarm.Roll, trapData.DisableDC);
+                }
+                catch (Exception ex)
                 {
-                    _logger.LogError("Trap disarm can't be applied to a non-TrapObjectData. TrapId={TrapId}", trapDisarm.MapObject.Id);
-                    return;
+                    _logger.LogError(ex, "Error while applying trap disarm. TrapId={TrapId}", trapDisarm.MapObject.Id);
+                    throw;
                 }
-
-                if (!trapData.TrapActive)
-                {
-                    return;
-                }
-
-                var unit = _gameStateLookupService.GetUnitEntity(trapDisarm.UnitId);
-                if (unit == null)
-                {
-                    _logger.LogError("Unable to find unit who interacted with a trap. TrapId={TrapId}, UnitId={UnitId}", trapDisarm.MapObject.Id, trapDisarm.UnitId);
-                    return;
-                }
-
-                // copy-paste of TrapObjectData.Interact
-                if (trapDisarm.IsSuccess)
-                {
-                    trapData.RunDisableActions(unit);
-                    trapData.View.PostSoundEvent(trapData.Settings.DisabledSound);
-                    trapData.Deactivate(true);
-                    EventBus.RaiseEvent<IDisarmTrapHandler>(x => x.HandleDisarmTrapSuccess(unit, trapData.View));
-                    return;
-                }
-
-                if (trapDisarm.Roll <= trapData.DisableDC - trapData.DisableTriggerMargin)
-                {
-                    EventBus.RaiseEvent<IDisarmTrapHandler>(x => x.HandleDisarmTrapCriticalFail(unit, trapData.View));
-                    trapData.TriggerTrap(unit);
-                    return;
-                }
-
-                trapData.View.PostSoundEvent(trapData.Settings.DisableFailSound);
-                EventBus.RaiseEvent<IDisarmTrapHandler>(x => x.HandleDisarmTrapFail(unit, trapData.View));
-                _logger.LogWarning("Trap disarm roll has been applied. TrapId={TrapId}, Roll={Roll}, DC={DC}", trapDisarm.MapObject.Id, trapDisarm.Roll, trapData.DisableDC);
             });
         }
 

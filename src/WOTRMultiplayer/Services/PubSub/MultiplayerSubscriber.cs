@@ -5,10 +5,12 @@ using Kingmaker.EntitySystem.Entities;
 using Kingmaker.PubSubSystem;
 using Kingmaker.UI;
 using Kingmaker.View.MapObjects;
+using Kingmaker.View.MapObjects.Traps;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.PubSub;
 using WOTRMultiplayer.Entities.Area;
+using WOTRMultiplayer.Entities.MapObjects;
 
 namespace WOTRMultiplayer.Services.PubSub
 {
@@ -18,7 +20,8 @@ namespace WOTRMultiplayer.Services.PubSub
         IPartyChangedUIHandler,
         IPartyHandler,
         IAreaLoadingStagesHandler,
-        IWarningNotificationUIHandler
+        IWarningNotificationUIHandler,
+        ITrapActivationHandler
     {
         public MultiplayerSubscriber(
             ILogger<MultiplayerSubscriber> logger,
@@ -87,6 +90,25 @@ namespace WOTRMultiplayer.Services.PubSub
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Unable to handle party leave area event");
+                throw;
+            }
+        }
+
+        public void HandleTrapActivation(UnitEntityData unit, TrapObjectView trap)
+        {
+            try
+            {
+                if (ActorAccessor.Current == null)
+                {
+                    return;
+                }
+
+                var trapObject = Main.Mapper.Map<NetworkMapObject>(trap.Data);
+                ActorAccessor.Current.OnTrapActivation(unit.UniqueId, trapObject);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Unable to handle OnGameLoaded event");
                 throw;
             }
         }

@@ -452,5 +452,9 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void RemoveCustomSpell(string unitId, NetworkAbility ability)
         {
         }
+
+        public void ActivateTrap(string unitId, NetworkMapObject trapObject)
+        {
+        }
     }
 }

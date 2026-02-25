@@ -13,7 +13,6 @@ using Kingmaker.View.MapObjects.Traps.Simple;
 using Kingmaker.View.MapObjects.Traps.Simple.Strategies;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Entities.MapObjects;
-using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.Services.Random;
 using static Kingmaker.Blueprints.BlueprintTrapSettings;
 
@@ -209,11 +208,7 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
             var trapDisarm = new NetworkTrapDisarm
             {
                 IsSuccess = ruleSkillCheck.Success,
-                MapObject = new NetworkMapObject
-                {
-                    Id = trapObjectData.UniqueId,
-                    Position = trapObjectData.Position.ToNetworkVector3()
-                },
+                MapObject = Main.Mapper.Map<NetworkMapObject>(trapObjectData),
                 Roll = ruleSkillCheck.RollResult,
                 UnitId = unit.UniqueId
             };

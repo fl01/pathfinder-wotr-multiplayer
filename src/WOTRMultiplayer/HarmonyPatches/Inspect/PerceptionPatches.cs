@@ -10,7 +10,6 @@ using Kingmaker.RuleSystem.Rules;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Entities.Inspect;
 using WOTRMultiplayer.Entities.MapObjects;
-using WOTRMultiplayer.Extensions;
 
 namespace WOTRMultiplayer.HarmonyPatches.Inspect
 {
@@ -68,11 +67,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Inspect
             {
                 UnitId = character.UniqueId,
                 Roll = ruleSkillCheck.D20.m_Result,
-                MapObject = new NetworkMapObject
-                {
-                    Id = data.UniqueId,
-                    Position = data.Position.ToNetworkVector3()
-                }
+                MapObject = Main.Mapper.Map<NetworkMapObject>(data)
             };
 
             Main.Multiplayer.OnPerceptionCheck(check);

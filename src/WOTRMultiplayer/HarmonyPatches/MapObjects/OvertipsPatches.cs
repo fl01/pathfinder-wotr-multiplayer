@@ -57,7 +57,7 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
         {
             var networkOvertip = new NetworkOvertip
             {
-                MapObject = CreateMapObject(__instance),
+                MapObject = Main.Mapper.Map<NetworkMapObject>(__instance.MapObjectView.Data),
                 Units = [.. Game.Instance.SelectionCharacter.SelectedUnits.Select(x => x.UniqueId)]
             };
 
@@ -113,22 +113,11 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
             var units = Game.Instance.Player.PartyAndPets.Where(u => Main.Multiplayer.IsControlledByLocalPlayer(u.UniqueId)).Select(c => c.View).ToList();
             var networkOvertip = new NetworkOvertip
             {
-                MapObject = CreateMapObject(__instance),
+                MapObject = Main.Mapper.Map<NetworkMapObject>(__instance.MapObjectView.Data),
                 Units = [.. units.Select(x => x.Data.UniqueId)]
             };
 
             Main.Multiplayer.OnInteractWithMapObjectOvertip(networkOvertip);
-        }
-
-        private static NetworkMapObject CreateMapObject(ObjectOvertipViewBase view)
-        {
-            var mapObject = new NetworkMapObject
-            {
-                Id = view.MapObjectView.UniqueId,
-                Position = view.MapObjectView.Data.Position.ToNetworkVector3()
-            };
-
-            return mapObject;
         }
 
         private static void SelectAllCharactersControlledByLocalPlayer()

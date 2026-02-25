@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AutoMapper;
+using Kingmaker.EntitySystem;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.Items;
 using Kingmaker.Kingdom.Settlements;
@@ -18,6 +19,7 @@ using WOTRMultiplayer.Entities.AreaEffects;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Equipment;
 using WOTRMultiplayer.Entities.GlobalMap.Kingdom;
+using WOTRMultiplayer.Entities.MapObjects;
 using WOTRMultiplayer.Entities.Spells;
 using WOTRMultiplayer.Entities.Units;
 using WOTRMultiplayer.Extensions;
@@ -68,6 +70,25 @@ namespace WOTRMultiplayer.Config.Mapping
 
             CreateMap<ItemEntity, NetworkItem>().ConstructUsing(x => Create(x))
                 .ForAllMembers(x => x.Ignore());
+
+            CreateMap<EntityDataBase, NetworkMapObject>().ConstructUsing(x => Create(x))
+                .ForAllMembers(x => x.Ignore());
+        }
+
+        private NetworkMapObject Create(EntityDataBase entityDataBase)
+        {
+            if (entityDataBase == null)
+            {
+                return null;
+            }
+
+            var mapObject = new NetworkMapObject
+            {
+                Id = entityDataBase.UniqueId,
+                Position = entityDataBase.Position.ToNetworkVector3()
+            };
+
+            return mapObject;
         }
 
         private NetworkItem Create(ItemEntity itemEntity)

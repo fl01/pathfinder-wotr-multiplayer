@@ -192,6 +192,8 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void ApplyTrapDisarm(NetworkTrapDisarm trapDisarm);
 
+        void ActivateTrap(string unitId, NetworkMapObject trapObject);
+
         bool IsUnitBusy(string unitId);
 
         void SetUnitAutoUseAbility(NetworkAutoUseAbility autoUseAbility);

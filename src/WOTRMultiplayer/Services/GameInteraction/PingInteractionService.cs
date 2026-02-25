@@ -89,12 +89,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 WorldPosition = point,
                 UnitId = unitId,
-                MapObject = mapObjectData == null ? null
-                    : new NetworkMapObject
-                    {
-                        Id = mapObjectData.UniqueId,
-                        Position = mapObjectData.Position.ToNetworkVector3()
-                    }
+                MapObject = Main.Mapper.Map<NetworkMapObject>(mapObjectData)
             };
 
             if (ping.MapObject != null)
