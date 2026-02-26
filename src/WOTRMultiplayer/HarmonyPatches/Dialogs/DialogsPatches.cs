@@ -87,7 +87,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
 
             var isLastAnswer = answer.IsExit()
                 || answer.NextCue.Cues.Count == 0
-                || answer.NextCue.Cues.Count == 1 && answer.NextCue.GetAllNextCues().All(x => x.ShowOnce && !x.ShowOnceCurrentDialog);
+                || answer.NextCue.Cues.Count == 1 && answer.NextCue.GetAllNextCues().All(x => x == null || !x.CanShow());
 
             var networkDialog = new NetworkDialog
             {
