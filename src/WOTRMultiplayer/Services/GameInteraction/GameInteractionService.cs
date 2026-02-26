@@ -2914,7 +2914,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
             if (networkActionBarSlot.Item != null)
             {
-                var itemSlot = unit.Body.QuickSlots.FirstOrDefault(s => IsSameItem(s.Item, networkActionBarSlot.Item));
+                var itemSlot = unit.Body.QuickSlots.FirstOrDefault(s => s.HasItem && IsSameItem(s.Item, networkActionBarSlot.Item));
                 if (itemSlot == null)
                 {
                     _logger.LogError("Unable to find item slot content. UnitId={UnitId}, ItemId={ItemId}, ItemName={ItemName}", unit.UniqueId, networkActionBarSlot.Item.UniqueId, networkActionBarSlot.Item.Name);

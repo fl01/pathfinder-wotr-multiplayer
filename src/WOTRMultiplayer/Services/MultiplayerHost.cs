@@ -366,7 +366,7 @@ namespace WOTRMultiplayer.Services
                         return false;
                     }
 
-                    if (!Game.Combat.IsPrepared)
+                    if (!Game.Combat.IsPreparationStarted)
                     {
                         Game.Combat.Seed = CreateRandomSeed();
 
@@ -376,11 +376,13 @@ namespace WOTRMultiplayer.Services
                             Discrepancy = Mapper.Map<Networking.Messages.Contracts.NetworkCombatUnitDiscrepancy>(discrepantUnits),
                         };
                         Send(preparationRequiredMessage);
-                        Game.Combat.IsPrepared = true;
-                        _ = FixCombatUnitDiscrepancyAsync(discrepantUnits);
+                        Game.Combat.IsPreparationStarted = true;
+                        Task.Factory.StartNew(() =>
+                            FixCombatUnitDiscrepancyAsync(discrepantUnits)
+                            .ContinueWith(_ => Game.Combat.IsPrepared = true));
                     }
 
-                    var isPrepared = Game.Combat.PlayersCombatPreparation.Count == 0;
+                    var isPrepared = Game.Combat.IsPrepared && Game.Combat.PlayersCombatPreparation.Count == 0;
                     if (isPrepared)
                     {
                         SetCombatStage(NetworkCombatStage.Initialization);
@@ -1722,6 +1724,7 @@ namespace WOTRMultiplayer.Services
             Logger.LogWarning("Initiating combat recovery");
             Game.Combat.IsRecovering = true;
             Game.Combat.IsPrepared = false;
+            Game.Combat.IsPreparationStarted = false;
             Game.Combat.IsInitialized = false;
             Game.Combat.IsPlaying = false;
             Game.Combat.PlayersCombatPreparation.Clear();

@@ -17,6 +17,8 @@ namespace WOTRMultiplayer.Entities.Combat
 
         public bool IsInitialized { get; set; }
 
+        public bool IsPreparationStarted { get; set; }
+
         public bool IsPrepared { get; set; }
 
         public bool IsPlaying { get; set; }

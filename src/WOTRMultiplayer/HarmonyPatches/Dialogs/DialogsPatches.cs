@@ -85,7 +85,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
                 return true;
             }
 
-            var isLastAnswer = answer.IsExit() || answer.NextCue.Cues.Count == 0 || IsNenioLastDialogAnswer(__instance, answer);
+            var isLastAnswer = answer.IsExit()
+                || answer.NextCue.Cues.Count == 0
+                || answer.NextCue.Cues.Count == 1 && answer.NextCue.GetAllNextCues().All(x => x.ShowOnce && !x.ShowOnceCurrentDialog);
 
             var networkDialog = new NetworkDialog
             {
@@ -94,13 +96,6 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
             };
             var canContinue = Main.Multiplayer.OnBeforeSelectDialogAnswer(networkDialog, __instance.CurrentCue.name, answer.name, isLastAnswer, manualUnitSelection?.UniqueId);
             return canContinue;
-        }
-
-        private static bool IsNenioLastDialogAnswer(DialogController instance, BlueprintAnswer answer)
-        {
-            // bugged nenio dialog? this is the last cue
-            var isNenio = instance.Dialog.AssetGuid.ToString() == "a32d6df24f1acee4982c968f732e87a5" && answer.NextCue.Cues.Count == 1 && answer.NextCue.Cues.First().guid == "6a6221e3190526a47b192514a079cfad";
-            return isNenio;
         }
 
         [HarmonyPatch(typeof(DialogController), nameof(DialogController.PlayCue))]

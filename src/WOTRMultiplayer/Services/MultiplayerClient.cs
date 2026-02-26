@@ -773,6 +773,7 @@ namespace WOTRMultiplayer.Services
         {
             PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.StartupDesync.Client.Key, CombatTextSeverity.Critical);
 
+            Game.Combat.IsPreparationStarted = false;
             Game.Combat.IsPrepared = false;
             Game.Combat.IsInitialized = false;
             SetCombatStage(NetworkCombatStage.Idle);
