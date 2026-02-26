@@ -246,7 +246,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnGlobalMapStopTravel(NetworkGlobalMapTraveler globalMapTraveler);
 
-        void OnGlobalMapMessageBoxShown();
+        void OnGlobalMapMessageBoxShown(bool shouldManuallyTriggerMessage);
 
         void OnGlobalMapLocationMessageAccepted();
 

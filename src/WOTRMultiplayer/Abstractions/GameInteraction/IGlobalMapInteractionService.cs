@@ -172,5 +172,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void Teleport(NetworkGlobalMapLocation location);
 
         void UpgradeSettlement(NetworkKingdomSettlement kingdomSettlement);
+
+        void ShowCurrentEnterCurrentLocationMessage();
     }
 }

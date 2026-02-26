@@ -223,7 +223,7 @@ namespace WOTRMultiplayer.Abstractions
 
         bool OnGlobalMapSelectLocation(NetworkGlobalMapLocation globalMapLocation);
 
-        void OnGlobalMapMessageBoxShown();
+        void OnGlobalMapMessageBoxShown(bool fromClick);
 
         void OnGlobalMapCommonPopupShown(NetworkGlobalMapCommonPopup globalMapCommonPopup);
 

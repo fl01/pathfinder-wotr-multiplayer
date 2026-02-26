@@ -10,5 +10,9 @@ namespace WOTRMultiplayer.Networking.Messages.Game
         [ProtoMember(1)]
         [LogMe]
         public long PlayerId { get; set; }
+
+        [ProtoMember(2)]
+        [LogMe]
+        public bool ShouldManuallyTriggerMessage { get; set; }
     }
 }

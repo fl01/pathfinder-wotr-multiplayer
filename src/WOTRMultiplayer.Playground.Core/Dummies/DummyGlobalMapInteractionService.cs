@@ -341,5 +341,9 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void UpgradeSettlement(NetworkKingdomSettlement kingdomSettlement)
         {
         }
+
+        public void ShowCurrentEnterCurrentLocationMessage()
+        {
+        }
     }
 }

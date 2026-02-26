@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Threading;
 using HarmonyLib;
 using Kingmaker;
 using Kingmaker.Armies.TacticalCombat;
@@ -378,6 +379,19 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             return matcher.Instructions();
         }
 
+        private readonly static AsyncLocal<bool> _isLocationMessageFromClick = new();
+        [HarmonyPatch(typeof(GlobalMapSelectController), nameof(GlobalMapSelectController.HandleClick), [typeof(GlobalMapPointView)])]
+        [HarmonyPrefix]
+        public static void GlobalMapSelectController_HandleClick_Prefix()
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            _isLocationMessageFromClick.Value = true;
+        }
+
         [HarmonyPatch(typeof(GlobalMapEnterMessagePCView), nameof(GlobalMapEnterMessagePCView.BindViewImplementation))]
         [HarmonyPostfix]
         public static void GlobalMapEnterMessagePCView_BindViewImplementation_Postfix(GlobalMapEnterMessagePCView __instance)
@@ -390,7 +404,9 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             // responsible for hiding message box when you click somewhere else
             __instance.m_VeilButton.Interactable = false;
 
-            Main.Multiplayer.OnGlobalMapMessageBoxShown();
+            var shouldManuallyTriggerMessage = _isLocationMessageFromClick.Value && __instance.ViewModel.IsCurrentLocation;
+            _isLocationMessageFromClick.Value = false;
+            Main.Multiplayer.OnGlobalMapMessageBoxShown(shouldManuallyTriggerMessage);
         }
 
         [HarmonyPatch(typeof(GlobalMapEnterMessageVM), nameof(GlobalMapEnterMessageVM.Close))]

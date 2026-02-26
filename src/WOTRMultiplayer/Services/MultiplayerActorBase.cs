@@ -1603,13 +1603,14 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
-        public void OnGlobalMapMessageBoxShown()
+        public void OnGlobalMapMessageBoxShown(bool shouldManuallyTriggerMessage)
         {
             AddPlayerToTracker(Game.PlayersInGlobalMapLocationMessage, Game.LocalPlayerId);
 
             var message = new NotifyGlobalMapLocationMessageShown
             {
-                PlayerId = Game.LocalPlayerId
+                PlayerId = Game.LocalPlayerId,
+                ShouldManuallyTriggerMessage = shouldManuallyTriggerMessage
             };
             Send(message);
 
@@ -3999,12 +4000,17 @@ namespace WOTRMultiplayer.Services
             OnAfterNetworkMessageHandled(receivedFrom, groupChangerVisible);
         }
 
-        private void OnNotifyGlobalMapLocationMessageShown(long receivedFrom, NotifyGlobalMapLocationMessageShown globalMapLocationMessageShown)
+        private void OnNotifyGlobalMapLocationMessageShown(long receivedFrom, NotifyGlobalMapLocationMessageShown message)
         {
-            AddPlayerToTracker(Game.PlayersInGlobalMapLocationMessage, globalMapLocationMessageShown.PlayerId);
+            AddPlayerToTracker(Game.PlayersInGlobalMapLocationMessage, message.PlayerId);
+            if (message.ShouldManuallyTriggerMessage)
+            {
+                GlobalMapInteraction.ShowCurrentEnterCurrentLocationMessage();
+            }
+
             UpdateGlobalMapLocationMessageUIState();
 
-            OnAfterNetworkMessageHandled(receivedFrom, globalMapLocationMessageShown);
+            OnAfterNetworkMessageHandled(receivedFrom, message);
         }
 
         private void OnNotifySkipTimeOpened(long receivedFrom, NotifySkipTimeOpened skipTimeOpened)

@@ -1592,6 +1592,16 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
+        public void ShowCurrentEnterCurrentLocationMessage()
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var traveler = Game.Instance.GlobalMapController.SelectedTraveler;
+                GlobalMapMovementUtility.InteractWithLocation(GlobalMapView.Instance.State, traveler.Location, traveler, true);
+                _logger.LogInformation("EnterLocation message has been manually triggered");
+            });
+        }
+
         public void UpgradeSettlement(NetworkKingdomSettlement kingdomSettlement)
         {
             _mainThreadAccessor.Post(() =>

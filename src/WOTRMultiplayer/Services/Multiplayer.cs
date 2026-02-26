@@ -2292,7 +2292,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnGlobalMapMessageBoxShown()
+        public void OnGlobalMapMessageBoxShown(bool shouldManuallyTriggerMessage)
         {
             try
             {
@@ -2301,7 +2301,7 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Current.OnGlobalMapMessageBoxShown();
+                _multiplayerActorAccessor.Current.OnGlobalMapMessageBoxShown(shouldManuallyTriggerMessage);
             }
             catch (Exception ex)
             {
