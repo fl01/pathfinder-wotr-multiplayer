@@ -1,27 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using AutoMapper;
+using CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Config.DI;
 using WOTRMultiplayer.Entities;
-using WOTRMultiplayer.Entities.Area;
-using WOTRMultiplayer.Entities.Movement;
 using WOTRMultiplayer.Entities.Rolls.Claiming.Values;
 using WOTRMultiplayer.Networking.Abstractions;
+using WOTRMultiplayer.Playground.Core;
 using WOTRMultiplayer.Playground.Core.Dummies;
 using WOTRMultiplayer.Services;
 using WOTRMultiplayer.Services.Settings;
 
 namespace WOTRMultiplayer.Playground.Host
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Playground")]
     public class Program
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Playground")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0059:Unnecessary assignment of a value", Justification = "Playground")]
         public static void Main(string[] args)
         {
             WellKnownSettings.Initialize();
@@ -46,89 +45,40 @@ namespace WOTRMultiplayer.Playground.Host
                 new DummyDiceRollStorage([new NetworkIntRollValue { Value = 66 }]),
                 serviceProvider.GetService<IValueGenerator>(),
                 serviceProvider.GetService<IMapper>());
-            //var characters = new List<NetworkCharacter> {
-            //    new() { Name = "xdd", Portrait = "KitsuneFemaleRogue_Portrait"},
-            //    new() { Name = "SeelahFemalePaladin_Portrait", Portrait = "SeelahFemalePaladin_Portrait"},
-            //    new() { Name = "RegillMaleGnomeHellknight_Portrait", Portrait = "RegillMaleGnomeHellknight_Portrait"},
-            //    new() { Name = "WenduagFemaleMongrelRanger_Portrait", Portrait = "WenduagFemaleMongrelRanger_Portrait"},
-            //    new() { Name = "EmberFemaleElfWitch_Portrait", Portrait = "EmberFemaleElfWitch_Portrait"},
-            //    new() { Name = "NenioFemaleKitsuneWizard_Portrait", Portrait = "NenioFemaleKitsuneWizard_Portrait"},
-            //};
-            var characters = new List<NetworkCharacter> {
-                new() { Name = "Taolynn", Portrait = "KitsuneFemaleRogue_Portrait"}
-                //new() { Name = "xdd", Portrait = "KitsuneFemaleRogue_Portrait"}
-            };
-            // Manual_33_DIALOGUE_SKILL_CHECK  - first cave
-            // Manual_32_DIALOGUE - capital act3
-            // Manual_34_FIRST_COMBAT - first combat in first cave
+
             var saveGamePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                 "AppData\\LocalLow\\Owlcat Games\\Pathfinder Wrath Of The Righteous\\Saved Games\\Manual_34_FIRST_COMBAT.zks");
-            var startUp = new NetworkGameStartUp(saveGamePath) { Characters = characters, Title = "Playground Host Game Title Playground Host Game Title Playground Host Game Title Playground Host Game Title Playground Host Game Title" };
-            host.Create("1", startUp);
-            var input = string.Empty;
+            var startUp = new NetworkGameStartUp(saveGamePath) { Characters = [], Title = "Playground Host Game Title" };
+            host.Create(Guid.NewGuid().ToString(), startUp);
 
-            Console.Write(@$"
-            exit - exit the program
-            ready - toggle host ready status
-            owner_00 - change 0 char owner to 0 player
-            owner_01 - change 0 char owner to 1 player
-            start - start game
-            move - move xdd to 22.92498, 42.053, -9.376869
-            loaded - make host loaded
-            pause - pause game
-            unpause - unpause game
-            leave-area - send leavearea notification 1b018b52-c1be-40bf-8937-1f2a77b96049
-            dialog-answer_continue0001 - walk through first part of first dialog (until after cutscene)
-            dialog-answer_continue0002 - walk through first part of first dialog (until after cutscene)
-            dialog-answer_continue0003 - walk through first part of first dialog (until after cutscene)
-            dialog-answer_continue0004 - walk through first part of first dialog (until after cutscene)
-            dialog-answer_continue0005 - walk through first part of first dialog (until after cutscene)
-            start-unit-dialog - Vendor_Quartermaster_Dialogue 2C1EE7 98fd05f4-4458-4d2d-97f6-752be49667c0
-            start-dialog - MeetSeelahAnevia_Dialogue
-            combat-started - send initialization message
-            {Environment.NewLine}");
+            var verbs = CommandLineHelper.LoadVerbs();
+            Parser.Default.ParseArguments(["--help"], verbs);
 
-            while ((input = Console.ReadLine()) != "exit")
+            while (true)
             {
-                switch (input)
-                {
-                    case "ready":
-                        host.ReadyChanged();
-                        break;
-                    case "owner_00":
-                        host.ChangeCharacterOwner(host.Game.Characters[0], host.Game.Players[0]);
-                        break;
-                    case "owner_01":
-                        host.ChangeCharacterOwner(host.Game.Characters[0], host.Game.Players[1]);
-                        break;
-                    case "start":
-                        host.Start();
-                        break;
-                    case "move":
-                        var move = new NetworkCharacterMove
-                        {
-                            UnitId = "xdd",
-                            Destination = new NetworkVector3(22.92498f, 42.053f, -9.376869f),
-                            Orientation = 138.3618f,
-                            Delay = 0
-                        };
-                        host.MoveNonCombatCharacter(move);
-                        break;
-                    case "loaded":
-                        host.OnAreaLoadingComplete();
-                        break;
-                    case "leave-area":
-                        var transition = new NetworkAreaTransition { AreaExitId = "1b018b52-c1be-40bf-8937-1f2a77b96049" };
-                        host.OnAreaTransition(transition);
-                        break;
-                    case "combat-started":
-                        host.CombatStarted();
-                        host.CombatRoundStarted(1);
-                        host.CanContinueCombat();
-                        break;
-                    default:
-                        break;
-                }
+                var input = Console.ReadLine();
+                var inputArgs = input.Split(' ').Select(x => x.Trim(' ')).ToList();
+                Parser.Default
+                    .ParseArguments(inputArgs, verbs)
+                    .WithParsed(command => RunCommand(host, command, serviceProvider));
+            }
+        }
+
+        private static void RunCommand(MultiplayerHost client, object command, IServiceProvider serviceProvider)
+        {
+            switch (command)
+            {
+                case CommandVerbs.ReadyCommandVerb:
+                    client.ReadyChanged();
+                    break;
+                case CommandVerbs.AreaLoadedCommandVerb:
+                    client.OnAreaLoaded();
+                    break;
+                case CommandVerbs.ExitCommandVerb:
+                    Environment.Exit(0);
+                    break;
+                default:
+                    break;
             }
         }
     }

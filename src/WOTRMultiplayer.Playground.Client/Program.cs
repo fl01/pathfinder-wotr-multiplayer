@@ -12,9 +12,7 @@ using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.Equipment;
 using WOTRMultiplayer.Entities.Leveling;
 using WOTRMultiplayer.Entities.Rolls.Claiming.Values;
-using WOTRMultiplayer.Logging.Extensions;
 using WOTRMultiplayer.Networking.Abstractions;
-using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Playground.Core;
 using WOTRMultiplayer.Playground.Core.Dummies;
 using WOTRMultiplayer.Services;
@@ -23,30 +21,14 @@ using WOTRMultiplayer.Services.Settings;
 
 namespace WOTRMultiplayer.Playground.Client
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Playground")]
     public class Program
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Playground")]
         public static void Main(string[] args)
         {
             WellKnownSettings.Initialize();
             var serviceProvider = DIFactory.Create(new UnityModManagerSettings { UseDebugConsole = false, ConsoleMinimumLogLevel = (int)Serilog.Events.LogEventLevel.Debug }, "./");
             var logger = serviceProvider.GetService<ILogger<Program>>();
-
-            var msg = new NotifyEquipmentSlotChanged
-            {
-                Slot = new Networking.Messages.Contracts.NetworkEquipmentSlot
-                {
-                    SwapContext = new Networking.Messages.Contracts.NetworkEquipmentSwapContext
-                    {
-                        From = new Networking.Messages.Contracts.NetworkEquipmentSlotPosition { Index = 1, Type = "ASD" },
-                        To = new Networking.Messages.Contracts.NetworkEquipmentSlotPosition { Index = 2, Type = "sss" }
-                    },
-                    Item = new Networking.Messages.Contracts.NetworkItem { BlueprintId = "aaaaaaaaaa" },
-                    OwnerId = "asdasdasd",
-                    Position = new Networking.Messages.Contracts.NetworkEquipmentSlotPosition { Index = 666, Type = "HHHHH" }
-                }
-            };
-            logger.LogObject(LogLevel.Warning, "{MessageType}", msg);
 
             var client = new MultiplayerClient(
                 serviceProvider.GetService<ILogger<MultiplayerClient>>(),
@@ -85,7 +67,7 @@ namespace WOTRMultiplayer.Playground.Client
                 case CommandVerbs.ReadyCommandVerb:
                     client.ReadyChanged();
                     break;
-                case CommandVerbs.ClientLoadedCommandVerb:
+                case CommandVerbs.AreaLoadedCommandVerb:
                     client.OnAreaLoaded();
                     break;
                 case CommandVerbs.GameModeStartedCommandVerb gameModeStart:

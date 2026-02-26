@@ -11,7 +11,7 @@ using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
 using UnityEngine;
 using WOTRMultiplayer.Entities;
-using WOTRMultiplayer.Entities.Movement;
+using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Extensions;
 
 namespace WOTRMultiplayer.HarmonyPatches.Clicks
@@ -46,14 +46,14 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
                 return;
             }
 
-            var move = new NetworkCharacterMove
+            var unitMoveTo = new NetworkUnitMoveTo
             {
-                UnitId = unit.UniqueId,
-                Delay = settings.Delay,
+                InitiatorUnitId = unit.UniqueId,
                 Destination = settings.Destination.ToNetworkVector3(),
-                Orientation = settings.Orientation
+                MovementDelay = settings.Delay,
+                Orientation = settings.Orientation,
             };
-            Main.Multiplayer.MoveNonCombatCharacter(move);
+            Main.Multiplayer.OnUnitMoveTo(unitMoveTo);
         }
 
         /// <summary>

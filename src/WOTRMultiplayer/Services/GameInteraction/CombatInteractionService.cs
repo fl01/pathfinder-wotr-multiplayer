@@ -680,22 +680,22 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             try
             {
-                List<UnitEntityData> unitsInCombat = [.. Game.Instance.State.Units.InCombat()];
+                Dictionary<string, UnitEntityData> unitsInCombat = Game.Instance.State.Units.InCombat().ToDictionary(x => x.UniqueId, x => x);
 
                 switch (Game.Instance.CurrentlyLoadedArea.name)
                 {
                     case "Prologue_Caves_1":
                         var anevia = Game.Instance.State.Units.FirstOrDefault(u => string.Equals(u.CharacterName, "Anevia", StringComparison.OrdinalIgnoreCase));
-                        if (anevia != null)
+                        if (anevia != null && !unitsInCombat.ContainsKey(anevia.UniqueId))
                         {
-                            unitsInCombat.Add(anevia);
+                            unitsInCombat.Add(anevia.UniqueId, anevia);
                         }
                         break;
                     default:
                         break;
                 }
 
-                var units = GetUnitsState(unitsInCombat);
+                var units = GetUnitsState([.. unitsInCombat.Values]);
                 return units;
 
             }
@@ -1002,7 +1002,11 @@ namespace WOTRMultiplayer.Services.GameInteraction
         private void RunUnitMoveToCommand(UnitEntityData executorUnit, NetworkUnitMoveTo networkUnitMoveTo)
         {
             var destination = networkUnitMoveTo.Destination.ToUnityVector3();
-            var command = new UnitMoveTo(destination);
+            var command = new UnitMoveTo(destination)
+            {
+                Orientation = networkUnitMoveTo.Orientation,
+                MovementDelay = networkUnitMoveTo.MovementDelay
+            };
             SetCommandPath(networkUnitMoveTo.VectorPath, command);
             SetTurnMovementLimit(networkUnitMoveTo.MovementLimit, executorUnit);
 

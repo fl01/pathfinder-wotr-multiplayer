@@ -54,7 +54,6 @@ using Kingmaker.UI.UnitSettings;
 using Kingmaker.UnitLogic;
 using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.UnitLogic.ActivatableAbilities;
-using Kingmaker.UnitLogic.Commands;
 using Kingmaker.UnitLogic.FactLogic;
 using Kingmaker.View.MapObjects;
 using Kingmaker.View.MapObjects.Traps;
@@ -79,7 +78,6 @@ using WOTRMultiplayer.Entities.Equipment;
 using WOTRMultiplayer.Entities.Inspect;
 using WOTRMultiplayer.Entities.Items;
 using WOTRMultiplayer.Entities.MapObjects;
-using WOTRMultiplayer.Entities.Movement;
 using WOTRMultiplayer.Entities.NewGame;
 using WOTRMultiplayer.Entities.Rest;
 using WOTRMultiplayer.Entities.Settings;
@@ -258,28 +256,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 Game.Instance.LoadArea(targetPoint, areaTransition.Settings.AutoSaveMode, null);
             });
 
-        }
-
-        public void MoveNonCombatCharacter(NetworkCharacterMove networkCharacterMove)
-        {
-            var character = Game.Instance.Player.PartyAndPets.FirstOrDefault(f => string.Equals(f.UniqueId, networkCharacterMove.UnitId, StringComparison.OrdinalIgnoreCase));
-            if (character == null)
-            {
-                _logger.LogError("Can't move missing character. UnitId={UnitId}", networkCharacterMove.UnitId);
-                return;
-            }
-
-            _mainThreadAccessor.Post(() =>
-            {
-                var unityDestination = networkCharacterMove.Destination.ToUnityVector3();
-                var command = new UnitMoveTo(unityDestination, 0.3f)
-                {
-                    MovementDelay = networkCharacterMove.Delay,
-                    Orientation = networkCharacterMove.Orientation,
-                    CreatedByPlayer = true
-                };
-                character.Commands.Run(command);
-            });
         }
 
         public void SetPause(bool isPaused)

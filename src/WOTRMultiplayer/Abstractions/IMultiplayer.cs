@@ -17,7 +17,6 @@ using WOTRMultiplayer.Entities.Inspect;
 using WOTRMultiplayer.Entities.Items;
 using WOTRMultiplayer.Entities.Leveling;
 using WOTRMultiplayer.Entities.MapObjects;
-using WOTRMultiplayer.Entities.Movement;
 using WOTRMultiplayer.Entities.NewGame;
 using WOTRMultiplayer.Entities.Rest;
 using WOTRMultiplayer.Entities.SpellbookManagement;
@@ -42,8 +41,6 @@ namespace WOTRMultiplayer.Abstractions
         void TerminateMultiplayer();
 
         void InitializeEscMenuLobbyWindow();
-
-        void MoveNonCombatCharacter(NetworkCharacterMove networkCharacterMove);
 
         void OnStartGameMode(GameModeType type);
 

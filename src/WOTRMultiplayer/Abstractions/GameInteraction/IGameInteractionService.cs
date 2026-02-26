@@ -12,7 +12,6 @@ using WOTRMultiplayer.Entities.Equipment;
 using WOTRMultiplayer.Entities.Inspect;
 using WOTRMultiplayer.Entities.Items;
 using WOTRMultiplayer.Entities.MapObjects;
-using WOTRMultiplayer.Entities.Movement;
 using WOTRMultiplayer.Entities.NewGame;
 using WOTRMultiplayer.Entities.Rest;
 using WOTRMultiplayer.Entities.Settings;
@@ -34,8 +33,6 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         bool IsCapitalPartyMode { get; }
 
         void LeaveArea(NetworkAreaTransition areaTransition);
-
-        void MoveNonCombatCharacter(NetworkCharacterMove networkCharacterMove);
 
         void SetPause(bool isPaused);
 

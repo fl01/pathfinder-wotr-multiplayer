@@ -22,5 +22,13 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         [ProtoMember(4)]
         [LogMe]
         public string MovementLimit { get; set; }
+
+        [ProtoMember(5)]
+        [LogMe]
+        public float? Orientation { get; set; }
+
+        [ProtoMember(6)]
+        [LogMe]
+        public float MovementDelay { get; set; }
     }
 }

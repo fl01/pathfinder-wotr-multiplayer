@@ -16,7 +16,6 @@ using WOTRMultiplayer.Entities.GlobalMap.Kingdom;
 using WOTRMultiplayer.Entities.Items;
 using WOTRMultiplayer.Entities.Leveling;
 using WOTRMultiplayer.Entities.MapObjects;
-using WOTRMultiplayer.Entities.Movement;
 using WOTRMultiplayer.Entities.NewGame;
 using WOTRMultiplayer.Entities.Ping;
 using WOTRMultiplayer.Entities.Rest;
@@ -38,8 +37,6 @@ namespace WOTRMultiplayer.Abstractions
         List<NetworkCharacter> GetCharacters();
 
         bool ReadyChanged();
-
-        void MoveNonCombatCharacter(NetworkCharacterMove move);
 
         NetworkArea CurrentArea { get; }
 

@@ -14,7 +14,6 @@ using WOTRMultiplayer.Entities.Equipment;
 using WOTRMultiplayer.Entities.Inspect;
 using WOTRMultiplayer.Entities.Items;
 using WOTRMultiplayer.Entities.MapObjects;
-using WOTRMultiplayer.Entities.Movement;
 using WOTRMultiplayer.Entities.NewGame;
 using WOTRMultiplayer.Entities.Ping;
 using WOTRMultiplayer.Entities.Rest;
@@ -228,10 +227,6 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         }
 
         public void MoveActionBarSlots(NetworkActionBarSlot sourceActionBarSlot, NetworkActionBarSlot targetActionBarSlot)
-        {
-        }
-
-        public void MoveNonCombatCharacter(NetworkCharacterMove networkCharacterMove)
         {
         }
 

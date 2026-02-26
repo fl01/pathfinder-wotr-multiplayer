@@ -21,8 +21,8 @@ namespace WOTRMultiplayer.Playground.Client
         {
         }
 
-        [Verb("loaded", HelpText = "send gameloaded to host")]
-        public class ClientLoadedCommandVerb
+        [Verb("loaded", HelpText = "send AreaLoaded")]
+        public class AreaLoadedCommandVerb
         {
         }
 

@@ -14,7 +14,6 @@ using WOTRMultiplayer.Entities.Inspect;
 using WOTRMultiplayer.Entities.Items;
 using WOTRMultiplayer.Entities.Leveling;
 using WOTRMultiplayer.Entities.MapObjects;
-using WOTRMultiplayer.Entities.Movement;
 using WOTRMultiplayer.Entities.NewGame;
 using WOTRMultiplayer.Entities.Ping;
 using WOTRMultiplayer.Entities.Rest;
@@ -45,9 +44,6 @@ namespace WOTRMultiplayer.Config.Mapping
                 .ReverseMap();
 
             CreateMap<NetworkPlayer, Networking.Messages.Contracts.NetworkPlayer>()
-                .ReverseMap();
-
-            CreateMap<NetworkCharacterMove, Networking.Messages.Contracts.NetworkCharacterMove>()
                 .ReverseMap();
 
             CreateMap<NetworkDialogAnswerSuggestion, Networking.Messages.Contracts.NetworkDialogAnswerSuggestion>()

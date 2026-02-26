@@ -32,7 +32,6 @@ using WOTRMultiplayer.Entities.GlobalMap.Kingdom;
 using WOTRMultiplayer.Entities.Items;
 using WOTRMultiplayer.Entities.Leveling;
 using WOTRMultiplayer.Entities.MapObjects;
-using WOTRMultiplayer.Entities.Movement;
 using WOTRMultiplayer.Entities.NewGame;
 using WOTRMultiplayer.Entities.Ping;
 using WOTRMultiplayer.Entities.Rest;
@@ -1551,20 +1550,6 @@ namespace WOTRMultiplayer.Services
             var message = new NotifyCharacterSelectionWindowShown
             {
                 PlayerId = Game.LocalPlayerId
-            };
-            Send(message);
-        }
-
-        public void MoveNonCombatCharacter(NetworkCharacterMove move)
-        {
-            if (Game.Combat != null)
-            {
-                return;
-            }
-
-            var message = new NotifyCharacterMove
-            {
-                Move = Mapper.Map<Networking.Messages.Contracts.NetworkCharacterMove>(move)
             };
             Send(message);
         }
@@ -3421,9 +3406,6 @@ namespace WOTRMultiplayer.Services
                 .On<NotifyGroundClicked>(OnNotifyGroundClicked)
                 .On<NotifyMapObjectClicked>(OnNotifyMapObjectClicked)
 
-                // movement
-                .On<NotifyCharacterMove>(OnNotifyCharacterMove)
-
                 // pausing
                 .On<NotifyGamePauseStarted>(OnNotifyGamePauseStarted)
 
@@ -4075,14 +4057,6 @@ namespace WOTRMultiplayer.Services
             GameInteraction.ClearActionBarSlot(actionBarSlot);
 
             OnAfterNetworkMessageHandled(receivedFrom, actionBarSlotCleared);
-        }
-
-        private void OnNotifyCharacterMove(long receivedFrom, NotifyCharacterMove characterMove)
-        {
-            var move = Mapper.Map<NetworkCharacterMove>(characterMove.Move);
-            GameInteraction.MoveNonCombatCharacter(move);
-
-            OnAfterNetworkMessageHandled(receivedFrom, characterMove);
         }
 
         private void OnNotifyGroundClicked(long receivedFrom, NotifyGroundClicked clicked)

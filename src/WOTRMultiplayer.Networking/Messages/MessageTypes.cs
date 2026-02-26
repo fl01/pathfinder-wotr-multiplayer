@@ -42,7 +42,6 @@
             NotifyCampingUnitsRoleChanged,
             NotifyCampingUseHealingSpellsChanged,
             NotifyLevelingStarted,
-            NotifyCharacterMove,
             NotifyCombatInitializationRequired,
             NotifyCombatTurnStarted,
             NotifyCombatTurnStartSynchronizationRequired,

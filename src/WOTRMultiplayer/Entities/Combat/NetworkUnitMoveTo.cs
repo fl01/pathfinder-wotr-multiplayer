@@ -11,5 +11,9 @@ namespace WOTRMultiplayer.Entities.Combat
         public NetworkVector3 Destination { get; set; }
 
         public string MovementLimit { get; set; }
+
+        public float? Orientation { get; set; }
+
+        public float MovementDelay { get; set; }
     }
 }

@@ -25,7 +25,6 @@ using WOTRMultiplayer.Entities.Inspect;
 using WOTRMultiplayer.Entities.Items;
 using WOTRMultiplayer.Entities.Leveling;
 using WOTRMultiplayer.Entities.MapObjects;
-using WOTRMultiplayer.Entities.Movement;
 using WOTRMultiplayer.Entities.NewGame;
 using WOTRMultiplayer.Entities.Rest;
 using WOTRMultiplayer.Entities.SpellbookManagement;
@@ -135,25 +134,6 @@ namespace WOTRMultiplayer.Services
             if (_multiplayerActorAccessor.Client.IsActive)
             {
                 _multiplayerActorAccessor.Client.OnCharacterOwnerChanged = OnMultiplayerClientCharacterOwnerChanged;
-            }
-        }
-
-        public void MoveNonCombatCharacter(NetworkCharacterMove networkCharacterMove)
-        {
-            try
-            {
-
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return;
-                }
-
-                _multiplayerActorAccessor.Current.MoveNonCombatCharacter(networkCharacterMove);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while moving character outside of combat. UnitId={UnitId}", networkCharacterMove.UnitId);
-                throw;
             }
         }
 
