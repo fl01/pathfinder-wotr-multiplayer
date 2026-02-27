@@ -110,7 +110,7 @@ namespace WOTRMultiplayer.Services
             SetupNetworkMessageHandlers();
 
             var settings = SettingsService.GetSettings();
-            _networkClient.ConnectAsync(endpoint.Address.ToString(), endpoint.Port, settings.NetworkAwaiterTimeout);
+            _networkClient.ConnectAsync(endpoint.Address.ToString(), endpoint.Port, settings.NetworkAwaiterTimeout).ConfigureAwait(false);
 
             return AddressParseResult.Ok();
         }
