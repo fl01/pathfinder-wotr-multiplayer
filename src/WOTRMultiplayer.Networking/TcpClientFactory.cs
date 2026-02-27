@@ -8,7 +8,7 @@ namespace WOTRMultiplayer.Networking
     {
         public ITcpClient Create(string host, int port)
         {
-            BufferPool.BUFFER_SIZE = 1024 * 8;
+            BufferPool.BUFFER_SIZE = 1024 * 32;
             var client = SocketFactory.CreateClient<BeetleTcpClient>(new Messages.ProtobufClientPacket(), host, port);
             return client;
         }

@@ -10,6 +10,7 @@ using Kingmaker.TurnBasedMode;
 using Kingmaker.UI._ConsoleUI.Overtips;
 using Kingmaker.UI.Common;
 using Kingmaker.UI.Selection;
+using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Entities.MapObjects;
 using WOTRMultiplayer.Extensions;
@@ -55,6 +56,11 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
         [HarmonyPrefix]
         public static void ObjectInteractionOvertipView_OnClick_Prefix(ObjectInteractionOvertipView __instance)
         {
+            if (!Main.Multiplayer.IsActive || __instance.MapObjectView.Data.Interactions.Count == 1 && __instance.MapObjectView.Data.Interactions.All(i => i is InteractionCombinePart))
+            {
+                return;
+            }
+
             var networkOvertip = new NetworkOvertip
             {
                 MapObject = Main.Mapper.Map<NetworkMapObject>(__instance.MapObjectView.Data),

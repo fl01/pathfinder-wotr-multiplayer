@@ -20,5 +20,10 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         [ProtoMember(4)]
         [LogMe]
         public long OwnerId { get; set; }
+
+        public override string ToString()
+        {
+            return Name ?? Portrait;
+        }
     }
 }
