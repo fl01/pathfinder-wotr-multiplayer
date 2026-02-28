@@ -35,15 +35,15 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 new (OpCodes.Call, replaceWith)
             };
             match = match.Advance(-2).RemoveInstructions(2).Insert(newInstructions);
+            match = match.Advance(newInstructions.Count + 1);
 
-            match = matcher.SearchForward(x => x.Calls(lookFor));
+            match = match.SearchForward(x => x.Calls(lookFor));
             if (match.IsInvalid)
             {
                 Main.GetLogger<UnitCombatPrepareControllerPatches>().LogError("Unable to find second random initiative replacement. Target={Target}", target);
                 return instructions;
             }
             match = match.Advance(-2).RemoveInstructions(2).Insert(newInstructions);
-
             Main.GetLogger<UnitCombatPrepareControllerPatches>().LogDebug("Transpiler has been applied (x2). Target={Target}", target);
             return matcher.Instructions();
         }

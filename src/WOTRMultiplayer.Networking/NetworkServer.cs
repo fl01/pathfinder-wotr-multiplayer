@@ -59,6 +59,9 @@ namespace WOTRMultiplayer.Networking
             _server = new ServerBuilder<NetworkServerApp, NetworkConnectionToken, ProtobufPacket>();
             _server.ServerOptions.DefaultListen.StartRegionPort = hostPortRangeStart;
             _server.ServerOptions.DefaultListen.EndRegionPort = hostPortRangeEnd;
+            _server.ServerOptions.BufferSize = 1024 * 16;
+            _server.ServerOptions.BufferPoolSize = 128;
+            _server.ServerOptions.BufferPoolMaxMemory = 256;
             _server.OnMessageReceive(OnMessageReceived);
             _server.OnOpened(OnOpened);
             _server.OnError(OnServerError);
