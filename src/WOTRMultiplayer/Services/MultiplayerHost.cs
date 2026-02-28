@@ -84,6 +84,8 @@ namespace WOTRMultiplayer.Services
                   networkServer)
         {
             _networkServer = networkServer;
+
+            SetupNetworkMessageHandlers();
         }
 
         public void Create(string gameId, NetworkGameStartUp gameStartUp)
@@ -92,8 +94,6 @@ namespace WOTRMultiplayer.Services
             {
                 _networkServer.Reset();
             }
-
-            SetupNetworkMessageHandlers();
 
             Game = new NetworkGame(gameStartUp)
             {

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Logging.Extensions;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Awaiters;
+using WOTRMultiplayer.Networking.Consuming;
 
 namespace WOTRMultiplayer.Networking
 {
@@ -15,10 +16,10 @@ namespace WOTRMultiplayer.Networking
         private TimeSpan _defaultAwaiterTimeout;
 
         private ITcpClient _client;
-        private readonly ConcurrentDictionary<Type, Action<long, object>> _handlers = new();
         private readonly ConcurrentDictionary<string, TaskCompletionSource<IAwaitableResponse>> _awaiters = new(StringComparer.OrdinalIgnoreCase);
         private readonly ILogger<NetworkClient> _logger;
         private readonly ITcpClientFactory _tcpClientFactory;
+        private readonly IMessageConsumer _messageConsumer;
 
         public Action<Exception> OnError { get; set; }
 
@@ -30,10 +31,12 @@ namespace WOTRMultiplayer.Networking
 
         public NetworkClient(
             ILogger<NetworkClient> logger,
-            ITcpClientFactory tcpClientFactory)
+            ITcpClientFactory tcpClientFactory,
+            IMessageConsumer messageConsumer)
         {
             _logger = logger;
             _tcpClientFactory = tcpClientFactory;
+            _messageConsumer = messageConsumer;
         }
 
         public async Task ConnectAsync(string host, int port, TimeSpan awaiterTimeout)
@@ -50,31 +53,10 @@ namespace WOTRMultiplayer.Networking
             await _client.Connect();
         }
 
-        private void OnClientConnected(IClient client)
-        {
-            IsConnecting = false;
-
-            var endpoint = client.Socket.RemoteEndPoint;
-            OnConnected?.Invoke(endpoint);
-        }
-
-        private void OnClientError(IClient client, ClientErrorArgs args)
-        {
-            IsConnecting = false;
-
-            OnError?.Invoke(args.Error);
-        }
-
-        public INetworkReceiver On<TMessage>(Action<long, TMessage> handler)
+        public INetworkReceiver On<TMessage>(Action<long, TMessage> handler, MessageHandlerPriority priority = MessageHandlerPriority.Default)
             where TMessage : class
         {
-            var messageType = typeof(TMessage);
-            _logger.LogDebug("Adding message handler. Type={Type}", messageType);
-            if (!_handlers.TryAdd(messageType, (receivedFrom, message) => handler(receivedFrom, (TMessage)message)))
-            {
-                _logger.LogError("Duplicate message handler detected. MessageType={MessageType}", messageType);
-            }
-
+            _messageConsumer.On<TMessage>(handler, MessageHandlerPriority.Default);
             return this;
         }
 
@@ -110,13 +92,12 @@ namespace WOTRMultiplayer.Networking
         {
             _logger.LogInformation("Resetting. IsActive={IsActive}", IsActive);
             IsConnecting = false;
-            _handlers.Clear();
             _client?.Dispose();
+            _messageConsumer.Reset();
         }
 
         private void OnPackedReceived(IClient client, object message)
         {
-            var messageType = message.GetType();
             if (message is IAwaitableResponse awaitableMessage)
             {
                 var awaiterKey = awaitableMessage.GetKey();
@@ -131,21 +112,23 @@ namespace WOTRMultiplayer.Networking
                 return;
             }
 
-            if (!_handlers.TryGetValue(messageType, out var handler))
-            {
-                _logger.LogWarning("Handler is not configured. Type={Type}", messageType);
-                return;
-            }
+            _logger.LogObject(LogLevel.Information, "Received {MessageType}.", message);
+            _messageConsumer.Enqueue(new NetworkMessageMetadata(NetworkingConsts.HostPlayerId, message));
+        }
 
-            try
-            {
-                _logger.LogObject(LogLevel.Information, "Received {MessageType}.", message);
-                handler(NetworkingConsts.HostPlayerId, message);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unable to handle message. MessageType={MessageType}", messageType.Name);
-            }
+        private void OnClientConnected(IClient client)
+        {
+            IsConnecting = false;
+
+            var endpoint = client.Socket.RemoteEndPoint;
+            OnConnected?.Invoke(endpoint);
+        }
+
+        private void OnClientError(IClient client, ClientErrorArgs args)
+        {
+            IsConnecting = false;
+
+            OnError?.Invoke(args.Error);
         }
     }
 }

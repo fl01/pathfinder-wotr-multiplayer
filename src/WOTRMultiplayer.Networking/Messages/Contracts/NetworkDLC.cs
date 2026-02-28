@@ -13,5 +13,10 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
 
         [ProtoMember(3)]
         public bool IsAvailable { get; set; }
+
+        public override string ToString()
+        {
+            return Id;
+        }
     }
 }

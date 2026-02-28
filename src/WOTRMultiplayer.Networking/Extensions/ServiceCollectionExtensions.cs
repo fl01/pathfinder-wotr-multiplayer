@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using WOTRMultiplayer.Networking.Abstractions;
+using WOTRMultiplayer.Networking.Consuming;
 
 namespace WOTRMultiplayer.Networking.Extensions
 {
@@ -10,8 +11,9 @@ namespace WOTRMultiplayer.Networking.Extensions
             serviceCollection.AddSingleton<IIPEndPointParser, IPEndPointParser>();
             serviceCollection.AddSingleton<ITcpClientFactory, TcpClientFactory>();
 
-            serviceCollection.AddScoped<INetworkServer, NetworkServer>();
-            serviceCollection.AddScoped<INetworkClient, NetworkClient>();
+            serviceCollection.AddSingleton<INetworkServer, NetworkServer>();
+            serviceCollection.AddSingleton<INetworkClient, NetworkClient>();
+            serviceCollection.AddTransient<IMessageConsumer, MessageConsumer>();
             return serviceCollection;
         }
     }

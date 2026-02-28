@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Logging.Extensions;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Awaiters;
+using WOTRMultiplayer.Networking.Consuming;
 using WOTRMultiplayer.Networking.Messages;
 
 namespace WOTRMultiplayer.Networking
@@ -17,10 +18,10 @@ namespace WOTRMultiplayer.Networking
     public class NetworkServer : INetworkServer
     {
         private TimeSpan _defaultAwaiterTimeout;
-
         private ServerBuilder<NetworkServerApp, NetworkConnectionToken, ProtobufPacket> _server;
-        private ServerBuilder<NetworkServerApp, NetworkConnectionToken, ProtobufPacket> Server => _server ??= new ServerBuilder<NetworkServerApp, NetworkConnectionToken, ProtobufPacket>();
+
         private readonly ILogger<NetworkServer> _logger;
+        private readonly IMessageConsumer _messageConsumer;
         private readonly ConcurrentDictionary<long, ConcurrentDictionary<string, TaskCompletionSource<IAwaitableResponse>>> _awaiters = new();
 
         public Action<long> OnClientConnected { get; set; }
@@ -29,18 +30,20 @@ namespace WOTRMultiplayer.Networking
 
         public Action<EndPoint> OnServerStarted { get; set; }
 
-        public bool IsActive => Server.AppServer?.Status == ServerStatus.Start;
+        public bool IsActive => _server?.AppServer?.Status == ServerStatus.Start;
 
-        public NetworkServer(ILogger<NetworkServer> logger)
+        public NetworkServer(
+            ILogger<NetworkServer> logger,
+            IMessageConsumer messageConsumer)
         {
             _logger = logger;
+            _messageConsumer = messageConsumer;
         }
 
-        public INetworkReceiver On<TMessage>(Action<long, TMessage> messageHandler)
+        public INetworkReceiver On<TMessage>(Action<long, TMessage> messageHandler, MessageHandlerPriority priority = MessageHandlerPriority.Default)
             where TMessage : class
         {
-            _logger.LogDebug("Adding message handler. Type={Type}", typeof(TMessage).Name);
-            Server.OnMessageReceive<TMessage>(args => OnHandleMessage(args, messageHandler));
+            _messageConsumer.On<TMessage>(messageHandler, priority);
             return this;
         }
 
@@ -48,32 +51,34 @@ namespace WOTRMultiplayer.Networking
         {
             _defaultAwaiterTimeout = awaiterTimeout;
 
-            Server.ServerOptions.DefaultListen.StartRegionPort = hostPortRangeStart;
-            Server.ServerOptions.DefaultListen.EndRegionPort = hostPortRangeEnd;
-            //Server.ServerOptions.BufferPoolSize = 400;
-            //Server.ServerOptions.BufferPoolMaxMemory = 400;
-            //Server.ServerOptions.BufferSize = 1024 * 64;
-            //Server.ServerOptions.BufferPoolGroups = 24;
-            Server.OnMessageReceive(OnMissingMessageHandler);
-            Server.OnOpened(OnOpened);
-            Server.OnError(OnServerError);
-            Server.OnLog(OnServerLog)
+            if (_server != null)
+            {
+                Reset();
+            }
+
+            _server = new ServerBuilder<NetworkServerApp, NetworkConnectionToken, ProtobufPacket>();
+            _server.ServerOptions.DefaultListen.StartRegionPort = hostPortRangeStart;
+            _server.ServerOptions.DefaultListen.EndRegionPort = hostPortRangeEnd;
+            _server.OnMessageReceive(OnMessageReceived);
+            _server.OnOpened(OnOpened);
+            _server.OnError(OnServerError);
+            _server.OnLog(OnServerLog)
                 .OnConnected(OnConnected)
                 .OnDisconnect(OnDisconnected);
 
-            Server.Run();
+            _server.Run();
         }
 
         public void Send(long clientId, object message)
         {
-            var session = Server.AppServer.GetSession(clientId);
+            var session = _server.AppServer.GetSession(clientId);
             if (session == null)
             {
                 _logger.LogWarning("Client doesn't exist. ClientId={ClientId}", clientId);
                 return;
             }
 
-            Server.AppServer.Send(message, session);
+            _server.AppServer.Send(message, session);
         }
 
         public async Task<T> SendAndWaitForAsync<T>(long clientId, IAwaitableRequest message)
@@ -99,46 +104,28 @@ namespace WOTRMultiplayer.Networking
             return result;
         }
 
-        private void AddAwaiter(long clientId, string awaiterKey, TaskCompletionSource<IAwaitableResponse> task)
-        {
-            _awaiters.AddOrUpdate(clientId, key =>
-            {
-                var kv = new KeyValuePair<string, TaskCompletionSource<IAwaitableResponse>>(awaiterKey, task);
-                return new ConcurrentDictionary<string, TaskCompletionSource<IAwaitableResponse>>([kv], StringComparer.OrdinalIgnoreCase);
-            },
-            (key, existing) =>
-            {
-                existing.TryAdd(awaiterKey, task);
-                return existing;
-            });
-        }
-
-        private void RemoveAwaiter(long clientId, string awaiterKey)
-        {
-            if (_awaiters.TryGetValue(clientId, out var clientAwaiters))
-            {
-                clientAwaiters.TryRemove(awaiterKey, out _);
-            }
-        }
-
         public void SendAll(object message)
         {
-            var sessions = Server.AppServer.GetOnlines();
-            Server.AppServer.Send(message, sessions);
+            var sessions = _server.AppServer.GetOnlines();
+            _server.AppServer.Send(message, sessions);
         }
 
         public void SendAllExcept(long clientId, object message)
         {
-            var sessions = Server.AppServer.GetOnlines().Where(s => s.ID != clientId).ToArray();
-            Server.AppServer.Send(message, sessions);
+            var sessions = _server.AppServer.GetOnlines().Where(s => s.ID != clientId).ToArray();
+            _server.AppServer.Send(message, sessions);
         }
 
-        private void OnMissingMessageHandler(EventMessageReceiveArgs<NetworkServerApp, NetworkConnectionToken, object> args)
+        public void Reset()
         {
-            _logger.LogError("Missing message handler. PlayerId={PlayerId}, MessageType={MessageType}", args.Session.Id, args.Message.GetType().Name);
+            var sessions = _server?.AppServer?.GetOnlines() ?? [];
+            _logger.LogInformation("Reset. IsActive={IsActive}, Sessions={Sessions}", IsActive, sessions.Length);
+            _server?.Dispose();
+            _server = null;
+            _messageConsumer.Reset();
         }
 
-        private void OnHandleMessage<TMessage>(EventMessageReceiveArgs<NetworkServerApp, NetworkConnectionToken, TMessage> args, Action<long, TMessage> handler)
+        private void OnMessageReceived(EventMessageReceiveArgs<NetworkServerApp, NetworkConnectionToken, object> args)
         {
             var clientId = args.NetSession.ID;
             if (args.Message is IAwaitableResponse awaitable)
@@ -155,22 +142,8 @@ namespace WOTRMultiplayer.Networking
                 return;
             }
 
-            if (handler == null)
-            {
-                _logger.LogWarning("Skipping null handler. MessageType={MessageType}", typeof(TMessage).Name);
-                return;
-            }
-
-            try
-            {
-                _logger.LogObject(LogLevel.Information, "Received {MessageType}. ReceivedFrom={ReceivedFrom}", args.Message, args.Session.Id);
-                handler(args.NetSession.ID, args.Message);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unable to handle message. MessageType={MessageType}", typeof(TMessage).Name);
-                throw;
-            }
+            _logger.LogObject(LogLevel.Information, "Received {MessageType}. ReceivedFrom={ReceivedFrom}", args.Message, args.Session.Id);
+            _messageConsumer.Enqueue(new NetworkMessageMetadata(args.NetSession.ID, args.Message));
         }
 
         private void OnOpened(IServer server)
@@ -241,11 +214,26 @@ namespace WOTRMultiplayer.Networking
             }
         }
 
-        public void Reset()
+        private void AddAwaiter(long clientId, string awaiterKey, TaskCompletionSource<IAwaitableResponse> task)
         {
-            _logger.LogInformation("Reset. IsActive={IsActive}, ClientsCount={ClientsCount}", IsActive, _server?.AppServer?.GetOnlines()?.Length ?? 0);
-            _server?.Dispose();
-            _server = null;
+            _awaiters.AddOrUpdate(clientId, key =>
+            {
+                var kv = new KeyValuePair<string, TaskCompletionSource<IAwaitableResponse>>(awaiterKey, task);
+                return new ConcurrentDictionary<string, TaskCompletionSource<IAwaitableResponse>>([kv], StringComparer.OrdinalIgnoreCase);
+            },
+            (key, existing) =>
+            {
+                existing.TryAdd(awaiterKey, task);
+                return existing;
+            });
+        }
+
+        private void RemoveAwaiter(long clientId, string awaiterKey)
+        {
+            if (_awaiters.TryGetValue(clientId, out var clientAwaiters))
+            {
+                clientAwaiters.TryRemove(awaiterKey, out _);
+            }
         }
     }
 }

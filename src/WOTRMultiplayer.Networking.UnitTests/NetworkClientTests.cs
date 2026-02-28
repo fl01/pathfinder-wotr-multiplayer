@@ -5,6 +5,7 @@ using FakeItEasy;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using WOTRMultiplayer.Networking.Abstractions;
+using WOTRMultiplayer.Networking.Consuming;
 
 namespace WOTRMultiplayer.Networking.UnitTests
 {
@@ -15,16 +16,17 @@ namespace WOTRMultiplayer.Networking.UnitTests
 
         private ILogger<NetworkClient> _logger;
         private ITcpClientFactory _tcpClientFactory;
+        private IMessageConsumer _messageConsumer;
 
         [SetUp]
         public void SetUp()
         {
             _logger = A.Fake<ILogger<NetworkClient>>();
             _tcpClientFactory = A.Fake<ITcpClientFactory>();
+            _messageConsumer = A.Fake<IMessageConsumer>();
 
-            _client = new NetworkClient(_logger, _tcpClientFactory);
+            _client = new NetworkClient(_logger, _tcpClientFactory, _messageConsumer);
         }
-
 
         [Test]
         public async Task ConnectAsync_ValidHostAndPort_CallsFactory()
@@ -128,14 +130,12 @@ namespace WOTRMultiplayer.Networking.UnitTests
             var fakeClient = A.Fake<IClient>();
             fakeClient.Token = new NetworkConnectionToken { Id = 1234 };
             var message = new object();
-            var isHandlerCalled = false;
-            _client.On<object>((_, _) => isHandlerCalled = true);
 
             // Act
             fakeTcpClient.PacketReceive.Invoke(fakeClient, message);
 
             // Assert
-            Assert.That(isHandlerCalled, Is.True);
+            A.CallTo(() => _messageConsumer.Enqueue(A<NetworkMessageMetadata>.That.Matches(x => x.Message == message))).MustHaveHappenedOnceExactly();
         }
     }
 }

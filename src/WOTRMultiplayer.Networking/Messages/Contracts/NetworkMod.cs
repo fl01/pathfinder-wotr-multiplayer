@@ -21,5 +21,10 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         [ProtoMember(4)]
         [LogMe]
         public string Type { get; set; }
+
+        public override string ToString()
+        {
+            return Id;
+        }
     }
 }

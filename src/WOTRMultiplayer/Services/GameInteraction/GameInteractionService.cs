@@ -2414,11 +2414,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
                         return;
                     }
 
-                    if (!trapData.TrapActive)
-                    {
-                        return;
-                    }
-
                     var triggeredUnit = _gameStateLookupService.GetUnitEntity(unitId);
                     if (triggeredUnit == null)
                     {
@@ -2426,10 +2421,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                         return;
                     }
 
-                    EventBus.RaiseEvent<ITrapActivationHandler>(x => x.HandleTrapActivation(triggeredUnit, trapData.View));
-                    trapData.RunTrapActions();
-                    trapData.Deactivate(false);
-                    trapData.View.PostSoundEvent(trapData.Settings.TriggerSound);
+                    trapData.TryTriggerTrap(triggeredUnit);
                     _logger.LogInformation("Trap has been activated. TrapId={TrapId}, UnitId={UnitId}", trapData.UniqueId, unitId);
                 }
                 catch (Exception ex)
@@ -3055,6 +3047,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
             var item = source.Items.FirstOrDefault(i => IsSameItem(i, networkItem));
             return (item, vendorAction);
+        }
+
+        private void ActivateTrap(TrapObjectData trapObjectData, UnitEntityData triggeredUnit)
+        {
+            EventBus.RaiseEvent<ITrapActivationHandler>(x => x.HandleTrapActivation(triggeredUnit, trapObjectData.View));
+            trapObjectData.RunTrapActions();
+            trapObjectData.Deactivate(false);
         }
 
         private CraftItemInfo GetCampingCraftItemInfo(UnitEntityData crafter, UsableItemType itemType, string itemBlueprintId)

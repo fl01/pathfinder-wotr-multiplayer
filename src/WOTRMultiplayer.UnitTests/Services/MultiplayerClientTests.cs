@@ -133,7 +133,7 @@ namespace WOTRMultiplayer.UnitTests.Services
 
             // Assert
             Assert.That(result.IsOk, Is.True);
-            A.CallTo(() => _networkClient.On(A<Action<long, DiceRollValueRequest>>.Ignored)).MustHaveHappenedOnceExactly();
+            A.CallTo(() => _networkClient.On(A<Action<long, DiceRollValueRequest>>.Ignored, Networking.Consuming.MessageHandlerPriority.Default)).MustHaveHappenedOnceExactly();
             A.CallTo(() => _networkClient.ConnectAsync(parsedHost, parsedPort, A<TimeSpan>.Ignored)).MustHaveHappenedOnceExactly();
         }
 
