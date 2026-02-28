@@ -145,7 +145,6 @@ namespace WOTRMultiplayer.Networking
                 return;
             }
 
-            _logger.LogObject(LogLevel.Information, "Received {MessageType}. ReceivedFrom={ReceivedFrom}", args.Message, args.Session.Id);
             _messageConsumer.Enqueue(new NetworkMessageMetadata(args.NetSession.ID, args.Message));
         }
 

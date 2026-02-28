@@ -112,7 +112,6 @@ namespace WOTRMultiplayer.Networking
                 return;
             }
 
-            _logger.LogObject(LogLevel.Information, "Received {MessageType}.", message);
             _messageConsumer.Enqueue(new NetworkMessageMetadata(NetworkingConsts.HostPlayerId, message));
         }
 

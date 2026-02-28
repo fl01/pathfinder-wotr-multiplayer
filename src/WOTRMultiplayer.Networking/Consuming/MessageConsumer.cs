@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Logging.Extensions;
 using WOTRMultiplayer.Networking.Abstractions;
 
 namespace WOTRMultiplayer.Networking.Consuming
@@ -28,6 +29,7 @@ namespace WOTRMultiplayer.Networking.Consuming
         {
             _cancellation?.Dispose();
             _isRunning = false;
+            _logger.LogInformation("Consumer has been stopped");
         }
 
         public void On<TMessage>(Action<long, TMessage> messageHandler, MessageHandlerPriority priority)
@@ -65,7 +67,7 @@ namespace WOTRMultiplayer.Networking.Consuming
                         _isRunning = true;
                         _cancellation?.Dispose();
                         _cancellation = new CancellationTokenSource();
-                        Task.Factory.StartNew(_ => Consume(), TaskCreationOptions.LongRunning, _cancellation.Token);
+                        Task.Run(Consume, _cancellation.Token);
                     }
                 }
             }
@@ -75,32 +77,42 @@ namespace WOTRMultiplayer.Networking.Consuming
         {
             _logger.LogInformation("Message consumer has been started");
 
-            foreach (var metadata in _messages.GetConsumingEnumerable(_cancellation.Token))
+            try
             {
-                if (_cancellation.Token.IsCancellationRequested)
+                foreach (var metadata in _messages.GetConsumingEnumerable(_cancellation.Token))
                 {
-                    continue;
-                }
-
-                var messageType = metadata.Message.GetType();
-                if (!_consumers.TryGetValue(messageType, out var configuredHandlers))
-                {
-                    _logger.LogError("There are no configured message handlers. Type={Type}", messageType);
-                    continue;
-                }
-
-                var handlers = configuredHandlers.ToList();
-                foreach (var handler in handlers)
-                {
-                    try
+                    if (_cancellation.Token.IsCancellationRequested)
                     {
-                        handler.Value.Invoke(metadata.PlayerId, metadata.Message);
+                        continue;
                     }
-                    catch (Exception ex)
+
+                    _logger.LogObject(LogLevel.Information, "Received {MessageType}. ReceivedFrom={ReceivedFrom}", metadata.Message, metadata.PlayerId);
+
+                    var messageType = metadata.Message.GetType();
+                    if (!_consumers.TryGetValue(messageType, out var configuredHandlers))
                     {
-                        _logger.LogError(ex, "Error consuming message. PlayerId={PlayerId}, Type={Type}", metadata.PlayerId, messageType);
+                        _logger.LogError("There are no configured message handlers. Type={Type}", messageType);
+                        continue;
+                    }
+
+                    var handlers = configuredHandlers.ToList();
+                    foreach (var handler in handlers)
+                    {
+                        try
+                        {
+                            handler.Value.Invoke(metadata.PlayerId, metadata.Message);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error consuming message. PlayerId={PlayerId}, Type={Type}", metadata.PlayerId, messageType);
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unhandled consumer error");
+                throw;
             }
 
             _logger.LogInformation("Message consumer has been terminated");

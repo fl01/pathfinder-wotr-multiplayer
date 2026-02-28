@@ -419,7 +419,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
         {
             try
             {
-                var identifier = $"{CommonTranspilerReplacements.GetSharedIdentifierPart()}:{blueprintItem.NameForAcronym}:{blueprintItem.ItemType}:{blueprintItem.MiscellaneousType}";
+                var identifier = $"{CommonTranspilerReplacements.GetSharedIdentifierPart()}:{blueprintItem?.name ?? "null-item"}:{blueprintItem?.ItemType}:{blueprintItem?.MiscellaneousType}";
                 var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(IdType.ItemEntity, Game.Instance.Player.GameId, identifier);
                 return id;
             }

@@ -1603,7 +1603,6 @@ namespace WOTRMultiplayer.Services
             _networkServer
                // requests - this is kinda special because requester is blocking the thread (most likely main game loop) until corresponded response is received
                .On<DiceRollValueRequest>(OnDiceRollValueRequest)
-               .On<DiceRollValueResponse>(null) // usable as awaiter only
                .On<RandomEncounterContextRequest>(OnRandomEncounterContextRequest)
 
                // pausing
