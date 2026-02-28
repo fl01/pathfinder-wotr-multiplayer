@@ -150,7 +150,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     }
 
                     _logger.LogInformation("Starting turn. UnitId={UnitId}", unitId);
-                    Game.Instance.TurnBasedCombatController?.StartTurn(currentUnit);
+                    Game.Instance.TurnBasedCombatController.StartTurn(currentUnit);
+
+                    if (currentUnit.State.IsFinallyDead || !currentUnit.IsInCombat)
+                    {
+                        Game.Instance.TurnBasedCombatController.CurrentTurn?.ForceToEnd();
+                        _logger.LogWarning("Turn has been forced to end due to invalid state of a unit. UnitId={UnitId}", unitId);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -598,14 +604,23 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                var unit = _gameStateLookupService.GetUnitEntity(unitId);
-                if (unit == null || unit.State.IsFinallyDead)
+                try
                 {
-                    return;
-                }
+                    var unit = _gameStateLookupService.GetUnitEntity(unitId);
+                    if (unit == null || unit.State.IsFinallyDead)
+                    {
+                        return;
+                    }
 
-                _playerNotificationService.ShowWarningNotification(WellKnownKeys.GameNotifications.Combat.UnitAutokilled.Key, args: [unit.CharacterName, unit.UniqueId, player.Name]);
-                GameHelper.KillUnit(unit);
+                    _playerNotificationService.ShowWarningNotification(WellKnownKeys.GameNotifications.Combat.UnitAutokilled.Key, args: [unit.CharacterName, unit.UniqueId, player.Name]);
+                    GameHelper.KillUnit(unit);
+                    _logger.LogInformation("Unit has been auto-killed. FromPlayerId={FromPlayerId}, UnitId={UnitId}", player.Id, unitId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error while killing unit. FromPlayerId={FromPlayerId}, UnitId={UnitId}", player?.Id, unitId);
+                    throw;
+                }
             });
         }
 
