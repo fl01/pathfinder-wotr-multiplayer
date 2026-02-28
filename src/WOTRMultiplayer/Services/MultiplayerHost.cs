@@ -377,7 +377,7 @@ namespace WOTRMultiplayer.Services
                         };
                         Send(preparationRequiredMessage);
                         Game.Combat.IsPreparationStarted = true;
-                        Task.Factory.StartNew(() =>
+                        Task.Run(() =>
                             FixCombatUnitDiscrepancyAsync(discrepantUnits)
                             .ContinueWith(_ => Game.Combat.IsPrepared = true));
                     }
