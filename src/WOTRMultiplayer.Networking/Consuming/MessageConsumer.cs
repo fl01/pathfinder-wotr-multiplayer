@@ -27,9 +27,9 @@ namespace WOTRMultiplayer.Networking.Consuming
 
         public void Reset()
         {
+            _cancellation?.Cancel();
             _cancellation?.Dispose();
             _isRunning = false;
-            _logger.LogInformation("Consumer has been stopped");
         }
 
         public void On<TMessage>(Action<long, TMessage> messageHandler, MessageHandlerPriority messageHandlerPriority)
@@ -83,7 +83,7 @@ namespace WOTRMultiplayer.Networking.Consuming
                         continue;
                     }
 
-                    _logger.LogObject(LogLevel.Information, "Received {MessageType}. ReceivedFrom={ReceivedFrom}, Consumers={Consumers},", metadata.Message, metadata.PlayerId, configuredHandlers.Count);
+                    _logger.LogObject(LogLevel.Information, "Received {MessageType}. ReceivedFrom={ReceivedFrom}, Consumers={Consumers}", metadata.Message, metadata.PlayerId, configuredHandlers.Count);
 
                     var handlers = configuredHandlers.ToList();
                     foreach (var handler in handlers)
@@ -99,13 +99,16 @@ namespace WOTRMultiplayer.Networking.Consuming
                     }
                 }
             }
+            catch (OperationCanceledException)
+            {
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unhandled consumer error");
                 throw;
             }
 
-            _logger.LogInformation("Message consumer has been terminated");
+            _logger.LogWarning("Message consumer has been terminated");
         }
     }
 }
