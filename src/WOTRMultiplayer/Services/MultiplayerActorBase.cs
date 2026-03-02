@@ -843,6 +843,19 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
+        public void OnSwapMemorizedSlots(string unitId, string spellbookId, int spellLevel, NetworkSpellSlot spellSlotA, NetworkSpellSlot spellSlotB)
+        {
+            var message = new NotifySpellSlotsSwapped
+            {
+                UnitId = unitId,
+                SpellbookId = spellbookId,
+                SpellLevel = spellLevel,
+                SlotA = Mapper.Map<Networking.Messages.Contracts.NetworkSpellSlot>(spellSlotA),
+                SlotB = Mapper.Map<Networking.Messages.Contracts.NetworkSpellSlot>(spellSlotB),
+            };
+            Send(message);
+        }
+
         public void OnRemoveCustomSpell(string unitId, NetworkAbility ability)
         {
             if (!IsControlledByLocalPlayer(unitId))
@@ -3377,6 +3390,7 @@ namespace WOTRMultiplayer.Services
                 // spellbook management
                 .On<NotifySpellMemorized>(OnNotifySpellMemorized)
                 .On<NotifySpellForgotten>(OnNotifySpellForgotten)
+                .On<NotifySpellSlotsSwapped>(OnNotifySpellSlotsSwapped)
                 .On<NotifyMetamagicSpellCreated>(OnNotifyMetamagicSpellCreated)
                 .On<NotifyCustomSpellRemoved>(OnNotifyCustomSpellRemoved)
 
@@ -3479,6 +3493,13 @@ namespace WOTRMultiplayer.Services
                 .On<NotifyTrapActivated>(OnNotifyTrapActivated)
                 .On<NotifyMapObjectCombinePartInteracted>(OnNotifyMapObjectCombinePartInteracted)
                 ;
+        }
+
+        private void OnNotifySpellSlotsSwapped(long receivedFrom, NotifySpellSlotsSwapped message)
+        {
+            var slotA = Mapper.Map<NetworkSpellSlot>(message.SlotA);
+            var slotB = Mapper.Map<NetworkSpellSlot>(message.SlotB);
+            GameInteraction.SwapSpellSlots(message.UnitId, message.SpellbookId, message.SpellLevel, slotA, slotB);
         }
 
         private void OnNotifyMapObjectCombinePartInteracted(long receivedFrom, NotifyMapObjectCombinePartInteracted message)

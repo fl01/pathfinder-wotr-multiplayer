@@ -1701,6 +1701,32 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
+        public void SwapSpellSlots(string unitId, string spellbookId, int spellLevel, NetworkSpellSlot slotA, NetworkSpellSlot slotB)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var unit = _gameStateLookupService.GetUnitEntity(unitId);
+                if (unit == null)
+                {
+                    _logger.LogError("Unable to find unit to swap spellslots. UnitId={UnitId}", unitId);
+                    return;
+                }
+
+                var spellbook = _gameStateLookupService.GetSpellbook(unit, spellbookId);
+                if (spellbook == null)
+                {
+                    _logger.LogError("Unable to find spellbook to swap spellslots. UnitId={UnitId}, SpellbookId={SpellbookId}", unitId, spellbookId);
+                    return;
+                }
+
+                var spellSlotA = _gameStateLookupService.GetSpellSlot(spellbook, slotA, spellLevel);
+                var spellSlotB = _gameStateLookupService.GetSpellSlot(spellbook, slotB, spellLevel);
+                spellbook.SwapSlots(spellSlotA, spellSlotB);
+
+                RefreshSpellbookUI();
+            });
+        }
+
         public void RemoveCustomSpell(string unitId, NetworkAbility ability)
         {
             _mainThreadAccessor.Post(() =>

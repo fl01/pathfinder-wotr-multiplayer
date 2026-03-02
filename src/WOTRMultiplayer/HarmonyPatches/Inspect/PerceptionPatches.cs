@@ -66,7 +66,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Inspect
             var check = new NetworkPerceptionCheck
             {
                 UnitId = character.UniqueId,
-                Roll = ruleSkillCheck.D20.m_Result,
+                Roll = ruleSkillCheck.D20.Result,
                 MapObject = Main.Mapper.Map<NetworkMapObject>(data)
             };
 

@@ -90,6 +90,23 @@ namespace WOTRMultiplayer.HarmonyPatches.SpellbookManagement
             }
         }
 
+        [HarmonyPatch(typeof(SpellbookVM), nameof(SpellbookVM.Swap))]
+        [HarmonyPrefix]
+        public static void SpellbookVM_Swap_Prefix(SpellbookVM __instance, SpellSlot slot1, SpellSlot slot2)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            var spellSlotA = Main.Mapper.Map<NetworkSpellSlot>(slot1);
+            var spellSlotB = Main.Mapper.Map<NetworkSpellSlot>(slot2);
+            var spellLevel = slot1.SpellLevel;
+            var spellbookId = __instance.CurrentSpellbook.Value.Blueprint.AssetGuid.ToString();
+            var unitId = __instance.UnitDescriptor.Value.Unit.UniqueId;
+            Main.Multiplayer.OnSwapMemorizedSlots(unitId, spellbookId, spellLevel, spellSlotA,  spellSlotB);
+        }
+
         [HarmonyPatch(typeof(SpellbookVM), nameof(SpellbookVM.TryForget))]
         [HarmonyPrefix]
         public static bool SpellbookVM_TryForget_Prefix(SpellbookVM __instance)

@@ -268,7 +268,8 @@
             NotifyKingdomSettlementUpgraded,
             NotifyUnitInteractedWithUnit,
             NotifyUnitLootedUnit,
-            NotifyMapObjectCombinePartInteracted
+            NotifyMapObjectCombinePartInteracted,
+            NotifySpellSlotsSwapped
         }
 
         public enum Request

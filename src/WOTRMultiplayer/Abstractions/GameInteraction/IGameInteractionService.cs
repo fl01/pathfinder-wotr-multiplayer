@@ -112,6 +112,8 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void MemorizeSpell(string unitId, NetworkSpellSlot networkSpellSlot, NetworkAbility networkAbility);
 
+        void SwapSpellSlots(string unitId, string spellbookId, int spellLevel, NetworkSpellSlot slotA, NetworkSpellSlot slotB);
+
         void MoveActionBarSlots(NetworkActionBarSlot sourceActionBarSlot, NetworkActionBarSlot targetActionBarSlot);
 
         void ClearActionBarSlot(NetworkActionBarSlot actionBarSlot);

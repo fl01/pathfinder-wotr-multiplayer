@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using JetBrains.Annotations;
 using Kingmaker.GameModes;
 using Kingmaker.Items.Slots;
 using Microsoft.Extensions.Logging;
@@ -1080,6 +1081,24 @@ namespace WOTRMultiplayer.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while memorizing spell. UnitId={UnitId}, SpellName={SpellName}", unitId, networkAbility.Name);
+                throw;
+            }
+        }
+
+        public void OnSwapMemorizedSlots(string unitId, string spellbookId, int spellLevel, NetworkSpellSlot spellSlotA, NetworkSpellSlot spellSlotB)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnSwapMemorizedSlots(unitId, spellbookId, spellLevel, spellSlotA, spellSlotB);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while swapping memorized spell slots. UnitId={UnitId}, SpellbookId={SpellbookId}", unitId, spellbookId);
                 throw;
             }
         }

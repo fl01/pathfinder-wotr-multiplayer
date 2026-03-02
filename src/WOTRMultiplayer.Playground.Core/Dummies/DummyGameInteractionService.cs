@@ -461,5 +461,9 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void InteractWithMapObjectCombinePart(NetworkMapObject mapObject, string interactedUnitId, int partIndex)
         {
         }
+
+        public void SwapSpellSlots(string unitId, string spellbookId, int spellLevel, NetworkSpellSlot slotA, NetworkSpellSlot slotB)
+        {
+        }
     }
 }

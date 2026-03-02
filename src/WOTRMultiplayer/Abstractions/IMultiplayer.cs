@@ -136,6 +136,8 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnForgetSpell(string unitId, NetworkSpellSlot networkSpellSlot, NetworkAbility networkAbility);
 
+        void OnSwapMemorizedSlots(string unitId, string spellbookId, int spellLevel, NetworkSpellSlot spellSlotA, NetworkSpellSlot spellSlotB);
+
         bool RequestLevelingUI(string unitId, NetworkLevelingType levelingType);
 
         void ForceLevelingUI(string unitId, NetworkLevelingType levelingType);

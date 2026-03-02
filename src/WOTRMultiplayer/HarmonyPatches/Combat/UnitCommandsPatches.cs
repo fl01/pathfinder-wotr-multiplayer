@@ -348,7 +348,6 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
         private static bool ShouldSkipNotification(UnitUseAbility command)
         {
-            var bombs = ContextData<FastBombs.FastBombsContext>.Current;
             if (ShouldIgnoreStickyTouchAbilityCast(command))
             {
                 Main.GetLogger<UnitCommandsPatches>().LogWarning("Skipping ability use as it's a part of sticky touch delivery usage. UnitId={UnitId}, AbilityName={AbilityName}, AbilityId={AbilityId}", command.Executor.UniqueId, command.Ability.Name, command.Ability.UniqueId);
@@ -366,7 +365,6 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 Main.GetLogger<UnitCommandsPatches>().LogWarning("Skipping ability use as it's a part of kineticist autouse. UnitId={UnitId}, AbilityName={AbilityName}, AbilityId={AbilityId}", command.Executor.UniqueId, command.Ability.Name, command.Ability.UniqueId);
                 return true;
             }
-
 
             if (IsAlchemistFastBombsSequentialCast(command))
             {
