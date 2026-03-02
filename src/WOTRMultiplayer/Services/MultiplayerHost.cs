@@ -1513,7 +1513,7 @@ namespace WOTRMultiplayer.Services
                     {
                         Round = Game.Combat.Round,
                         UnitId = Game.Combat.Turn.UnitId,
-                        Seed = Game.Combat.Turn.Seed,
+                        Seed = Game.Combat.Turn.Seed.Value,
                     };
 
                     Send(message);

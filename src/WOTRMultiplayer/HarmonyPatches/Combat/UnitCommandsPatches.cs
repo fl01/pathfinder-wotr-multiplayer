@@ -213,6 +213,10 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                         }
                         break;
                     case UnitUseAbility unitUseAbility when !Game.Instance.Player.IsInCombat:
+                        if (ShouldSkipNotification(unitUseAbility))
+                        {
+                            return;
+                        }
                         OnAbilityUse(unitUseAbility);
                         break;
                 }
@@ -321,41 +325,14 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
         [HarmonyPostfix]
         public static void UnitUseAbility_OnStart_Postfix(UnitUseAbility __instance)
         {
-            if (!Main.Multiplayer.IsActive)
+            if (!Main.Multiplayer.IsActive || (!Game.Instance.Player.IsInCombat && !TacticalCombatHelper.IsActive))
             {
                 return;
             }
 
             try
             {
-                var bombs = ContextData<FastBombs.FastBombsContext>.Current;
-                if (ShouldIgnoreStickyTouchAbilityCast(__instance))
-                {
-                    Main.GetLogger<UnitCommandsPatches>().LogWarning("Skipping ability use as it's a part of sticky touch delivery usage. UnitId={UnitId}, AbilityName={AbilityName}, AbilityId={AbilityId}", __instance.Executor.UniqueId, __instance.Ability.Name, __instance.Ability.UniqueId);
-                    return;
-                }
-
-                if (DoesRiderMakeSameAction(__instance.Executor))
-                {
-                    Main.GetLogger<UnitCommandsPatches>().LogWarning("Skipping ability use as it's a part of mounted combat unit command. UnitId={UnitId}, AbilityName={AbilityName}, AbilityId={AbilityId}", __instance.Executor.UniqueId, __instance.Ability.Name, __instance.Ability.UniqueId);
-                    return;
-                }
-
-                if (IsKineticistAutousedAbility(__instance))
-                {
-                    Main.GetLogger<UnitCommandsPatches>().LogWarning("Skipping ability use as it's a part of kineticist autouse. UnitId={UnitId}, AbilityName={AbilityName}, AbilityId={AbilityId}", __instance.Executor.UniqueId, __instance.Ability.Name, __instance.Ability.UniqueId);
-                    return;
-                }
-
-
-                if (IsAlchemistFastBombsSequentialCast(__instance))
-                {
-                    Main.GetLogger<UnitCommandsPatches>().LogWarning("Skipping ability use as it's a part of alchemist sequential fast bombs usage. UnitId={UnitId}, AbilityName={AbilityName}, AbilityId={AbilityId}", __instance.Executor.UniqueId, __instance.Ability.Name, __instance.Ability.UniqueId);
-                    return;
-                }
-
-                // Tactical combat - TotalDefense
-                if (string.Equals(__instance.Ability.Blueprint.AssetGuid.ToString(), "5fcc24b820f55104892097782b92228e", StringComparison.OrdinalIgnoreCase))
+                if (ShouldSkipNotification(__instance))
                 {
                     return;
                 }
@@ -367,6 +344,43 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 Main.GetLogger<UnitCommandsPatches>().LogError(ex, "Unable to handle unit ability use command. UnitId={UnitId}, AbilityName={AbilityName}", __instance.Executor.UniqueId, __instance.Ability.NameForAcronym);
                 throw;
             }
+        }
+
+        private static bool ShouldSkipNotification(UnitUseAbility command)
+        {
+            var bombs = ContextData<FastBombs.FastBombsContext>.Current;
+            if (ShouldIgnoreStickyTouchAbilityCast(command))
+            {
+                Main.GetLogger<UnitCommandsPatches>().LogWarning("Skipping ability use as it's a part of sticky touch delivery usage. UnitId={UnitId}, AbilityName={AbilityName}, AbilityId={AbilityId}", command.Executor.UniqueId, command.Ability.Name, command.Ability.UniqueId);
+                return true;
+            }
+
+            if (DoesRiderMakeSameAction(command.Executor))
+            {
+                Main.GetLogger<UnitCommandsPatches>().LogWarning("Skipping ability use as it's a part of mounted combat unit command. UnitId={UnitId}, AbilityName={AbilityName}, AbilityId={AbilityId}", command.Executor.UniqueId, command.Ability.Name, command.Ability.UniqueId);
+                return true;
+            }
+
+            if (IsKineticistAutousedAbility(command))
+            {
+                Main.GetLogger<UnitCommandsPatches>().LogWarning("Skipping ability use as it's a part of kineticist autouse. UnitId={UnitId}, AbilityName={AbilityName}, AbilityId={AbilityId}", command.Executor.UniqueId, command.Ability.Name, command.Ability.UniqueId);
+                return true;
+            }
+
+
+            if (IsAlchemistFastBombsSequentialCast(command))
+            {
+                Main.GetLogger<UnitCommandsPatches>().LogWarning("Skipping ability use as it's a part of alchemist sequential fast bombs usage. UnitId={UnitId}, AbilityName={AbilityName}, AbilityId={AbilityId}", command.Executor.UniqueId, command.Ability.Name, command.Ability.UniqueId);
+                return true;
+            }
+
+            // Tactical combat - TotalDefense
+            if (string.Equals(command.Ability.Blueprint.AssetGuid.ToString(), "5fcc24b820f55104892097782b92228e", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static bool IsAlchemistFastBombsSequentialCast(UnitUseAbility command)

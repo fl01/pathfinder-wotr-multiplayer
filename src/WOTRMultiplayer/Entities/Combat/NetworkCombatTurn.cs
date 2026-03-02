@@ -4,7 +4,7 @@ namespace WOTRMultiplayer.Entities.Combat
 {
     public class NetworkCombatTurn
     {
-        public int Seed { get; set; }
+        public int? Seed { get; set; }
 
         public string UnitId { get; set; }
 
