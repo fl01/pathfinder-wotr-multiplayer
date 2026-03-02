@@ -1470,7 +1470,7 @@ namespace WOTRMultiplayer.Services
                 };
 
                 _logger.LogInformation("{RuleName} has been rolled deterministicaly. Type={Type}, UnitId={UnitId}, RollId={RollId}, Result={Result}, History={History}, Lifetime={Lifetime}, Identifier={Identifier}",
-                    roll.RollType, roll.RuleName, roll.InitiatorId, outcome.RollId, outcome.Result, outcome.History, lifetime, outcome.Identifier);
+                    roll.RuleName, roll.RollType, roll.InitiatorId, outcome.RollId, outcome.Result, outcome.History, lifetime, outcome.Identifier);
 
                 return outcome;
             }
