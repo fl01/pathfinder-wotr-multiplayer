@@ -1144,7 +1144,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             SetTurnMovementLimit(networkUnitMoveTo.MovementLimit, executorUnit);
 
             var turn = Game.Instance.TurnBasedCombatController.CurrentTurn;
-            if (turn != null)
+            if (turn != null && networkUnitMoveTo.AttackMode != null)
             {
                 turn.m_AttackMode = (TurnController.AttackMode)Enum.Parse(typeof(TurnController.AttackMode), networkUnitMoveTo.AttackMode);
             }

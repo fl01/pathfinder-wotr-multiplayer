@@ -45,6 +45,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
 
             var movementLimit = Game.Instance.TurnBasedCombatController.CurrentTurn?.CurrentMovementLimit;
             var path = PathVisualizer.Instance?.m_CurrentPath?.vectorPath;
+            var attackMode = Game.Instance.TurnBasedCombatController.CurrentTurn?.m_AttackMode;
             var unitMoveTo = new NetworkUnitMoveTo
             {
                 InitiatorUnitId = unit.UniqueId,
@@ -53,6 +54,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
                 Orientation = settings.Orientation,
                 MovementLimit = movementLimit?.ToString(),
                 VectorPath = [.. path?.Select(x => x.ToNetworkVector3()) ?? []],
+                AttackMode = attackMode?.ToString()
             };
             Main.Multiplayer.OnUnitMoveTo(unitMoveTo);
         }
