@@ -693,7 +693,7 @@ namespace WOTRMultiplayer.Services
                 }
 
                 AddPlayerReadyStatus(PlayerTurnReadinessType.UnitJoinedMidCombat, Game.LocalPlayerId, unitId);
-                if (Game.Combat.UntargetableUnits.Add(unitId))
+                if (!GameInteraction.IsUnitInParty(unitId) && Game.Combat.UntargetableUnits.Add(unitId))
                 {
                     CombatInteraction.MakeUnitTargetable(unitId, isTargetable: false);
                 }
