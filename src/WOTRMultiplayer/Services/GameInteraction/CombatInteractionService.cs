@@ -151,7 +151,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     _logger.LogInformation("Starting turn. UnitId={UnitId}", unitId);
                     Game.Instance.TurnBasedCombatController.StartTurn(currentUnit);
 
-                    if (currentUnit.State.IsFinallyDead || !currentUnit.IsInCombat)
+                    if (currentUnit.State.IsFinallyDead)
                     {
                         Game.Instance.TurnBasedCombatController.CurrentTurn?.ForceToEnd();
                         _logger.LogWarning("Turn has been forced to end due to invalid state of a unit. UnitId={UnitId}", unitId);
@@ -422,7 +422,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                     if (isTargetable)
                     {
-                        unit.Descriptor.State.Features.IsUntargetable.Release();
+                        unit.Descriptor.State.Features.IsUntargetable.ReleaseAll();
                         unit.Group.IsInCombat--;
                         Game.Instance.Player.Group.IsInCombat--;
                     }
@@ -433,7 +433,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                         Game.Instance.Player.Group.IsInCombat++;
                     }
 
-                    _logger.LogInformation("Unit targetable feature has been updated. UnitId={UnitId}, IsUntargetable={IsUntargetable}", unitId, unit.Descriptor.State.Features.IsUntargetable.Value);
+                    _logger.LogInformation("Unit targetable feature has been updated. UnitId={UnitId}, RequestedTargetable={RequestedTargetable}, IsUntargetable={IsUntargetable}", unitId, isTargetable, unit.Descriptor.State.Features.IsUntargetable.Value);
                 }
                 catch (Exception ex)
                 {
@@ -464,6 +464,17 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     throw;
                 }
             });
+        }
+
+        public void ForceResetCombat()
+        {
+            Game.Instance.TurnBasedCombatController.CurrentTurn?.Dispose();
+            Game.Instance.TurnBasedCombatController.CurrentTurn = null;
+            var unitsInCombat = Game.Instance.State.Units.InCombat();
+            foreach (var unit in unitsInCombat)
+            {
+                unit.CombatState.LeaveCombat();
+            }
         }
 
         public void LootUnit(NetworkUnitLootUnit networkUnitLootUnit)

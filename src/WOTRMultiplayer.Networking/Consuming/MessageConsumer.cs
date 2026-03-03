@@ -102,6 +102,9 @@ namespace WOTRMultiplayer.Networking.Consuming
                     }
                 }
             }
+            catch (ThreadAbortException)
+            {
+            }
             catch (OperationCanceledException)
             {
             }

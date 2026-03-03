@@ -182,6 +182,7 @@ namespace WOTRMultiplayer.Services
             {
                 Game.DialogState = new NetworkDialogState(networkDialog);
                 Logger.LogInformation("Scripted dialog has been started. DialogId={DialogId}, DialogName={Name}", Game.DialogState.Dialog.Id, Game.DialogState.Dialog.Name);
+
                 return true;
             }
 

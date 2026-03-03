@@ -645,6 +645,7 @@ namespace WOTRMultiplayer.UI
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Hotkeys.Title.Key });
             yield return CreateKeyBindingSetting(WellKnownKeys.Settings.Hotkeys.Ping.Title.Key, WellKnownKeys.Settings.Hotkeys.Ping.Tooltip.Key, WellKnownSettings.Hotkeys.Ping);
             yield return CreateKeyBindingSetting(WellKnownKeys.Settings.Hotkeys.ForceUnpause.Title.Key, WellKnownKeys.Settings.Hotkeys.ForceUnpause.Tooltip.Key, WellKnownSettings.Hotkeys.ForceUnpause);
+            yield return CreateKeyBindingSetting(WellKnownKeys.Settings.Hotkeys.ForceCombatEnd.Title.Key, WellKnownKeys.Settings.Hotkeys.ForceCombatEnd.Tooltip.Key, WellKnownSettings.Hotkeys.ForceCombatEnd);
 
             // danger zone
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.DangerZone.Title.Key });

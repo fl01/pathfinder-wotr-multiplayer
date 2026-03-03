@@ -29,6 +29,7 @@ namespace WOTRMultiplayer.Services.Settings
             // hotkeys
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Hotkeys.Ping);
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Hotkeys.ForceUnpause);
+            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Hotkeys.ForceCombatEnd);
 
             // misc
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Miscellaneous.HideServerAddress);

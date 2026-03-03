@@ -47,6 +47,7 @@ namespace WOTRMultiplayer.Services.Hotkeys
 
             ConfigureHotkey(WellKnownSettings.Hotkeys.Ping, OnPingHotkey);
             ConfigureHotkey(WellKnownSettings.Hotkeys.ForceUnpause, OnForceUnpause);
+            ConfigureHotkey(WellKnownSettings.Hotkeys.ForceCombatEnd, OnForceCombatEnd);
         }
 
         public void ConfigureHotkey(WellKnownSettingKey<KeyBindingPair> hotkey, Action hotkeyHandler)
@@ -104,7 +105,14 @@ namespace WOTRMultiplayer.Services.Hotkeys
 
         private void OnForceUnpause()
         {
+            _logger.LogWarning("Forcing to unpause");
             _multiplayerActorAccessor.Current.ForceUnpause();
+        }
+
+        private void OnForceCombatEnd()
+        {
+            _logger.LogWarning("Forcing combat to end");
+            _multiplayerActorAccessor.Current.ForceCombatEnd();
         }
     }
 }

@@ -150,6 +150,10 @@
                 "forceUnpause": {
                     "title": "Force Unpause",
                     "tooltip": "Completly removes local pause. Use this in case of any bugs with synced pause"
+                },
+                "forceCombatEnd": {
+                    "title": "Force Combat End",
+                    "tooltip": "Immediately and forcefully exit the current combat state. Use this if combat becomes stuck, desynchronized, or does not end correctly"
                 }
             },
             "dangerZone": {

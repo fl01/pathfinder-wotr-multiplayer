@@ -203,7 +203,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void ReadItem(NetworkItem networkItem);
 
-        bool IsDeadOrAlly(string unitId);
+        bool IsDeadOrFriendly(string unitId);
 
         void UpdateTransitionMapUIState(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
 

@@ -85,6 +85,9 @@ namespace WOTRMultiplayer.Services.Settings
 
             [Description("force-unpause")]
             public static WellKnownSettingKey<KeyBindingPair> ForceUnpause { get; } = new(new KeyBindingPair { GameModesGroup = Kingmaker.UI.KeyboardAccess.GameModesGroup.All, Binding1 = new KeyBindingData { IsCtrlDown = true, IsShiftDown = true, Key = UnityEngine.KeyCode.F12 } });
+
+            [Description("force-combat-end")]
+            public static WellKnownSettingKey<KeyBindingPair> ForceCombatEnd { get; } = new(new KeyBindingPair { GameModesGroup = Kingmaker.UI.KeyboardAccess.GameModesGroup.All, Binding1 = new KeyBindingData { IsCtrlDown = true, IsShiftDown = true, Key = UnityEngine.KeyCode.F9 } });
         }
 
         [Description("danger-zone")]

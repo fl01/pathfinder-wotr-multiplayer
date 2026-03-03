@@ -386,5 +386,7 @@ namespace WOTRMultiplayer.Abstractions
         void OnUnitLootUnit(NetworkUnitLootUnit networkUnitLootUnit);
 
         void OnMapObjectCombinePartInteraction(NetworkMapObject mapObject, string interactedUnitId, int partIndex);
+
+        void ForceCombatEnd();
     }
 }

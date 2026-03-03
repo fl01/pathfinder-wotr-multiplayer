@@ -540,6 +540,13 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
+        public void ForceCombatEnd()
+        {
+            ResetUntargetableState();
+            // hotkeys are in mainthread
+            CombatInteraction.ForceResetCombat();
+        }
+
         public void CombatEnded()
         {
             try
@@ -551,6 +558,8 @@ namespace WOTRMultiplayer.Services
                 }
 
                 SaveLastCombatTurn();
+
+                ResetUntargetableState();
 
                 Game.Combat = null;
                 ValueGenerator.ResetSeededGenerators(IdentifierLifetime.Combat, IdentifierLifetime.CombatTurn);
@@ -670,10 +679,7 @@ namespace WOTRMultiplayer.Services
 
                 if (Game.Combat.ConfirmedMidCombatUnits.Contains(unitId))
                 {
-                    if (Game.Combat.UntargetableUnits.Remove(unitId))
-                    {
-                        CombatInteraction.MakeUnitTargetable(unitId, isTargetable: true);
-                    }
+                    CombatInteraction.MakeUnitTargetable(unitId, isTargetable: true);
 
                     Logger.LogWarning("Unit has been allowed to join mid combat. UnitId={UnitId}", unitId);
                     return true;
@@ -1821,7 +1827,7 @@ namespace WOTRMultiplayer.Services
         {
             var canLeave = Game.Combat == null
                 || Game.Combat.UntargetableUnits.Count == 0
-                || Game.Combat.UntargetableUnits.All(GameInteraction.IsDeadOrAlly);
+                || Game.Combat.UntargetableUnits.All(GameInteraction.IsDeadOrFriendly);
 
             if (canLeave)
             {
@@ -4664,6 +4670,14 @@ namespace WOTRMultiplayer.Services
             if (Game.Combat?.Turn != null)
             {
                 Game.LastCombatTurn = Game.Combat.Turn;
+            }
+        }
+
+        private void ResetUntargetableState()
+        {
+            foreach (var unit in Game.Combat?.UntargetableUnits ?? [])
+            {
+                CombatInteraction.MakeUnitTargetable(unit, true);
             }
         }
     }
