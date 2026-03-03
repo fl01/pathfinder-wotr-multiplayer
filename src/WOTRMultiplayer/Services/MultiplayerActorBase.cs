@@ -664,7 +664,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (Game.Combat == null || Game.Combat.Stage == NetworkCombatStage.Preparing)
+                if (Game.Combat == null || Game.Combat.Stage == NetworkCombatStage.Preparing || GameInteraction.IsUnitInParty(unitId))
                 {
                     Logger.LogInformation("Unit is allowed to join combat at current stage. UnitId={UnitId}, Stage={Stage}", unitId, Game.Combat?.Stage);
                     return true;
@@ -693,7 +693,7 @@ namespace WOTRMultiplayer.Services
                 }
 
                 AddPlayerReadyStatus(PlayerTurnReadinessType.UnitJoinedMidCombat, Game.LocalPlayerId, unitId);
-                if (!GameInteraction.IsUnitInParty(unitId) && Game.Combat.UntargetableUnits.Add(unitId))
+                if (Game.Combat.UntargetableUnits.Add(unitId))
                 {
                     CombatInteraction.MakeUnitTargetable(unitId, isTargetable: false);
                 }
