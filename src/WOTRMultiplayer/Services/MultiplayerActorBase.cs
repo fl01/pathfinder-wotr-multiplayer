@@ -4679,6 +4679,8 @@ namespace WOTRMultiplayer.Services
             {
                 CombatInteraction.MakeUnitTargetable(unit, true);
             }
+
+            Game.Combat?.UntargetableUnits.Clear();
         }
     }
 }
