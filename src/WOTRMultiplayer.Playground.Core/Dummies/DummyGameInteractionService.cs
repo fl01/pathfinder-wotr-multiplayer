@@ -453,7 +453,7 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public bool IsDeadOrFriendly(string unitId)
+        public bool IsNotPartOfCombatAnymore(string unitId)
         {
             return false;
         }

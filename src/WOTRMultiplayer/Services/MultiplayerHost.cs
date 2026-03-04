@@ -1749,7 +1749,7 @@ namespace WOTRMultiplayer.Services
             Game.Combat.PlayersCombatPreparation.Clear();
             Game.Combat.PlayersCombatInitialization.Clear();
             Game.Combat.StartedAt = DateTime.UtcNow;
-            PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.StartupDesync.Host.Key, CombatTextSeverity.Critical, initiator.Name);
+            PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Start.Desynced.Host.Key, CombatTextSeverity.Critical, initiator.Name);
             SetCombatStage(NetworkCombatStage.Idle);
 
             var recoveryMessage = new NotifyCombatRecoveryRequired();

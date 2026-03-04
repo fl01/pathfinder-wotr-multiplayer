@@ -414,26 +414,29 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 try
                 {
                     var unit = _gameStateLookupService.GetUnitEntity(unitId);
-                    if (unit == null)
-                    {
-                        _logger.LogWarning("Unable to change unit targetable feature due to missing unit. UnitId={UnitId}", unitId);
-                        return;
-                    }
 
                     if (isTargetable)
                     {
-                        unit.Descriptor.State.Features.IsUntargetable.ReleaseAll();
-                        unit.Group.IsInCombat--;
                         Game.Instance.Player.Group.IsInCombat--;
+
+                        if (unit != null)
+                        {
+                            unit.Descriptor.State.Features.IsUntargetable.ReleaseAll();
+                            unit.Group.IsInCombat--;
+                        }
                     }
                     else
                     {
-                        unit.Descriptor.State.Features.IsUntargetable.Retain();
-                        unit.Group.IsInCombat++;
                         Game.Instance.Player.Group.IsInCombat++;
+
+                        if (unit != null)
+                        {
+                            unit.Descriptor.State.Features.IsUntargetable.Retain();
+                            unit.Group.IsInCombat++;
+                        }
                     }
 
-                    _logger.LogInformation("Unit targetable feature has been updated. UnitId={UnitId}, RequestedTargetable={RequestedTargetable}, IsUntargetable={IsUntargetable}", unitId, isTargetable, unit.Descriptor.State.Features.IsUntargetable.Value);
+                    _logger.LogInformation("Unit targetable feature has been updated. UnitId={UnitId}, RequestedTargetable={RequestedTargetable}, IsUntargetable={IsUntargetable}", unitId, isTargetable, unit?.Descriptor.State.Features.IsUntargetable.Value);
                 }
                 catch (Exception ex)
                 {
@@ -475,6 +478,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 unit.CombatState.LeaveCombat();
             }
+
+            Game.Instance.Player.Group.IsInCombat.Reset();
         }
 
         public void LootUnit(NetworkUnitLootUnit networkUnitLootUnit)

@@ -1729,12 +1729,22 @@ namespace WOTRMultiplayer.Services
                 return;
             }
 
+            if (Game.Combat.UntargetableUnits.Remove(unitId))
+            {
+                CombatInteraction.MakeUnitTargetable(unitId, true);
+            }
+
             var message = new NotifyCombatUnitKilled
             {
                 PlayerId = Game.LocalPlayerId,
                 UnitId = unitId
             };
-            Send(message);
+
+            Task.Run(async () =>
+            {
+                await WaitWhileTrue(CombatInteraction.IsRiderActive, "Waiting for rider to finish commands before sending unit killed notification");
+                Send(message);
+            });
         }
 
         public void OnTrapDisarmRolled(NetworkTrapDisarm trapDisarm)
@@ -1825,13 +1835,20 @@ namespace WOTRMultiplayer.Services
 
         public bool CanLeaveCombat()
         {
+            Logger.LogInformation("Checking if combat is allowed to end. UntargetableUnits={UntargetableUnits}", Game.Combat?.UntargetableUnits);
+
             var canLeave = Game.Combat == null
                 || Game.Combat.UntargetableUnits.Count == 0
-                || Game.Combat.UntargetableUnits.All(GameInteraction.IsDeadOrFriendly);
+                || Game.Combat.UntargetableUnits.All(GameInteraction.IsNotPartOfCombatAnymore);
 
             if (canLeave)
             {
-                Game.Combat?.UntargetableUnits.Clear();
+                ResetUntargetableState();
+            }
+            else
+            {
+                Logger.LogWarning("Unable to leave combat. UntargetableUnits={UntargetableUnits}", Game.Combat?.UntargetableUnits);
+                PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.End.UntargetableDesync.Key, CombatTextSeverity.Common, string.Join(", ", Game.Combat?.UntargetableUnits ?? []));
             }
 
             return canLeave;
@@ -3766,14 +3783,9 @@ namespace WOTRMultiplayer.Services
                 }
 
                 await WaitWhileTrue(CombatInteraction.IsRiderActive, "Waiting for active commands to finish before checking if unit should be killed");
+                await Task.Delay(TimeSpan.FromSeconds(0.4f));
 
                 var player = GetPlayer(combatUnitKilled.PlayerId);
-                if (player == null)
-                {
-                    Logger.LogWarning("Received unit killed event from a missing player. PlayerId={PlayerId}", combatUnitKilled.PlayerId);
-                    return;
-                }
-
                 await CombatInteraction.KillUnitAsync(player, combatUnitKilled.UnitId);
             }
             finally
@@ -4331,11 +4343,16 @@ namespace WOTRMultiplayer.Services
             OnAfterNetworkMessageHandled(receivedFrom, interacted);
         }
 
-        private void OnNotifyUnitJoinedMidCombat(long receivedFrom, NotifyUnitJoinedMidCombat combat)
+        private void OnNotifyUnitJoinedMidCombat(long receivedFrom, NotifyUnitJoinedMidCombat message)
         {
-            AddPlayerReadyStatus(PlayerTurnReadinessType.UnitJoinedMidCombat, combat.PlayerId, combat.UnitId);
+            if (Game.Combat == null)
+            {
+                return;
+            }
 
-            OnAfterNetworkMessageHandled(receivedFrom, combat);
+            AddPlayerReadyStatus(PlayerTurnReadinessType.UnitJoinedMidCombat, message.PlayerId, message.UnitId);
+
+            OnAfterNetworkMessageHandled(receivedFrom, message);
         }
 
         private void OnNotifyRestBanterInterrupted(long receivedFrom, NotifyRestBanterInterrupted interrupted)

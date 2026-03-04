@@ -18,10 +18,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             }
 
             var canLeaveCombat = Main.Multiplayer.CanLeaveCombat();
-            if (!canLeaveCombat)
-            {
-                __result = false;
-            }
+            __result = canLeaveCombat;
         }
     }
 }

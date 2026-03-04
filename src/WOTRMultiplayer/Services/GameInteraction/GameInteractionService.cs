@@ -2269,12 +2269,12 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
-        public bool IsDeadOrFriendly(string unitId)
+        public bool IsNotPartOfCombatAnymore(string unitId)
         {
             try
             {
                 var unit = _gameStateLookupService.GetUnitEntity(unitId);
-                return unit == null || IsDead(unit) || !unit.IsPlayersEnemy; // every 'yellow' mob
+                return unit == null || IsDead(unit) || !unit.IsPlayersEnemy || !unit.Group.IsInCombat.Value; // every 'yellow' mob
             }
             catch (Exception ex)
             {

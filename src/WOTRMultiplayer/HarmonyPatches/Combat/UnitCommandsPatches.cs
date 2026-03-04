@@ -303,6 +303,12 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 switch (__instance)
                 {
                     case UnitAttack unitAttack:
+                        // rider is still attacking, no need to interfere with attacks
+                        if (__instance.Executor.SaddledPart != null && __instance.Executor.SaddledPart.Rider.HasOffensiveCommand())
+                        {
+                            return;
+                        }
+
                         Main.GetLogger<UnitCommandsPatches>().LogInformation("Forcefinished unit attack command. ExecutorUnitId={ExecutorUnitId}, TargetUnitId={TargetUnitId}, IsFullAttack={IsFullAttack}", unitAttack.Executor.UniqueId, unitAttack.Target.UniqueId, unitAttack.IsFullAttack());
                         OnUnitMove(unitAttack.Executor.UniqueId, __instance.Executor.Position);
                         break;

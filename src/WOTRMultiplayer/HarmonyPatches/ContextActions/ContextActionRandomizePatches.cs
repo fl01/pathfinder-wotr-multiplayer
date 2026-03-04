@@ -106,10 +106,10 @@ namespace WOTRMultiplayer.HarmonyPatches.ContextActions
                 }
                 var armyCombatSeed = Main.Multiplayer.GetCrusadeArmyCombatSeed();
 
-                var unitId = contextActionRandomize.AbilityContext.MaybeOwner?.UniqueId;
-                var targetId = contextActionRandomize.AbilityContext.MainTarget?.Unit?.UniqueId;
-                var abilityName = contextActionRandomize.AbilityContext.NameForAcronym;
-                var attackNumber = contextActionRandomize.AbilityContext.AttackRoll?.RuleAttackWithWeapon?.AttackNumber ?? -1;
+                var unitId = contextActionRandomize.AbilityContext?.MaybeOwner?.UniqueId;
+                var targetId = contextActionRandomize.AbilityContext?.MainTarget?.Unit?.UniqueId;
+                var abilityName = contextActionRandomize.AbilityContext?.NameForAcronym;
+                var attackNumber = contextActionRandomize.AbilityContext?.AttackRoll?.RuleAttackWithWeapon?.AttackNumber ?? -1;
                 var lifetime = combatSeed == 0 ? IdentifierLifetime.Area : IdentifierLifetime.CombatTurn;
                 var identifier = $"{nameof(ContextActionRandomize)}.{nameof(ContextActionRandomize.ActionWrapper)}:{nameof(RollRandomAction)}:{unitId}:{targetId}:{abilityName}:{attackNumber}_{sessionSeed}:{loadedSave}:{areaSeed}:{combatSeed}:{combatTurnSeed}:{armyCombatSeed}";
                 var index = Main.Multiplayer.ValueGenerator.Range(lifetime, identifier, 0, actions.Count);

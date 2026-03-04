@@ -994,17 +994,31 @@ public static class WellKnownKeys
                 public static string Key { get; set; }
             }
 
-            [Description("startupDesync")]
-            public static class StartupDesync
+            [Description("start")]
+            public static class Start
             {
-                [Description("host")]
-                public static class Host
+                [Description("desynced")]
+                public static class Desynced
                 {
-                    public static string Key { get; set; }
-                }
+                    [Description("host")]
+                    public static class Host
+                    {
+                        public static string Key { get; set; }
+                    }
 
-                [Description("client")]
-                public static class Client
+                    [Description("client")]
+                    public static class Client
+                    {
+                        public static string Key { get; set; }
+                    }
+                }
+            }
+
+            [Description("end")]
+            public static class End
+            {
+                [Description("untargetableDesync")]
+                public static class UntargetableDesync
                 {
                     public static string Key { get; set; }
                 }

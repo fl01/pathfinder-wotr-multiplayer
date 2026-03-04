@@ -251,9 +251,14 @@
             },
             "combat": {
                 "unitAutokilled": "Auto-killing unit '{0}' ({1}) as it's been killed at {2}",
-                "startupDesync": {
-                    "host": "Combat recovery has been initiated due to desynced combat startup sequence.\nReason: {0}",
-                    "client": "Combat recovery has been initiated by host"
+                "start": {
+                    "desynced": {
+                        "host": "Combat recovery has been initiated due to desynced combat startup sequence.\nReason: {0}",
+                        "client": "Combat recovery has been initiated by host"
+                    }
+                },
+                "end": {
+                    "untargetableDesync": "You are unable to leave combat due to the following remaining unsynced units:\n{0}"
                 },
                 "stageChanged": "Combat stage has been changed from {0} to {1}",
                 "forcedToStart": "Combat has been forced to start by {0}",
