@@ -303,8 +303,10 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 switch (__instance)
                 {
                     case UnitAttack unitAttack:
-                        if (__instance.Executor.SaddledPart != null && __instance.Executor.SaddledPart.Rider.HasOffensiveCommand(x => x.IsStarted) && !__instance.ShouldUnitApproach)
+                        // mount should keep trying to attack to not break attack sequence for other players
+                        if (__instance.Executor.SaddledPart != null)
                         {
+                            OnUnitAttack(unitAttack);
                             return;
                         }
 
