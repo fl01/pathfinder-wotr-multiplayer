@@ -1146,7 +1146,9 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 Orientation = networkUnitMoveTo.Orientation,
                 MovementDelay = networkUnitMoveTo.MovementDelay,
-                CreatedByPlayer = true
+                CreatedByPlayer = true,
+                SpeedLimit = networkUnitMoveTo.SpeedLimit,
+                ApplySpeedLimitInCombat = networkUnitMoveTo.ApplySpeedLimitInCombat
             };
             SetCommandPath(networkUnitMoveTo.VectorPath, command);
             SetTurnMovementLimit(networkUnitMoveTo.MovementLimit, executorUnit);

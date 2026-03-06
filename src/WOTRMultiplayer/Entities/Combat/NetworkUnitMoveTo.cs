@@ -17,5 +17,9 @@ namespace WOTRMultiplayer.Entities.Combat
         public float MovementDelay { get; set; }
 
         public string AttackMode { get; set; }
+
+        public float? SpeedLimit { get; set; }
+
+        public bool ApplySpeedLimitInCombat { get; set; }
     }
 }

@@ -34,5 +34,13 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         [ProtoMember(7)]
         [LogMe]
         public string AttackMode { get; set; }
+
+        [ProtoMember(8)]
+        [LogMe]
+        public float? SpeedLimit { get; set; }
+
+        [ProtoMember(9)]
+        [LogMe]
+        public bool ApplySpeedLimitInCombat { get; set; }
     }
 }
