@@ -1,17 +1,23 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Threading;
 using HarmonyLib;
 using Kingmaker;
 using Kingmaker.AreaLogic.Cutscenes.Commands;
 using Kingmaker.Blueprints.Root;
 using Kingmaker.Controllers.Dialog;
+using Kingmaker.Controllers.Units;
 using Kingmaker.Designers.EventConditionActionSystem.Actions;
 using Kingmaker.DialogSystem.Blueprints;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.Localization;
 using Kingmaker.UI.MVVM._VM.Dialog.Dialog;
+using Kingmaker.UnitLogic.Interaction;
 using Kingmaker.View.MapObjects;
+using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Entities.Dialogs;
 
 namespace WOTRMultiplayer.HarmonyPatches.Dialogs
@@ -20,6 +26,41 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
     public class DialogsPatches
     {
         private static readonly AsyncLocal<bool> _isScriptedDialog = new();
+
+        [HarmonyPatch(typeof(UnitsProximityController), nameof(UnitsProximityController.TickOnUnit))]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> UnitsProximityController_TickOnUnit_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var lookFor = AccessTools.Method(typeof(IUnitInteraction), nameof(IUnitInteraction.Interact));
+            var replaceWith = AccessTools.Method(typeof(DialogsPatches), nameof(DialogsPatches.OnProximityInteract));
+            var matcher = new CodeMatcher(instructions);
+            var match = matcher.SearchForward(x => x.Calls(lookFor));
+            if (match.IsInvalid)
+            {
+                Main.GetLogger<DialogsPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
+                return instructions;
+            }
+
+            var newInstructions = new List<CodeInstruction>()
+            {
+                new(OpCodes.Ldloc_S, 6),
+                new(OpCodes.Call, replaceWith),
+            };
+            match = match.Advance(-3).Insert(newInstructions);
+            Main.GetLogger<DialogsPatches>().LogDebug("Transpiler has been applied. Target={Target}", target);
+            return matcher.Instructions();
+        }
+
+        private static void OnProximityInteract(IUnitInteraction unitInteraction)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            _isScriptedDialog.Value = unitInteraction is SpawnerInteractionPart.Wrapper wrapper && wrapper.Source is SpawnerInteractionDialog;
+        }
 
         [HarmonyPatch(typeof(StartDialog), nameof(StartDialog.RunAction))]
         [HarmonyPrefix]
