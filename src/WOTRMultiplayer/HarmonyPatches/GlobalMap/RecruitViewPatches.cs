@@ -37,7 +37,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
                 new(OpCodes.Ldarg_0),
                 new(OpCodes.Call, replaceWith),
             };
-            match = match.RemoveInstructions(1).Insert(newInstructions);
+            match = match.Advance(-7).RemoveInstructions(8).Insert(newInstructions);
             Main.GetLogger<RecruitViewPatches>().LogDebug("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
@@ -162,13 +162,13 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             Main.Multiplayer.OnGlobalMapCreateCrusadeArmy();
         }
 
-        private IDisposable SubscribeEnterMessageEscPress(Action action, RecruitPCView view)
+        private static IDisposable SubscribeEnterMessageEscPress(RecruitPCView view)
         {
             return Game.Instance.UI.EscManager.Subscribe(() =>
             {
                 if (!Main.Multiplayer.IsActive || view.m_Close.Interactable)
                 {
-                    action?.Invoke();
+                    view.ViewModel.Close();
                 }
             });
         }

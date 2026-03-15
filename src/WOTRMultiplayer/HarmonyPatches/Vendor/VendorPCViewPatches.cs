@@ -34,13 +34,39 @@ namespace WOTRMultiplayer.HarmonyPatches.Vendor
         {
             var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
             var matcher = new CodeMatcher(instructions);
-            if (!ReplaceEscManagerSubscription(matcher, target) || !ReplaceDealButtonSubscription(matcher, target))
+            var replaceEscWith = AccessTools.Method(typeof(VendorPCViewPatches), nameof(VendorPCViewPatches.SubscribeToEscHotKey));
+            var lookForEsc = AccessTools.Method(typeof(EscHotkeyManager), nameof(EscHotkeyManager.Subscribe));
+            var match = matcher.SearchForward(x => x.Calls(lookForEsc));
+            if (match.IsInvalid)
             {
-                Main.GetLogger<VendorPCViewPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
-                return matcher.Instructions();
+                Main.GetLogger<VendorPCViewPatches>().LogError("Transpiler has not been applied (EscManager). Target={Target}", target);
+                return instructions;
             }
 
-            Main.GetLogger<VendorPCViewPatches>().LogDebug("Transpiler has been applied. Target={Target}", target);
+            var newEscInstructions = new List<CodeInstruction>
+            {
+                new (OpCodes.Ldarg_0),
+                new (OpCodes.Call, replaceEscWith)
+            };
+            match = match.Advance(-6).RemoveInstructions(7).Insert(newEscInstructions);
+
+            var replaceDealWith = AccessTools.Method(typeof(VendorPCViewPatches), nameof(VendorPCViewPatches.SubscribeToDealButton));
+            var lookForDeal = AccessTools.Field(typeof(VendorVM), nameof(VendorVM.IsPossibleDeal));
+            match = match.SearchForward(x => x.LoadsField(lookForDeal));
+            if (match.IsInvalid)
+            {
+                Main.GetLogger<VendorPCViewPatches>().LogError("Transpiler has not been applied (DealButton). Target={Target}", target);
+                return instructions;
+            }
+
+            var dealInstructions = new List<CodeInstruction>
+            {
+                new (OpCodes.Ldarg_0),
+                new (OpCodes.Call, replaceDealWith)
+            };
+            match = match.Advance(-2).RemoveInstructions(7).Insert(dealInstructions);
+
+            Main.GetLogger<VendorPCViewPatches>().LogDebug("Transpiler has been applied (EscManager + DealButton). Target={Target}", target);
             return matcher.Instructions();
         }
 
@@ -60,68 +86,24 @@ namespace WOTRMultiplayer.HarmonyPatches.Vendor
             }
         }
 
-        private static bool ReplaceEscManagerSubscription(CodeMatcher matcher, string target)
+        private static IDisposable SubscribeToEscHotKey(VendorPCView view)
         {
-            var replaceWith = AccessTools.Method(typeof(VendorPCViewPatches), nameof(VendorPCViewPatches.SubscribeToEscHotKey));
-            var lookFor = AccessTools.Field(typeof(UIAccess), nameof(UIAccess.EscManager));
-            var match = matcher.SearchForward(x => x.LoadsField(lookFor));
-            if (match.IsInvalid)
+            var subscription = Game.Instance.UI.EscManager.Subscribe(() =>
             {
-                Main.GetLogger<VendorPCViewPatches>().LogError("ReplaceEscManagerSubscription - Transpiler has not been applied. Target={Target}", target);
-                return false;
-            }
+                if (!Main.Multiplayer.IsActive || Main.Multiplayer.CanFullyControlVendorUI())
+                {
+                    view.ViewModel.Close();
+                }
+            });
 
-            match = match.Advance(-3).RemoveInstructions(8);
-            var newInstructions = new List<CodeInstruction>
-            {
-                new (OpCodes.Ldarg_0),
-                new (OpCodes.Ldarg_0),
-                new (OpCodes.Call, replaceWith)
-            };
-
-            match.Insert(newInstructions);
-            return true;
+            return subscription;
         }
 
-        private static bool ReplaceDealButtonSubscription(CodeMatcher matcher, string target)
+        private static IDisposable SubscribeToDealButton(VendorPCView view)
         {
-            var replaceWith = AccessTools.Method(typeof(VendorPCViewPatches), nameof(VendorPCViewPatches.SubscribeToDealButton));
-            var match = matcher.Advance(4);
-            if (match.Instruction.opcode != OpCodes.Ldarg_0)
+            return view.ViewModel.IsPossibleDeal.Subscribe(value =>
             {
-                Main.GetLogger<VendorPCViewPatches>().LogError("ReplaceDealButtonSubscription - Transpiler has not been applied. Target={Target}, Instruction={Instruction}", target, match.Instruction);
-                return false;
-            }
-
-            match = match.RemoveInstructions(8);
-            var newInstructions = new List<CodeInstruction>
-            {
-                new (OpCodes.Ldarg_0),
-                new (OpCodes.Ldarg_0),
-                new (OpCodes.Call, replaceWith)
-            };
-
-            match.Insert(newInstructions);
-            return true;
-        }
-
-        public static IDisposable SubscribeToEscHotKey(VendorPCView view)
-        {
-            if (!Main.Multiplayer.IsActive || Main.Multiplayer.CanFullyControlVendorUI())
-            {
-                var vm = (VendorVM)view.GetViewModel();
-                return Game.Instance.UI.EscManager.Subscribe(vm.Close);
-            }
-
-            return null;
-        }
-
-        public static IDisposable SubscribeToDealButton(VendorPCView view)
-        {
-            var vm = (VendorVM)view.GetViewModel();
-            return vm.IsPossibleDeal.Subscribe(value =>
-            {
-                view.m_DealButton.Interactable = !Main.Multiplayer.IsActive ? value : value && Main.Multiplayer.CanFullyControlVendorUI();
+                view.m_DealButton.Interactable = value && (!Main.Multiplayer.IsActive || Main.Multiplayer.CanFullyControlVendorUI());
             });
         }
     }

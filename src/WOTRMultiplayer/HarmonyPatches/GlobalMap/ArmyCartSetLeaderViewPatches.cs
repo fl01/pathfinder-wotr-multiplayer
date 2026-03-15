@@ -30,7 +30,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             var match = matcher.SearchForward(x => x.Calls(lookFor));
             if (match.IsInvalid)
             {
-                Main.GetLogger<ArmyInfoViewPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
+                Main.GetLogger<ArmyCartSetLeaderViewPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
                 return instructions;
             }
 
@@ -39,8 +39,8 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
                 new(OpCodes.Ldarg_0),
                 new(OpCodes.Call, replaceWith),
             };
-            match = match.RemoveInstructions(1).Insert(newInstructions);
-            Main.GetLogger<ArmyInfoViewPatches>().LogDebug("Transpiler has been applied. Target={Target}", target);
+            match = match.Advance(-7).RemoveInstructions(8).Insert(newInstructions);
+            Main.GetLogger<ArmyCartSetLeaderViewPatches>().LogDebug("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
@@ -56,7 +56,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             var match = matcher.End().Advance(-15);
             if (match.IsInvalid || match.Instruction?.opcode != OpCodes.Ret)
             {
-                Main.GetLogger<ArmyInfoViewPatches>().LogError("Transpiler has not been applied. Target={Target}, OpCode={OpCode}", target, match.Instruction?.opcode);
+                Main.GetLogger<ArmyCartSetLeaderViewPatches>().LogError("Transpiler has not been applied. Target={Target}, OpCode={OpCode}", target, match.Instruction?.opcode);
                 return instructions;
             }
             match = match.Advance(1);
@@ -68,7 +68,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
                 new(OpCodes.Call, replaceWith),
             };
             match = match.RemoveInstructions(14).Insert(newInstructions);
-            Main.GetLogger<ArmyInfoViewPatches>().LogDebug("Transpiler has been applied. Target={Target}", target);
+            Main.GetLogger<ArmyCartSetLeaderViewPatches>().LogDebug("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
@@ -152,14 +152,13 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             Main.Multiplayer.OnGlobalMapCommonPopupShown(popup);
         }
 
-        private IDisposable SubscribeEnterMessageEscPress(Action action, ArmyCartSetLeaderPCView view)
+        private static IDisposable SubscribeEnterMessageEscPress(ArmyCartSetLeaderPCView view)
         {
             return Game.Instance.UI.EscManager.Subscribe(() =>
             {
                 if (!Main.Multiplayer.IsActive || view.m_CloseButton.Interactable)
                 {
-                    action?.Invoke();
-                    return;
+                    view.ViewModel.OnClose();
                 }
             });
         }

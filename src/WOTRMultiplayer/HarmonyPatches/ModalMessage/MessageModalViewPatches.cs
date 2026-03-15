@@ -34,25 +34,21 @@ namespace WOTRMultiplayer.HarmonyPatches.ModalMessage
                 new(OpCodes.Ldarg_0),
                 new(OpCodes.Call, replaceWith)
             };
-            match = match.Advance(-6)
-                .RemoveInstructions(7)
-                .Insert(newInstructions);
+            match = match.Advance(-6).RemoveInstructions(7).Insert(newInstructions);
+
             Main.GetLogger<MessageModalViewPatches>().LogDebug("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
         private static IDisposable SubscribeMessageEscPress(MessageModalPCView view)
         {
-            return Game.Instance.UI.EscManager.Subscribe(() => OnEscPressed(view));
-        }
-
-        private static void OnEscPressed(MessageModalPCView view)
-        {
-            if (!Main.Multiplayer.IsActive || view.m_DeclineButton.Interactable)
+            return Game.Instance.UI.EscManager.Subscribe(() =>
             {
-                view.ViewModel.OnDeclinePressed();
-                return;
-            }
+                if (!Main.Multiplayer.IsActive || view.m_DeclineButton.Interactable)
+                {
+                    view.ViewModel.OnDeclinePressed();
+                }
+            });
         }
     }
 }

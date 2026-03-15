@@ -36,7 +36,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
                 new(OpCodes.Ldarg_0),
                 new(OpCodes.Call, replaceWith),
             };
-            match = match.RemoveInstructions(1).Insert(newInstructions);
+            match = match.Advance(-6).RemoveInstructions(7).Insert(newInstructions);
             Main.GetLogger<LeaderLevelUpPatches>().LogDebug("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
@@ -67,20 +67,18 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             Main.Multiplayer.OnGlobalMapCrusadeArmyLeaderLevelingShown();
         }
 
-        private IDisposable SubscribeEnterMessageEscPress(Action action, LeaderLevelUpPCView view)
+        private static IDisposable SubscribeEnterMessageEscPress(LeaderLevelUpPCView view)
         {
             var disposable = Game.Instance.UI.EscManager.Subscribe(() =>
             {
-                if (!Main.Multiplayer.IsActive)
+                if (!Main.Multiplayer.IsActive || view.m_CloseButton.Interactable)
                 {
-                    action?.Invoke();
-                    return;
-                }
+                    if (Main.Multiplayer.IsActive)
+                    {
+                        Main.Multiplayer.OnGlobalMapCrusadeArmyLeaderLevelingClosed();
+                    }
 
-                if (view.m_CloseButton.Interactable)
-                {
-                    Main.Multiplayer.OnGlobalMapCrusadeArmyLeaderLevelingClosed();
-                    action?.Invoke();
+                    view.ViewModel.Close();
                 }
             });
             return disposable;

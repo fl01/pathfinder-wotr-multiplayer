@@ -35,7 +35,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
                 new(OpCodes.Ldarg_0),
                 new(OpCodes.Call, replaceWith),
             };
-            match = match.RemoveInstructions(1).Insert(newInstructions);
+            match = match.Advance(-6).RemoveInstructions(7).Insert(newInstructions);
             Main.GetLogger<ArmyInfoViewPatches>().LogDebug("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
@@ -124,20 +124,18 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             Main.Multiplayer.OnGlobalMapCrusadeArmyMoveSquadsToSecondArmy();
         }
 
-        private IDisposable SubscribeEnterMessageEscPress(Action action, ArmyInfoPCView view)
+        private static IDisposable SubscribeEnterMessageEscPress(ArmyInfoPCView view)
         {
             return Game.Instance.UI.EscManager.Subscribe(() =>
             {
-                if (!Main.Multiplayer.IsActive)
+                if (!Main.Multiplayer.IsActive || ((ArmyInfoArmyCartPCView)view.m_MainArmyCartView).m_CloseButton.Interactable)
                 {
-                    action?.Invoke();
-                    return;
-                }
+                    if (Main.Multiplayer.IsActive)
+                    {
+                        Main.Multiplayer.OnGlobalMapCrusadeArmyInfoClosed();
+                    }
 
-                if (((ArmyInfoArmyCartPCView)view.m_MainArmyCartView).m_CloseButton.Interactable)
-                {
-                    Main.Multiplayer.OnGlobalMapCrusadeArmyInfoClosed();
-                    action?.Invoke();
+                    view.ViewModel.OnClose();
                 }
             });
         }

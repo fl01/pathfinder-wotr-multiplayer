@@ -115,19 +115,12 @@ namespace WOTRMultiplayer.HarmonyPatches.Dungeon
 
         private static IDisposable SubscribeEscPress(MapIslandsPCView view)
         {
-            if (!Main.Multiplayer.IsActive)
-            {
-                return Game.Instance.UI.EscManager.Subscribe(view.ViewModel.Close);
-            }
-
             var subscription = Game.Instance.UI.EscManager.Subscribe(() =>
             {
-                if (!view.m_CloseButton.Interactable)
+                if (!Main.Multiplayer.IsActive || view.m_CloseButton.Interactable)
                 {
-                    return;
+                    view.ViewModel.Close();
                 }
-
-                view.ViewModel.Close();
             });
 
             return subscription;

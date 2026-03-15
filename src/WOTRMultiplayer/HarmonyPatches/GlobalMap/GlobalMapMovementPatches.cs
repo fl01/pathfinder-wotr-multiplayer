@@ -598,19 +598,12 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
 
         private static IDisposable SubscribeEnterMessageEscPress(GlobalMapEnterMessagePCView view)
         {
-            if (!Main.Multiplayer.IsActive)
-            {
-                return Game.Instance.UI.EscManager.Subscribe(view.ViewModel.Close);
-            }
-
             var subscription = Game.Instance.UI.EscManager.Subscribe(() =>
             {
-                if (!view.m_DeclineButton.Interactable)
+                if (!Main.Multiplayer.IsActive || view.m_DeclineButton.Interactable)
                 {
-                    return;
+                    view.ViewModel.Close();
                 }
-
-                view.ViewModel.Close();
             });
 
             return subscription;

@@ -15,6 +15,7 @@ namespace WOTRMultiplayer.UI.Windows
         private ILogger<LobbyWindow> _logger;
         private ILobbyWindowController _lobbyWindowController;
         private Action _onClose;
+        private IDisposable _escSubscription;
 
         public Func<NetworkGameConnectivity> GetGameConnectivity { get; set; }
 
@@ -85,12 +86,14 @@ namespace WOTRMultiplayer.UI.Windows
             }
 
             _logger.LogInformation("Subscribing for esc button click");
-            Game.Instance.UI.EscManager.Subscribe(Close);
+            _escSubscription = Game.Instance.UI.EscManager.Subscribe(Close);
         }
 
         public override void Dispose()
         {
             _logger.LogInformation("Dispose");
+            _escSubscription?.Dispose();
+            _escSubscription = null;
             base.Dispose();
         }
 

@@ -28,12 +28,12 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             var match = matcher.End().Advance(-9);
             if (match.IsInvalid || match.Opcode != OpCodes.Ldarg_0)
             {
-                Main.GetLogger<ArmyInfoViewPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
+                Main.GetLogger<ArmyCartBuyLeaderViewPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
                 return instructions;
             }
 
             match.RemoveInstructions(9);
-            Main.GetLogger<ArmyInfoViewPatches>().LogDebug("Transpiler has been applied. Target={Target}", target);
+            Main.GetLogger<ArmyCartBuyLeaderViewPatches>().LogDebug("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
@@ -85,7 +85,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             var match = matcher.SearchForward(x => x.Calls(lookFor));
             if (match.IsInvalid)
             {
-                Main.GetLogger<ArmyInfoViewPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
+                Main.GetLogger<ArmyCartBuyLeaderViewPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
                 return instructions;
             }
 
@@ -94,19 +94,18 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
                 new(OpCodes.Ldarg_0),
                 new(OpCodes.Call, replaceWith),
             };
-            match = match.RemoveInstructions(1).Insert(newInstructions);
-            Main.GetLogger<ArmyInfoViewPatches>().LogDebug("Transpiler has been applied. Target={Target}", target);
+            match = match.Advance(-6).RemoveInstructions(7).Insert(newInstructions);
+            Main.GetLogger<ArmyCartBuyLeaderViewPatches>().LogDebug("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
 
-        private IDisposable SubscribeEnterMessageEscPress(Action action, ArmyCartBuyLeaderPCView view)
+        private static IDisposable SubscribeEnterMessageEscPress(ArmyCartBuyLeaderPCView view)
         {
             return Game.Instance.UI.EscManager.Subscribe(() =>
             {
                 if (!Main.Multiplayer.IsActive || view.m_CloseButton.Interactable)
                 {
-                    action?.Invoke();
-                    return;
+                    view.ViewModel.OnClose(false, null);
                 }
             });
         }

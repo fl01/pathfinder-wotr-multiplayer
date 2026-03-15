@@ -85,19 +85,12 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
 
         private static IDisposable SubscribeEscPress(TransitionPCView view)
         {
-            if (!Main.Multiplayer.IsActive)
-            {
-                return Game.Instance.UI.EscManager.Subscribe(view.ViewModel.Close);
-            }
-
             var subscription = Game.Instance.UI.EscManager.Subscribe(() =>
             {
-                if (view.m_Parts.Count > 0 && !view.m_Parts.Any(x => x.Close.Interactable))
+                if (!Main.Multiplayer.IsActive || view.m_Parts.Count == 0 || (view.m_Parts.FirstOrDefault(p => view.ViewModel.Map == p.Map)?.Close.Interactable ?? true))
                 {
-                    return;
+                    view.ViewModel.Close();
                 }
-
-                view.ViewModel.Close();
             });
 
             return subscription;

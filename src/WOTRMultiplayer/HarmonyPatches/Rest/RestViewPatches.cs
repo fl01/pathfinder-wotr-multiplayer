@@ -36,7 +36,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 new(OpCodes.Ldarg_0),
                 new(OpCodes.Call, replaceWith),
             };
-            match = match.RemoveInstructions(1).Insert(newInstructions);
+            match = match.Advance(-6).RemoveInstructions(7).Insert(newInstructions);
             Main.GetLogger<RestViewPatches>().LogDebug("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();
         }
@@ -88,16 +88,16 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
             }
         }
 
-        private IDisposable SubscribeEnterMessageEscPress(Action action, RestPCView view)
+        private static IDisposable SubscribeEnterMessageEscPress(RestPCView view)
         {
             var disposable = Game.Instance.UI.EscManager.Subscribe(() =>
             {
                 if (!Main.Multiplayer.IsActive || view.m_CloseButton.interactable)
                 {
-                    action?.Invoke();
-                    return;
+                    view.CloseRest();
                 }
             });
+
             return disposable;
         }
     }
