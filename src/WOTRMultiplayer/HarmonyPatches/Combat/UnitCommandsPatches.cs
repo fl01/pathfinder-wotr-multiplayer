@@ -393,10 +393,34 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 return false;
             }
 
-            var isFirstCast = command.Executor.State.FastBombsFeature.Abilities.Any(a => a.Guid == command.Ability.Blueprint.AssetGuid)
-                && Game.Instance.TurnBasedCombatController.CurrentTurn.CurrentAbility == command.Ability; // CurrentAbility == command.Ability for a first actual usage
+            var isFastBombAbility = command.Executor.State.FastBombsFeature.Abilities.Any(a => a.Guid == command.Ability.Blueprint.AssetGuid);
+            if (!isFastBombAbility)
+            {
+                return false;
+            }
 
-            return !isFirstCast;
+            // first cast with fullround available
+            if (Game.Instance.TurnBasedCombatController.CurrentTurn.CurrentAbility != null
+                && Game.Instance.TurnBasedCombatController.CurrentTurn.CurrentAbility == command.Ability)
+            {
+                return false;
+            }
+
+            var actionState = Game.Instance.TurnBasedCombatController.CurrentTurn.GetActionsStates(command.Executor);
+            if (actionState == null)
+            {
+                return false;
+            }
+
+            // fast bomb is active, but character has no fullround action anymore
+            if (Game.Instance.TurnBasedCombatController.CurrentTurn.CurrentAbility == null
+                && actionState.FiveFootStep.PredictionState != Kingmaker.TurnBasedMode.Controllers.CombatAction.ActionState.Used
+                && actionState.FiveFootStep.PredictionState != Kingmaker.TurnBasedMode.Controllers.CombatAction.ActionState.Available)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private static bool ShouldIgnoreStickyTouchAbilityCast(UnitUseAbility command)
