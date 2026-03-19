@@ -8,7 +8,6 @@ using Kingmaker.Controllers.Units;
 using Kingmaker.EntitySystem.Entities;
 using Microsoft.Extensions.Logging;
 using UnityEngine;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.Combat
 {
@@ -66,14 +65,12 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var combatSeed = Main.Multiplayer.GetCombatSeed();
-                var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
-                var identifier = $"{nameof(UnitFearController)}:{nameof(SelectPointToMove)}:{movementData.unit.UniqueId}:{sessionSeed}:{combatSeed}:{combatTurnSeed}";
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(UnitFearController)}:{nameof(SelectPointToMove)}:{movementData.unit.UniqueId}_{seededContext.Id}";
 
-                var index = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.CombatTurn, identifier, minInclusive, maxExclusive);
+                var index = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, minInclusive, maxExclusive);
                 var point = points.ElementAt(index);
-                Main.GetLogger<UnitFearControllerPatches>().LogInformation("Fear move point has been selected. UnitId={UnitId}, Point={Point}, Index={Index}, TurnSeed={TurnSeed}", movementData.unit.UniqueId, point, index, combatTurnSeed);
+                Main.GetLogger<UnitFearControllerPatches>().LogInformation("Fear move point has been selected. UnitId={UnitId}, Point={Point}, Index={Index}, Identifier={Identifier}", movementData.unit.UniqueId, point, index, identifier);
                 return point;
             }
             catch (Exception ex)

@@ -8,7 +8,6 @@ using Kingmaker.Controllers.Combat;
 using Kingmaker.RuleSystem.Rules;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Extensions;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.Combat
 {
@@ -76,13 +75,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var combatSeed = Main.Multiplayer.GetCombatSeed();
-                var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
-                var crusadeArmySeed = Main.Multiplayer.GetCrusadeArmyCombatSeed();
-
-                var identifier = $"{nameof(UnitCombatPrepareController)}:{nameof(OnRollRandomInitiative)}:{ruleRollD20.Initiator.UniqueId}_{sessionSeed}:{combatSeed}:{combatTurnSeed}:{crusadeArmySeed}";
-                var random = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.Combat, identifier);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(UnitCombatPrepareController)}:{nameof(OnRollRandomInitiative)}:{ruleRollD20.Initiator.UniqueId}_{seededContext.Id}";
+                var random = Main.Multiplayer.ValueGenerator.GetRandom(seededContext.Lifetime, identifier);
                 var randomInitiative = ruleRollD20.DiceFormula.Roll(random);
                 Main.GetLogger<UnitCombatPrepareControllerPatches>().LogInformation("Random initiative has been rolled. UnitId={UnitId}, Initiative={Initiative}, Identifier={Identifier}", ruleRollD20.Initiator.UniqueId, randomInitiative, identifier);
                 return randomInitiative;

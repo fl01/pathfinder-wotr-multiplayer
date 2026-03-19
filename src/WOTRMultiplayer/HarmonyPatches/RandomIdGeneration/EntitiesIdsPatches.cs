@@ -326,8 +326,8 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var identifier = $"{CommonTranspilerReplacements.GetSharedIdentifierPart()}:{nameof(Game.CreateUnitVacuum)}:{blueprintUnit.name}:{blueprintUnit.AssetGuid}:{sessionSeed}";
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{CommonTranspilerReplacements.GetSharedIdentifierPart()}:{nameof(Game.CreateUnitVacuum)}:{blueprintUnit.name}:{blueprintUnit.AssetGuid}_{seededContext.Id}";
                 var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(IdType.CustomCompanionUnit, Game.Instance.Player.GameId, identifier);
                 var unit = new UnitEntityData(id, isInGame: true, blueprintUnit);
                 return unit;

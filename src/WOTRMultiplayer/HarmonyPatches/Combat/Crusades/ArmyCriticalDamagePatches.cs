@@ -8,7 +8,6 @@ using Kingmaker.RuleSystem;
 using Kingmaker.RuleSystem.Rules;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Extensions;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.Combat.Crusades
 {
@@ -50,12 +49,10 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat.Crusades
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-                var crusadeArmyTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
+                var seededContext = Main.Multiplayer.GetSeededContext();
                 var unitId = ruleRollD20.Initiator?.UniqueId ?? armyCriticalDamage.Owner.UniqueId;
-                var identifier = $"{nameof(ArmyCriticalDamage)}:{nameof(RollCriticalChance)}:{unitId}_{sessionSeed}:{loadedSaveSeed}:{crusadeArmyTurnSeed}";
-                var random = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.CombatTurn, identifier);
+                var identifier = $"{nameof(ArmyCriticalDamage)}:{nameof(RollCriticalChance)}:{unitId}_{seededContext.Id}";
+                var random = Main.Multiplayer.ValueGenerator.GetRandom(seededContext.Lifetime, identifier);
                 var result = ruleRollD20.DiceFormula.Roll(random);
                 Main.GetLogger<ArmyCriticalDamagePatches>().LogInformation("ArmyCriticalDamage has been rolled. UnitId={UnitId}, Roll={Roll}, Identifier={Identifier}", unitId, result, identifier);
                 ruleRollD20.m_Triggered = true;

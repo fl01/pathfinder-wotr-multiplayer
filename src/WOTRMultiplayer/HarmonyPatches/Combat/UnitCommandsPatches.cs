@@ -20,7 +20,6 @@ using UnityEngine;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Extensions;
-using WOTRMultiplayer.Services.Random;
 using static Kingmaker.UnitLogic.Commands.Base.UnitCommand;
 
 namespace WOTRMultiplayer.HarmonyPatches.Combat
@@ -139,14 +138,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
         {
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-                var combatSeed = Main.Multiplayer.GetCombatSeed();
-                var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
-                var armyCombatSeed = Main.Multiplayer.GetCrusadeArmyCombatAreaSeed();
-
-                var identifier = $"{nameof(UnitAttack)}:{nameof(SelectNextTarget)}:{executor.UniqueId}:{sessionSeed}:{loadedSaveSeed}:{combatSeed}:{combatTurnSeed}:{armyCombatSeed}";
-                var random = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.CombatTurn, identifier);
+                var context = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(UnitAttack)}:{nameof(SelectNextTarget)}:{executor.UniqueId}_{context.Id}";
+                var random = Main.Multiplayer.ValueGenerator.GetRandom(context.Lifetime, identifier);
                 var riderShouldBeFirst = random.Next(0, 2) == 1;
                 Main.GetLogger<UnitCommandsPatches>().LogInformation("Rider/Mount order has been rolled. Executor={Executor}, Result={Result}, Identifier={Identifier}", executor.UniqueId, riderShouldBeFirst, identifier);
                 return riderShouldBeFirst;

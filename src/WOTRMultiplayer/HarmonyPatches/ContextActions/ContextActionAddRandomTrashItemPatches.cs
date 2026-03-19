@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
-using Kingmaker;
 using Kingmaker.Designers.EventConditionActionSystem.Actions;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.ContextActions
 {
@@ -47,12 +45,10 @@ namespace WOTRMultiplayer.HarmonyPatches.ContextActions
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-
-                var identifier = $"{nameof(ContextActionAddRandomTrashItem)}:{nameof(GetContextActionLootRandomizator)}:{Game.Instance.Player.GameId}:{contextActionAddRandom.m_LootType}:{contextActionAddRandom.m_MaxCost}:{contextActionAddRandom.m_Silent}:{sessionSeed}:{loadedSaveSeed}";
-                var randomizer = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.Area, identifier);
-                Main.GetLogger<ContextActionAddRandomTrashItemPatches>().LogInformation("Randomizer for ContextActionAddRandomTrashItem has been initialized. Identifier={Identifier}, SessionSeed={SessionSeed}, LoadedSaveSeed={LoadedSaveSeed}", identifier, sessionSeed, loadedSaveSeed);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(ContextActionAddRandomTrashItem)}:{nameof(GetContextActionLootRandomizator)}:{contextActionAddRandom.m_LootType}:{contextActionAddRandom.m_MaxCost}:{contextActionAddRandom.m_Silent}_{seededContext.Id}";
+                var randomizer = Main.Multiplayer.ValueGenerator.GetRandom(seededContext.Lifetime, identifier);
+                Main.GetLogger<ContextActionAddRandomTrashItemPatches>().LogInformation("Randomizer for ContextActionAddRandomTrashItem has been initialized. Identifier={Identifier}", identifier);
                 return randomizer.Next;
             }
             catch (Exception ex)

@@ -15,7 +15,6 @@ using Kingmaker.UnitLogic.Commands.Base;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Extensions;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.Combat
 {
@@ -58,11 +57,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var combatSeed = Main.Multiplayer.GetCombatSeed();
-                var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
-                var identifier = $"{nameof(CombatAiData)}:{nameof(CombatAiData.UseAction)}:{nameof(RollAIActionCooldown)}:{Game.Instance.Player.GameId}:{unitCommand.Executor.UniqueId}:{aiAction.Blueprint.AssetGuid}:{aiAction.Blueprint.name}:{unitCommand.TargetUnit?.UniqueId}:{sessionSeed}:{combatSeed}:{combatTurnSeed}";
-                var random = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.CombatTurn, identifier);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(CombatAiData)}:{nameof(CombatAiData.UseAction)}:{nameof(RollAIActionCooldown)}:{Game.Instance.Player.GameId}:{unitCommand.Executor.UniqueId}:{aiAction.Blueprint.AssetGuid}:{aiAction.Blueprint.name}:{unitCommand.TargetUnit?.UniqueId}_{seededContext.Id}";
+                var random = Main.Multiplayer.ValueGenerator.GetRandom(seededContext.Lifetime, identifier);
                 var cooldown = diceFormula.Roll(random);
                 Main.GetLogger<AiBrainControllerPatches>().LogInformation("AI action cooldown has been rolled. Cooldown={Cooldown}, Identifier={Identifier}", cooldown, identifier);
                 return cooldown;

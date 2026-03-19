@@ -46,10 +46,8 @@ namespace WOTRMultiplayer.HarmonyPatches.Dungeon
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-                var areaSeed = Main.Multiplayer.GetAreaSeed();
-                var identifier = $"{nameof(DungeonState)}:{nameof(GenerateDungeonSeed)}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}";
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(DungeonState)}:{nameof(GenerateDungeonSeed)}_{seededContext.Id}";
                 int dungeonSeed = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.Persistent, identifier).Next();
                 Main.GetLogger<CueSelectionPatches>().LogInformation("Dungeon Seed has been generated. DungeonSeed={DungeonSeed}, Identifier={Identifier}", dungeonSeed, identifier);
                 return dungeonSeed;

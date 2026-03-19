@@ -23,6 +23,7 @@ using WOTRMultiplayer.Entities.SpellbookManagement;
 using WOTRMultiplayer.Entities.Spells;
 using WOTRMultiplayer.Entities.Vendor;
 using WOTRMultiplayer.Services.GameInteraction.Contexts;
+using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.Abstractions
 {
@@ -274,17 +275,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnGlobalMapAutoCrusadeCombatChanged(bool isEnabled);
 
-        int GetCombatSeed();
-
-        int GetCombatTurnSeed();
-
-        int GetCrusadeArmyCombatSeed();
-
-        int GetSessionSeed();
-
-        int GetAreaSeed();
-
-        int GetLoadedSaveSeed();
+        SeededContext GetSeededContext();
 
         void OnZoneLootShown();
 

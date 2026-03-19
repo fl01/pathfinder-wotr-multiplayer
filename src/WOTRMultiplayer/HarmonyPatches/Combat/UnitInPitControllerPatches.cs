@@ -10,7 +10,6 @@ using Kingmaker.Utility;
 using Microsoft.Extensions.Logging;
 using UnityEngine;
 using WOTRMultiplayer.Extensions;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.Combat
 {
@@ -68,17 +67,10 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSave = Main.Multiplayer.GetLoadedSaveSeed();
-                var areaSeed = Main.Multiplayer.GetAreaSeed();
-                var combatSeed = Main.Multiplayer.GetCombatSeed();
-                var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
-                var armyCombatSeed = Main.Multiplayer.GetCrusadeArmyCombatSeed();
-                var lifetime = combatSeed == 0 ? IdentifierLifetime.Area : IdentifierLifetime.CombatTurn;
-
-                var identifier = $"{nameof(UnitInPitController)}:{nameof(RollUnitSphere)}:{unitEntityData.UniqueId}:_{sessionSeed}:{loadedSave}:{areaSeed}:{combatSeed}:{combatTurnSeed}:{armyCombatSeed}";
-                var pointInSphere = Main.Multiplayer.ValueGenerator.GetRandomUnitSphere(IdentifierLifetime.CombatTurn, identifier);
-                Main.GetLogger<UnitInPitControllerPatches>().LogInformation("RandomUnitSphere has been rolled. UnitId={UnitId}, Point={Point}, Lifetime={Lifetime}, Identifier={Identifier}", unitEntityData.UniqueId, pointInSphere, lifetime, identifier);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(UnitInPitController)}:{nameof(RollUnitSphere)}:{unitEntityData.UniqueId}:_{seededContext.Id}";
+                var pointInSphere = Main.Multiplayer.ValueGenerator.GetRandomUnitSphere(seededContext.Lifetime, identifier);
+                Main.GetLogger<UnitInPitControllerPatches>().LogInformation("RandomUnitSphere has been rolled. UnitId={UnitId}, Point={Point}, Lifetime={Lifetime}, Identifier={Identifier}", unitEntityData.UniqueId, pointInSphere, seededContext.Lifetime, identifier);
                 return pointInSphere.ToUnityVector3();
             }
             catch (Exception ex)

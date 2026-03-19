@@ -30,6 +30,7 @@ using WOTRMultiplayer.Entities.SpellbookManagement;
 using WOTRMultiplayer.Entities.Spells;
 using WOTRMultiplayer.Entities.Vendor;
 using WOTRMultiplayer.Services.GameInteraction.Contexts;
+using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.Services
 {
@@ -877,39 +878,9 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public int GetCombatSeed()
+        public SeededContext GetSeededContext()
         {
-            var seed = _multiplayerActorAccessor.Current?.CombatSeed ?? 0;
-            return seed;
-        }
-
-        public int GetCombatTurnSeed()
-        {
-            var seed = _multiplayerActorAccessor.Current?.CombatTurnSeed ?? 0;
-            return seed;
-        }
-
-        public int GetCrusadeArmyCombatSeed()
-        {
-            return _multiplayerActorAccessor.Current?.CrusadeArmyCombatSeed ?? 0;
-        }
-
-        public int GetSessionSeed()
-        {
-            var seed = _multiplayerActorAccessor.Current?.SessionSeed ?? 0;
-            return seed;
-        }
-
-        public int GetLoadedSaveSeed()
-        {
-            var seed = _multiplayerActorAccessor.Current?.LoadedSaveSeed ?? 0;
-            return seed;
-        }
-
-        public int GetAreaSeed()
-        {
-            var seed = _multiplayerActorAccessor.Current?.AreaSeed ?? 0;
-            return seed;
+            return _multiplayerActorAccessor.Current?.GetSeededContext();
         }
 
         public int? GetCrusadeArmyCombatAreaSeed()

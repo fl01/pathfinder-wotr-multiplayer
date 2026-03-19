@@ -7,7 +7,6 @@ using Kingmaker.RuleSystem;
 using Kingmaker.RuleSystem.Rules;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Extensions;
-using WOTRMultiplayer.Services.Random;
 using static Kingmaker.RuleSystem.RulebookEvent;
 
 namespace WOTRMultiplayer.HarmonyPatches.Rolls
@@ -78,19 +77,11 @@ namespace WOTRMultiplayer.HarmonyPatches.Rolls
             var targetUnitId = ruleCombatManeuver.Target?.UniqueId;
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-                var areaSeed = Main.Multiplayer.GetAreaSeed();
-                var combatSeed = Main.Multiplayer.GetCombatSeed();
-                var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
-
-                var lifetime = combatSeed == 0 ? IdentifierLifetime.Area : IdentifierLifetime.Combat;
-
-                var identifier = $"{nameof(RuleCombatManeuver)}:{nameof(ApplyCombatManeuver)}:{unitId}:{targetUnitId}:{ruleCombatManeuver.InitiatorRoll.Result}:{ruleCombatManeuver.TargetCMD}:{ruleCombatManeuver.Type}:{ruleCombatManeuver.AttackRule?.Weapon.Name}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}:{combatSeed}:{combatTurnSeed}";
-                var random = Main.Multiplayer.ValueGenerator.GetRandom(lifetime, identifier);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(RuleCombatManeuver)}:{nameof(ApplyCombatManeuver)}:{unitId}:{targetUnitId}:{ruleCombatManeuver.InitiatorRoll.Result}:{ruleCombatManeuver.TargetCMD}:{ruleCombatManeuver.Type}:{ruleCombatManeuver.AttackRule?.Weapon.Name}_{seededContext.Id}";
+                var random = Main.Multiplayer.ValueGenerator.GetRandom(seededContext.Lifetime, identifier);
                 var result = new DiceFormula(1, DiceType.D4).Roll(random);
-                Main.GetLogger<RuleCombatManeuverPatches>().LogInformation("Combat maneuver random duration has been rolled. Result={Result}, UnitId={UnitId}, TargetUnitId={TargetUnitId}, Type={Type}, IdentifierLifetime={IdentifierLifetime}, Identifier={Identifier}",
-                    result, unitId, targetUnitId, ruleCombatManeuver.Type, lifetime, identifier);
+                Main.GetLogger<RuleCombatManeuverPatches>().LogInformation("Combat maneuver random duration has been rolled. Result={Result}, UnitId={UnitId}, TargetUnitId={TargetUnitId}, Type={Type}, Identifier={Identifier}", result, unitId, targetUnitId, ruleCombatManeuver.Type, identifier);
 
                 return result;
             }

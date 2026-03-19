@@ -5,7 +5,6 @@ using Kingmaker.AreaLogic.Cutscenes;
 using Kingmaker.Controllers;
 using Kingmaker.View.Roaming;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.Roaming
 {
@@ -29,12 +28,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Roaming
                     return false;
                 }
 
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-                var areaSeed = Main.Multiplayer.GetAreaSeed();
-
-                var identifier = $"{nameof(RoamingWaypointData)}:{nameof(RoamingWaypointData.SelectCutscene)}:{Game.Instance.CurrentlyLoadedArea.name}:{__instance.UniqueId}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}";
-                int index = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, 0, maxExclusive);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(RoamingWaypointData)}:{nameof(RoamingWaypointData.SelectCutscene)}:{Game.Instance.CurrentlyLoadedArea.name}:{__instance.UniqueId}_{seededContext.Id}";
+                int index = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, 0, maxExclusive);
                 var cutscene = __instance.WaypointView.IdleCutscenes[index];
                 __result = cutscene.Get();
 
@@ -65,12 +61,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Roaming
                     return false;
                 }
 
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-                var areaSeed = Main.Multiplayer.GetAreaSeed();
-
-                var identifier = $"{nameof(RoamingWaypointData)}:{nameof(RoamingWaypointData.SelectPrevPoint)}:{Game.Instance.CurrentlyLoadedArea.name}:{__instance.UniqueId}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}";
-                int index = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, 0, maxExclusive);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(RoamingWaypointData)}:{nameof(RoamingWaypointData.SelectPrevPoint)}:{Game.Instance.CurrentlyLoadedArea.name}:{__instance.UniqueId}_{seededContext.Id}";
+                int index = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, 0, maxExclusive);
                 var waypoint = __instance.WaypointView.PrevWaypoints[index];
                 __result = waypoint.WaypointData;
 
@@ -101,12 +94,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Roaming
                     return false;
                 }
 
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-                var areaSeed = Main.Multiplayer.GetAreaSeed();
-
-                var identifier = $"{nameof(RoamingWaypointData)}:{nameof(RoamingWaypointData.SelectNextPoint)}:{Game.Instance.CurrentlyLoadedArea.name}:{__instance.UniqueId}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}";
-                int nextWaypointIndex = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, 0, maxExclusive);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(RoamingWaypointData)}:{nameof(RoamingWaypointData.SelectNextPoint)}:{Game.Instance.CurrentlyLoadedArea.name}:{__instance.UniqueId}_{seededContext.Id}";
+                int nextWaypointIndex = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, 0, maxExclusive);
                 NextWaypointEntry nextWaypointEntry = __instance.WaypointView.NextWaypoints[nextWaypointIndex];
                 __result = nextWaypointEntry.Waypoint?.WaypointData;
 
@@ -131,12 +121,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Roaming
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-                var areaSeed = Main.Multiplayer.GetAreaSeed();
-
-                var identifier = $"{nameof(RoamingWaypointData)}:{nameof(RoamingWaypointData.SelectIdleTime)}:{Game.Instance.CurrentlyLoadedArea.name}:{__instance.UniqueId}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}";
-                float idleTime = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, __instance.WaypointView.MinIdleTime, __instance.WaypointView.MaxIdleTime);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(RoamingWaypointData)}:{nameof(RoamingWaypointData.SelectIdleTime)}:{Game.Instance.CurrentlyLoadedArea.name}:{__instance.UniqueId}_{seededContext.Id}";
+                float idleTime = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, __instance.WaypointView.MinIdleTime, __instance.WaypointView.MaxIdleTime);
                 __result = idleTime.Seconds();
 
                 Main.GetLogger<RoamingWaypointDataPatches>().LogDebug("Selected idle time. Identifier={Identifier}, RawTime={RawTime}, Time={Time}, MinTimeRange={MinTimeRange}, MaxTimeRange={MaxTimeRange}", identifier, idleTime, __result, __instance.WaypointView.MinIdleTime, __instance.WaypointView.MaxIdleTime);

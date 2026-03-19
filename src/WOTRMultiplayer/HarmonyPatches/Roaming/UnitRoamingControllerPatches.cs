@@ -11,7 +11,6 @@ using Kingmaker.Utility;
 using Microsoft.Extensions.Logging;
 using UnityEngine;
 using WOTRMultiplayer.Extensions;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.Roaming
 {
@@ -94,13 +93,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Roaming
                     return null;
                 }
 
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-                var areaSeed = Main.Multiplayer.GetAreaSeed();
-
-                var identifier = $"{nameof(UnitRoamingController)}:{nameof(SelectIdleCutscene)}:{roaming.Owner.UniqueId}:{roaming.OriginalPoint}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}";
-
-                var cutsceneIndex = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, minInclusive, maxExclusive.Value);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(UnitRoamingController)}:{nameof(SelectIdleCutscene)}:{roaming.Owner.UniqueId}:{roaming.OriginalPoint}_{seededContext.Id}";
+                var cutsceneIndex = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, minInclusive, maxExclusive.Value);
                 var cutscene = cutscenes.ElementAt(cutsceneIndex);
                 Main.GetLogger<UnitRoamingControllerPatches>().LogDebug("Unit idle cutscene has been rolled. UnitId={UnitId}, Time={Time}, Identifier={Identifier}", roaming.Owner.UniqueId, cutscene.name, identifier);
                 return cutscene;
@@ -121,13 +116,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Roaming
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-                var areaSeed = Main.Multiplayer.GetAreaSeed();
-
-                var identifier = $"{nameof(UnitRoamingController)}:{nameof(RollIdleTime)}:{roaming.Owner.UniqueId}:{roaming.OriginalPoint}:{minInclusive}:{maxExclusive}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}";
-
-                var idleTime = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, minInclusive, maxExclusive);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(UnitRoamingController)}:{nameof(RollIdleTime)}:{roaming.Owner.UniqueId}:{roaming.OriginalPoint}:{minInclusive}:{maxExclusive}_{seededContext.Id}";
+                var idleTime = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, minInclusive, maxExclusive);
                 Main.GetLogger<UnitRoamingControllerPatches>().LogDebug("Unit idle time has been rolled. UnitId={UnitId}, Time={Time}, Identifier={Identifier}", roaming.Owner.UniqueId, idleTime, identifier);
                 return idleTime;
             }
@@ -147,13 +138,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Roaming
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-                var areaSeed = Main.Multiplayer.GetAreaSeed();
-
-                var identifier = $"{nameof(UnitRoamingController)}:{nameof(RollNextRoamingPoint)}:{roaming.Owner.UniqueId}:{roaming.OriginalPoint}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}";
-
-                var pointInCircle = Main.Multiplayer.ValueGenerator.GetRandomUnitCircle(IdentifierLifetime.Area, identifier);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(UnitRoamingController)}:{nameof(RollNextRoamingPoint)}:{roaming.Owner.UniqueId}:{roaming.OriginalPoint}_{seededContext.Id}";
+                var pointInCircle = Main.Multiplayer.ValueGenerator.GetRandomUnitCircle(seededContext.Lifetime, identifier);
                 Main.GetLogger<UnitRoamingControllerPatches>().LogDebug("Next unit roaming point has been rolled. UnitId={UnitId}, Point={Point}, Identifier={Identifier}", roaming.Owner.UniqueId, pointInCircle, identifier);
                 return pointInCircle.ToUnityVector2();
             }

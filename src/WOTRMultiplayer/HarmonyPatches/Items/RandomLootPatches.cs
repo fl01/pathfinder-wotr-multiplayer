@@ -6,7 +6,6 @@ using HarmonyLib;
 using Kingmaker;
 using Kingmaker.Blueprints.Loot;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.Items
 {
@@ -105,12 +104,10 @@ namespace WOTRMultiplayer.HarmonyPatches.Items
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-
-                var identifier = $"{nameof(BlueprintLoot)}:{nameof(GetBlueprintLootRandomizator)}:{Game.Instance.Player.GameId}:{blueprintLoot.Area?.name}:{blueprintLoot.Area?.AssetGuid.ToString()}:{blueprintLoot.Cost}:{sessionSeed}:{loadedSaveSeed}";
-                var randomizer = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.Area, identifier);
-                Main.GetLogger<RandomLootPatches>().LogInformation("Randomizer for BlueprintLoot has been initialized. Identifier={Identifier}, SessionSeed={SessionSeed}, LoadedSaveSeed={LoadedSaveSeed}", identifier, sessionSeed, loadedSaveSeed);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(BlueprintLoot)}:{nameof(GetBlueprintLootRandomizator)}:{Game.Instance.Player.GameId}:{blueprintLoot.Area?.name}:{blueprintLoot.Area?.AssetGuid.ToString()}:{blueprintLoot.Cost}_{seededContext.Id}";
+                var randomizer = Main.Multiplayer.ValueGenerator.GetRandom(seededContext.Lifetime, identifier);
+                Main.GetLogger<RandomLootPatches>().LogInformation("Randomizer for BlueprintLoot has been initialized. Identifier={Identifier}", identifier);
                 return randomizer.Next;
             }
             catch (Exception ex)
@@ -131,12 +128,10 @@ namespace WOTRMultiplayer.HarmonyPatches.Items
             {
                 var ownerBlueprintId = lootRandomItem.OwnerBlueprint.AssetGuid.ToString();
                 var ownerBlueprintName = lootRandomItem.OwnerBlueprint.name;
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-
-                var identifier = $"{nameof(LootRandomItem)}:{nameof(GetRandomLootItem)}:{Game.Instance.Player.GameId}:{ownerBlueprintId}:{ownerBlueprintName}:{sessionSeed}";
-                var roll = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, minInclusive, maxExclusive);
-                Main.GetLogger<RandomLootPatches>().LogInformation("Random unit loot item index has been rolled. Roll={Roll}, Identifier={Identifier}, MinInclusive={MinInclusive}, MaxExclusive={MaxExclusive}, SessionSeed={SessionSeed}, LoadedSaveSeed={LoadedSaveSeed}", roll, identifier, minInclusive, maxExclusive, sessionSeed, loadedSaveSeed);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(LootRandomItem)}:{nameof(GetRandomLootItem)}:{ownerBlueprintId}:{ownerBlueprintName}_{seededContext.Id}";
+                var roll = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, minInclusive, maxExclusive);
+                Main.GetLogger<RandomLootPatches>().LogInformation("Random unit loot item index has been rolled. Roll={Roll}, Identifier={Identifier}, MinInclusive={MinInclusive}, MaxExclusive={MaxExclusive}", roll, identifier, minInclusive, maxExclusive);
                 return roll;
             }
             catch (Exception ex)
@@ -157,12 +152,10 @@ namespace WOTRMultiplayer.HarmonyPatches.Items
             {
                 var ownerBlueprintId = lootRandomItem.OwnerBlueprint.AssetGuid.ToString();
                 var ownerBlueprintName = lootRandomItem.OwnerBlueprint.name;
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-
-                var identifier = $"{nameof(LootItemsPackVariable)}:{nameof(GetRandomLootItemsPack)}:{Game.Instance.Player.GameId}:{ownerBlueprintId}:{ownerBlueprintName}:{sessionSeed}:{loadedSaveSeed}";
-                var roll = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, minInclusive, maxExclusive);
-                Main.GetLogger<RandomLootPatches>().LogInformation("Random unitpack loot item index has been rolled. Roll={Roll}, Identifier={Identifier}, MinInclusive={MinInclusive}, MaxExclusive={MaxExclusive}, SessionSeed={SessionSeed}, LoadedSaveSeed={LoadedSaveSeed}", roll, identifier, minInclusive, maxExclusive, sessionSeed, loadedSaveSeed);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(LootItemsPackVariable)}:{nameof(GetRandomLootItemsPack)}:{ownerBlueprintId}:{ownerBlueprintName}_{seededContext.Id}";
+                var roll = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, minInclusive, maxExclusive);
+                Main.GetLogger<RandomLootPatches>().LogInformation("Random unitpack loot item index has been rolled. Roll={Roll}, Identifier={Identifier}, MinInclusive={MinInclusive}, MaxExclusive={MaxExclusive}", roll, identifier, minInclusive, maxExclusive);
                 return roll;
             }
             catch (Exception ex)

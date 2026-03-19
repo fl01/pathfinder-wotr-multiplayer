@@ -7,9 +7,7 @@ using WOTRMultiplayer.Abstractions.Hotkeys;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
-using WOTRMultiplayer.Abstractions.UI.Windows;
 using WOTRMultiplayer.Services;
-using WOTRMultiplayer.UI.Windows;
 
 namespace WOTRMultiplayer.UnitTests.Services
 {

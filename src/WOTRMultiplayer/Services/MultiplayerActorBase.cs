@@ -634,6 +634,19 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        public SeededContext GetSeededContext()
+        {
+            var lifetime = CombatTurnSeed == null ? IdentifierLifetime.Area : IdentifierLifetime.CombatTurn;
+            var identifier = $"{nameof(SessionSeed)}={SessionSeed}:{nameof(LoadedSaveSeed)}={LoadedSaveSeed ?? 0}:{nameof(AreaSeed)}={AreaSeed ?? 0}:{nameof(CombatSeed)}={CombatSeed ?? 0}:{nameof(CombatTurnSeed)}={CombatTurnSeed ?? 0}:{nameof(CrusadeArmyCombatAreaSeed)}={CrusadeArmyCombatAreaSeed ?? 0}:{nameof(CrusadeArmyCombatSeed)}={CrusadeArmyCombatSeed ?? 0}";
+            var context = new SeededContext
+            {
+                Id = identifier,
+                Lifetime = lifetime
+            };
+
+            return context;
+        }
+
         public bool CanUnitJoinCombat(string unitId, string groupId)
         {
             try

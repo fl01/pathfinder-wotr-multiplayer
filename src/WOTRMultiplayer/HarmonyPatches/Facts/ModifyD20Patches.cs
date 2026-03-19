@@ -5,7 +5,6 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using Kingmaker.Designers.Mechanics.Facts;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.Facts
 {
@@ -46,16 +45,10 @@ namespace WOTRMultiplayer.HarmonyPatches.Facts
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-                var areaSeed = Main.Multiplayer.GetAreaSeed();
-                var combatSeed = Main.Multiplayer.GetCombatSeed();
-                var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
-
-                var identifier = $"{nameof(ModifyD20)}:{nameof(RollChance)}:{modifyD20.Owner?.UniqueId}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}:{combatSeed}:{combatTurnSeed}";
-                var lifetime = combatSeed == 0 ? IdentifierLifetime.Area : IdentifierLifetime.CombatTurn;
-                var roll = Main.Multiplayer.ValueGenerator.Range(lifetime, identifier, minInclusive, maxExclusive);
-                Main.GetLogger<ModifyD20Patches>().LogInformation("ModifyD20 has been rolled. UnitId={UnitId}, Roll={Roll}, MinInclusive={MinInclusive}, MaxExclusive={MaxExclusive}, Lifetime={Lifetime}, Identifier={Identifier}", modifyD20.Owner?.UniqueId, minInclusive, maxExclusive, lifetime, identifier);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(ModifyD20)}:{nameof(RollChance)}:{modifyD20.Owner?.UniqueId}_{seededContext.Id}";
+                var roll = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, minInclusive, maxExclusive);
+                Main.GetLogger<ModifyD20Patches>().LogInformation("ModifyD20 has been rolled. UnitId={UnitId}, Roll={Roll}, MinInclusive={MinInclusive}, MaxExclusive={MaxExclusive}, Identifier={Identifier}", modifyD20.Owner?.UniqueId, minInclusive, maxExclusive, identifier);
                 return roll;
             }
             catch (Exception ex)

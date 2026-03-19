@@ -129,11 +129,9 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-
-                var identifier = $"{nameof(SimpleTrapObjectView)}:{nameof(OnRollTrapDisableDC)}:{blueprintTrap.name}:{blueprintTrap.AssetGuid}:{blueprintTrap.DisableDC.from}:{blueprintTrap.DisableDC.to}_{sessionSeed}:{loadedSaveSeed}";
-                var disableDC = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, blueprintTrap.DisableDC.from, blueprintTrap.DisableDC.to);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(SimpleTrapObjectView)}:{nameof(OnRollTrapDisableDC)}:{blueprintTrap.name}:{blueprintTrap.AssetGuid}:{blueprintTrap.DisableDC.from}:{blueprintTrap.DisableDC.to}_{seededContext.Id}";
+                var disableDC = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, blueprintTrap.DisableDC.from, blueprintTrap.DisableDC.to);
                 Main.GetLogger<TrapObjectDataPatches>().LogInformation("Trap disable dc has been rolled. TrapId={TrapId}, Result={Result}, Identifier={Identifier}", simpleTrapObjectView.UniqueId, disableDC, identifier);
                 return disableDC;
             }
@@ -153,11 +151,9 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-
-                var identifier = $"{nameof(SimpleTrapObjectView)}:{nameof(OnRollTrapPerceptionDC)}:{blueprintTrap.name}:{blueprintTrap.AssetGuid}:{blueprintTrap.PerceptionDC.from}:{blueprintTrap.PerceptionDC.to}_{sessionSeed}:{loadedSaveSeed}";
-                var perceptionDC = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, blueprintTrap.PerceptionDC.from, blueprintTrap.PerceptionDC.to);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(SimpleTrapObjectView)}:{nameof(OnRollTrapPerceptionDC)}:{blueprintTrap.name}:{blueprintTrap.AssetGuid}:{blueprintTrap.PerceptionDC.from}:{blueprintTrap.PerceptionDC.to}_{seededContext.Id}";
+                var perceptionDC = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, blueprintTrap.PerceptionDC.from, blueprintTrap.PerceptionDC.to);
                 Main.GetLogger<TrapObjectDataPatches>().LogInformation("Trap perception dc has been rolled. TrapId={TrapId}, Result={Result}, Identifier={Identifier}", simpleTrapObjectView.UniqueId, perceptionDC, identifier);
                 return perceptionDC;
             }
@@ -179,16 +175,10 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-                var areaSeed = Main.Multiplayer.GetAreaSeed();
-                var combatSeed = Main.Multiplayer.GetCombatSeed();
-                var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
-
-                var identifier = $"{nameof(SimpleTrapCastSpell)}:{nameof(OnApplyTrapAbility)}:{trapId}:{ability.NameForAcronym}:{blueprintTrap.name}:{blueprintTrap.AssetGuid}:{blueprintTrap.ActorStatMod.from}:{blueprintTrap.ActorStatMod.to}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}:{combatSeed}:{combatTurnSeed}";
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(SimpleTrapCastSpell)}:{nameof(OnApplyTrapAbility)}:{trapId}:{ability.NameForAcronym}:{blueprintTrap.name}:{blueprintTrap.AssetGuid}:{blueprintTrap.ActorStatMod.from}:{blueprintTrap.ActorStatMod.to}_{seededContext.Id}";
                 var casterModifer = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, blueprintTrap.ActorStatMod.from, blueprintTrap.ActorStatMod.to);
-                Main.GetLogger<TrapObjectDataPatches>().LogInformation("Trap caster modifier has been rolled. TrapId={TrapId}, AbilityName={AbilityName}, Result={Result}, Identifier={Identifier}",
-                    trapId, ability.NameForAcronym, casterModifer, identifier);
+                Main.GetLogger<TrapObjectDataPatches>().LogInformation("Trap caster modifier has been rolled. TrapId={TrapId}, AbilityName={AbilityName}, Result={Result}, Identifier={Identifier}", trapId, ability.NameForAcronym, casterModifer, identifier);
                 return casterModifer;
             }
             catch (Exception ex)

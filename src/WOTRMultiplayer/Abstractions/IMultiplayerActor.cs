@@ -22,6 +22,7 @@ using WOTRMultiplayer.Entities.Rest;
 using WOTRMultiplayer.Entities.SpellbookManagement;
 using WOTRMultiplayer.Entities.Spells;
 using WOTRMultiplayer.Entities.Vendor;
+using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.Abstractions
 {
@@ -57,19 +58,9 @@ namespace WOTRMultiplayer.Abstractions
 
         Action<List<KeyValuePair<long, int>>> OnSaveGameTransferProgressChanged { get; set; }
 
-        int SessionSeed { get; }
-
-        int? LoadedSaveSeed { get; }
-
-        int? AreaSeed { get; }
-
-        int? CombatTurnSeed { get; }
-
-        int? CombatSeed { get; }
+        SeededContext GetSeededContext();
 
         int? CrusadeArmyCombatAreaSeed { get; }
-
-        int? CrusadeArmyCombatSeed { get; }
 
         bool IsControlledByLocalPlayer(string unitId);
 

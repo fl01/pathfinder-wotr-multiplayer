@@ -6,7 +6,6 @@ using Kingmaker;
 using Kingmaker.DialogSystem;
 using Kingmaker.DialogSystem.Blueprints;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.Dialogs
 {
@@ -47,11 +46,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-                var areaSeed = Main.Multiplayer.GetAreaSeed();
-                var identifier = $"{nameof(CueSelection)}:{nameof(SelectRandomDialogCue)}:{Game.Instance.CurrentlyLoadedArea.name}:{cues.Count}:{Game.Instance.DialogController?.Dialog?.name}:{minInclusive}:{maxExclusive}:{sessionSeed}:{loadedSaveSeed}:{areaSeed}";
-                int index = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, minInclusive, maxExclusive);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(CueSelection)}:{nameof(SelectRandomDialogCue)}:{cues.Count}:{Game.Instance.DialogController?.Dialog?.name}:{minInclusive}:{maxExclusive}_{seededContext.Id}";
+                int index = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, minInclusive, maxExclusive);
                 var cue = cues[index];
                 Main.GetLogger<CueSelectionPatches>().LogInformation("Dialog cue has been selected. Index={Index}, CueName={CueName}, MinRange={MinRange}, MaxRange={MaxRange}, Identifier={Identifier}", index, cue.name, minInclusive, maxExclusive, identifier);
                 return index;

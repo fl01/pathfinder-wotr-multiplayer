@@ -4,7 +4,6 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using Kingmaker.UnitLogic.Parts;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.Combat
 {
@@ -48,11 +47,10 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
             try
             {
-                var combatSeed = Main.Multiplayer.GetCombatSeed();
-                var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
-                var uniqueId = $"{image.Source.Owner.Unit.UniqueId}:{nameof(UnitPartMirrorImage)}.{nameof(UnitPartMirrorImage.TryAbsorbHit)}:{combatSeed}:{combatTurnSeed}";
-                int absorbedCount = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.CombatTurn, uniqueId, minRange, maxRange);
-                Main.GetLogger<UnitPartMirrorImagePatches>().LogInformation("Mirror image absorbtion count has been generated. Id={Id}, Count={Count}, MinRange={MinRange}, MaxRange={MaxRange}", uniqueId, absorbedCount, minRange, maxRange);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{image.Source.Owner.Unit.UniqueId}:{nameof(UnitPartMirrorImage)}.{nameof(UnitPartMirrorImage.TryAbsorbHit)}_{seededContext.Id}";
+                int absorbedCount = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, minRange, maxRange);
+                Main.GetLogger<UnitPartMirrorImagePatches>().LogInformation("Mirror image absorbtion count has been generated. Id={Id}, Count={Count}, MinRange={MinRange}, MaxRange={MaxRange}", identifier, absorbedCount, minRange, maxRange);
 
                 return absorbedCount;
             }

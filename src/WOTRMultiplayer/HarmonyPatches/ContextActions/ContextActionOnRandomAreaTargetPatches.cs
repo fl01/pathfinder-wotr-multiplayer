@@ -8,7 +8,6 @@ using Kingmaker.EntitySystem.Entities;
 using Kingmaker.UnitLogic.Mechanics.Actions;
 using Kingmaker.Utility;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.ContextActions
 {
@@ -53,23 +52,16 @@ namespace WOTRMultiplayer.HarmonyPatches.ContextActions
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSave = Main.Multiplayer.GetLoadedSaveSeed();
-                var areaSeed = Main.Multiplayer.GetAreaSeed();
-                var combatSeed = Main.Multiplayer.GetCombatSeed();
-                var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
-                var armyCombatSeed = Main.Multiplayer.GetCrusadeArmyCombatSeed();
-
+                var seededContext = Main.Multiplayer.GetSeededContext();
                 var unitId = contextActionOnRandom.AbilityContext.MaybeOwner?.UniqueId;
                 var targetId = contextActionOnRandom.AbilityContext.MainTarget?.Unit?.UniqueId;
                 var abilityName = contextActionOnRandom.AbilityContext.NameForAcronym;
                 var attackNumber = contextActionOnRandom.AbilityContext.AttackRoll?.RuleAttackWithWeapon?.AttackNumber ?? -1;
                 var units = string.Join(",", targets.Select(x => x.UniqueId));
-                var lifetime = combatSeed == 0 ? IdentifierLifetime.Area : IdentifierLifetime.CombatTurn;
-                var identifier = $"{nameof(ContextActionOnRandomAreaTarget)}:{nameof(SelectRandomTarget)}:{units}:{unitId}:{targetId}:{abilityName}:{attackNumber}_{sessionSeed}:{loadedSave}:{areaSeed}:{combatSeed}:{combatTurnSeed}:{armyCombatSeed}";
-                var index = Main.Multiplayer.ValueGenerator.Range(lifetime, identifier, 0, targets.Count);
+                var identifier = $"{nameof(ContextActionOnRandomAreaTarget)}:{nameof(SelectRandomTarget)}:{units}:{unitId}:{targetId}:{abilityName}:{attackNumber}_{seededContext.Lifetime}";
+                var index = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, 0, targets.Count);
                 var unit = targets[index];
-                Main.GetLogger<ContextActionOnRandomAreaTargetPatches>().LogInformation("ContextActionOnRandomAreaTarget has been rolled. UnitId={UnitId}, Lifetime={Lifetime}, Identifier={Identifier}", unitId, lifetime, identifier);
+                Main.GetLogger<ContextActionOnRandomAreaTargetPatches>().LogInformation("ContextActionOnRandomAreaTarget has been rolled. UnitId={UnitId}, Identifier={Identifier}", unitId, identifier);
                 return unit;
             }
             catch (Exception ex)

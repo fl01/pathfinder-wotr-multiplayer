@@ -156,13 +156,11 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             try
             {
                 string id = null;
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSave = Main.Multiplayer.GetLoadedSaveSeed();
-
-                var identifier = $"{CommonTranspilerReplacements.GetSharedIdentifierPart()}:{blueprintSettlement.AssetGuid}:{blueprintGlobalMapPoint.AssetGuid}_{sessionSeed}:{loadedSave}";
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{CommonTranspilerReplacements.GetSharedIdentifierPart()}:{blueprintSettlement.AssetGuid}:{blueprintGlobalMapPoint.AssetGuid}_{seededContext.Id}";
                 while (string.IsNullOrEmpty(id))
                 {
-                    id = Main.Multiplayer.ValueGenerator.CreateGuid(IdentifierLifetime.Area, identifier).ToString();
+                    id = Main.Multiplayer.ValueGenerator.CreateGuid(seededContext.Lifetime, identifier).ToString();
                     var settlement = KingdomState.Instance.SettlementsManager.m_SettlementStates.FirstOrDefault(a => string.Equals(a.UniqueId, id, StringComparison.OrdinalIgnoreCase));
 
                     if (settlement != null)
@@ -192,12 +190,11 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             try
             {
                 string id = null;
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSave = Main.Multiplayer.GetLoadedSaveSeed();
-                var identifier = $"{CommonTranspilerReplacements.GetSharedIdentifierPart()}:{blueprint.AssetGuid}:{faction}_{sessionSeed}:{loadedSave}";
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{CommonTranspilerReplacements.GetSharedIdentifierPart()}:{blueprint.AssetGuid}:{faction}_{seededContext.Id}";
                 while (string.IsNullOrEmpty(id))
                 {
-                    id = Main.Multiplayer.ValueGenerator.CreateGuid(IdentifierLifetime.Area, identifier).ToString();
+                    id = Main.Multiplayer.ValueGenerator.CreateGuid(seededContext.Lifetime, identifier).ToString();
                     var army = Game.Instance.Player.ArmyLeadersManager.m_Leaders.FirstOrDefault(a => string.Equals(a.Guid, id, StringComparison.OrdinalIgnoreCase))
                         ?? (Main.UIAccessor.ArmyCartBuyLeaderPCView?.m_Leaders?.Select(x => x.ViewModel?.m_Leader) ?? []).FirstOrDefault(a => string.Equals(a.Guid, id, StringComparison.OrdinalIgnoreCase));
 
@@ -231,11 +228,11 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             try
             {
                 string id = null;
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var identifier = $"{CommonTranspilerReplacements.GetSharedIdentifierPart()}:{armyNameWithIndex.ArmyName}:{armyNameWithIndex.ArmyIndex}:{armyFaction}:{armyPreset?.AssetGuid.ToString()}:{position?.Location?.name}:{isGarrison}:{isTraveling}:{sessionSeed}";
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{CommonTranspilerReplacements.GetSharedIdentifierPart()}:{armyNameWithIndex.ArmyName}:{armyNameWithIndex.ArmyIndex}:{armyFaction}:{armyPreset?.AssetGuid.ToString()}:{position?.Location?.name}:{isGarrison}:{isTraveling}_{seededContext.Id}";
                 while (string.IsNullOrEmpty(id))
                 {
-                    id = Main.Multiplayer.ValueGenerator.CreateGuid(IdentifierLifetime.Area, identifier).ToString();
+                    id = Main.Multiplayer.ValueGenerator.CreateGuid(seededContext.Lifetime, identifier).ToString();
                     var army = GlobalMapController.State.Armies.FirstOrDefault(a => string.Equals(a.Id, id, StringComparison.OrdinalIgnoreCase));
                     if (army != null)
                     {
@@ -260,13 +257,11 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             {
                 return UnityEngine.Random.Range(minInclusive, maxExclusive);
             }
+
             try
             {
-
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-
-                var identifier = $"{nameof(ArmyRoot)}:{nameof(ArmyRoot.SummonTravellingArmy)}:{nameof(GetTravelingArmiesCount)}:{Game.Instance.Player.GameId}:{minInclusive}:{maxExclusive}:{chapterSpawnInfo.Chapter}_{sessionSeed}:{loadedSaveSeed}";
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(ArmyRoot)}:{nameof(ArmyRoot.SummonTravellingArmy)}:{nameof(GetTravelingArmiesCount)}:{Game.Instance.Player.GameId}:{minInclusive}:{maxExclusive}:{chapterSpawnInfo.Chapter}_{seededContext.Id}";
                 var armiesCount = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Persistent, identifier, minInclusive, maxExclusive);
                 Main.GetLogger<GlobalMapIdsPatches>().LogInformation("Travling armies count has been rolled. Count={Count}, MinInclusive={MinInclusive}, MaxExclusive={MaxExclusive}, Identifier={Identifier}", armiesCount, minInclusive, maxExclusive, identifier);
                 return armiesCount;
@@ -287,10 +282,8 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-
-                var identifier = $"{nameof(ArmyRoot)}:{nameof(ArmyRoot.SummonTravellingArmy)}:{nameof(GetTravelingArmyRandom)}:{Game.Instance.Player.GameId}:{chapterSpawnInfo.Chapter}_{sessionSeed}:{loadedSaveSeed}";
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(ArmyRoot)}:{nameof(ArmyRoot.SummonTravellingArmy)}:{nameof(GetTravelingArmyRandom)}:{Game.Instance.Player.GameId}:{chapterSpawnInfo.Chapter}_{seededContext.Id}";
                 var random = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.Persistent, identifier);
                 Main.GetLogger<GlobalMapIdsPatches>().LogInformation("Traveling army random has been initialized. Identifier={Identifier}");
                 return random;

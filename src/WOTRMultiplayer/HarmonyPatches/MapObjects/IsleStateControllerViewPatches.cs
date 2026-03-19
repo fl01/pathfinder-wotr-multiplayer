@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using Kingmaker.AreaLogic.AlushenyrraIsles;
-using Kingmaker.UI.MVVM._VM.Lockpick;
 
 namespace WOTRMultiplayer.HarmonyPatches.MapObjects
 {

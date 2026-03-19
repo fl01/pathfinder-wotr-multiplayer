@@ -7,7 +7,6 @@ using Kingmaker.Armies.TacticalCombat.Components;
 using Kingmaker.EntitySystem.Entities;
 using Microsoft.Extensions.Logging;
 using UnityEngine;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.Combat.Crusades
 {
@@ -49,9 +48,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat.Crusades
 
             try
             {
-                var crusadeCombatSeed = Main.Multiplayer.GetCrusadeArmyCombatSeed();
-                var identifier = $"{nameof(RunActionOnTurnStart)}:{nameof(RollActionChance)}:{unit.UniqueId}:{turnNumber}:{crusadeCombatSeed}";
-                float roll = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Combat, identifier, 0f, 1f);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(RunActionOnTurnStart)}:{nameof(RollActionChance)}:{unit.UniqueId}:{turnNumber}_{seededContext.Id}";
+                float roll = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, 0f, 1f);
                 Main.GetLogger<RunActionOnTurnStartPatches>().LogInformation("RunActionOnTurnStart has been rolled. UnitId={UnitId}, Roll={Roll}, Identifier={Identifier}", unit.UniqueId, roll, identifier);
                 return roll;
             }

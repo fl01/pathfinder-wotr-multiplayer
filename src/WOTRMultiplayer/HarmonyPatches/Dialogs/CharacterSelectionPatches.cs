@@ -12,7 +12,6 @@ using Kingmaker.UI.MVVM._VM.Dialog.BookEvent;
 using Kingmaker.UI.MVVM._VM.Dialog.Dialog;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Entities.Dialogs;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.Dialogs
 {
@@ -98,11 +97,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-                var areaSeed = Main.Multiplayer.GetAreaSeed();
-                var identifier = $"{nameof(CharacterSelection)}:{nameof(SelectRandomCharacter)}:{Game.Instance.CurrentlyLoadedArea.name}:{units.Length}:{Game.Instance.DialogController?.Dialog?.name}:{minInclusive}:{maxExclusive}:{sessionSeed}:{loadedSaveSeed}:{areaSeed}";
-                int index = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, minInclusive, maxExclusive);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(CharacterSelection)}:{nameof(SelectRandomCharacter)}:{Game.Instance.CurrentlyLoadedArea.name}:{units.Length}:{Game.Instance.DialogController?.Dialog?.name}:{minInclusive}:{maxExclusive}_{seededContext.Id}";
+                int index = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, minInclusive, maxExclusive);
                 var unit = units[index];
                 Main.GetLogger<CueSelectionPatches>().LogInformation("Dialog random unit has been selected. Index={Index}, UnitName={UnitName}, MinRange={MinRange}, MaxRange={MaxRange}, Identifier={Identifier}", index, unit.CharacterName, minInclusive, maxExclusive, identifier);
                 return index;

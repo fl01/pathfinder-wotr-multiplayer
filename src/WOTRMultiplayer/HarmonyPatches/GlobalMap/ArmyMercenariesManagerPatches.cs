@@ -1,6 +1,5 @@
 ﻿using System;
 using HarmonyLib;
-using Kingmaker;
 using Kingmaker.Armies;
 using Kingmaker.Armies.State;
 using Kingmaker.Blueprints.Root;
@@ -56,10 +55,8 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-
-                var identifier = $"{nameof(ArmyMercenariesManager)}.{nameof(ArmyMercenariesManager.RollSlots)}:{nameof(ArmyMercenariesManager_RollSlots_Prefix)}:{Game.Instance.Player.GameId}_{sessionSeed}:{loadedSaveSeed}";
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(ArmyMercenariesManager)}.{nameof(ArmyMercenariesManager.RollSlots)}:{nameof(ArmyMercenariesManager_RollSlots_Prefix)}:_{seededContext.Id}";
                 Main.GetLogger<ArmyMercenariesManagerPatches>().LogInformation("Random for Roll Mercenaries slots has been initialized. Identifer={Identifier}", identifier);
                 var random = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.Persistent, identifier);
 

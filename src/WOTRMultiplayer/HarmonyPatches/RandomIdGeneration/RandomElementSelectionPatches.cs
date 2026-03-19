@@ -10,7 +10,6 @@ using Kingmaker.Kingdom.Blueprints;
 using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.UnitLogic.Mechanics.Actions;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
 {
@@ -107,11 +106,9 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
                 return new Random();
             }
 
-            var sessionSeed = Main.Multiplayer.GetSessionSeed();
-            var combatSeed = Main.Multiplayer.GetCombatSeed();
-            var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
-            var identifier = $"{nameof(DublicateSpellComponent)}:{nameof(DublicateSpellComponent.GetNewTarget)}:{nameof(GetDuplicateSpellRandom)}:{Game.Instance.Player.GameId}:{ability.Caster?.Unit?.UniqueId}:{ability.NameForAcronym}:{baseTarget.UniqueId}:{sessionSeed}:{combatSeed}:{combatTurnSeed}";
-            var random = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.CombatTurn, identifier);
+            var seededContext = Main.Multiplayer.GetSeededContext();
+            var identifier = $"{nameof(DublicateSpellComponent)}:{nameof(DublicateSpellComponent.GetNewTarget)}:{nameof(GetDuplicateSpellRandom)}:{Game.Instance.Player.GameId}:{ability.Caster?.Unit?.UniqueId}:{ability.NameForAcronym}:{baseTarget.UniqueId}_{seededContext.Id}";
+            var random = Main.Multiplayer.ValueGenerator.GetRandom(seededContext.Lifetime, identifier);
             Main.GetLogger<RandomElementSelectionPatches>().LogInformation("Duplicate spell target random has been initialized. Identifier={Identifier}", identifier);
             return random;
         }
@@ -125,9 +122,9 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var identifier = $"{nameof(LeadersRoot)}:{nameof(LeadersRoot.GetLeadersForRecruit)}:{nameof(GetLeadersForRecruitRandom)}:{sessionSeed}:{Game.Instance.Player.GameId}";
-                var random = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.Area, identifier);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(LeadersRoot)}:{nameof(LeadersRoot.GetLeadersForRecruit)}:{nameof(GetLeadersForRecruitRandom)}_{seededContext.Id}";
+                var random = Main.Multiplayer.ValueGenerator.GetRandom(seededContext.Lifetime, identifier);
                 Main.GetLogger<RandomElementSelectionPatches>().LogInformation("Leaders for recruit random has been initialized. Identifier={Identifier}", identifier);
                 return random;
             }
@@ -147,10 +144,9 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var crusadeCombatSeed = Main.Multiplayer.GetCrusadeArmyCombatSeed();
-                var identifier = $"{nameof(SquadsActionOnTacticalCombatStart)}:{nameof(SquadsActionOnTacticalCombatStart.HandleCombatStart)}:{nameof(GetSquadsActionOnCombatStartRandom)}:{Game.Instance.Player.GameId}:{sessionSeed}:{crusadeCombatSeed}";
-                var random = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.Combat, identifier);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(SquadsActionOnTacticalCombatStart)}:{nameof(SquadsActionOnTacticalCombatStart.HandleCombatStart)}:{nameof(GetSquadsActionOnCombatStartRandom)}_{seededContext.Id}";
+                var random = Main.Multiplayer.ValueGenerator.GetRandom(seededContext.Lifetime, identifier);
                 Main.GetLogger<RandomElementSelectionPatches>().LogInformation("Squads action on combat start random has been initialized. Identifier={Identifier}", identifier);
                 return random;
             }

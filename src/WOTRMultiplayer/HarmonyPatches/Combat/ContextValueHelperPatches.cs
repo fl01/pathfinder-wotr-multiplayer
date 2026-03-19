@@ -7,7 +7,6 @@ using Kingmaker.RuleSystem.Rules;
 using Kingmaker.UnitLogic.Mechanics;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Extensions;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.Combat
 {
@@ -52,21 +51,14 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             var targetUnitId = context?.MainTarget?.Unit?.UniqueId;
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-                var areaSeed = Main.Multiplayer.GetAreaSeed();
-                var combatSeed = Main.Multiplayer.GetCombatSeed();
-                var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
-
-                var lifetime = combatSeed == 0 ? IdentifierLifetime.Area : IdentifierLifetime.Combat;
-
+                var seededContext = Main.Multiplayer.GetSeededContext();
                 var abilityName = context.SourceAbility?.NameForAcronym;
                 var itemName = context.SourceItem?.NameForAcronym;
-                var identifier = $"{nameof(ContextValueHelper)}:{nameof(RollDice)}:{context.NameForAcronym}:{unitId}:{targetUnitId}:{context.SourceAbility?.AssetGuid.ToString()}:{abilityName}:{itemName}:{ruleRollDice.DiceFormula.Rolls}:{ruleRollDice.DiceFormula.Dice}_{sessionSeed}:{loadedSaveSeed}:{areaSeed}:{combatSeed}:{combatTurnSeed}";
-                var random = Main.Multiplayer.ValueGenerator.GetRandom(lifetime, identifier);
+                var identifier = $"{nameof(ContextValueHelper)}:{nameof(RollDice)}:{context.NameForAcronym}:{unitId}:{targetUnitId}:{context.SourceAbility?.AssetGuid.ToString()}:{abilityName}:{itemName}:{ruleRollDice.DiceFormula.Rolls}:{ruleRollDice.DiceFormula.Dice}_{seededContext.Id}";
+                var random = Main.Multiplayer.ValueGenerator.GetRandom(seededContext.Lifetime, identifier);
                 var result = ruleRollDice.DiceFormula.Roll(random);
                 Main.GetLogger<ContextValueHelperPatches>().LogInformation("Ability/Item random value has been rolled. Name={Name}, Result={Result}, UnitId={UnitId}, TargetUnitId={TargetUnitId}, AbilityName={AbilityName}, ItemName={ItemName}, DiceRolls={DiceRolls}, Dice={Dice}, IdentifierLifetime={IdentifierLifetime}, Identifier={Identifier}",
-                    context.NameForAcronym, result, unitId, targetUnitId, abilityName, itemName, ruleRollDice.DiceFormula.Rolls, ruleRollDice.DiceFormula.Dice, lifetime, identifier);
+                    context.NameForAcronym, result, unitId, targetUnitId, abilityName, itemName, ruleRollDice.DiceFormula.Rolls, ruleRollDice.DiceFormula.Dice, seededContext.Lifetime, identifier);
                 return result;
             }
             catch (Exception ex)

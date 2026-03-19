@@ -8,7 +8,6 @@ using Kingmaker.ElementsSystem;
 using Kingmaker.UnitLogic.Mechanics.Actions;
 using Kingmaker.Utility;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.ContextActions
 {
@@ -95,23 +94,16 @@ namespace WOTRMultiplayer.HarmonyPatches.ContextActions
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSave = Main.Multiplayer.GetLoadedSaveSeed();
-                var areaSeed = Main.Multiplayer.GetAreaSeed();
-                var combatSeed = Main.Multiplayer.GetCombatSeed();
-                var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
-                var armyCombatSeed = Main.Multiplayer.GetCrusadeArmyCombatSeed();
-
+                var seededContext = Main.Multiplayer.GetSeededContext();
                 var unitId = contextActionRandomize.AbilityContext?.MaybeOwner?.UniqueId;
                 var targetId = contextActionRandomize.AbilityContext?.MainTarget?.Unit?.UniqueId;
                 var abilityName = contextActionRandomize.AbilityContext?.NameForAcronym;
                 var attackNumber = contextActionRandomize.AbilityContext?.AttackRoll?.RuleAttackWithWeapon?.AttackNumber ?? -1;
-                var lifetime = combatSeed == 0 ? IdentifierLifetime.Area : IdentifierLifetime.CombatTurn;
-                var identifier = $"{nameof(ContextActionRandomize)}.{nameof(ContextActionRandomize.ActionWrapper)}:{nameof(RollRandomAction)}:{unitId}:{targetId}:{abilityName}:{attackNumber}_{sessionSeed}:{loadedSave}:{areaSeed}:{combatSeed}:{combatTurnSeed}:{armyCombatSeed}";
-                var index = Main.Multiplayer.ValueGenerator.Range(lifetime, identifier, 0, actions.Count);
+                var identifier = $"{nameof(ContextActionRandomize)}.{nameof(ContextActionRandomize.ActionWrapper)}:{nameof(RollRandomAction)}:{unitId}:{targetId}:{abilityName}:{attackNumber}_{seededContext.Id}";
+                var index = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, 0, actions.Count);
                 var action = actions[index];
                 var actionsToRun = string.Join(",", action?.Action?.Actions?.Select(x => x.ToString()));
-                Main.GetLogger<ContextActionRandomizePatches>().LogInformation("ContextActionRandomize Random Wrapper has been rolled. UnitId={UnitId}, ActionsToRun={ActionsToRun}, Lifetime={Lifetime}, Identifier={Identifier}", unitId, actionsToRun, lifetime, identifier);
+                Main.GetLogger<ContextActionRandomizePatches>().LogInformation("ContextActionRandomize Random Wrapper has been rolled. UnitId={UnitId}, ActionsToRun={ActionsToRun}, Identifier={Identifier}", unitId, actionsToRun, identifier);
                 return action;
             }
             catch (Exception ex)
@@ -130,21 +122,14 @@ namespace WOTRMultiplayer.HarmonyPatches.ContextActions
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSave = Main.Multiplayer.GetLoadedSaveSeed();
-                var areaSeed = Main.Multiplayer.GetAreaSeed();
-                var combatSeed = Main.Multiplayer.GetCombatSeed();
-                var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
-                var armyCombatSeed = Main.Multiplayer.GetCrusadeArmyCombatSeed();
-
+                var seededContext = Main.Multiplayer.GetSeededContext();
                 var unitId = contextActionRandomize.AbilityContext?.MaybeOwner?.UniqueId ?? contextActionRandomize.Context?.MaybeCaster?.UniqueId;
                 var targetId = contextActionRandomize.AbilityContext?.MainTarget?.Unit?.UniqueId;
                 var abilityName = contextActionRandomize.AbilityContext?.NameForAcronym;
                 var attackNumber = contextActionRandomize.AbilityContext?.AttackRoll?.RuleAttackWithWeapon?.AttackNumber ?? -1;
-                var lifetime = combatSeed == 0 ? IdentifierLifetime.Area : IdentifierLifetime.CombatTurn;
-                var identifier = $"{nameof(ContextActionRandomize)}:{nameof(RollRandomWeightedActionIndex)}:{minInclusive}:{maxExclusive}:{unitId}:{targetId}:{abilityName}:{attackNumber}_{sessionSeed}:{loadedSave}:{areaSeed}:{combatSeed}:{combatTurnSeed}:{armyCombatSeed}";
-                var index = Main.Multiplayer.ValueGenerator.Range(lifetime, identifier, minInclusive, maxExclusive);
-                Main.GetLogger<ContextActionRandomizePatches>().LogInformation("ContextActionRandomize WeightedRandom has been rolled. UnitId={UnitId}, Index={Index}, Lifetime={Lifetime}, Identifier={Identifier}", unitId, index, lifetime, identifier);
+                var identifier = $"{nameof(ContextActionRandomize)}:{nameof(RollRandomWeightedActionIndex)}:{minInclusive}:{maxExclusive}:{unitId}:{targetId}:{abilityName}:{attackNumber}_{seededContext.Id}";
+                var index = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, minInclusive, maxExclusive);
+                Main.GetLogger<ContextActionRandomizePatches>().LogInformation("ContextActionRandomize WeightedRandom has been rolled. UnitId={UnitId}, Index={Index}, Identifier={Identifier}", unitId, index, identifier);
                 return index;
             }
             catch (Exception ex)

@@ -8,7 +8,6 @@ using Kingmaker.EntitySystem.Entities;
 using Kingmaker.RuleSystem;
 using Kingmaker.RuleSystem.Rules;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.Combat.Crusades
 {
@@ -52,9 +51,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat.Crusades
 
             try
             {
-                var crusadeCombatSeed = Main.Multiplayer.GetCrusadeArmyCombatSeed();
-                var identifier = $"{nameof(TacticalCombatConfusion)}:{nameof(RollConfusionEffect)}:{unit.UniqueId}:{turnNumber}:{crusadeCombatSeed}";
-                int roll = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Combat, identifier, 1, 101);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(TacticalCombatConfusion)}:{nameof(RollConfusionEffect)}:{unit.UniqueId}:{turnNumber}_{seededContext.Id}";
+                int roll = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, 1, 101);
                 Main.GetLogger<RunActionOnTurnStartPatches>().LogInformation("TacticalCombatConfusion effect has been rolled. UnitId={UnitId}, Roll={Roll}, Identifier={Identifier}", unit.UniqueId, roll, identifier);
                 return roll;
             }

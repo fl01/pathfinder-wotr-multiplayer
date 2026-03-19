@@ -1277,16 +1277,9 @@ namespace WOTRMultiplayer.Services
             {
                 var rollIdentifier = roll.GetIdString();
 
-                var sessionSeed = _multiplayerActorAccessor.Current.SessionSeed;
-                var loadedSaveSeed = _multiplayerActorAccessor.Current.LoadedSaveSeed;
-                var areaSeed = _multiplayerActorAccessor.Current.AreaSeed;
-                var combatSeed = _multiplayerActorAccessor.Current.CombatSeed;
-                var combatTurnSeed = _multiplayerActorAccessor.Current.CombatTurnSeed;
-                var crusadeCombatSeed = _multiplayerActorAccessor.Current.CrusadeArmyCombatSeed;
-                var lifetime = combatTurnSeed == null ? IdentifierLifetime.Area : IdentifierLifetime.CombatTurn;
-
-                var identifier = $"{rollIdentifier}_ss={sessionSeed}:ls={loadedSaveSeed}:as={areaSeed}:cs={combatSeed ?? 0}:cts={combatTurnSeed ?? 0}:ccs={crusadeCombatSeed ?? 0}";
-                var (history, result) = RollDice(lifetime, identifier, diceFormula, rerollAmount);
+                var seededContext = _multiplayerActorAccessor.Current.GetSeededContext();
+                var identifier = $"{rollIdentifier}_{seededContext.Id}";
+                var (history, result) = RollDice(seededContext.Lifetime, identifier, diceFormula, rerollAmount);
                 var outcome = new DeterministicRollOutcome
                 {
                     History = history,
@@ -1296,7 +1289,7 @@ namespace WOTRMultiplayer.Services
                 };
 
                 _logger.LogInformation("{RuleName} has been rolled deterministicaly. Type={Type}, UnitId={UnitId}, RollId={RollId}, Result={Result}, History={History}, Lifetime={Lifetime}, Identifier={Identifier}",
-                    roll.RuleName, roll.RollType, roll.InitiatorId, outcome.RollId, outcome.Result, outcome.History, lifetime, outcome.Identifier);
+                    roll.RuleName, roll.RollType, roll.InitiatorId, outcome.RollId, outcome.Result, outcome.History, seededContext.Lifetime, outcome.Identifier);
 
                 return outcome;
             }

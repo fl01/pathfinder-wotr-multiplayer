@@ -10,7 +10,6 @@ using Kingmaker.RuleSystem.Rules;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions.GameInteraction.CombatLog;
 using WOTRMultiplayer.Extensions;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.Combat
 {
@@ -52,12 +51,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
-                var combatSeed = Main.Multiplayer.GetCombatSeed();
-                var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
-                var identifier = $"{nameof(UnitConfusionController)}:{nameof(RollConfusionEffect)}:{unit.UniqueId}_{sessionSeed}:{loadedSaveSeed}:{combatSeed}:{combatTurnSeed}";
-                var random = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.CombatTurn, identifier);
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(UnitConfusionController)}:{nameof(RollConfusionEffect)}:{unit.UniqueId}_{seededContext.Id}";
+                var random = Main.Multiplayer.ValueGenerator.GetRandom(seededContext.Lifetime, identifier);
                 var result = ruleRollDice.DiceFormula.Roll(random);
                 Main.GetLogger<UnitConfusionControllerPatches>().LogInformation("UnitConfusionController condition has been rolled. UnitId={UnitId}, Roll={Roll}, Identifier={Identifier}", unit.UniqueId, result, identifier);
                 Main.PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Conditions.Confusion.Key, CombatTextSeverity.Debug, result, new UnitLogParameter(unit.UniqueId));

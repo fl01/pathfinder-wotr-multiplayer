@@ -54,10 +54,10 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 return null;
             }
 
-            var loadedSaveSeed = Main.Multiplayer.GetLoadedSaveSeed();
+            var seededContext = Main.Multiplayer.GetSeededContext();
             var minInclusive = 0;
             var maxExclusive = allBanters.Count;
-            var seed = $"{nameof(BarkBanterHelper)}:{nameof(SelectBanter)}:{loadedSaveSeed}";
+            var seed = $"{nameof(BarkBanterHelper)}:{nameof(SelectBanter)}_{seededContext.Id}";
             var banterIndex = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Persistent, seed, minInclusive, maxExclusive);
             var selectedBanter = allBanters[banterIndex];
             var firstPhraseKey = selectedBanter?.FirstPhrase?.FirstOrDefault()?.Key;

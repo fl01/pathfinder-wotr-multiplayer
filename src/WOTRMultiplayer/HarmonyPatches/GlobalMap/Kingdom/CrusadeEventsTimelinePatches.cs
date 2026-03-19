@@ -8,7 +8,6 @@ using Kingmaker.Kingdom.Blueprints;
 using Kingmaker.Utility;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.HarmonyPatches.ContextActions;
-using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.GlobalMap.Kingdom
 {
@@ -65,12 +64,10 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap.Kingdom
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSave = Main.Multiplayer.GetLoadedSaveSeed();
-
+                var seededContext = Main.Multiplayer.GetSeededContext();
                 var nextEventStartDay = crusadeEventsTimeline.NextEventStartDay;
-                var identifier = $"{nameof(CrusadeEventsTimeline)}:{nameof(RollRandomEvent)}:{nextEventStartDay}_{sessionSeed}:{loadedSave}";
-                var index = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, 0, events.Count);
+                var identifier = $"{nameof(CrusadeEventsTimeline)}:{nameof(RollRandomEvent)}:{nextEventStartDay}_{seededContext.Id}";
+                var index = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, 0, events.Count);
                 var randomEvent = events[index];
                 Main.GetLogger<CrusadeEventsTimelinePatches>().LogInformation("CrusadeEventsTimeline Random event has been rolled. EventId={EventId}, EventName={EventName}, Identifier={Identifier}", randomEvent.AssetGuid.ToString(), randomEvent.name, identifier);
                 return randomEvent;
@@ -91,13 +88,10 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap.Kingdom
 
             try
             {
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var loadedSave = Main.Multiplayer.GetLoadedSaveSeed();
-                var areaSeed = Main.Multiplayer.GetAreaSeed();
-
+                var seededContext = Main.Multiplayer.GetSeededContext();
                 var eventsCount = crusadeEventsTimeline.m_CurrentEventList.Events.Length;
-                var identifier = $"{nameof(CrusadeEventsTimeline)}:{nameof(RollNextEventDelay)}:{eventsCount}:{minInclusive}:{maxExclusive}:{sessionSeed}:{loadedSave}:{areaSeed}";
-                var delay = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.Area, identifier, minInclusive, maxExclusive);
+                var identifier = $"{nameof(CrusadeEventsTimeline)}:{nameof(RollNextEventDelay)}:{eventsCount}:{minInclusive}:{maxExclusive}_{seededContext.Id}";
+                var delay = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, minInclusive, maxExclusive);
                 Main.GetLogger<ContextActionRandomizePatches>().LogInformation("CrusadeEventsTimeline next event delay has been rolled. Delay={Delay}, Identifier={Identifier}", delay, identifier);
                 return delay;
             }

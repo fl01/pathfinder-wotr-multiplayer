@@ -57,19 +57,17 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 var targetId = attackRoll?.Target.UniqueId;
                 var weaponName = attackRoll?.Weapon?.NameForAcronym;
                 var weaponId = attackRoll?.Weapon?.Blueprint.AssetGuid;
-                var sessionSeed = Main.Multiplayer.GetSessionSeed();
-                var combatSeed = Main.Multiplayer.GetCombatSeed();
-                var combatTurnSeed = Main.Multiplayer.GetCombatTurnSeed();
-                var identifier = $"{nameof(Projectile)}:{nameof(CalculateFallOnMiss)}:{initiatorId}:{targetId}:{weaponName}:{weaponId}:{attackRoll?.IsCriticalRoll}:{attackRoll?.AttackType}:{attackWithWeapon?.AttackNumber}:{attackWithWeapon?.AttacksCount}:{sessionSeed}:{combatSeed}:{combatTurnSeed}";
+                var seededContext = Main.Multiplayer.GetSeededContext();
+                var identifier = $"{nameof(Projectile)}:{nameof(CalculateFallOnMiss)}:{initiatorId}:{targetId}:{weaponName}:{weaponId}:{attackRoll?.IsCriticalRoll}:{attackRoll?.AttackType}:{attackWithWeapon?.AttackNumber}:{attackWithWeapon?.AttacksCount}_{seededContext.Id}";
 
                 var pointInCircle = Main.Multiplayer.ValueGenerator.GetRandomUnitCircle(IdentifierLifetime.CombatTurn, identifier);
 
                 var minOffset = Mathf.Min(projectile.Blueprint.MissMinRadius + cameraOffset, projectile.Blueprint.MissMaxRadius);
                 var maxOffset = projectile.Blueprint.MissMaxRadius;
-                var offset = Main.Multiplayer.ValueGenerator.Range(IdentifierLifetime.CombatTurn, identifier, minOffset, maxOffset);
+                var offset = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, minOffset, maxOffset);
 
                 var resultedPoint = pointInCircle.ToUnityVector2().normalized * offset;
-                Main.GetLogger<ProjectilesPatches>().LogInformation("Projectile fall on miss has been calculated. InitiatorId={InitiatorId}, TargetId={TargetId}, WeaponName={WeaponName}, WeaponId={WeaponId}, Point={Point}, TurnSeed={TurnSeed}", initiatorId, targetId, weaponName, weaponId, resultedPoint, combatTurnSeed);
+                Main.GetLogger<ProjectilesPatches>().LogInformation("Projectile fall on miss has been calculated. InitiatorId={InitiatorId}, TargetId={TargetId}, Point={Point}, WeaponName={WeaponName}, Identifier={Identifier}", initiatorId, targetId, resultedPoint, weaponName, identifier);
                 return resultedPoint;
             }
             catch (Exception ex)
