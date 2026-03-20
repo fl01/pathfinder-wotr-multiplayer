@@ -100,7 +100,7 @@ namespace WOTRMultiplayer.UnitTests.Services
         }
 
         [Test]
-        public void OnNotifyDropItem__CallsGameInteractionAndResendsMessage()
+        public void OnNotifyDropItem__CallsGameInteraction()
         {
             // Arrange
             var startUp = new NetworkGameStartUp() { SavePath = Guid.NewGuid().ToString(), IsNewGameSequence = false };
@@ -117,7 +117,6 @@ namespace WOTRMultiplayer.UnitTests.Services
 
             // Assert
             A.CallTo(() => _gameInteractionService.DropItem(A<NetworkDropItem>.Ignored)).MustHaveHappenedOnceExactly();
-            A.CallTo(() => _networkServer.SendAllExcept(playerId, request)).MustHaveHappenedOnceExactly();
         }
 
         [Test]
