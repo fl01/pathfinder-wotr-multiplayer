@@ -43,6 +43,7 @@ jobs:
       LOCALIZATION_PATH: ".\\localization"
       BUILD_PATH: ".\\src\\WOTRMultiplayer\\bin\\Release\\net481"
       RELEASE_OUTPUT_PATH: ".\\__releases\\00_WOTRMultiplayer"
+      REFS_OUTPUT_PATH: ".\\__refs"
       CURRENT_VERSION: ${{needs.get-version.outputs.version}}
     runs-on: windows-latest
 
@@ -111,12 +112,21 @@ jobs:
           xcopy /q /y "${{ env.BUILD_PATH }}\FluentValidation.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
 
           xcopy /q /y "${{ env.LOCALIZATION_PATH }}\*.json" "${{ env.RELEASE_OUTPUT_PATH }}\localization\*"
-
       - name: Upload Release
         uses: actions/upload-artifact@v4
         with:
           name: wotr-multiplayer-${{ env.CURRENT_VERSION }}
           path: "${{ github.workspace }}/__releases/"
+          retention-days: 3
+      - name: Prepare Refs
+        run: |
+          mkdir -p ${{ env.REFS_OUTPUT_PATH }}
+          find ./src -type f -path "*/obj/Release/net481/ref/*.dll" -exec cp {} ${{ env.REFS_OUTPUT_PATH }} \;
+      - name: Upload Refs
+        uses: actions/upload-artifact@v4
+        with:
+          name: wotr-multiplayer-refs-${{ env.CURRENT_VERSION }}
+          path: "${{ env.REFS_OUTPUT_PATH }}"
           retention-days: 3
       - name: Combine Coverage Reports
         if: always()
