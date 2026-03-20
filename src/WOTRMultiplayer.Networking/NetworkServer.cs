@@ -12,7 +12,6 @@ using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Awaiters;
 using WOTRMultiplayer.Networking.Consuming;
 using WOTRMultiplayer.Networking.Messages;
-using WOTRMultiplayer.Networking.Messages.Lobby;
 
 namespace WOTRMultiplayer.Networking
 {
@@ -84,6 +83,7 @@ namespace WOTRMultiplayer.Networking
             }
 
             _logger.LogObject(LogLevel.Information, "Sending {MessageType} to Player {PlayerId}.", message, clientId);
+
             _server.AppServer.Send(message, session);
         }
 
@@ -112,11 +112,7 @@ namespace WOTRMultiplayer.Networking
 
         public void SendAll(object message)
         {
-            if (message is not NotifySaveGameChunkCreated and not NotifySaveGameTransferProgressChanged)
-            {
-                _logger.LogObject(LogLevel.Information, "Sending {MessageType}.", message);
-            }
-
+            _logger.LogObject(LogLevel.Information, "Sending {MessageType}.", message);
             var sessions = _server.AppServer.GetOnlines();
             _server.AppServer.Send(message, sessions);
         }

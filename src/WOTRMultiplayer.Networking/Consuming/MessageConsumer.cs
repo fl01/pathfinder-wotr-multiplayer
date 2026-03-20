@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Logging.Extensions;
 using WOTRMultiplayer.Networking.Abstractions;
-using WOTRMultiplayer.Networking.Messages.Lobby;
 
 namespace WOTRMultiplayer.Networking.Consuming
 {
@@ -83,10 +82,7 @@ namespace WOTRMultiplayer.Networking.Consuming
                         continue;
                     }
 
-                    if (metadata.Message is not NotifySaveGameChunkCreated and not NotifySaveGameTransferProgressChanged and not NotifySaveGameChunkReceived)
-                    {
-                        _logger.LogObject(LogLevel.Information, "Received {MessageType}. ReceivedFrom={ReceivedFrom}, Consumers={Consumers}", metadata.Message, metadata.PlayerId, configuredHandlers.Count);
-                    }
+                    _logger.LogObject(LogLevel.Information, "Received {MessageType}. ReceivedFrom={ReceivedFrom}, Consumers={Consumers}", metadata.Message, metadata.PlayerId, configuredHandlers.Count);
 
                     var handlers = configuredHandlers.ToList();
                     foreach (var handler in handlers)

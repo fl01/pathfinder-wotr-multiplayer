@@ -71,7 +71,7 @@ namespace WOTRMultiplayer
                 throw;
             }
 
-            _logger.LogInformation("Loading mod");
+            _logger.LogInformation("Loading mod. ConsoleLogLevel={ConsoleLogLevel}, FileLogLevel={FileLogLevel}", (LogEventLevel)ModManagerSettings.ConsoleMinimumLogLevel, (LogEventLevel)ModManagerSettings.FileMinimumLogLevel);
 
             try
             {

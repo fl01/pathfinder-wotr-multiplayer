@@ -148,7 +148,7 @@ namespace WOTRMultiplayer.HarmonyPatches.ContextActions
 
             // TODO: check if this needs to by synced
             var value = salt.GetValue();
-            Main.GetLogger<ContextActionRandomizePatches>().LogWarning("ContextActionRandomize Salt value evaluated. Result={Result}, UnitId={UnitId}, AbilityName={AbilityName}", contextActionRandomize.AbilityContext?.Caster?.UniqueId, contextActionRandomize.AbilityContext?.NameForAcronym);
+            Main.GetLogger<ContextActionRandomizePatches>().LogWarning("ContextActionRandomize Salt value evaluated. Result={Result}, UnitId={UnitId}, AbilityName={AbilityName}", value, contextActionRandomize.AbilityContext?.Caster?.UniqueId, contextActionRandomize.AbilityContext?.NameForAcronym);
             return value;
         }
 
@@ -161,7 +161,7 @@ namespace WOTRMultiplayer.HarmonyPatches.ContextActions
 
             // TODO: check if this needs to by synced
             var value = seed.GetValue();
-            Main.GetLogger<ContextActionRandomizePatches>().LogWarning("ContextActionRandomize Seed value evaluated. Result={Result}, UnitId={UnitId}, AbilityName={AbilityName}", contextActionRandomize.AbilityContext?.Caster?.UniqueId, contextActionRandomize.AbilityContext?.NameForAcronym);
+            Main.GetLogger<ContextActionRandomizePatches>().LogWarning("ContextActionRandomize Seed value evaluated. Result={Result}, UnitId={UnitId}, AbilityName={AbilityName}", value, contextActionRandomize.AbilityContext?.Caster?.UniqueId, contextActionRandomize.AbilityContext?.NameForAcronym);
             return value;
         }
     }

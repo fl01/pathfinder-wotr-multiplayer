@@ -19,10 +19,10 @@ namespace WOTRMultiplayer.Logging.Object
         public static Dictionary<string, object> GetLoggingInfo(object message)
         {
             var result = new Dictionary<string, object>();
-            var type = message?.GetType();
+            var type = message.GetType();
             if (type == null || !_metadata.TryGetValue(type, out var typeMetadata))
             {
-                return result;
+                return null;
             }
 
             foreach (var metadata in typeMetadata)
@@ -53,6 +53,11 @@ namespace WOTRMultiplayer.Logging.Object
 
             foreach (var type in types)
             {
+                if (type.GetCustomAttribute<ExcludeFromLogging>() != null)
+                {
+                    continue;
+                }
+
                 if (!processedRoots.Add(type))
                 {
                     continue;

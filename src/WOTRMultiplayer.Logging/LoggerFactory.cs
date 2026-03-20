@@ -17,11 +17,12 @@ namespace WOTRMultiplayer.Logging
 
             var template = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level}] {SourceContext}: {Message:lj}{NewLine}{Exception}";
             var logConfig = new LoggerConfiguration()
+                .MinimumLevel.Debug()
                 .Enrich.With(new ClassNameEnricher());
 
             if (addDebugConsoleSink)
             {
-                ConfigureConsoleSink(logConfig, template);
+                ConfigureConsoleSink(logConfig, template, consoleMinLevel);
             }
             else
             {
@@ -33,10 +34,10 @@ namespace WOTRMultiplayer.Logging
             return logConfig.CreateLogger();
         }
 
-        private static void ConfigureConsoleSink(LoggerConfiguration logConfig, string template)
+        private static void ConfigureConsoleSink(LoggerConfiguration logConfig, string template, Serilog.Events.LogEventLevel restrictedToMinimumLevel)
         {
             var debugConsole = WinApi.SpawnConsole();
-            logConfig.WriteTo.DebugConsole(debugConsole, outputTemplate: template, syncRoot: _consoleSinkRoot);
+            logConfig.WriteTo.DebugConsole(debugConsole, outputTemplate: template, syncRoot: _consoleSinkRoot, restrictedToMinimumLevel: restrictedToMinimumLevel);
         }
     }
 }

@@ -263,11 +263,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GameInstance
 
             combatLogView?.Show();
             UpdateSelectedCharacter();
-
-            if (Game.Instance.Player.CapitalPartyMode)
-            {
-                Game.Instance.SelectionCharacter.m_NeedUpdate = true;
-            }
+            Game.Instance.SelectionCharacter.m_NeedUpdate = true;
         }
 
         private static void UpdateSelectedCharacter()
