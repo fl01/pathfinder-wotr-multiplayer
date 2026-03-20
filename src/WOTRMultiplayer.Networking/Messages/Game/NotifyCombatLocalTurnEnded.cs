@@ -5,7 +5,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyCombatLocalTurnEnded)]
-    public class NotifyCombatLocalTurnEnded
+    public class NotifyCombatLocalTurnEnded : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

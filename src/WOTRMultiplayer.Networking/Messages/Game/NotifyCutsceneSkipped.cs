@@ -5,7 +5,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyCutsceneSkipped)]
-    public class NotifyCutsceneSkipped
+    public class NotifyCutsceneSkipped : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

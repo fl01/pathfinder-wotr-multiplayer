@@ -5,7 +5,7 @@ namespace WOTRMultiplayer.Networking.Messages.Lobby
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Lobby.NotifyPlayerReadyStatusChanged)]
-    public class NotifyPlayerReadyStatusChanged
+    public class NotifyPlayerReadyStatusChanged : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

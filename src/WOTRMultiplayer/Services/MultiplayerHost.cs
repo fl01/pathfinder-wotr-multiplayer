@@ -1545,12 +1545,6 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        protected override void OnAfterNetworkMessageHandled(long senderPlayerId, object message)
-        {
-            Logger.LogDebug("Resending message. ExceptPlayerId={ExceptPlayerId}, MessageType={MessageType}", senderPlayerId, message.GetType().Name);
-            _networkServer.SendAllExcept(senderPlayerId, message);
-        }
-
         protected override void OnLocalRestGameModeEnded()
         {
             base.OnLocalRestGameModeEnded();
@@ -1657,25 +1651,21 @@ namespace WOTRMultiplayer.Services
             Game.PlayersInKingdomNavigationType.AddOrUpdate(receivedFrom, navigation, (key, existing) => navigation);
         }
 
-        private async void OnNotifyCombatLocalTurnEnded(long receivedFrom, NotifyCombatLocalTurnEnded combatTurnEnded)
+        private async void OnNotifyCombatLocalTurnEnded(long receivedFrom, NotifyCombatLocalTurnEnded message)
         {
             await WaitWhileTrue(() => CombatInteraction.IsRiderActive() || Game.Combat.Turn.LockCounter > 0, "Waiting for all combat commands to finish before ending turn");
 
-            Game.Combat.Turn.PlayersEndTurnInitialization.Add(combatTurnEnded.PlayerId);
+            Game.Combat.Turn.PlayersEndTurnInitialization.Add(message.PlayerId);
             CombatInteraction.EndTurnBasedCombatTurn();
 
             TryEndTurn();
-
-            OnAfterNetworkMessageHandled(receivedFrom, combatTurnEnded);
         }
 
-        private void OnNotifyGlobalMapCommonPopupShown(long receivedFrom, NotifyGlobalMapCommonPopupShown globalMapCommonPopupShown)
+        private void OnNotifyGlobalMapCommonPopupShown(long receivedFrom, NotifyGlobalMapCommonPopupShown message)
         {
-            AddPlayerToTracker(Game.PlayersInGlobalMapCommonPopup, globalMapCommonPopupShown.PlayerId);
-            var popup = Mapper.Map<NetworkGlobalMapCommonPopup>(globalMapCommonPopupShown.Popup);
+            AddPlayerToTracker(Game.PlayersInGlobalMapCommonPopup, message.PlayerId);
+            var popup = Mapper.Map<NetworkGlobalMapCommonPopup>(message.Popup);
             UpdateGlobalMapCommonPopupUIState(popup);
-
-            OnAfterNetworkMessageHandled(receivedFrom, globalMapCommonPopupShown);
         }
 
         private async void OnClientCombatPreparationStarted(long receivedFrom, ClientCombatPreparationStarted message)
@@ -1751,32 +1741,24 @@ namespace WOTRMultiplayer.Services
         private void OnNotifyGlobalMapRecruitmentClosed(long receivedFrom, NotifyGlobalMapRecruitmentClosed message)
         {
             ResetPlayersTracker(Game.PlayersInGlobalMapRecruitment);
-
-            OnAfterNetworkMessageHandled(receivedFrom, message);
         }
 
         private void OnNotifyGlobalMapRecruitmentShown(long receivedFrom, NotifyGlobalMapRecruitmentShown message)
         {
             AddPlayerToTracker(Game.PlayersInGlobalMapRecruitment, message.PlayerId);
             UpdateGlobalMapRecruitmentUIState();
-
-            OnAfterNetworkMessageHandled(receivedFrom, message);
         }
 
         private void OnNotifyGlobalMapCrusadeArmyBuyLeaderClosed(long receivedFrom, NotifyGlobalMapCrusadeArmyBuyLeaderClosed message)
         {
             RemovePlayerFromTracker(Game.PlayersInGlobalMapCrusadeArmyBuyLeader, message.PlayerId);
             UpdateGlobalMapCrusadeArmyInfoUIStateAfterBuyLeader();
-
-            OnAfterNetworkMessageHandled(receivedFrom, message);
         }
 
         private void OnNotifyGlobalMapCrusadeArmySetLeaderClosed(long receivedFrom, NotifyGlobalMapCrusadeArmySetLeaderClosed message)
         {
             RemovePlayerFromTracker(Game.PlayersInGlobalMapCrusadeArmySetLeader, message.PlayerId);
             UpdateGlobalMapCrusadeArmyInfoUIStateAfterSetLeader();
-
-            OnAfterNetworkMessageHandled(receivedFrom, message);
         }
 
         private void OnNotifyGlobalMapCrusadeArmyInfoShown(long receivedFrom, NotifyGlobalMapCrusadeArmyInfoShown message)
@@ -1784,16 +1766,12 @@ namespace WOTRMultiplayer.Services
             AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyInfo, message.PlayerId);
 
             UpdateGlobalMapCrusadeArmyInfoUIState();
-
-            OnAfterNetworkMessageHandled(receivedFrom, message);
         }
 
-        private void OnNotifyGlobalMapCrusadeArmyMergeCartClosed(long receivedFrom, NotifyGlobalMapCrusadeArmyMergeCartClosed globalMapCrusadeArmyInfoMergeClosed)
+        private void OnNotifyGlobalMapCrusadeArmyMergeCartClosed(long receivedFrom, NotifyGlobalMapCrusadeArmyMergeCartClosed message)
         {
-            RemovePlayerFromTracker(Game.PlayersInGlobalMapCrusadeArmyInfoMerge, globalMapCrusadeArmyInfoMergeClosed.PlayerId);
+            RemovePlayerFromTracker(Game.PlayersInGlobalMapCrusadeArmyInfoMerge, message.PlayerId);
             UpdateGlobalMapCrusadeArmyInfoUIStateAfterMerge();
-
-            OnAfterNetworkMessageHandled(receivedFrom, globalMapCrusadeArmyInfoMergeClosed);
         }
 
         private void OnNotifyTacticalCombatInitializationConfirmed(long receivedFrom, NotifyTacticalCombatInitializationConfirmed tacticalCombatInitializationConfirmed)
@@ -1803,26 +1781,24 @@ namespace WOTRMultiplayer.Services
             Game.ArmyCombat.IsInitialized = TryConfirmTacticalCombatInitialization();
         }
 
-        private void OnNotifyGlobalMapTravelerModeChanged(long receivedFrom, NotifyGlobalMapTravelerModeChanged globalMapTravelerModeChanged)
+        private void OnNotifyGlobalMapTravelerModeChanged(long receivedFrom, NotifyGlobalMapTravelerModeChanged message)
         {
-            var travelerMode = Mapper.Map<NetworkGlobalMapTravelerMode>(globalMapTravelerModeChanged.TravelerMode);
-            RegisterGlobalMapMode(globalMapTravelerModeChanged.PlayerId, travelerMode);
+            var travelerMode = Mapper.Map<NetworkGlobalMapTravelerMode>(message.TravelerMode);
+            RegisterGlobalMapMode(message.PlayerId, travelerMode);
             UpdateGlobalMapUIState();
-
-            OnAfterNetworkMessageHandled(receivedFrom, globalMapTravelerModeChanged);
         }
 
-        private void OnNotifyPolymorphicItemCreationRequested(long playerId, NotifyPolymorphicItemCreationRequested polymorphicItemCreationRequested)
+        private void OnNotifyPolymorphicItemCreationRequested(long playerId, NotifyPolymorphicItemCreationRequested message)
         {
-            var polymorphicItem = Mapper.Map<NetworkPolymorphicItem>(polymorphicItemCreationRequested.PolymorphicItem);
+            var polymorphicItem = Mapper.Map<NetworkPolymorphicItem>(message.PolymorphicItem);
             GameInteraction.CreateAndEquipPolymorphicItem(polymorphicItem, createContext: false);
 
             // clients will receive 'NotifyPolymorphicItemCreated' as a result of polymorphic item creation
         }
 
-        private void OnClientGameAutoPaused(long playerId, ClientGameAutoPaused clientGameAutoPaused)
+        private void OnClientGameAutoPaused(long playerId, ClientGameAutoPaused message)
         {
-            var pause = Mapper.Map<NetworkForcedPause>(clientGameAutoPaused.Pause);
+            var pause = Mapper.Map<NetworkForcedPause>(message.Pause);
             lock (ActionLock)
             {
                 EnsureForcePaused(pause.Reason, pause.RemovalDelay);
@@ -1830,26 +1806,21 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        private void OnClientCharacterLevelingRequested(long playerId, ClientCharacterLevelingRequested characterLevelingRequested)
+        private void OnClientCharacterLevelingRequested(long playerId, ClientCharacterLevelingRequested message)
         {
-            if (!Enum.TryParse<NetworkLevelingType>(characterLevelingRequested.Type, true, out var levelingType))
-            {
-                Logger.LogError("Invalid char gen screen type value. Value={Value}", characterLevelingRequested.Type);
-                return;
-            }
-
+            var levelingType = Mapper.Map<NetworkLevelingType>(message.Type);
             lock (ActionLock)
             {
                 if (Game.Leveling == null)
                 {
-                    InitiateLeveling(characterLevelingRequested.UnitId, levelingType);
-                    LevelingInteraction.StartLeveling(characterLevelingRequested.UnitId, levelingType);
+                    InitiateLeveling(message.UnitId, levelingType);
+                    LevelingInteraction.StartLeveling(message.UnitId, levelingType);
                     SendLevelingStartedConfirmation();
                     return;
                 }
 
                 // force specific player to open correct leveling ui
-                Logger.LogWarning("Leveling is already in progress. PlayerId={PlayerId}, UnitId={UnitId}, LevelingType={LevelingType}, RequestedUnitId={RequestedUnitId}, RequestedLevelingType={RequestedLevelingType}", playerId, Game.Leveling.UnitId, Game.Leveling.Type, characterLevelingRequested.UnitId, characterLevelingRequested.Type);
+                Logger.LogWarning("Leveling is already in progress. PlayerId={PlayerId}, UnitId={UnitId}, LevelingType={LevelingType}, RequestedUnitId={RequestedUnitId}, RequestedLevelingType={RequestedLevelingType}", playerId, Game.Leveling.UnitId, Game.Leveling.Type, message.UnitId, message.Type);
                 SendLevelingStartedConfirmation(playerId);
             }
         }
@@ -1875,9 +1846,9 @@ namespace WOTRMultiplayer.Services
             TryEndTurn();
         }
 
-        private void OnClientCombatTurnSynchronized(long playerId, ClientCombatTurnStartSynchronized synchronized)
+        private void OnClientCombatTurnSynchronized(long playerId, ClientCombatTurnStartSynchronized message)
         {
-            AddPlayerReadyStatus(PlayerTurnReadinessType.UnitSynchronization, playerId, synchronized.UnitId);
+            AddPlayerReadyStatus(PlayerTurnReadinessType.UnitSynchronization, playerId, message.UnitId);
             TryStartTurn();
         }
 
@@ -1896,9 +1867,9 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        private async void OnClientDialogStartRequested(long playerId, ClientDialogStartRequested requested)
+        private async void OnClientDialogStartRequested(long playerId, ClientDialogStartRequested message)
         {
-            var dialog = Mapper.Map<NetworkDialog>(requested.Dialog);
+            var dialog = Mapper.Map<NetworkDialog>(message.Dialog);
             var hasBeenStarted = await DialogInteraction.StartDialogAsync(dialog);
             if (hasBeenStarted)
             {
@@ -1906,11 +1877,11 @@ namespace WOTRMultiplayer.Services
             }
 
             Logger.LogInformation("Host dialog is already in progress. Sending dialog confirmation");
-            var message = new NotifyDialogStarted
+            var dialogStarted = new NotifyDialogStarted
             {
                 Dialog = Mapper.Map<Networking.Messages.Contracts.NetworkDialog>(Game.DialogState.Dialog)
             };
-            Send(message);
+            Send(dialogStarted);
         }
 
         private async void OnClientDialogCueAnswerSuggested(long playerId, ClientDialogCueAnswerSuggested message)
@@ -1942,24 +1913,12 @@ namespace WOTRMultiplayer.Services
             TryEnableDialogContinueButton();
         }
 
-        private NetworkCombatTurn CheckTurnValidity(NetworkCombatTurn turn, string unitId)
+        private void OnNotifyLobbySyncStatusChanged(long receivedFrom, NotifySaveGameSyncStatusChanged message)
         {
-            if (turn == null || !string.Equals(turn.UnitId, unitId, StringComparison.OrdinalIgnoreCase))
-            {
-                return null;
-            }
-
-            return turn;
-        }
-
-        private void OnNotifyLobbySyncStatusChanged(long receivedFrom, NotifySaveGameSyncStatusChanged lobbySyncStatusChanged)
-        {
-            var status = Mapper.Map<NetworkLobbySyncStatus>(lobbySyncStatusChanged.Status);
-            UpdateLobbySyncStatus(lobbySyncStatusChanged.PlayerId, status);
+            var status = Mapper.Map<NetworkLobbySyncStatus>(message.Status);
+            UpdateLobbySyncStatus(message.PlayerId, status);
 
             TryStartSavedGame();
-
-            OnAfterNetworkMessageHandled(receivedFrom, lobbySyncStatusChanged);
         }
 
         private void OnClientAreaLoaded(long receivedFrom, ClientAreaLoaded message)
@@ -2055,7 +2014,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        private void OnClientGameServerConnectionConfirmed(long playerId, ClientGameServerConnectionConfirmed connectionConfirmed)
+        private void OnClientGameServerConnectionConfirmed(long playerId, ClientGameServerConnectionConfirmed message)
         {
             try
             {
@@ -2064,19 +2023,19 @@ namespace WOTRMultiplayer.Services
                     var existingPlayer = GetPlayer(playerId);
                     if (existingPlayer == null)
                     {
-                        Logger.LogError("Can't process player name update because player doesn't exist. PlayerId={playPlayerIderId}, Name={Name}", playerId, connectionConfirmed.PlayerName);
+                        Logger.LogError("Can't process player name update because player doesn't exist. PlayerId={playPlayerIderId}, Name={Name}", playerId, message.PlayerName);
                         return;
                     }
 
-                    if (string.IsNullOrEmpty(connectionConfirmed.PlayerName))
+                    if (string.IsNullOrEmpty(message.PlayerName))
                     {
-                        Logger.LogError("Can't process player name update because player name is missing. PlayerId={PlayerId}, Name={Name}", playerId, connectionConfirmed.PlayerName);
+                        Logger.LogError("Can't process player name update because player name is missing. PlayerId={PlayerId}, Name={Name}", playerId, message.PlayerName);
                         return;
                     }
 
-                    existingPlayer.Name = connectionConfirmed.PlayerName;
+                    existingPlayer.Name = message.PlayerName;
 
-                    existingPlayer.ContentState = Mapper.Map<NetworkContentState>(connectionConfirmed.ContentState);
+                    existingPlayer.ContentState = Mapper.Map<NetworkContentState>(message.ContentState);
                     var host = GetHost();
                     existingPlayer.ContentState.DiscrepantDLCs = CompareDLCs(host.ContentState, existingPlayer.ContentState);
                     existingPlayer.ContentState.DiscrepantMods = CompareMods(host.ContentState, existingPlayer.ContentState);

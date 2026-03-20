@@ -151,6 +151,11 @@ namespace WOTRMultiplayer.Networking
             }
 
             _messageConsumer.Enqueue(new NetworkMessageMetadata(args.NetSession.ID, args.Message));
+
+            if (args.Message is IForwardableMessage)
+            {
+                SendAllExcept(args.NetSession.ID, args.Message);
+            }
         }
 
         private void OnOpened(IServer server)

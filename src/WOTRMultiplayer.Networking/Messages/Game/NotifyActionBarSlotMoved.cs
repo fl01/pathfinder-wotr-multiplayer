@@ -6,7 +6,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyActionBarSlotMoved)]
-    public class NotifyActionBarSlotMoved
+    public class NotifyActionBarSlotMoved : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

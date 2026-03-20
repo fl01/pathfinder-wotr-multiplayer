@@ -6,7 +6,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyInventoryItemTransferred)]
-    public class NotifyInventoryItemTransferred
+    public class NotifyInventoryItemTransferred : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

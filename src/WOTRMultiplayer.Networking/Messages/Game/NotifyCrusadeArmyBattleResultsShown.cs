@@ -5,7 +5,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyCrusadeArmyBattleResultsShown)]
-    public class NotifyCrusadeArmyBattleResultsShown
+    public class NotifyCrusadeArmyBattleResultsShown : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

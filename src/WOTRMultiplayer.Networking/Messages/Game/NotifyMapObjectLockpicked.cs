@@ -6,7 +6,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyMapObjectLockpicked)]
-    public class NotifyMapObjectLockpicked
+    public class NotifyMapObjectLockpicked : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

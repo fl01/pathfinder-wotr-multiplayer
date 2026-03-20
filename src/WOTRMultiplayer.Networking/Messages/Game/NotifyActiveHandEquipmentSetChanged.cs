@@ -6,7 +6,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyActiveHandEquipmentSetChanged)]
-    public class NotifyActiveHandEquipmentSetChanged
+    public class NotifyActiveHandEquipmentSetChanged : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

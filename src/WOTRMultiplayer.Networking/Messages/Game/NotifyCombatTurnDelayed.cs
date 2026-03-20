@@ -5,7 +5,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyCombatTurnDelayed)]
-    public class NotifyCombatTurnDelayed
+    public class NotifyCombatTurnDelayed : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

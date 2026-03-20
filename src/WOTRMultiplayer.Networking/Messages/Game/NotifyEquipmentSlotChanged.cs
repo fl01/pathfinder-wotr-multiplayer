@@ -6,7 +6,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyEquipmentSlotChanged)]
-    public class NotifyEquipmentSlotChanged
+    public class NotifyEquipmentSlotChanged : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

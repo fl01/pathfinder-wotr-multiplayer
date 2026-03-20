@@ -5,7 +5,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyLevelingBirthMonthChanged)]
-    public class NotifyLevelingBirthMonthChanged
+    public class NotifyLevelingBirthMonthChanged : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

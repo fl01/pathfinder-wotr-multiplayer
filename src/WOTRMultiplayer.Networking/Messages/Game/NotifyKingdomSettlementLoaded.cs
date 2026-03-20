@@ -5,7 +5,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyKingdomSettlementLoaded)]
-    public class NotifyKingdomSettlementLoaded
+    public class NotifyKingdomSettlementLoaded : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

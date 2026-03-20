@@ -5,7 +5,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyTacticalCombatTurnInitialized)]
-    public class NotifyTacticalCombatTurnInitialized
+    public class NotifyTacticalCombatTurnInitialized : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

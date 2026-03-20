@@ -5,7 +5,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyGlobalMapTravelerModeChanged)]
-    public class NotifyGlobalMapTravelerModeChanged
+    public class NotifyGlobalMapTravelerModeChanged : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

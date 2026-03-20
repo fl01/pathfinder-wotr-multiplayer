@@ -5,7 +5,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyRestEnded)]
-    public class NotifyRestEnded
+    public class NotifyRestEnded : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

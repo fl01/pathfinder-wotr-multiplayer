@@ -6,7 +6,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyDropItem)]
-    public class NotifyDropItem
+    public class NotifyDropItem : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

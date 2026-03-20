@@ -6,7 +6,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyMetamagicSpellCreated)]
-    public class NotifyMetamagicSpellCreated
+    public class NotifyMetamagicSpellCreated : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

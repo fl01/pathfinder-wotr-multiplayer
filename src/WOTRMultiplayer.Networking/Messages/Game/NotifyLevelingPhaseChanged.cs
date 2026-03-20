@@ -6,7 +6,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyLevelingPhaseChanged)]
-    public class NotifyLevelingPhaseChanged
+    public class NotifyLevelingPhaseChanged : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

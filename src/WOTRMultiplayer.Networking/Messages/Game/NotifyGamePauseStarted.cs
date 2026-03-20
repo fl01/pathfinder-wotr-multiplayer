@@ -6,7 +6,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyGamePauseStarted)]
-    public class NotifyGamePauseStarted
+    public class NotifyGamePauseStarted : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

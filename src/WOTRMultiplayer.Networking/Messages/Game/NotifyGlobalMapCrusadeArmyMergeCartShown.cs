@@ -5,7 +5,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyGlobalMapCrusadeArmyMergeCartShown)]
-    public class NotifyGlobalMapCrusadeArmyMergeCartShown
+    public class NotifyGlobalMapCrusadeArmyMergeCartShown : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

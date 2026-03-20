@@ -5,7 +5,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyGlobalMapLocationMessageShown)]
-    public class NotifyGlobalMapLocationMessageShown
+    public class NotifyGlobalMapLocationMessageShown : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]
