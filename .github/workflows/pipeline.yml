@@ -43,7 +43,7 @@ jobs:
       LOCALIZATION_PATH: ".\\localization"
       BUILD_PATH: ".\\src\\WOTRMultiplayer\\bin\\Release\\net481"
       RELEASE_OUTPUT_PATH: ".\\__releases\\00_WOTRMultiplayer"
-      REFS_OUTPUT_PATH: ".\\__refs"
+      REFS_OUTPUT_PATH: "./__refs"
       CURRENT_VERSION: ${{needs.get-version.outputs.version}}
     runs-on: windows-latest
 
