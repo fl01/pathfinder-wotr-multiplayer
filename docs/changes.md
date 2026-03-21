@@ -3,7 +3,7 @@
 #### Disclaimer: All of the changes below only kick in when you are playing in Multiplayer (started or joined through the Multiplayer Window). Single-player isn't affected at all, so you can keep playing normally. But if you are curious about what the mod adds, you can always host a solo game to check it out.
 
 ## TL/DR:
-- 4 Acts are mostly playable
+- 4 Acts are mostly playable. Although there are a few heavily bugged encounters (mostly caused by completely desynced enemy spawns)
 - There are no changes to content or balance or how mythic paths/companions work.
 
 - Game Version/DLC/Mods/Content should match across players. 
@@ -17,13 +17,21 @@ That said, compatibility with other mods hasn't really been tested at all and th
 Here is a basic [example](https://github.com/fl01/pathfinder-wotr-multiplayer-bubblebuffs) on how to use the existing network layer for your own mods. But keep in mind that it depends on low-level objects that are subject to change. **There is no guarantee that they will stay stable/same**.
 
 ### Known mod compatibility issues:
-- Bubble Tweaks - works fine if you use it purely for non-interactive UI changes (Character Statistics / pathing through AoE / loot icons / etc)
+- Bubble Tweaks - works fine if you use it purely for non-interactive UI changes (Character Statistics / show AoE range / loot icons / etc)
   - additional interactive UI elements ('Jump to siege' button / Dismiss army / etc) are not synced
-  - animation speed is not synced
+  - animation speed changes are not synced
 
 - ModMenu - not compatible
   - global edit of `SaveLoadPcView` causes some minor side-effects for our own copy of that view
   - multiplayer settings are corrupted / not loaded correctly on Settings UI. Didn't look for a reason yet
+
+Here is the list of mods which were used during campaign playtrough in multiplayer:
+
+- 0ToyBox0 - no exta features enabled, just to alter game state when needed
+- BubbleBuffs
+- BubbleBuffs.Multiplayer
+- Download_This_RespecWrath
+- Visual Adjustments
 
 ## UnityModManager settings
 - Checkbox to show the debug console (for anyone curious about the behind-the-scenes stuff).
@@ -147,8 +155,11 @@ Although this difficutly setting is not disabled, it has not been checked and th
 ## Alushenyrra Isles (Act 4)
 Dynamic parts (isles/houses/platforms/etc) are controlled by the host camera direction. It might be a bit clunky, but make sure characters don't get stuck as there is no additional position or isle state sync.
 
+## Midnight isles DLC
+Partially synced, boons is the only missing feature AFAIK
+
 ## Rolls
-Every roll is rolled deterministically based on the numerous seeds(e.g. AreaSeed/Combat Turn Seed/etc.). Those seeds are transferred by the host depending on a situation.
+Every roll is rolled deterministically based on the numerous seeds (e.g. AreaSeed/Combat Turn Seed/etc.) and roll context (RuleName / Total modifers / Target / etc)
 
 ### Perception check rolls (map objects)
 Perception checks to reveal stuff don't auto-trigger on clients. Instead, they only go off once the host triggers them. This is to prevent desyncs, like different characters trying to run the same check because of movement lag or other hiccups.
@@ -169,9 +180,12 @@ Turn-Based only. Real-Time with Pause (RTwP) combat is completely disabled.
 
 You can switch character owner at any time during combat.
 
+### Random enemy spawns
+Sometimes game triggers enemy spawns in a different turns. Enemy units in combat are synced across the players, any new units are not allowed to join combat (and become untargetable) untill they are spawned for every player. Combat joins happen in-between turns.
+
 ### Players
 
-The source of truth is the host. Position of units in combat is synchronized with host on every combat start/turn start/turn end event. Next turn will be started only once host synchronizes info with the clients. Host is also able to detect when clients want to start different character turn (e.g. due to desync issues), but there is an automatic recovery for this situation where host forces clients to start correct turn.
+The source of truth is the host. Position/buff duration/HP of units in combat is synchronized with host on every combat start/turn start/turn end event. Next turn will be started only once host synchronizes info with the clients. Host is also able to detect when clients want to start different character turn (e.g. due to desync issues), but there is an automatic recovery for this situation where host forces clients to start correct turn.
 
 ### AI
 The base game uses “AI action score” calculations that are largely deterministic and typically produce the same results. However, scores can occasionally differ due to factors like position desynchronization, low FPS, or similar issues.
@@ -239,12 +253,15 @@ same rules apply for everything (including path selection).
 Character selection for respec is always controlled by host, but respec/leveling windows themselves follow the default leveling rules
 
 #### Toybox (Party => Respec)
-Synchronization will start working at the moment of opening respec window, but everyone still needs to press that button to start respec process as there is no automated respec startup in this case. As an alternative, you can always respec character in single player mode
+Works fine since it starts default respec process (same as via Hilor on easy difficulty). However, everyone still needs to press that button to start respec process locally as there is no automated startup in this case.
 
-Same leveling/respec rules apply
+As a side note, you can do whatever you want via Toybox (add items/change a quest state/etc), just need to save/load the game afterwards.
+
+#### RespecWrath
+While it lets you fully respec companions (ignoring their original blueprint), it doesn't work by default in multiplayer. Do the respec in single-player first, then load the save in multiplayer.
 
 #### Other mods
-Never tried, never checked. Should work if it opens the default respec window too.
+Never tried, never checked
 
 ### Hiring(Creating) Mercenary
 same rules apply, but host always controls the leveling (CharGen) screen
@@ -259,10 +276,28 @@ There is a configurable hotkey you can use to send pings (alerts) to other playe
 
 More options are planned later, like pinging at different UI elements (should be useful during leveling or vendoring).
 
-## How to deal with desync
-If a roll doesn't come through for some reason, you will get a stutter and a popup warning. In that case, the roll will be rolled locally, which might lead to different results.
+## Most impactful desync issues (as of now)
+* **Opportunity attacks** — sometimes they don't trigger for everyone in the lobby.
+* **The Last Sarkorians (Ulbrig DLC)** — undead swamp encounter can enter infinite combat.
+* **Blackwater boss** — random unit spawns are desynced.
+* **Blackwater traps** — may trigger at different times because they are controlled by separate cutscene timers.
+* **Act 2 – Drezen** — giant traps (currently disabled).
+* **Triggered traps** — AoE spells may affect different characters.
+* **Working in Tandem (and similar effects)** — the attack roll bonus depends on who attacks first (mount or rider), but since this is frame-dependent, the attack order may vary.
+* **Spell DC inconsistencies** (e.g., dispel checks or saving throws) — DC occasionally differs for unclear reasons (maybe difficulty DC bonus is not applied sometimes).
 
-You can either ignore it (if the outcome is more or less the same for everyone) or do a quicksave/quickload to resync all players.
+  * **Act 4 – Chivarro buffs** (final encounter)
+  * **Act 2 – Seelah camp** — quasit poison
+* **Pit spells** — use a separate, unsynchronized trigger timer.
+
+Most of the issues above are mitigated by syncing HP / auto-killing units in combat, but some would require a few save game loads
+
+## How to deal with desync
+**Option #1** - There is a hotkey to reset combat state. Basically it restarts combat with a fresh state, sometimes this comes handy
+
+**Option #2** - kill all enemies via Toybox
+
+**Option #3** - quick save / quick load - everyone in a lobby will load same save
 
 ## Long term plans
 

@@ -857,7 +857,7 @@ namespace WOTRMultiplayer.Services
 
         private AttackWithWeaponRoll CreateAttackWithWeaponRoll(NetworkDiceRollType diceRollType, RuleAttackWithWeapon attackWithWeapon)
         {
-            var roll = new AttackWithWeaponRoll(attackWithWeapon.Initiator.UniqueId, attackWithWeapon.GetType().Name, diceRollType, attackWithWeapon.AttackRoll.AttackBonus)
+            var roll = new AttackWithWeaponRoll(attackWithWeapon.Initiator.UniqueId, attackWithWeapon.GetType().Name, diceRollType, 0) //  attackWithWeapon.AttackRoll.AttackBonus
             {
                 AttackNumber = attackWithWeapon.AttackNumber,
                 IsAttackOfOpportunity = attackWithWeapon.IsAttackOfOpportunity,
