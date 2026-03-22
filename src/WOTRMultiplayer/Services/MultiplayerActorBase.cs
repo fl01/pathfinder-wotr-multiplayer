@@ -1721,6 +1721,7 @@ namespace WOTRMultiplayer.Services
             Task.Run(async () =>
             {
                 await WaitWhileTrue(CombatInteraction.IsRiderActive, "Waiting for rider to finish commands before sending unit killed notification");
+
                 Send(message);
             });
         }

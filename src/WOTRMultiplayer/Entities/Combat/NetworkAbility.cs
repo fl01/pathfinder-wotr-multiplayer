@@ -1,4 +1,6 @@
-﻿namespace WOTRMultiplayer.Entities.Combat
+﻿using WOTRMultiplayer.Entities.Equipment;
+
+namespace WOTRMultiplayer.Entities.Combat
 {
     public class NetworkAbility
     {
@@ -21,5 +23,7 @@
         public string ParamSpellBookId { get; set; }
 
         public NetworkAbilityParamSpellSlot ParamSpellSlot { get; set; }
+
+        public NetworkItem SourceItem { get; set; }
     }
 }

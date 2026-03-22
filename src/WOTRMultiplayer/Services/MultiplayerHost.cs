@@ -316,6 +316,11 @@ namespace WOTRMultiplayer.Services
                 Send(message);
             }
 
+            if (Game.Combat == null)
+            {
+                Game.LastCombatTurn = null;
+            }
+
             Logger.LogInformation("Dialog has been started. DialogId={DialogId}, DialogName={Name}, IsScripted={IsScripted}", Game.DialogState.Dialog.Id, Game.DialogState.Dialog.Name, Game.DialogState.Dialog.IsScripted);
             return true;
         }

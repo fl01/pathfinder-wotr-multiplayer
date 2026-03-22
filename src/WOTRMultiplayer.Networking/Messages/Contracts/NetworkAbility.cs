@@ -42,5 +42,8 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
 
         [ProtoMember(10)]
         public NetworkAbilityParamSpellSlot ParamSpellSlot { get; set; }
+
+        [ProtoMember(11)]
+        public NetworkItem SourceItem { get; set; }
     }
 }

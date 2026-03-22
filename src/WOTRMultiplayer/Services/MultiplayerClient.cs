@@ -171,6 +171,11 @@ namespace WOTRMultiplayer.Services
                     Game.DialogState.CurrentCueName = previousDialog.CurrentCueName;
                 }
 
+                if (Game.Combat == null)
+                {
+                    Game.LastCombatTurn = null;
+                }
+
                 return true;
             }
 

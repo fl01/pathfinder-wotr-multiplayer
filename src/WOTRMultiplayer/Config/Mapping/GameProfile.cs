@@ -354,7 +354,8 @@ namespace WOTRMultiplayer.Config.Mapping
                 Metamagic = (int?)sourceAbility.MetamagicData?.MetamagicMask,
                 ParamSpellLevel = sourceAbility.ParamSpellLevel,
                 ParamSpellBookId = sourceAbility.ParamSpellbook?.Blueprint.AssetGuid.ToString(),
-                ParamSpellSlot = context.Mapper.Map<NetworkAbilityParamSpellSlot>(sourceAbility.ParamSpellSlot)
+                ParamSpellSlot = context.Mapper.Map<NetworkAbilityParamSpellSlot>(sourceAbility.ParamSpellSlot),
+                SourceItem = context.Mapper.Map<NetworkItem>(sourceAbility.SourceItem)
             };
 
             return ability;

@@ -120,16 +120,17 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
             if (!string.IsNullOrEmpty(networkAbility.ConvertedFromId))
             {
-                var conversionAbility = unit.Abilities.Enumerable.FirstOrDefault(a => string.Equals(a.Data.UniqueId, networkAbility.ConvertedFromId, StringComparison.OrdinalIgnoreCase));
+                var conversionAbility = GetAbility(unit, networkAbility.ConvertedFromId, networkAbility.BlueprintId) ?? GetItemAbility(unit, networkAbility);
                 if (conversionAbility == null)
                 {
-                    _logger.LogInformation("Unable to find ability for conversion. UnitId={UnitId}, AbilityId={AbilityId}", unit.UniqueId, networkAbility.ConvertedFromId);
+                    _logger.LogError("Unable to find ability for conversion. UnitId={UnitId}, AbilityId={AbilityId}", unit.UniqueId, networkAbility.ConvertedFromId);
                     return null;
                 }
-                var convertedAbility = GetConvertedAbility(conversionAbility.Data, networkAbility);
+
+                var convertedAbility = GetConvertedAbility(conversionAbility, networkAbility);
                 if (convertedAbility == null)
                 {
-                    _logger.LogInformation("Unable to find ability in conversion list. UnitId={UnitId}, AbilityId={AbilityId}", unit.UniqueId, networkAbility.ConvertedFromId);
+                    _logger.LogError("Unable to find ability in conversion list. UnitId={UnitId}, AbilityId={AbilityId}", unit.UniqueId, networkAbility.ConvertedFromId);
                 }
 
                 return convertedAbility;
@@ -217,6 +218,23 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return GetCustomSpell(spellbook, ability.Id, ability.BlueprintId, ability.SpellLevel, ability.Metamagic);
         }
 
+        private AbilityData GetItemAbility(UnitEntityData unit, NetworkAbility networkAbility)
+        {
+            if (networkAbility.SourceItem == null)
+            {
+                return null;
+            }
+
+            var itemAbility = unit.Abilities.Enumerable.FirstOrDefault(a => a.SourceItem?.HoldingSlot != null && string.Equals(a.SourceItem.Blueprint.AssetGuid.ToString(), networkAbility.SourceItem.BlueprintId, StringComparison.OrdinalIgnoreCase));
+            var itemAbilityData = itemAbility?.Data;
+            if (itemAbilityData != null)
+            {
+                _logger.LogInformation("Ability has been found in item abilities. UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}, ItemName={ItemName}", unit.UniqueId, networkAbility.Id, itemAbilityData.NameForAcronym, networkAbility.SourceItem.Name);
+            }
+
+            return itemAbilityData;
+        }
+
         private AiAction FindAIAction(List<AiAction> actions, NetworkAIAction networkAIAction)
         {
             var action = actions?.FirstOrDefault(a => a != null && string.Equals(a.Blueprint.AssetGuid.ToString(), networkAIAction.Id, StringComparison.OrdinalIgnoreCase));
@@ -266,8 +284,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private AbilityData GetAbility(UnitEntityData unit, NetworkAbility networkAbility)
         {
-            var ability = unit.Abilities.Enumerable.FirstOrDefault(a => string.Equals(a.Data.UniqueId, networkAbility.Id, StringComparison.OrdinalIgnoreCase)
-                   || string.Equals(a.Data.Blueprint.AssetGuid.ToString(), networkAbility.BlueprintId, StringComparison.OrdinalIgnoreCase));
+            return GetAbility(unit, networkAbility.Id, networkAbility.BlueprintId);
+        }
+
+        private AbilityData GetAbility(UnitEntityData unit, string abilityId, string abilityBlueprintId)
+        {
+            var ability = unit.Abilities.Enumerable.FirstOrDefault(a => string.Equals(a.Data.UniqueId, abilityId, StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(a.Data.Blueprint.AssetGuid.ToString(), abilityBlueprintId, StringComparison.OrdinalIgnoreCase));
 
             return ability?.Data;
         }
