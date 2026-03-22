@@ -287,7 +287,7 @@
             },
             "looting": {
                 "disposedLootbagBugWarning": "Unable to move items into disposed container",
-                "itemsMismatch": "Unable to find looted items. Make sure your DLC content is the same"
+                "itemsMismatch": "Unable to find looted items. Make sure your DLC content is the same\n.Items={0}"
             },
             "cutscenes": {
                 "skipped": "Cutscene has been skipped by {0}"

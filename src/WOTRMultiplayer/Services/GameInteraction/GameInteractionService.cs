@@ -58,6 +58,7 @@ using Kingmaker.UnitLogic;
 using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.UnitLogic.ActivatableAbilities;
 using Kingmaker.UnitLogic.FactLogic;
+using Kingmaker.Utility;
 using Kingmaker.View.MapObjects;
 using Kingmaker.View.MapObjects.Traps;
 using Kingmaker.View.MapObjects.Traps.Simple;
@@ -96,6 +97,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
     public class GameInteractionService : IGameInteractionService
     {
         private readonly AsyncLocal<RemoteExecutionContext> _networkExecutionContext = new();
+        private readonly float _maxLootableEntityDistance = 20.Feet().Meters;
 
         private readonly ILogger<GameInteractionService> _logger;
         private readonly IUIAccessor _uiAccessor;
@@ -496,8 +498,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    // each client generates a random map object ID, so the easiest way is to look for the nearest bag(assuming its location is relatively the same)
-                    var mapObject = networkClick.IsLootBagMapObject ? _gameStateLookupService.GetNeareastLootBagMapObject(networkClick.WorldPosition) : _gameStateLookupService.GetMapObject(networkClick.MapObjectId);
+                    var mapObject = _gameStateLookupService.GetMapObject(networkClick.MapObjectId) ?? _gameStateLookupService.GetNeareastLootBagMapObject(networkClick.WorldPosition, _maxLootableEntityDistance);
                     if (mapObject == null)
                     {
                         _logger.LogWarning("Unable to click missing map object. MapObjectId={MapObjectId}", networkClick.MapObjectId);
@@ -559,10 +560,12 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                     Dictionary<NetworkItem, List<ItemEntity>> matchedItems = null;
                     var sourceCollection = lookupTargets.FirstOrDefault(x => TryFindRequiredItemsInCollection(x, networkItemsTransfer.Items, out matchedItems));
-                    if (sourceCollection == null)
+                    // unable to find container with all items to loot + they are not in the inventory already (simultaneous looting)
+                    if (sourceCollection == null && !TryFindRequiredItemsInCollection(Game.Instance.Player.Inventory, networkItemsTransfer.Items, out _))
                     {
                         _logger.LogError("Unable to find valid ItemsCollection source with all required items. Id={Id}, Position={Position}, Type={Type}", networkItemsTransfer.Source.Id, networkItemsTransfer.Source.Position, networkItemsTransfer.Source.Type);
-                        _playerNotificationService.ShowWarningNotification(WellKnownKeys.GameNotifications.Looting.ItemsMismatch.Key);
+                        var items = string.Join(", ", networkItemsTransfer.Items.Select(x => x.Name));
+                        _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.Looting.ItemsMismatch.Key, CombatTextSeverity.Critical, items);
                         return;
                     }
 
@@ -646,14 +649,14 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
             if (possibleItemsToDrop.Count == 0)
             {
-                _logger.LogError("Unable to find item to drop. EntityId={EntityId}, ItemId={ItemId}, ItemName={ItemName}", networkDropItem.OwnerEntityId, networkDropItem.Item.UniqueId, networkDropItem.Item.Name);
+                _logger.LogError("Unable to find item to drop. EntityId={EntityId}, ItemId={ItemId}, ItemName={ItemName}", networkDropItem.OwnerEntityId, networkDropItem.Item.Id, networkDropItem.Item.Name);
                 return;
             }
 
             var totalCount = possibleItemsToDrop.Sum(x => x.Count);
             if (totalCount < networkDropItem.Item.Count)
             {
-                _logger.LogError("Not enough items to drop, possibly desynced somewhere else. EntityId={EntityId}, ItemId={ItemId}, TotalCount={TotalCount}, RequiredCount={RequiredCount}", networkDropItem.OwnerEntityId, networkDropItem.Item.UniqueId, totalCount, networkDropItem.Item.Count);
+                _logger.LogError("Not enough items to drop, possibly desynced somewhere else. EntityId={EntityId}, ItemId={ItemId}, TotalCount={TotalCount}, RequiredCount={RequiredCount}", networkDropItem.OwnerEntityId, networkDropItem.Item.Id, totalCount, networkDropItem.Item.Count);
                 return;
             }
 
@@ -677,14 +680,14 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                     if (itemToUse == null)
                     {
-                        _logger.LogError("Unable to find item to use. ItemId={ItemId}, ItemName={ItemName}, HoldingSlowOwnerId={HoldingSlowOwnerId}, SlotType={SlotType}, SlotIndex={SlotIndex}", useInventoryItem.Item.UniqueId, useInventoryItem.Item.Name, useInventoryItem.Item.HoldingSlotOwnerId, useInventoryItem.SlotPosition?.Type, useInventoryItem.SlotPosition?.Index);
+                        _logger.LogError("Unable to find item to use. ItemId={ItemId}, ItemName={ItemName}, HoldingSlowOwnerId={HoldingSlowOwnerId}, SlotType={SlotType}, SlotIndex={SlotIndex}", useInventoryItem.Item.Id, useInventoryItem.Item.Name, useInventoryItem.Item.HoldingSlotOwnerId, useInventoryItem.SlotPosition?.Type, useInventoryItem.SlotPosition?.Index);
                         return;
                     }
 
                     var userEntity = _gameStateLookupService.GetUnitEntity(useInventoryItem.UserUnitId);
                     if (userEntity == null)
                     {
-                        _logger.LogError("Unable to find user to use item. UserUnitId={UserUnitId}, ItemId={ItemId}, ItemName={ItemName}", useInventoryItem.UserUnitId, useInventoryItem.Item.UniqueId, useInventoryItem.Item.Name);
+                        _logger.LogError("Unable to find user to use item. UserUnitId={UserUnitId}, ItemId={ItemId}, ItemName={ItemName}", useInventoryItem.UserUnitId, useInventoryItem.Item.Id, useInventoryItem.Item.Name);
                         return;
                     }
 
@@ -705,7 +708,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Unable to use inventory item. UserUnitId={UserUnitId}, ItemId={ItemId}, ItemName={ItemName}", useInventoryItem.UserUnitId, useInventoryItem.Item.UniqueId, useInventoryItem.Item.Name);
+                    _logger.LogError(ex, "Unable to use inventory item. UserUnitId={UserUnitId}, ItemId={ItemId}, ItemName={ItemName}", useInventoryItem.UserUnitId, useInventoryItem.Item.Id, useInventoryItem.Item.Name);
                     throw;
                 }
             });
@@ -771,7 +774,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     return;
                 }
 
-                var item = unit.Inventory.Items.FirstOrDefault(i => string.Equals(i.UniqueId, networkEquipmentSlot.Item.UniqueId, StringComparison.OrdinalIgnoreCase));
+                var item = unit.Inventory.Items.FirstOrDefault(i => string.Equals(i.UniqueId, networkEquipmentSlot.Item.Id, StringComparison.OrdinalIgnoreCase));
                 if (item == null)
                 {
                     // Stacking / splitting items generates a new item ID, which causes a mismatch on the clients,
@@ -782,7 +785,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                     if (sameItem == null)
                     {
-                        _logger.LogError("Unable to update equipment slot with missing item. UnitId={UnitId}, SlotType={SlotType}, SlotIndex={SlotIndex}, ItemId={ItemId}", networkEquipmentSlot.OwnerId, networkEquipmentSlot.Position.Type, networkEquipmentSlot.Position.Index, networkEquipmentSlot.Item.UniqueId);
+                        _logger.LogError("Unable to update equipment slot with missing item. UnitId={UnitId}, SlotType={SlotType}, SlotIndex={SlotIndex}, ItemId={ItemId}", networkEquipmentSlot.OwnerId, networkEquipmentSlot.Position.Type, networkEquipmentSlot.Position.Index, networkEquipmentSlot.Item.Id);
                         return;
                     }
 
@@ -792,7 +795,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                 slotToUpdate.InsertItem(item);
                 RefreshInventoryWindow();
-                _logger.LogInformation("Item has been equipped. UnitId={UnitId}, SlotType={SlotType}, SlotIndex={SlotIndex}, ItemId={ItemId}", networkEquipmentSlot.OwnerId, networkEquipmentSlot.Position.Type, networkEquipmentSlot.Position.Index, networkEquipmentSlot.Item.UniqueId);
+                _logger.LogInformation("Item has been equipped. UnitId={UnitId}, SlotType={SlotType}, SlotIndex={SlotIndex}, ItemId={ItemId}", networkEquipmentSlot.OwnerId, networkEquipmentSlot.Position.Type, networkEquipmentSlot.Position.Index, networkEquipmentSlot.Item.Id);
             });
         }
 
@@ -816,12 +819,12 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 var previousIndex = unit.Body.CurrentHandEquipmentSetIndex;
                 unit.Body.CurrentHandEquipmentSetIndex = networkActiveHandEquipmentSet.Index;
                 RefreshInventoryWindow();
-                if (_uiAccessor.VendorViewVM != null && string.Equals(_uiAccessor.VendorViewVM.DollVM?.Unit?.Value.Unit?.UniqueId, unit.UniqueId, StringComparison.OrdinalIgnoreCase))
+                if (_uiAccessor.VendorVM != null && string.Equals(_uiAccessor.VendorVM.DollVM?.Unit?.Value.Unit?.UniqueId, unit.UniqueId, StringComparison.OrdinalIgnoreCase))
                 {
-                    var set = _uiAccessor.VendorViewVM.DollVM.WeaponSets.FirstOrDefault(s => s.Index == unit.Body.CurrentHandEquipmentSetIndex);
+                    var set = _uiAccessor.VendorVM.DollVM.WeaponSets.FirstOrDefault(s => s.Index == unit.Body.CurrentHandEquipmentSetIndex);
                     if (set != null)
                     {
-                        _uiAccessor.VendorViewVM.DollVM.CurrentSet.Value = set;
+                        _uiAccessor.VendorVM.DollVM.CurrentSet.Value = set;
                     }
                 }
                 _logger.LogInformation("Changed active hand equipment slot. UnitId={UnitId}, PreviousIndex={PreviousIndex}, CurrentIndex={CurrentIndex}", networkActiveHandEquipmentSet.UnitId, previousIndex, unit.Body.CurrentHandEquipmentSetIndex);
@@ -1593,13 +1596,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     var (item, action) = GetDataForVendorTransferAction(networkVendorItemTransfer.Item, networkVendorItemTransfer.Count, networkVendorItemTransfer.ItemActionTarget, networkVendorItemTransfer.ItemAction);
                     if (item == null)
                     {
-                        _logger.LogError("Unable to find item for make vendor transfer action. ItemId={ItemId}, ActionTarget={ActionTarget}, ActionType={ActionType}", networkVendorItemTransfer.Item.UniqueId, networkVendorItemTransfer.ItemActionTarget, networkVendorItemTransfer.ItemAction);
+                        _logger.LogError("Unable to find item for make vendor transfer action. ItemId={ItemId}, ActionTarget={ActionTarget}, ActionType={ActionType}", networkVendorItemTransfer.Item.Id, networkVendorItemTransfer.ItemActionTarget, networkVendorItemTransfer.ItemAction);
                         return;
                     }
 
                     if (action == null)
                     {
-                        _logger.LogError("Unable to find to determine correct action to make vendor transfer. ItemId={ItemId}, ActionTarget={ActionTarget}, ActionType={ActionType}", networkVendorItemTransfer.Item.UniqueId, networkVendorItemTransfer.ItemActionTarget, networkVendorItemTransfer.ItemAction);
+                        _logger.LogError("Unable to find to determine correct action to make vendor transfer. ItemId={ItemId}, ActionTarget={ActionTarget}, ActionType={ActionType}", networkVendorItemTransfer.Item.Id, networkVendorItemTransfer.ItemActionTarget, networkVendorItemTransfer.ItemAction);
                         return;
                     }
 
@@ -1620,13 +1623,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (_uiAccessor.VendorViewVM == null)
+                if (_uiAccessor.VendorVM == null)
                 {
                     _logger.LogWarning("Unable to close vendor screen due to missing VendorViewVM");
                     return;
                 }
 
-                _uiAccessor.VendorViewVM.m_CloseAction?.Invoke();
+                _uiAccessor.VendorVM.m_CloseAction?.Invoke();
                 SetPause(false);
             });
         }
@@ -1635,13 +1638,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             _mainThreadAccessor.Post(() =>
             {
-                if (_uiAccessor.VendorViewVM == null)
+                if (_uiAccessor.VendorVM == null)
                 {
                     _logger.LogWarning("Unable to make vendor deal due to missing VendorViewVM");
                     return;
                 }
 
-                _uiAccessor.VendorViewVM.Deal();
+                _uiAccessor.VendorVM.Deal();
             });
         }
 
@@ -2451,7 +2454,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                 if (items == null)
                 {
-                    _logger.LogWarning("Unable to find item collection to read item. ItemId={ItemId}, ItemName={ItemName}", networkItem.UniqueId, networkItem.Name);
+                    _logger.LogWarning("Unable to find item collection to read item. ItemId={ItemId}, ItemName={ItemName}", networkItem.Id, networkItem.Name);
 
                     // every 'read' action is tied to main player, so let's use this as a last resort
                     items = Game.Instance.Player.Inventory;
@@ -2460,7 +2463,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 var item = items.FirstOrDefault(i => IsSameUnholdedItem(i, networkItem) && i.Get<ItemPartShowInfoCallback>() != null);
                 if (item == null)
                 {
-                    _logger.LogError("Unable to find item to read. ItemId={ItemId}, ItemName={ItemName}", networkItem.UniqueId, networkItem.Name);
+                    _logger.LogError("Unable to find item to read. ItemId={ItemId}, ItemName={ItemName}", networkItem.Id, networkItem.Name);
                     return;
                 }
 
@@ -2483,7 +2486,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 var item = unit.Inventory.FirstOrDefault(x => IsSameItem(x, itemCopy.Item) && x.Blueprint.GetComponent<CopyItem>() != null);
                 if (item == null)
                 {
-                    _logger.LogError("Unable to find valid item to copy. UnitId={UnitId}, ItemId={ItemId}, ItemName={ItemName}", itemCopy.UnitId, itemCopy.Item.UniqueId, itemCopy.Item.Name);
+                    _logger.LogError("Unable to find valid item to copy. UnitId={UnitId}, ItemId={ItemId}, ItemName={ItemName}", itemCopy.UnitId, itemCopy.Item.Id, itemCopy.Item.Name);
                     return;
                 }
 
@@ -2808,7 +2811,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 matchedItems.Add(item, existingItems);
             }
 
-
             return true;
         }
 
@@ -2994,7 +2996,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 default:
                     var mapObject = _gameStateLookupService.GetMapObject(lootableEntity.Id);
                     var lookupTargets = mapObject != null ? [mapObject]
-                        : _gameStateLookupService.GetNeareastLootableMapObjects(lootableEntity.Position);
+                        : _gameStateLookupService.GetNeareastLootableMapObjects(lootableEntity.Position, _maxLootableEntityDistance);
 
                     var mapObjectContainers = lookupTargets.Select(x => ((InteractionLootPart)x.Interactions.FirstOrDefault(i => i is InteractionLootPart)).Loot);
                     return mapObjectContainers;
@@ -3021,7 +3023,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 var itemSlot = unit.Body.QuickSlots.FirstOrDefault(s => s.HasItem && IsSameItem(s.Item, networkActionBarSlot.Item));
                 if (itemSlot == null)
                 {
-                    _logger.LogError("Unable to find item slot content. UnitId={UnitId}, ItemId={ItemId}, ItemName={ItemName}", unit.UniqueId, networkActionBarSlot.Item.UniqueId, networkActionBarSlot.Item.Name);
+                    _logger.LogError("Unable to find item slot content. UnitId={UnitId}, ItemId={ItemId}, ItemName={ItemName}", unit.UniqueId, networkActionBarSlot.Item.Id, networkActionBarSlot.Item.Name);
                     return null;
                 }
 
@@ -3095,7 +3097,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private void RefreshVendorScreen()
         {
-            if (_uiAccessor.VendorViewVM == null)
+            if (_uiAccessor.VendorVM == null)
             {
                 _logger.LogWarning("Unable to refresh vendor screen due to missing VendorViewVM");
                 return;
@@ -3103,8 +3105,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
             try
             {
-                _uiAccessor.VendorViewVM.UpdateVendorSide();
-                _uiAccessor.VendorViewVM.UpdatePlayerSide();
+                _uiAccessor.VendorVM.UpdateVendorSide();
+                _uiAccessor.VendorVM.UpdatePlayerSide();
             }
             catch (Exception ex)
             {
@@ -3261,13 +3263,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
         private bool IsSameUnholdedItem(ItemEntity itemEntity, NetworkItem networkLootItem)
         {
             // dead units retain it's holding state
-            return ((itemEntity.Owner?.State?.IsDead ?? true) || itemEntity.HoldingSlot == null) && IsSameItem(itemEntity, networkLootItem);
+            return (itemEntity.Owner != null && itemEntity.Owner.State.IsFinallyDead || itemEntity.HoldingSlot == null) && IsSameItem(itemEntity, networkLootItem);
         }
 
         private bool IsSameItem(ItemEntity itemEntity, NetworkItem networkLootItem)
         {
             var sameItemType = string.Equals(itemEntity.NameForAcronym, networkLootItem.Name, StringComparison.OrdinalIgnoreCase)
-                && (string.Equals(itemEntity.UniqueId, networkLootItem.UniqueId, StringComparison.OrdinalIgnoreCase)
+                && (string.Equals(itemEntity.UniqueId, networkLootItem.Id, StringComparison.OrdinalIgnoreCase)
                     || string.Equals(itemEntity.Blueprint.AssetGuid.ToString(), networkLootItem.BlueprintId, StringComparison.OrdinalIgnoreCase))
                 && itemEntity.Cost == networkLootItem.Cost
                 && itemEntity.IsLootable

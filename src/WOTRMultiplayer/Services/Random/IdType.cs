@@ -22,6 +22,9 @@ namespace WOTRMultiplayer.Services.Random
         [Description("EV")]
         EntityView,
 
+        [Description("DL")]
+        DroppedLoot,
+
         [Description("AE")]
         AreaEffect,
 

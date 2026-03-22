@@ -99,7 +99,7 @@ namespace WOTRMultiplayer.Playground.Client
                 case CommandVerbs.EquipmentSlotUpdateCommandVerb equipment:
                     var slot = new NetworkEquipmentSlot
                     {
-                        Item = new NetworkItem { UniqueId = equipment.ItemId },
+                        Item = new NetworkItem { Id = equipment.ItemId },
                         OwnerId = equipment.UnitId,
                         Position = new NetworkEquipmentSlotPosition
                         {

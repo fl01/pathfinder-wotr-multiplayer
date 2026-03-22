@@ -5,7 +5,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyZoneLootShown)]
-    public class NotifyZoneLootShown :IForwardableMessage
+    public class NotifyZoneLootShown : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

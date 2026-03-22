@@ -1820,15 +1820,16 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
+                var groups = string.Join(", ", Game.Combat?.UntargetableUnits.Select(x => $"{x.Key}=[{string.Join(", ", x.Value)}]"));
+
                 if (!IsWaitingForUntargetableUnits())
                 {
+                    Logger.LogInformation("Local player is allowed to leave combat. UntargetableGroups={UntargetableGroups}", groups);
                     CleanupUntargetableUnitsState();
                     return true;
                 }
 
-                var groups = string.Join(", ", Game.Combat?.UntargetableUnits.Select(x => $"{x.Key}=[{string.Join(", ", x.Value)}]"));
-                Logger.LogWarning("Unable to leave combat. UntargetableGroups={UntargetableGroups}", groups);
-
+                Logger.LogWarning("Local player cannot leave combat yet. UntargetableGroups={UntargetableGroups}", groups);
                 return false;
             }
             catch (Exception ex)

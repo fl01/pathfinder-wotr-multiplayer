@@ -13,6 +13,7 @@ using Kingmaker.UnitLogic;
 using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
+using Owlcat.Runtime.Core.Utils;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.AreaEffects;
@@ -54,20 +55,21 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return Game.Instance.State.Units.All.FirstOrDefault(u => string.Equals(u.UniqueId, uniqueId, StringComparison.OrdinalIgnoreCase));
         }
 
-        public List<MapObjectEntityData> GetNeareastLootableMapObjects(NetworkVector3 position)
+        public List<MapObjectEntityData> GetNeareastLootableMapObjects(NetworkVector3 position, float maxDistanceInMeters)
         {
             var targetPoint = position.ToUnityVector3();
             var orderedContainers = Game.Instance.State.MapObjects.All
-                .Where(o => o.Interactions.Any(i => i is InteractionLootPart))
+                .Where(o => o.Interactions.Any(i => i is InteractionLootPart)
+                    && GeometryUtils.MechanicsDistance(o.Position, targetPoint) < maxDistanceInMeters)
                 .OrderBy(o => (o.Position - targetPoint).magnitude)
                 .ToList();
 
             return orderedContainers;
         }
 
-        public MapObjectEntityData GetNeareastLootBagMapObject(NetworkVector3 position)
+        public MapObjectEntityData GetNeareastLootBagMapObject(NetworkVector3 position, float maxDistanceInMeters)
         {
-            var allNearest = GetNeareastLootableMapObjects(position);
+            var allNearest = GetNeareastLootableMapObjects(position, maxDistanceInMeters);
             var lootbag = allNearest.FirstOrDefault(o => o is DroppedLoot.EntityData);
             return lootbag;
         }

@@ -13,6 +13,7 @@ using Kingmaker.Controllers;
 using Kingmaker.Controllers.Combat;
 using Kingmaker.Designers;
 using Kingmaker.EntitySystem.Entities;
+using Kingmaker.GameModes;
 using Kingmaker.Pathfinding;
 using Kingmaker.PubSubSystem;
 using Kingmaker.TurnBasedMode;
@@ -621,7 +622,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 try
                 {
                     var unit = _gameStateLookupService.GetUnitEntity(unitId);
-                    if (unit == null || unit.State.IsFinallyDead)
+                    if (unit == null || unit.State.IsFinallyDead || Game.Instance.CurrentMode == GameModeType.Dialog || Game.Instance.CurrentMode == GameModeType.Cutscene)
                     {
                         tcs.SetResult(false);
                         return;

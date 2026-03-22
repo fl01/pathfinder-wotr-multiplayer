@@ -10,6 +10,7 @@ using Kingmaker.UI;
 using Kingmaker.UI.Kingdom;
 using Kingmaker.UI.MVVM;
 using Kingmaker.UI.PointMarker;
+using Kingmaker.Utility;
 using Kingmaker.View;
 using Kingmaker.View.MapObjects;
 using Microsoft.Extensions.Logging;
@@ -156,7 +157,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private void CreateMapObjectPing(NetworkPlayer player, NetworkPing ping)
         {
-            var mapObject = _gameStateLookupService.GetMapObject(ping.MapObject.Id) ?? _gameStateLookupService.GetNeareastLootBagMapObject(ping.WorldPosition);
+            var mapObject = _gameStateLookupService.GetMapObject(ping.MapObject.Id) ?? _gameStateLookupService.GetNeareastLootBagMapObject(ping.WorldPosition, 20.Feet().Meters);
             if (mapObject == null)
             {
                 _logger.LogWarning("Unable to enable ping missing map object. MapObjectId={MapObjectId}", ping.UnitId);

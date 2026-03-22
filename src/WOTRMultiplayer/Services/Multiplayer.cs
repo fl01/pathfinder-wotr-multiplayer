@@ -460,7 +460,7 @@ namespace WOTRMultiplayer.Services
 
                 var context = _gameInteractionService.RemoteContext?.DropItem;
                 if (context != null && string.Equals(context.UnitId, networkDropItem.OwnerEntityId, StringComparison.OrdinalIgnoreCase)
-                    && string.Equals(context.ItemId, networkDropItem.Item.UniqueId, StringComparison.OrdinalIgnoreCase))
+                    && string.Equals(context.ItemId, networkDropItem.Item.Id, StringComparison.OrdinalIgnoreCase))
                 {
                     return;
                 }
@@ -469,7 +469,7 @@ namespace WOTRMultiplayer.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while dropping item. ItemId={ItemId}", networkDropItem?.Item?.UniqueId);
+                _logger.LogError(ex, "Error while dropping item. ItemId={ItemId}", networkDropItem?.Item?.Id);
                 throw;
             }
         }
@@ -485,7 +485,7 @@ namespace WOTRMultiplayer.Services
 
                 var context = _gameInteractionService.RemoteContext?.UseInventoryItem;
                 if (context != null
-                    && string.Equals(context.ItemId, useInventoryItem.Item.UniqueId, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(context.ItemId, useInventoryItem.Item.Id, StringComparison.OrdinalIgnoreCase)
                     && string.Equals(context.UserUnitId, useInventoryItem.UserUnitId, StringComparison.OrdinalIgnoreCase))
                 {
                     return;
@@ -495,7 +495,7 @@ namespace WOTRMultiplayer.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while using inventory item. ItemId={ItemId}", useInventoryItem.Item?.UniqueId);
+                _logger.LogError(ex, "Error while using inventory item. ItemId={ItemId}", useInventoryItem.Item?.Id);
                 throw;
             }
         }
@@ -930,7 +930,7 @@ namespace WOTRMultiplayer.Services
                 }
 
                 var vendorItemTransfer = _gameInteractionService.RemoteContext?.VendorItemTransfer;
-                if (vendorItemTransfer != null && string.Equals(vendorItemTransfer.ItemId, networkVendorItemTransfer.Item.UniqueId, StringComparison.OrdinalIgnoreCase))
+                if (vendorItemTransfer != null && string.Equals(vendorItemTransfer.ItemId, networkVendorItemTransfer.Item.Id, StringComparison.OrdinalIgnoreCase))
                 {
                     return;
                 }
@@ -939,7 +939,7 @@ namespace WOTRMultiplayer.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while transferring vendor item. ItemId={ItemId}", networkVendorItemTransfer?.Item?.UniqueId);
+                _logger.LogError(ex, "Error while transferring vendor item. ItemId={ItemId}", networkVendorItemTransfer?.Item?.Id);
                 throw;
             }
         }
@@ -3969,7 +3969,7 @@ namespace WOTRMultiplayer.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while reading item. ItemId={ItemId}, ItemName={ItemName}", networkItem.UniqueId, networkItem.Name);
+                _logger.LogError(ex, "Error while reading item. ItemId={ItemId}, ItemName={ItemName}", networkItem.Id, networkItem.Name);
                 throw;
             }
         }

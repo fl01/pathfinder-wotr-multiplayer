@@ -6,7 +6,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [BeetleX.Packets.MessageType((int)MessageTypes.Game.NotifyCustomSpellRemoved)]
-    public class NotifyCustomSpellRemoved :IForwardableMessage
+    public class NotifyCustomSpellRemoved : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

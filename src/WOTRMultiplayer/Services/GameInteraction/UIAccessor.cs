@@ -73,7 +73,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         public GroupChangerPCView GroupChangerView => (InGamePCView?.m_StaticPartPCView?.m_GroupChangerContextPCView ?? GlobalMapPCView?.m_GroupChangerContextPCView)?.m_GroupChangerPCView;
 
-        public VendorVM VendorViewVM => InGamePCView?.m_StaticPartPCView?.m_VendorPCView?.ViewModel;
+        public VendorVM VendorVM => InGamePCView?.m_StaticPartPCView?.m_VendorPCView?.ViewModel;
 
         public SpellbookPCView SpellbookPCView => (InGamePCView?.m_StaticPartPCView?.m_ServiceWindowsPCView ?? GlobalMapPCView.m_ServiceWindowsPCView)?.m_SpellbookPCView;
 

@@ -66,7 +66,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         GroupChangerPCView GroupChangerView { get; }
 
-        VendorVM VendorViewVM { get; }
+        VendorVM VendorVM { get; }
 
         SpellbookPCView SpellbookPCView { get; }
 

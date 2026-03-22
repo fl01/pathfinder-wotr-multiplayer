@@ -359,7 +359,8 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             try
             {
                 var identifier = $"{CommonTranspilerReplacements.GetSharedIdentifierPart()}:{prefab.GetType().Name}:{prefab.name}";
-                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(IdType.EntityView, Game.Instance.Player.GameId, identifier);
+                var type = prefab is DroppedLoot ? IdType.DroppedLoot : IdType.EntityView;
+                var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(type, Game.Instance.Player.GameId, identifier);
                 return id;
             }
             catch (Exception ex)

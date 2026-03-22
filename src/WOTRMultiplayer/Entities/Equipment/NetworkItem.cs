@@ -4,7 +4,7 @@ namespace WOTRMultiplayer.Entities.Equipment
 {
     public class NetworkItem
     {
-        public string UniqueId { get; set; }
+        public string Id { get; set; }
 
         public string BlueprintId { get; set; }
 

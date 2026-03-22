@@ -121,7 +121,7 @@ namespace WOTRMultiplayer.Config.Mapping
 
             var item = new NetworkItem
             {
-                UniqueId = itemEntity.UniqueId,
+                Id = itemEntity.UniqueId,
                 BlueprintId = itemEntity.Blueprint.AssetGuid.ToString(),
                 Name = itemEntity.NameForAcronym,
                 Count = itemEntity.Count,

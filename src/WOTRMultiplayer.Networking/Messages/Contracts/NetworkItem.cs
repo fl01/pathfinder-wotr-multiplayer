@@ -9,7 +9,7 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
     {
         [ProtoMember(1)]
         [LogMe]
-        public string UniqueId { get; set; }
+        public string Id { get; set; }
 
         [ProtoMember(2)]
         [LogMe]
@@ -45,7 +45,7 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
 
         public override string ToString()
         {
-            return UniqueId.ToString();
+            return Id;
         }
     }
 }
