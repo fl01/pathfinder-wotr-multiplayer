@@ -878,9 +878,9 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public SeededContext GetSeededContext(bool excludeAreaSeed = false)
+        public SeededContext GetSeededContext(SeedKind seedKind)
         {
-            return _multiplayerActorAccessor.Current?.GetSeededContext(excludeAreaSeed);
+            return _multiplayerActorAccessor.Current?.GetSeededContext(seedKind);
         }
 
         public int? GetCrusadeArmyCombatAreaSeed()

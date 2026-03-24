@@ -416,12 +416,12 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
             if (isFirstGroupMember && unit != null)
             {
-                unit.Group.IsInCombat++;
+                //unit.Group.IsInCombat++;
             }
 
             if (isFirstGroup)
             {
-                Game.Instance.Player.Group.IsInCombat++;
+                //Game.Instance.Player.Group.IsInCombat++;
             }
 
             _logger.LogInformation("Unit is not targetable anymore. UnitId={UnitId}, IsUntargetable={IsUntargetable}, PlayerCombatCounter={PlayerCombatCounter}, IsFirstGroupMember={IsFirstGroupMember}, IsFirstGroup={IsFirstGroup}", unitId, unit?.Descriptor.State.Features.IsUntargetable.Value, Game.Instance.Player.Group.IsInCombat.m_GuardCount, isFirstGroupMember, isFirstGroup);
@@ -434,12 +434,12 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
             if (isLastGroupMember && unit != null)
             {
-                unit.Group.IsInCombat--;
+                //unit.Group.IsInCombat--;
             }
 
             if (isLastGroup)
             {
-                Game.Instance.Player.Group.IsInCombat--;
+                //Game.Instance.Player.Group.IsInCombat--;
             }
 
             _logger.LogInformation("Unit is targetable. UnitId={UnitId}, IsUntargetable={IsUntargetable}, PlayerCombatCounter={PlayerCombatCounter}, IsLastGroupMember={IsLastGroupMember}, IsLastGroup={IsLastGroup}", unitId, unit?.Descriptor.State.Features.IsUntargetable.Value, Game.Instance.Player.Group.IsInCombat.m_GuardCount, isLastGroupMember, isLastGroup);

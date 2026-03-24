@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -111,6 +112,8 @@ namespace WOTRMultiplayer.Services
 
         // TODO: revise usages since it's not needed in many cases
         protected object ActionLock => _actionLock;
+
+        private SeedKind[] AllSeeds { get; } = [.. Enum.GetValues(typeof(SeedKind)).Cast<SeedKind>().Where(s => s != SeedKind.All)];
 
         protected MultiplayerActorBase(
             ILogger logger,
@@ -631,13 +634,18 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public SeededContext GetSeededContext(bool excludeAreaSeed = false)
+        public SeededContext GetSeededContext(SeedKind seedKind)
         {
+            var idBuilder = new StringBuilder();
+            foreach (var seed in AllSeeds)
+            {
+                IncludeSeed(idBuilder, seedKind, seed);
+            }
+
             var lifetime = CombatTurnSeed == null ? IdentifierLifetime.Area : IdentifierLifetime.CombatTurn;
-            var identifier = $"{nameof(SessionSeed)}={SessionSeed}:{nameof(LoadedSaveSeed)}={LoadedSaveSeed ?? 0}:{nameof(AreaSeed)}={(excludeAreaSeed ? 0 : AreaSeed ?? 0)}:{nameof(CombatSeed)}={CombatSeed ?? 0}:{nameof(CombatTurnSeed)}={CombatTurnSeed ?? 0}:{nameof(CrusadeArmyCombatAreaSeed)}={CrusadeArmyCombatAreaSeed ?? 0}:{nameof(CrusadeArmyCombatSeed)}={CrusadeArmyCombatSeed ?? 0}";
             var context = new SeededContext
             {
-                Id = identifier,
+                Id = idBuilder.ToString(),
                 Lifetime = lifetime
             };
 
@@ -4423,6 +4431,32 @@ namespace WOTRMultiplayer.Services
                 var isFirstGroupMember = group.Count == 1;
                 CombatInteraction.MakeUnitUntargetable(unitId, isFirstGroupMember, isFirstGroup);
             }
+        }
+
+        private void IncludeSeed(StringBuilder idBuilder, SeedKind seedConfig, SeedKind seed)
+        {
+            var value = (seedConfig & seed) != 0 ? (GetSeedValue(seed) ?? 0).ToString() : "excluded";
+            if (idBuilder.Length > 0)
+            {
+                idBuilder.Append(',');
+            }
+
+            idBuilder.Append(seed).Append('=').Append(value);
+        }
+
+        private int? GetSeedValue(SeedKind seedKind)
+        {
+            return seedKind switch
+            {
+                SeedKind.Session => SessionSeed,
+                SeedKind.LoadedSaveSeed => LoadedSaveSeed,
+                SeedKind.AreaSeed => AreaSeed,
+                SeedKind.CombatSeed => CombatSeed,
+                SeedKind.CombatTurnSeed => CombatTurnSeed,
+                SeedKind.CrusadeArmyCombatAreaSeed => CrusadeArmyCombatAreaSeed,
+                SeedKind.CrusadeArmyCombatSeed => CrusadeArmyCombatSeed,
+                _ => null
+            };
         }
     }
 }

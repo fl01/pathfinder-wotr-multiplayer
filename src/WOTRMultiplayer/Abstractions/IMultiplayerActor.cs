@@ -60,7 +60,7 @@ namespace WOTRMultiplayer.Abstractions
 
         Action OnGameStarted { get; set; }
 
-        SeededContext GetSeededContext(bool excludeAreaSeed = false);
+        SeededContext GetSeededContext(SeedKind seedKind = SeedKind.All);
 
         int? CrusadeArmyCombatAreaSeed { get; }
 

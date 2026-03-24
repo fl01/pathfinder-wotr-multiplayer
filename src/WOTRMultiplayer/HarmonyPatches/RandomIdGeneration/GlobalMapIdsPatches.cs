@@ -157,7 +157,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             {
                 string id = null;
                 // new settlement is created right after battle, but there is no way to pause game in global map
-                var seededContext = Main.Multiplayer.GetSeededContext(excludeAreaSeed: true);
+                var seededContext = Main.Multiplayer.GetSeededContext(SeedKind.All & ~SeedKind.AreaSeed);
                 var identifier = $"{CommonTranspilerReplacements.GetSharedIdentifierPart()}:{blueprintSettlement.AssetGuid}:{blueprintGlobalMapPoint.AssetGuid}_{seededContext.Id}";
                 while (string.IsNullOrEmpty(id))
                 {
