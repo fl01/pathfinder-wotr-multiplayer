@@ -110,7 +110,6 @@ namespace WOTRMultiplayer.Services
 
         protected abstract bool HasControlOverUI { get; }
 
-        // TODO: revise usages since it's not needed in many cases
         protected object ActionLock => _actionLock;
 
         private SeedKind[] AllSeeds { get; } = [.. Enum.GetValues(typeof(SeedKind)).Cast<SeedKind>().Where(s => s != SeedKind.All)];
@@ -2967,7 +2966,6 @@ namespace WOTRMultiplayer.Services
             ResetPlayersTracker(Game.PlayersInGroupChanger);
             ResetPlayersTracker(Game.PlayersInSkipTime);
             ResetPlayersTracker(Game.PlayersInGlobalMapLocationMessage);
-            ResetPlayersTracker(Game.PlayersInGlobalMapCommonPopup);
             ResetPlayersTracker(Game.PlayersInZoneLoot);
             ResetPlayersTracker(Game.PlayersInDialogPopup);
             ResetPlayersTracker(Game.PlayersInCharacterSelectionWindow);
