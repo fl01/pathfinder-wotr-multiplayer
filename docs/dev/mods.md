@@ -45,7 +45,8 @@ MultiplayerClient.GetSeededContext(SeedKind.All & ~SeedKind.AreaSeed);
 Basic example of generating a deterministic random number between `0` and `100`:
 
 ```csharp
-var seededContext = Main.Multiplayer.GetSeededContext();
+var currentActor = Main.ServiceProvider.GetService<IMultiplayerActorAccessor>().Current;
+var seededContext = currentActor.GetSeededContext();
 var identifier = $"MyActionName_{seededContext.Id}";
 var deterministicValue = Main.Multiplayer.ValueGenerator.Range(
     seededContext.Lifetime,
@@ -54,6 +55,14 @@ var deterministicValue = Main.Multiplayer.ValueGenerator.Range(
     maxExclusive: 100
 );
 ```
+
+`ValueGenerator` produces values based on two parameters: `Lifetime` and `Identifier`.
+
+* **Lifetime** - determines when the random sequence resets (for example, *per combat turn* or *per combat*).
+* **Identifier** - the RNG seed used to generate the value.
+
+You can override the lifetime if necessary, but in most cases it should be taken directly from `SeededContext`.
+
 
 ## Network Messages
 
