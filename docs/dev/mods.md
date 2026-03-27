@@ -26,7 +26,7 @@ Keep in mind:
 
 *In extreme cases, you can always use reflection to access or modify whatever you need.*
 
-## Deterministic [Random](https://en.wikipedia.org/wiki/Pseudorandom_number_generator)
+## Deterministic [random](https://en.wikipedia.org/wiki/Pseudorandom_number_generator)
 
 All random values must be consistent across all players to avoid desynchronizing the game state. The multiplayer mod provides a way to generate deterministic values without requiring additional network messages.
 

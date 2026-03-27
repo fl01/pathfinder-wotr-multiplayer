@@ -14,7 +14,7 @@
 Most of the syncing relies on the blueprint asset ID (or something similiar) to replicate action for other players, so in **THEORY** things should work fine as long as those IDs are the same for abilities, spells, etc. This also includes any extra rolls (e.g. Skill Check or Attack Roll) added by mods, but those roll types must be available within base game.
 That said, compatibility with other mods hasn't really been tested at all and there are no plans to support it yet.
 
-### Adding Multiplayer Compatibility to Your Mod
+### Adding Multiplayer Compatibility to your mod
 
 See the [general information](/docs/dev/mods.md) about mod integration, as well as a basic [example](https://github.com/fl01/pathfinder-wotr-multiplayer-bubblebuffs) demonstrating how to utilize the existing networking layer in a separate mod.
 
@@ -80,15 +80,15 @@ Worth noting, such way to start game is very limited as of now:
 
 However, you can create a save game in single-player using those features and then host the game from that save.
 
-Clients store the most recently joined and started multiplayer save game at `%LOCALAPPDATA%low\Owlcat Games\Pathfinder Wrath Of The Righteous\Saved Multiplayer Games\latest joined game.zks`.
+The latest received save game (either when joining a lobby or when another player loads a game during a session) is stored at `%LOCALAPPDATA%low\Owlcat Games\Pathfinder Wrath Of The Righteous\Multiplayer\Saved Games\latest received save.zks`.
 
 Load/Quickload is available for **everyone** during multiplayer game. It will force other players in the lobby to load the same saved game. However, it skips all synchronization checks, so the game will load even if someone failed to receive or store the save file.
 
-A stable 60+ FPS is strongly recommended. If you drop below that, you will probably run into various desync issues (like AI picking different targets, units not attacking after moving, etc.)
+A stable 60+ FPS is strongly recommended. Some game logic is FPS dependent. Abysmal performance in the late game makes it worse
 
 There is no hard player limit. Extra players can even join as spectators with 0 units, though the player list UI might look a bit weird. That said, most testing was done with 2 players (sometimes 3), so the more people you add, the more likely things are to break.
 
-It is possible to join when the game has already started (host IP address or game code can be found in the Multiplayer Lobby window), you need to ask host to load save game and it will load for you as well
+It is possible to join when the game has already started, you just need to ask someone to load save game and it will load for you as well
 
 ## Logs
 - Mod writes logs to `./logs` folder.
@@ -183,7 +183,7 @@ Turn-Based only. Real-Time with Pause (RTwP) combat is completely disabled.
 You can switch character owner at any time during combat.
 
 ### Random enemy spawns
-Sometimes game triggers enemy spawns in a different turns. Enemy units in combat are synced across the players, any new units are not allowed to join combat (and become untargetable) untill they are spawned for every player. Combat joins happen in-between turns.
+Sometimes game triggers enemy spawns in a different turns. Enemy units in combat are synced across the players, any new units are not allowed to join combat (and become untargetable) until they are spawned for every player. Combat joins happen in-between turns.
 
 ### Players
 
@@ -279,20 +279,19 @@ There is a configurable hotkey you can use to send pings (alerts) to other playe
 More options are planned later, like pinging at different UI elements (should be useful during leveling or vendoring).
 
 ## Most impactful desync issues (as of now)
-* **Opportunity attacks** - sometimes they don't trigger for everyone in the lobby.
-* **The Last Sarkorians (Ulbrig DLC)** - undead swamp encounter can enter infinite combat.
-* **Blackwater boss** - random unit spawns are desynced.
-* **Environment effects** - trigger at different times because they are controlled by separate cutscene timers
+- **Opportunity attacks** - sometimes they don't trigger for everyone in the lobby.
+- **The Last Sarkorians (Ulbrig DLC)** - undead swamp encounter can enter infinite combat.
+- **Blackwater boss** - random unit spawns are desynced.
+- **Environment effects** - trigger at different times because they are controlled by separate cutscene timers
   - Act2 Drezen Siege - Giants - completely disabled as of now
   - Blackwater traps
   - Act5 Iz - Blood Rain
-* **Triggered traps** - AoE spells may affect different characters.
-* **Working in Tandem (and similar effects)** - the attack roll bonus depends on who attacks first (mount or rider), but since this is frame-dependent, the attack order may vary.
-* **Spell DC inconsistencies** (e.g., dispel checks or saving throws) - DC occasionally differs for unclear reasons (maybe difficulty DC bonus is not applied sometimes).
-
-  * **Act 4 - Chivarro buffs** (final encounter)
-  * **Act 2 – Seelah camp** - quasit poison
-* **Pit spells** - uses a separate unsynced trigger timer
+- **Triggered traps** - AoE spells may affect different characters.
+- **Working in Tandem (and similar effects)** - the attack roll bonus depends on who attacks first (mount or rider), but since this is frame-dependent, the attack order may vary.
+- **Spell DC inconsistencies** (e.g., dispel checks or saving throws) - DC occasionally differs for unclear reasons (maybe difficulty DC bonus is not applied sometimes).
+  - **Act 4 - Chivarro buffs** (final encounter)
+  - **Act 2 – Seelah camp** - quasit poison
+- **Pit spells** - uses a separate unsynced trigger timer
 
 Most of the issues above are mitigated by syncing HP / auto-killing units in combat, but some would require a few save game loads
 

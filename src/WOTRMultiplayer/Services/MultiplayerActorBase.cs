@@ -3030,7 +3030,7 @@ namespace WOTRMultiplayer.Services
             }
 
             var persistentDataPath = GameInteraction.GetPersistentDataPath();
-            var savePath = Path.Combine(persistentDataPath, "Saved Games", "latest joined game.zks");
+            var savePath = Path.Combine(persistentDataPath, "Saved Games", "latest received save.zks");
             if (!FileSystem.WriteFile(savePath, content))
             {
                 PlayerNotification.ShowModalMessage(WellKnownKeys.SysMessages.FailedToStoreSave.Key, savePath);
