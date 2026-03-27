@@ -119,7 +119,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Items
                 return true;
             }
 
-            var showLootingWindow = containerType == LootContainerType.PlayerChest || Main.Multiplayer.IsControlledByLocalPlayer(unit.UniqueId);
+            var showLootingWindow = containerType == LootContainerType.PlayerChest || containerType == LootContainerType.OneSlot || Main.Multiplayer.IsControlledByLocalPlayer(unit.UniqueId);
             return showLootingWindow;
         }
 

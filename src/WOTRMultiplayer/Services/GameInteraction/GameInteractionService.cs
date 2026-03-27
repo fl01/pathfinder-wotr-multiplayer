@@ -586,8 +586,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     Dictionary<NetworkItem, List<ItemEntity>> matchedItems = null;
                     var sourceCollection = lookupTargets.FirstOrDefault(x => TryFindRequiredItemsInCollection(x, networkItemsTransfer.Items, out matchedItems));
                     // unable to find container with all items to loot + they are not in the inventory already (simultaneous looting)
-                    if (sourceCollection == null && !TryFindRequiredItemsInCollection(Game.Instance.Player.Inventory, networkItemsTransfer.Items, out _))
+                    if (sourceCollection == null)
                     {
+                        if (TryFindRequiredItemsInCollection(Game.Instance.Player.Inventory, networkItemsTransfer.Items, out _))
+                        {
+                            return;
+                        }
+
                         _logger.LogError("Unable to find valid ItemsCollection source with all required items. Id={Id}, Position={Position}, Type={Type}", networkItemsTransfer.Source.Id, networkItemsTransfer.Source.Position, networkItemsTransfer.Source.Type);
                         var items = string.Join(", ", networkItemsTransfer.Items.Select(x => x.Name));
                         _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.Looting.ItemsMismatch.Key, CombatTextSeverity.Critical, items);
