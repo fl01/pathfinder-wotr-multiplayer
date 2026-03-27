@@ -5,7 +5,7 @@ namespace WOTRMultiplayer.Networking.Messages
 {
     public static class NetworkMessages
     {
-        public static void RegisterMessages(params Assembly[] assemblies)
+        public static void Register(params Assembly[] assemblies)
         {
             foreach (Assembly assembly in assemblies)
             {

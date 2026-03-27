@@ -17,7 +17,7 @@ namespace WOTRMultiplayer.Networking.Extensions
             serviceCollection.AddSingleton<INetworkClient, NetworkClient>();
             serviceCollection.AddTransient<IMessageConsumer, MessageConsumer>();
 
-            NetworkMessages.RegisterMessages(Assembly.GetExecutingAssembly());
+            NetworkMessages.Register(Assembly.GetExecutingAssembly());
 
             return serviceCollection;
         }
