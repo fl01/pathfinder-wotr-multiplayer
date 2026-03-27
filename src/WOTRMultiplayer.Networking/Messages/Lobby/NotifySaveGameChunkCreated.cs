@@ -1,4 +1,5 @@
-﻿using ProtoBuf;
+﻿using System;
+using ProtoBuf;
 using WOTRMultiplayer.Logging.Attributes;
 
 namespace WOTRMultiplayer.Networking.Messages.Lobby
@@ -12,6 +13,6 @@ namespace WOTRMultiplayer.Networking.Messages.Lobby
         public int ChunkNumber { get; set; }
 
         [ProtoMember(2)]
-        public byte[] Content { get; set; }
+        public ReadOnlyMemory<byte> Content { get; set; }
     }
 }

@@ -7,5 +7,7 @@
         public int MaxOffset { get; set; }
 
         public int ConfirmedChunk { get; set; }
+
+        public int SentChunk { get; set; }
     }
 }

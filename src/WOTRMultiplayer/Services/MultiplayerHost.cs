@@ -1651,21 +1651,27 @@ namespace WOTRMultiplayer.Services
             var transfer = GetSaveGameTransferData(receivedFrom);
             transfer.ConfirmedChunk = message.ChunkNumber;
 
-            if (transfer.MaxOffset != Game.StartUp.SaveGameTransfer.Content.Length)
-            {
-                var settings = SettingsService.GetSettings();
-                transfer.MaxOffset = Math.Min(Game.StartUp.SaveGameTransfer.Content.Length, transfer.CurrentOffset + settings.SaveGameChunkSize);
-                SendSaveChunks(receivedFrom, Game.StartUp.SaveGameTransfer.Content, transfer, settings.SaveGameChunkSize);
-            }
-
             var currentProgress = Game.StartUp.SaveGameTransfer.Data.ToDictionary(x => x.Key, x => x.Value.ConfirmedChunk / (float)Game.StartUp.SaveGameTransfer.TotalChunks);
             OnSaveGameTransferProgressChanged?.Invoke(currentProgress);
+
+            // waiting for the latest chunk confirmation to arrive before sending new data
+            if (transfer.SentChunk != message.ChunkNumber)
+            {
+                return;
+            }
 
             var progressMessage = new NotifySaveGameTransferProgressChanged
             {
                 Progress = currentProgress
             };
             Send(progressMessage);
+
+            if (transfer.MaxOffset != Game.StartUp.SaveGameTransfer.Content.Length)
+            {
+                var settings = SettingsService.GetSettings();
+                transfer.MaxOffset = Math.Min(Game.StartUp.SaveGameTransfer.Content.Length, transfer.CurrentOffset + settings.SaveGameChunkSize * Game.StartUp.SaveGameTransfer.BatchSize);
+                SendSaveChunks(receivedFrom, Game.StartUp.SaveGameTransfer.Content, transfer, settings.SaveGameChunkSize);
+            }
         }
 
         private void OnNotifyKingdomNavigationChanged(long receivedFrom, NotifyKingdomNavigationChanged message)

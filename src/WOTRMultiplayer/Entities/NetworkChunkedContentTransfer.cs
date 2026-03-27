@@ -8,6 +8,8 @@ namespace WOTRMultiplayer.Entities
 
         public int TotalChunks { get; set; }
 
+        public int BatchSize { get; set; }
+
         public ConcurrentDictionary<long, NetworkChunkedContentTransferData> Data { get; set; } = [];
     }
 }

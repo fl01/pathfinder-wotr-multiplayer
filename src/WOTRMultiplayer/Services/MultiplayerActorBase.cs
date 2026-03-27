@@ -2845,7 +2845,9 @@ namespace WOTRMultiplayer.Services
             Game.StartUp.SaveGameTransfer = new NetworkChunkedContentTransfer
             {
                 Content = content,
-                TotalChunks = chunks
+                TotalChunks = chunks,
+                // allows sending some other data in between batches,
+                BatchSize = (int)(chunks * 0.05)
             };
 
             foreach (var player in Game.Players)
@@ -2863,7 +2865,7 @@ namespace WOTRMultiplayer.Services
                 SendSaveChunks(player.Id, content, transferData, settings.SaveGameChunkSize);
             }
 
-            Logger.LogInformation("Save game transfer has been initiated");
+            Logger.LogInformation("Save game transfer has been initiated. ContentSize={ContentSize}, TotalChunks={TotalChunks}, BatchSize={BatchSize}", Game.StartUp.SaveGameTransfer.Content.Length, Game.StartUp.SaveGameTransfer.TotalChunks, Game.StartUp.SaveGameTransfer.BatchSize);
         }
 
         protected NetworkChunkedContentTransferData GetSaveGameTransferData(long playerId)
@@ -2874,18 +2876,22 @@ namespace WOTRMultiplayer.Services
         protected void SendSaveChunks(long playerId, byte[] content, NetworkChunkedContentTransferData transferData, int chunkSize)
         {
             var chunkNumber = transferData.ConfirmedChunk;
-            for (; transferData.CurrentOffset < transferData.MaxOffset; transferData.CurrentOffset += chunkSize)
+            for (; transferData.CurrentOffset < transferData.MaxOffset;)
             {
                 chunkNumber++;
-                int size = Math.Min(chunkSize, content.Length - transferData.CurrentOffset);
+
+                int size = Math.Min(chunkSize, transferData.MaxOffset - transferData.CurrentOffset);
                 var chunkMessage = new NotifySaveGameChunkCreated
                 {
                     ChunkNumber = chunkNumber,
-                    Content = new ReadOnlyMemory<byte>(content, transferData.CurrentOffset, size).ToArray(),
+                    Content = new ReadOnlyMemory<byte>(content, transferData.CurrentOffset, size),
                 };
 
                 Send(playerId, chunkMessage);
+                transferData.CurrentOffset += size;
             }
+
+            transferData.SentChunk = chunkNumber;
         }
 
         protected HashSet<long> AddPlayerReadyStatus(PlayerTurnReadinessType playerReadinessType, long playerId, string unitId)
@@ -3567,7 +3573,7 @@ namespace WOTRMultiplayer.Services
         private void OnNotifySaveGameChunkCreated(long receivedFrom, NotifySaveGameChunkCreated message)
         {
             var transfer = GetSaveGameTransferData(Game.LocalPlayerId);
-            Array.Copy(message.Content, 0, Game.StartUp.SaveGameTransfer.Content, transfer.CurrentOffset, message.Content.Length);
+            message.Content.Span.CopyTo(Game.StartUp.SaveGameTransfer.Content.AsSpan(transfer.CurrentOffset));
             transfer.CurrentOffset += message.Content.Length;
             transfer.ConfirmedChunk = message.ChunkNumber;
 
