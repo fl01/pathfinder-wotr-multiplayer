@@ -48,8 +48,9 @@ namespace WOTRMultiplayer.UnityBehaviours.Ping
         private void InitRenderers()
         {
             _renderers = [.. transform.Children().SelectMany(x => x.Children()).Select(x => x.GetComponent<MeshRenderer>())];
-            var even = new Color(0f, 0f, 0.6f, 1f);
-            var odd = new Color(0.887f, 0.273f, 0.263f, 1f);
+
+            var even = new Color(0, 0, 167.058f, 1f);
+            var odd = new Color(167.058f, 24.006f, 2.621f, 1f);
             for (int i = 0; i < _renderers.Count; i++)
             {
                 var color = i % 2 == 0 ? even : odd;
