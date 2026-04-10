@@ -2938,10 +2938,11 @@ namespace WOTRMultiplayer.Services
         protected void LoadSavedGame()
         {
             ResetGameIdGenerator();
+            ResetGlobalMapCounters();
+
             Game.ForcedPause = null;
             GameInteraction.SetPause(false);
             Game.DialogState = null;
-
             // it's important to use different loading method for players who joined mid-game
             if (Game.Stage == NetworkLobbyStage.Playing)
             {
@@ -3575,7 +3576,7 @@ namespace WOTRMultiplayer.Services
                 return;
             }
 
-            Game.StartUp.SavePath = StoreSaveGameContent([.. Game.StartUp.SaveGameTransfer.Content]);
+            Game.StartUp.SavePath = StoreSaveGameContent(Game.StartUp.SaveGameTransfer.Content);
 
             if (Game.StartUp.AutoStart)
             {

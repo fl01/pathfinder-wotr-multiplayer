@@ -305,6 +305,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 case DialogType.Book:
                     var bookAnswers = dialogContext.m_BookEventPCView.gameObject.transform.Find("ContentWrapper/Window/Content/Answers");
                     return bookAnswers;
+                case DialogType.Epilogue:
                 case DialogType.Interchapter:
                     var interchapterAnswers = dialogContext.m_InterchapterPCView.gameObject.transform.Find("ContentWrapper/Window/Content/Answers");
                     return interchapterAnswers;
@@ -316,6 +317,11 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private void MarkAnswers(Transform answersContainer, List<NetworkDialogAnswerSuggestion> suggestions)
         {
+            if (answersContainer == null)
+            {
+                return;
+            }
+
             for (int answerIndex = 0; answerIndex < answersContainer.childCount; answerIndex++)
             {
                 var answer = answersContainer.GetChild(answerIndex);
