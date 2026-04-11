@@ -1890,7 +1890,7 @@ namespace WOTRMultiplayer.Services
                     return true;
                 }
 
-                var toggle = _multiplayerActorAccessor.Current.TogglePause(isPaused);
+                var toggle = _multiplayerActorAccessor.Current.ToggleManualPause(isPaused);
                 return toggle;
             }
             catch (Exception ex)

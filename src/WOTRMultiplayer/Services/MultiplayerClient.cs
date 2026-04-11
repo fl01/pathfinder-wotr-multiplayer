@@ -176,12 +176,14 @@ namespace WOTRMultiplayer.Services
                     Game.LastCombatTurn = null;
                 }
 
+                ResetManualPause();
                 return true;
             }
 
             if (string.Equals(Game.DialogState?.Dialog.Id, networkDialog.Id, StringComparison.OrdinalIgnoreCase))
             {
                 Logger.LogInformation("Dialog has been initiated, proceeding with default game logic. Id={Id}, Name={Name}", networkDialog.Id, networkDialog.Name);
+                ResetManualPause();
                 return true;
             }
 

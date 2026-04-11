@@ -356,7 +356,7 @@ namespace WOTRMultiplayer.Services
         public virtual void OnAreaLoaded()
         {
             Logger.LogInformation("OnAreaLoaded");
-            Game.ForcedPause?.ReadyPlayers.Add(Game.LocalPlayerId);
+            Game.ForcedPause.ReadyPlayers.Add(Game.LocalPlayerId);
 
             if (Game.CurrentArea.IsGlobalMap)
             {
@@ -498,13 +498,7 @@ namespace WOTRMultiplayer.Services
                 Logger.LogWarning("Previous combat has not been disposed correctly");
             }
 
-            lock (ActionLock)
-            {
-                if (Game.ForcedPause != null && Game.ForcedPause.Reason == NetworkForcedPauseReason.Manual)
-                {
-                    Game.ForcedPause = null;
-                }
-            }
+            ResetManualPause();
 
             Game.Combat = new NetworkCombat
             {
@@ -530,6 +524,7 @@ namespace WOTRMultiplayer.Services
                 Logger.LogInformation("Combat ended");
 
                 SaveLastCombatTurn();
+                ResetManualPause();
 
                 CleanupUntargetableUnitsState();
                 Game.Combat = null;
@@ -715,25 +710,10 @@ namespace WOTRMultiplayer.Services
                 UpdateRestUIState();
             }
 
-            // pause has been initiated by someone else
-            if (type == GameModeType.Pause && Game.ForcedPause != null)
-            {
-                lock (ActionLock)
-                {
-                    Game.ForcedPause.ReadyPlayers.Add(Game.LocalPlayerId);
-                }
-            }
-
             // game removes pause in this cases
             if (type == GameModeType.Dialog || type == GameModeType.Cutscene)
             {
-                lock (ActionLock)
-                {
-                    if (Game.ForcedPause != null && Game.ForcedPause.Reason == NetworkForcedPauseReason.Manual)
-                    {
-                        Game.ForcedPause = null;
-                    }
-                }
+                ResetManualPause();
             }
 
             var message = new NotifyGameModeTypeStarted { PlayerId = Game.LocalPlayerId, Type = type.Name };
@@ -2002,25 +1982,22 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public bool TogglePause(bool isPaused)
+        public bool ToggleManualPause(bool isPaused)
         {
             lock (ActionLock)
             {
                 // unpaused => paused
                 if (!isPaused)
                 {
-                    if (Game.ForcedPause == null)
-                    {
-                        EnsureForcePaused(NetworkForcedPauseReason.Manual, removalDelay: null);
-                        Game.ForcedPause.ReadyPlayers.Add(Game.LocalPlayerId);
+                    EnsureForcePaused(NetworkForcedPauseReason.Manual, removalDelay: null);
+                    Game.ForcedPause.ReadyPlayers.Add(Game.LocalPlayerId);
 
-                        var pauseStarted = new NotifyGamePauseStarted
-                        {
-                            PlayerId = Game.LocalPlayerId,
-                            Pause = Mapper.Map<Networking.Messages.Contracts.NetworkForcedPause>(Game.ForcedPause)
-                        };
-                        Send(pauseStarted);
-                    }
+                    var pauseStarted = new NotifyGamePauseStarted
+                    {
+                        PlayerId = Game.LocalPlayerId,
+                        Pause = Mapper.Map<Networking.Messages.Contracts.NetworkForcedPause>(Game.ForcedPause)
+                    };
+                    Send(pauseStarted);
 
                     return true;
                 }
@@ -2036,6 +2013,7 @@ namespace WOTRMultiplayer.Services
                 {
                     ShowForcedPauseReason();
                 }
+
                 return false;
             }
         }
@@ -2664,20 +2642,25 @@ namespace WOTRMultiplayer.Services
 
         protected void EnsureForcePaused(NetworkForcedPauseReason reason, TimeSpan? removalDelay)
         {
-            if (Game.ForcedPause == null)
+            Game.ForcedPause ??= new NetworkForcedPause
             {
-                Game.ForcedPause = new NetworkForcedPause
-                {
-                    Reason = reason,
-                    RemovalDelay = removalDelay,
-                };
-                Logger.LogInformation("Forced pause has been initialized. Reason={Reason}, RemovalDelay={RemovalDelay}", reason, removalDelay);
-            }
+                Reason = reason,
+                RemovalDelay = removalDelay,
+            };
+            Logger.LogInformation("Forced pause has been initialized. Reason={Reason}, RemovalDelay={RemovalDelay}", reason, removalDelay);
         }
 
         protected void EnsureForcePaused(NetworkForcedPauseReason reason)
         {
             EnsureForcePaused(reason, SettingsService.GetSettings().ForcedPauseDefaultTerminationDelay);
+        }
+
+        protected void ResetManualPause()
+        {
+            if (Game.ForcedPause != null && Game.ForcedPause.Reason == NetworkForcedPauseReason.Manual)
+            {
+                Game.ForcedPause = null;
+            }
         }
 
         protected void WitnessLevelingPhase(long playerId)
@@ -3699,11 +3682,19 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGamePauseStarted(long receivedFrom, NotifyGamePauseStarted message)
         {
+            if (CombatInteraction.IsInCombat())
+            {
+                return;
+            }
+
             var pause = Mapper.Map<NetworkForcedPause>(message.Pause);
             lock (ActionLock)
             {
                 EnsureForcePaused(pause.Reason, pause.RemovalDelay);
+                Game.ForcedPause.ReadyPlayers.Add(Game.LocalPlayerId);
+                Game.ForcedPause.ReadyPlayers.Add(message.PlayerId);
             }
+
             GameInteraction.SetPause(true);
         }
 

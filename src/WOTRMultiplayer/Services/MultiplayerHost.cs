@@ -321,6 +321,7 @@ namespace WOTRMultiplayer.Services
             }
 
             Logger.LogInformation("Dialog has been started. DialogId={DialogId}, DialogName={Name}, IsScripted={IsScripted}", Game.DialogState.Dialog.Id, Game.DialogState.Dialog.Name, Game.DialogState.Dialog.IsScripted);
+            ResetManualPause();
             return true;
         }
 
@@ -603,6 +604,7 @@ namespace WOTRMultiplayer.Services
                     {
                         EnsureForcePaused(NetworkForcedPauseReason.RestEncounterLoading, settings.ForcedPauseRandomEncounterTerminationDelay);
                     }
+
                     GameInteraction.SetPause(true);
                 }
             }
