@@ -1,17 +1,16 @@
 # Multiplayer changes
 
-#### Disclaimer: All of the changes below only kick in when you are playing in Multiplayer (started or joined through the Multiplayer Window). Single-player isn't affected at all, so you can keep playing normally. But if you are curious about what the mod adds, you can always host a solo game to check it out.
+#### Disclaimer: All of the changes below only work when you are in a multiplayer session (started or joined game through the Multiplayer Window). Single-player isn't affected at all, so you can keep playing normally. But if you are curious about what the mod adds, you can always host a solo game to check it out.
 
 ## TL/DR:
-- Campaign is mostly playable. Although there are a few heavily bugged encounters (usually caused by completely desynced enemy spawns)
+- Campaign is mostly playable, but there are a few heavily bugged encounters
 - There are no changes to content or balance or how mythic paths/companions work.
- 
-- Game Version/DLC/Mods/Content should match across players. 
+- Game Version/DLC/Mods should match across players. **The mod does not lock or unlock discrepant content for you**
 
-  You can see a quick rundown of each player's DLCs/mods once they connect to the host, but it's just for a reference. **The mod does not lock or unlock discrepant content for you**. The most obvious case is extra preorder/DLC items sitting in your stash. If someone doesn't own that DLC or bonus, those items are hidden for them, so anything you try to do with them (equip, drop, etc.) will just fail. One simple workaround is to get rid of them by dropping the items on the global map in single-player.
+  You can see comparison of DLCs/Mods once player connects to the host. The most obvious case is extra preorder/DLC items sitting in your stash. If someone doesn't own that DLC or bonus, those items are hidden for them, so anything you try to do with them (equip, drop, etc.) will just fail. One simple workaround is to get rid of them by dropping the items on the global map in single-player.
 
 ## Other Mods Compatibility
-Most of the syncing relies on the blueprint asset ID (or something similiar) to replicate action for other players, so in **THEORY** things should work fine as long as those IDs are the same for abilities, spells, etc. This also includes any extra rolls (e.g. Skill Check or Attack Roll) added by mods, but those roll types must be available within base game.
+Most of the syncing relies on the blueprint asset ID (or something similiar) to replicate action for other players, so in **THEORY** things should work fine as long as those IDs are the same for abilities, spells, etc. This also includes any extra rolls (e.g. Skill Check or Attack Roll) added by mods, but those should use existing rules from a base game. **There is no support for custom-made rules as of now**.
 That said, compatibility with other mods hasn't really been tested at all and there are no plans to support it yet.
 
 ### Adding Multiplayer Compatibility to your mod
@@ -19,7 +18,7 @@ That said, compatibility with other mods hasn't really been tested at all and th
 See the [general information](/docs/dev/mods.md) about mod integration, as well as a basic [example](https://github.com/fl01/pathfinder-wotr-multiplayer-bubblebuffs) demonstrating how to utilize the existing networking layer in a separate mod.
 
 ### Known mod compatibility issues:
-- Bubble Tweaks - works fine if you use it purely for non-interactive UI changes (Character Statistics / show AoE range / loot icons / etc)
+- Bubble Tweaks - works fine if you use it purely for non-interactive UI changes (Character statistics / Show AoE range / Loot icons / etc)
   - additional interactive UI elements ('Jump to siege' button / Dismiss army / etc) are not synced
   - animation speed changes are not synced
 
@@ -27,7 +26,7 @@ See the [general information](/docs/dev/mods.md) about mod integration, as well 
   - global edit of `SaveLoadPcView` causes some minor side-effects for our own copy of that view
   - multiplayer settings are corrupted / not loaded correctly on Settings UI. Didn't look for a reason yet
 
-Here is the list of mods which were used during campaign playtrough (Angel path) in multiplayer:
+Here is the list of mods which were used during campaign playthrough (Angel path) in multiplayer:
 
 - 0ToyBox0 - no exta features enabled, just to alter game state when needed
 - BubbleBuffs
@@ -36,37 +35,7 @@ Here is the list of mods which were used during campaign playtrough (Angel path)
 - Visual Adjustments
 
 ## UnityModManager settings
-- Checkbox to show the debug console (for anyone curious about the behind-the-scenes stuff).
-- Checkbox to display the unitId in the name tag above your character, e.g., 'Seelah' → 'Seelah [my-unit-id]'.
-
-Most players won't need to bother with these settings
-
-## Networking
-
-- Direct IP Connect – works fine with local network emulators or a public/static ('white') IP from your ISP.
-
-**There are no plans to support anything like dedicated server or "joining by Game Code".**
-
-## Interface
-
-Added few elements to the game:
-- 'Multiplayer' main menu option - use it to host or join games
-- 'Multiplayer' configuration tab within Settings menu - contains bunch of settings like your name or which port to use for hosting
-- 'Multipalyer Lobby' menu within Esc menu - see who is playing / change character control
-
-A couple of notes:
-- Photo Mode is disabled for now since it pauses the game and doesn’t add much in multiplayer.
-- Multiple interface buttons contain counters to see how many players are ready for the action
-
-## Localization
-Custom-made localization that is fully integrated with native `LocalizationManager/LocalizedStrings`. Though `enGb` is the only option available by default.
-
-Look at [localization](/docs/localization/localization.md) for more details
-
-## Game settings
-
-Multiplayer needs some settings to be locked in and synced across players. When you host, the required settings get applied automatically. If you join someone else's game, you will just get the host's settings.
-Some options can't be changed mid-game - you will see those grayed out in the settings menu.
+Purely dev/logging configuration. Gameplay related things are located in in-game `Multiplayer` settings tab.
 
 ## Basics
 Multiplayer window loads all available saves. You can use any save to host a multiplayer game.
@@ -90,6 +59,28 @@ There is no hard player limit. Extra players can even join as spectators with 0 
 
 It is possible to join when the game has already started, you just need to ask someone to load save game and it will load for you as well
 
+## Networking
+
+- Direct IP Connect – works fine with local network emulators or a public/static ('white') IP from your ISP.
+
+**There are no plans to support anything like dedicated server or "joining by Game Code".**
+
+## Interface
+
+- Photo Mode is disabled for now since it pauses the game and doesn’t add much in multiplayer.
+- Various interface buttons contain counter to see how many players are ready for the action
+
+## Localization
+Custom-made localization that is fully integrated with native `LocalizationManager/LocalizedStrings`. Though `enGb` is the only option available by default.
+
+Look at [localization](/docs/localization/localization.md) for more details
+
+## Game settings
+
+Multiplayer needs some settings to be locked in and synced across players. When you host, the required settings get applied automatically. If you join someone else's game, you will just get the host's settings.
+
+Some options can't be changed mid-game - you will see those grayed out in the settings menu.
+
 ## Logs
 - Mod writes logs to `./logs` folder.
 - Log files are never cleaned by the mod itself
@@ -109,14 +100,14 @@ Forced pause occurrences:
 - loading random REST encounter
 
 ### Autopause
-The only time autopause kicks in is for trap detection, and it follows the same rules as manual pause
+Autopause is disabled for everything, but trap detection
 
 ## Overtips
 The name of the player controlling a character shows up after the character's name. For example: "Seelah" -> "Seelah (player-name)"
 
 ## Dialogs
 
-All dialogs are handled by the host. Clients can vote on responses, but only the host makes the final choice. The voting system works for every type of dialog (regular convos, interchapter scenes, book events).
+All dialogs are handled by the host. Clients can vote on responses, but only the host makes the final choice. The voting system works for every type of dialog (book events/ interchapter/etc).
 
 Everyone in the session has to see the dialog line before the host can pick an answer, which keeps things in sync. As a client, you don't technically start a dialog yourself - you just ask the host to start it. This way, everything happens on the host side first, preventing desyncs.
 
@@ -126,12 +117,6 @@ Certain vendor actions are host-only, like finalizing a deal or closing the shop
 
 ## Group Changer
 ##### Note: Group Changer data is stored within the UI itself, so it must be opened for everyone before Host is allowed to make any changes (just for the sake of simplified sync implementation)
-
-### Leaving zone
-Client is only a watcher with no permissions to change anything. There is a counter at Accept button to see how many players are ready. Closing screen as a host will result in closing screen for everyone
-
-### Mid Zone (aka recruiting companions)
-The same rules apply
 
 ## Skip Time
 works the same way as Group Changer due to same data storage reasons
@@ -173,7 +158,6 @@ Works the same way as Perception checks - unit info only gets revealed once the 
 Game spams this 'rule' every tick, but actually relies on cached perception check roll. Changed to work the same way as regular perception checks.
 
 ### Inspection Buff check rolls
-##### Disclaimer: Always passed in RTwP combat by default
 Automatically passed on both host/client
 
 ## Combat
@@ -190,12 +174,11 @@ Sometimes game triggers enemy spawns in a different turns. Enemy units in combat
 The source of truth is the host. Position/buff duration/HP of units in combat is synchronized with host on every combat start/turn start/turn end event. Next turn will be started only once host synchronizes info with the clients. Host is also able to detect when clients want to start different character turn (e.g. due to desync issues), but there is an automatic recovery for this situation where host forces clients to start correct turn.
 
 ### AI
-The base game uses “AI action score” calculations that are largely deterministic and typically produce the same results. However, scores can occasionally differ due to factors like position desynchronization, low FPS, or similar issues.
+The game uses `AI action score` calculations that don't have any randomness (AFAIK), but result is heavily affected by factors like low FPS / stutters or similar. In the end, sometimes those calculations result in different AI actions.
 
 To reduce this desync, a simple workaround is used: on the client, the AI turn begins with a slight delay (configurable in settings). This allows the host to determine AI actions first and send them to clients. If a client's locally calculated actions don't match, they are overridden by the host's results.
 
-**Note:** This delay is highly dependent on game performance. If the host’s game frequently stutters (for example, during late-game stages), you may need to increase this delay or restart the game more frequently.
-
+**Note:** This delay is highly dependent on game performance. If the host's game frequently stutters (for example, during late-game stages), you may need to increase this delay or restart the game more frequently.
 
 ### Buffs
 Buff timers (duration/tick time) are synced in combat only, but desynced buffs are never created apart from `Fighting defensively`. A lot of buffs do have an underlying `UnitPart` that holds buff state/logic, so simple recreation/removal will not work without syncing that state. This will be addressed sometime later.
@@ -213,8 +196,6 @@ Action bars stay synced. Any changes you make are instantly reflected for everyo
 
 ## Inventory
 Inventory item positions are not synced, so you can sort or split items however you want - but keep in mind that loading a save will reset everything to the save owner version.
-
-Copying recipe/scroll or reading a book (to recieve bonuses or trigger something) is synced.
 
 ## Loot
 Items are never created, but rather transferred from X to Y container which makes it impossible to recieve duplicate items. It's completely safe to loot same container/item, but item verification is very basic. It might produce false positive warnings about missing loot (since it's already looted) if you loot same item at the same time.
