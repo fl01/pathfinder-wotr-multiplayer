@@ -1,6 +1,7 @@
 # Multiplayer Mod for Pathfinder: Wrath of the Righteous
 
 Showcase:
+
 [![Showcase](https://img.youtube.com/vi/_YZSPrPy9XI/0.jpg)](https://www.youtube.com/watch?v=_YZSPrPy9XI)
 
 ## How to
