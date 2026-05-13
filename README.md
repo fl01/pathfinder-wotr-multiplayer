@@ -6,7 +6,7 @@ Showcase:
 
 ## How to
 1. Download latest from releases
-2. Install via [UnityModManager](https://www.nexusmods.com/site/mods/21)
+2. Install via [UnityModManager](https://www.nexusmods.com/site/mods/21). The latest 0.32.5 version has some issues, use 0.32.4a or lower
 3. Go to in-game `Settings -> Multiplayer` to configure your name or other multiplayer settings.
 4. Use `Multiplayer` main menu to host or join an existing game.
 5. Enjoy
