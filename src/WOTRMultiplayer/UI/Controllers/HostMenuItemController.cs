@@ -295,8 +295,20 @@ namespace WOTRMultiplayer.UI.Controllers
                 return (gameId, newGameSequence);
             }
 
-            var portraits = saveSlot.PartyPortraits.Value.Select(p => p.Portrait.name).ToList();
-            var characters = portraits.Select(x => new NetworkCharacter { Name = x, Portrait = x, Owner = null }).ToList();
+            var party = saveSlot.Reference.PartyPortraits
+                .Where(p => p != null)
+                .Take(Main.MaxCharactersInParty)
+                .ToList();
+
+            var characters = party.Select((x, i) => new NetworkCharacter
+            {
+                Name = x.Data.IsCustom ? x.Data.CustomId : x.Data.SmallPortrait.name,
+                Portrait = x.Data.SmallPortrait.name,
+                CustomPortraitId = x.Data.CustomId,
+                Index = i,
+                Owner = null
+            }).ToList();
+
             var savePath = saveSlot.Reference.FolderName;
             var saveGame = new NetworkGameStartUp
             {

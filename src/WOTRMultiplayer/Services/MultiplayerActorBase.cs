@@ -411,7 +411,7 @@ namespace WOTRMultiplayer.Services
                     }
 
                     var owner = historicOwner
-                        ?? oldCharacters.FirstOrDefault(old => old.Name == character.Name || old.Name.Contains(character.Name))?.Owner // this one is possible only on initial multiplayer game load when we don't have history yet due to missing UnitIds
+                        ?? oldCharacters.FirstOrDefault(old => old.Index.HasValue && old.Index.Value == character.Index)?.Owner // this one is possible only on initial multiplayer game load when we don't have history yet due to missing UnitIds
                         ?? defaultOwner;
 
                     character.Owner = owner;
@@ -3055,7 +3055,15 @@ namespace WOTRMultiplayer.Services
 
         protected NetworkCharacter FindCharacter(NetworkCharacter character)
         {
-            var actualCharacter = Game.Characters.FirstOrDefault(x => !string.IsNullOrEmpty(x.UnitId) && string.Equals(x.UnitId, character.UnitId, StringComparison.OrdinalIgnoreCase)
+            // Host/Join window doesn't load unit ids from the save, so we have to rely on indexes :(
+            if (Game.Stage == NetworkLobbyStage.Lobby && character.Index.HasValue && Game.Characters.Count > character.Index.Value)
+            {
+                var indexedCharacter = Game.Characters[character.Index.Value];
+                return indexedCharacter;
+            }
+
+            var actualCharacter = Game.Characters.FirstOrDefault(x => !string.IsNullOrEmpty(x.UnitId)
+                && string.Equals(x.UnitId, character.UnitId, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(x.Name, character.Name, StringComparison.OrdinalIgnoreCase));
 
             return actualCharacter;

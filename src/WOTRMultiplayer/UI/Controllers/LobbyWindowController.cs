@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Kingmaker.Blueprints;
 using Kingmaker.UI.MVVM._VM.Tooltip.Utils;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Tooltips;
@@ -278,7 +279,7 @@ namespace WOTRMultiplayer.UI.Controllers
                 for (int characterIndex = 0; characterIndex < Main.MaxCharactersInParty; characterIndex++)
                 {
                     var character = characters.Count > characterIndex ? characters[characterIndex] : null;
-                    var sprite = string.IsNullOrEmpty(character?.Portrait) ? null : GetPortraitSprite(character.Portrait);
+                    var sprite = GetPortraitSprite(character);
                     UpdateCharacter(characterIndex, character, sprite, isDropdownInteractable);
 
                     if (character != null && character.Owner != null)
@@ -321,7 +322,7 @@ namespace WOTRMultiplayer.UI.Controllers
             {
                 var dropdownCharacter = child.Find(CharacterOwnerObjectName)?.GetComponent<CharacterDataBehaviour>()?.Character;
                 if (dropdownCharacter != null && (!string.IsNullOrEmpty(character.UnitId) && string.Equals(dropdownCharacter.UnitId, character.UnitId, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(dropdownCharacter.Name, character.Name, StringComparison.OrdinalIgnoreCase)))
+                || string.Equals(dropdownCharacter.Name, character.Name, StringComparison.OrdinalIgnoreCase) && dropdownCharacter.Index == character.Index))
                 {
                     return child;
                 }
@@ -484,12 +485,23 @@ namespace WOTRMultiplayer.UI.Controllers
             OnCharacterOwnerChanged?.Invoke(character, playerOption.Player);
         }
 
-        private Sprite GetPortraitSprite(string portraitName)
+        private Sprite GetPortraitSprite(NetworkCharacter character)
         {
-            var portrait = _resourceProvider.GetSprite(WellKnownResourceBundles.Portraits, portraitName) ?? _resourceProvider.GetSprite(WellKnownResourceBundles.Portraits, PlaceholderPortrait);
+            if (character == null)
+            {
+                return null;
+            }
+
+            if (!string.IsNullOrEmpty(character.CustomPortraitId))
+            {
+                var customPortrait = new PortraitData(character.CustomPortraitId);
+                return customPortrait.SmallPortrait;
+            }
+
+            var portrait = _resourceProvider.GetSprite(WellKnownResourceBundles.Portraits, character.Portrait) ?? _resourceProvider.GetSprite(WellKnownResourceBundles.Portraits, PlaceholderPortrait);
             if (portrait == null)
             {
-                _logger.LogWarning("Unable to load character portrait. PortraitName={PortraitName}", portraitName);
+                _logger.LogWarning("Unable to load character portrait. PortraitName={PortraitName}", character.Portrait);
             }
 
             return portrait;

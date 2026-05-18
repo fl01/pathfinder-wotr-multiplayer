@@ -142,7 +142,7 @@ namespace WOTRMultiplayer.Services
                 }
 
                 actualCharacter.Owner = actualPlayer;
-                Logger.LogInformation("New character owner. CharacterName={CharacterName}, PlayerId={PlayerId}, PlayerName={PlayerName}", actualCharacter.Name, actualPlayer.Id, actualPlayer.Name);
+                Logger.LogInformation("New character owner. CharacterName={CharacterName}, PlayerId={PlayerId}", actualCharacter.Name, actualPlayer.Id);
 
                 // UnitId becomes relevant once we are in the game
                 if (!string.IsNullOrEmpty(actualCharacter.UnitId))

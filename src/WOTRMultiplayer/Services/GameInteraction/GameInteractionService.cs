@@ -310,10 +310,12 @@ namespace WOTRMultiplayer.Services.GameInteraction
         public List<NetworkCharacter> GetPartyPlayers()
         {
             var partyCharacters = Game.Instance.Player.Party
-                .Select(x => new NetworkCharacter
+                .Select((x, i) => new NetworkCharacter
                 {
                     Name = x.CharacterName,
                     Portrait = x.Portrait.SmallPortrait.name,
+                    CustomPortraitId = x.Portrait.CustomId,
+                    Index = i,
                     UnitId = x.UniqueId
                 })
                 .ToList();
