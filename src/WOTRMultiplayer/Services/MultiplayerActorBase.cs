@@ -674,6 +674,17 @@ namespace WOTRMultiplayer.Services
                 }
 
                 AddPlayerReadyStatus(PlayerTurnReadinessType.UnitJoinedMidCombat, Game.LocalPlayerId, unitId);
+
+                // The remote player may have already confirmed this unit before our local JoinCombat
+                // fired. In that case the unit is fully confirmed right now, so let it join immediately
+                // instead of deferring to the next turn boundary.
+                if (TryConfirmMidCombatUnit(unitId))
+                {
+                    MakeUnitTargetable(unitId, groupId);
+                    Logger.LogWarning("Unit has been allowed to join mid combat immediately on local confirmation. UnitId={UnitId}", unitId);
+                    return true;
+                }
+
                 MakeUnitUntargetable(unitId, groupId);
 
                 return false;
@@ -4142,6 +4153,15 @@ namespace WOTRMultiplayer.Services
             }
 
             AddPlayerReadyStatus(PlayerTurnReadinessType.UnitJoinedMidCombat, message.PlayerId, message.UnitId);
+
+            // Our local JoinCombat has likely already fired and is waiting; this notification may complete
+            // the all-players confirmation. If so, join the unit immediately instead of waiting for the
+            // turn to end.
+            if (TryConfirmMidCombatUnit(message.UnitId))
+            {
+                Logger.LogWarning("Mid-combat unit confirmed by all players, joining immediately. UnitId={UnitId}", message.UnitId);
+                CombatInteraction.AddUnitsToCombat([message.UnitId]);
+            }
         }
 
         private void OnNotifyRestBanterInterrupted(long receivedFrom, NotifyRestBanterInterrupted message)
@@ -4335,6 +4355,29 @@ namespace WOTRMultiplayer.Services
                         Game.Combat.ConfirmedMidCombatUnits.Add(kv.Key);
                     }
                 }
+            }
+        }
+
+        // Returns true only on the call that transitions the unit to confirmed (all synced players have
+        // acknowledged its mid-combat join), so the caller can join it immediately. Idempotent afterwards.
+        private bool TryConfirmMidCombatUnit(string unitId)
+        {
+            lock (ActionLock)
+            {
+                if (Game.Combat == null)
+                {
+                    return false;
+                }
+
+                var tracker = GetPlayerTurnReadinessTracker(PlayerTurnReadinessType.UnitJoinedMidCombat);
+                if (tracker != null
+                    && tracker.TryGetValue(unitId, out var readyPlayers)
+                    && readyPlayers.Count >= GetSyncedPlayersCount())
+                {
+                    return Game.Combat.ConfirmedMidCombatUnits.Add(unitId);
+                }
+
+                return false;
             }
         }
 

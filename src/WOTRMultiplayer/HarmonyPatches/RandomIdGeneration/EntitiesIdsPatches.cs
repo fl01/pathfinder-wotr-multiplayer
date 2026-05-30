@@ -173,6 +173,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             {
                 new(OpCodes.Ldarg_1),
                 new(OpCodes.Ldarg_2),
+                new(OpCodes.Ldarg_3),
                 new(OpCodes.Call, replaceWith),
             };
             return PatchPlayerIdGeneration(target, instructions, newInstructions);
@@ -439,7 +440,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             }
         }
 
-        private static string GetNewUnitUniqueId(BlueprintUnit unit, UnitEntityView prefab)
+        private static string GetNewUnitUniqueId(BlueprintUnit unit, UnitEntityView prefab, UnityEngine.Vector3 position)
         {
             if (!Main.Multiplayer.IsActive)
             {
@@ -448,13 +449,28 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
 
             try
             {
-                var seededContext = Main.Multiplayer.GetSeededContext(SeedKind.Session | SeedKind.LoadedSaveSeed | SeedKind.CombatTurnSeed);
+                var seedKind = SeedKind.Session | SeedKind.LoadedSaveSeed;
                 var baseIdentifier = $"{CommonTranspilerReplacements.GetSharedIdentifierPart()}:{unit.AssetGuid}:{unit.name}:{unit.Faction}:{prefab.name}";
                 if (Rulebook.CurrentContext?.CurrentEvent is RuleSummonUnit ruleSummonUnit)
                 {
                     baseIdentifier += $":{ruleSummonUnit.Initiator?.UniqueId}";
+                    seedKind |= SeedKind.CombatTurnSeed;
+                }
+                else
+                {
+                    // Scripted spawns of identical blueprints share every identifier component, so without
+                    // a per-instance discriminator they collapse onto the order-based collision counter,
+                    // which is not synchronized between host and client. The spawn position is a fixed,
+                    // scene-serialized value (identical on both machines) and is unique per spawn point,
+                    // so it disambiguates them deterministically. Quantize to centimeters as integers to
+                    // avoid any float-to-string drift.
+                    var px = (long)UnityEngine.Mathf.Round(position.x * 100f);
+                    var py = (long)UnityEngine.Mathf.Round(position.y * 100f);
+                    var pz = (long)UnityEngine.Mathf.Round(position.z * 100f);
+                    baseIdentifier += $":{px},{py},{pz}";
                 }
 
+                var seededContext = Main.Multiplayer.GetSeededContext(seedKind);
                 var rawIdentifier = $"{baseIdentifier}_{seededContext.Id}";
                 var id = Main.Multiplayer.ValueGenerator.GenerateUniqueId(IdType.Unit, Game.Instance.Player.GameId, rawIdentifier);
                 Main.GetLogger<EntitiesIdsPatches>().LogInformation("Unit id has been generated. RawIdentifier={RawIdentifier}, Id={Id}", rawIdentifier, id);
