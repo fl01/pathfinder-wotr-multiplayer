@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Configuration;
-using WOTRMultiplayer.Networking.ExternalConnectivity.P2P;
 
 namespace WOTRMultiplayer.Networking.ExternalConnectivity
 {
