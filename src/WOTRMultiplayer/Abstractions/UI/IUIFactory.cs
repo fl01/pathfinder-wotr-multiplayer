@@ -63,6 +63,8 @@ namespace WOTRMultiplayer.Abstractions.UI
 
         GameObject CreateCloseButton(Transform parent);
 
+        GameObject CreateIconButton(Transform parent, Sprite defaultSprite, Sprite hoverSprite = null, Sprite pressedSprite = null);
+
         void DestroyStandaloneLobbyWindow();
     }
 }

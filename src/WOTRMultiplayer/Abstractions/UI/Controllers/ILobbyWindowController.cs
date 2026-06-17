@@ -15,7 +15,7 @@ namespace WOTRMultiplayer.Abstractions.UI.Controllers
 
         void ResetData();
 
-        void UpdateServerInfo(NetworkGameConnectivity connectivity);
+        void UpdateServerInfo(GameConnectivity connectivity);
 
         void UpdateCharacters(List<NetworkCharacter> characters, bool isDropdownInteractable);
 

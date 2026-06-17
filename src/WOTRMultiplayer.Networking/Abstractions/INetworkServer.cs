@@ -2,6 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 using WOTRMultiplayer.Networking.Awaiters;
+using WOTRMultiplayer.Networking.Configuration;
 
 namespace WOTRMultiplayer.Networking.Abstractions
 {
@@ -13,6 +14,8 @@ namespace WOTRMultiplayer.Networking.Abstractions
 
         Action<EndPoint> OnServerStarted { get; set; }
 
+        Action<bool?, string> OnExternalConnectivityUpdated { get; set; }
+
         void Send(long clientId, object message);
 
         Task<T> SendAndWaitForAsync<T>(long clientId, IAwaitableRequest message)
@@ -22,7 +25,7 @@ namespace WOTRMultiplayer.Networking.Abstractions
 
         void SendAllExcept(long clientId, object message);
 
-        void Start(string host, bool useIPv6, int hostPortRangeStart, int hostPortRangeEnd, TimeSpan awaiterTimeout);
+        void Start(NetworkServerConfiguration networkServerConfiguration, ExternalServerConfiguration externalServerConfiguration);
 
         void Reset();
     }

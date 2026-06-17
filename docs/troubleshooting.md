@@ -13,6 +13,6 @@ The core issue is that the `Assembly` method (and newer UMM versions) end up loa
 
 This makes this approach unusable, since the mod relies on newer Harmony features.
 
-A possible workaround is to delete or remove `Pathfinder Second Adventure\Wrath_Data\Managed\0Harmony.dll`, which forces the game to fall back to the updated version. However, this may break compatibility with other mods that depend on the original DLL.
+A possible workaround is to move/delete `Pathfinder Second Adventure\Wrath_Data\Managed\0Harmony.dll`, which forces the game to fall back to the updated version. However, this may break compatibility with other mods that depend on the original DLL.
 
 ---

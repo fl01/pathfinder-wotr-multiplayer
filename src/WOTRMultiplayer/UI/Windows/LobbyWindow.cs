@@ -18,7 +18,7 @@ namespace WOTRMultiplayer.UI.Windows
 
         private IDisposable _escSubscription;
 
-        public Func<NetworkGameConnectivity> GetGameConnectivity { get; set; }
+        public Func<GameConnectivity> GetGameConnectivity { get; set; }
 
         public Func<List<NetworkPlayer>> GetPlayers { get; set; }
 

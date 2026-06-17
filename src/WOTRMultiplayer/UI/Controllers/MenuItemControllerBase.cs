@@ -1,16 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Kingmaker.Localization;
+using Kingmaker.PubSubSystem;
 using Kingmaker.UI;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Owlcat.Runtime.UI.Controls.Button;
 using TMPro;
 using UnityEngine;
 using WOTRMultiplayer.Abstractions;
+using WOTRMultiplayer.Abstractions.GameInteraction;
+using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Abstractions.Unity;
+using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.UI.Windows;
 
 namespace WOTRMultiplayer.UI.Controllers
@@ -25,12 +31,19 @@ namespace WOTRMultiplayer.UI.Controllers
         private GameObject _hoverImage;
         private readonly IMultiplayerActor _multiplayerActor;
 
+        protected string ServersFilePath => Path.Combine(GameInteractionService.GetPersistentDataPath(), "servers.json");
+
         protected ILobbyWindowController Lobby { get; private set; }
 
         protected IMainThreadAccessor MainThreadAccessor { get; private set; }
 
         protected IResourceProvider ResourceProvider { get; private set; }
 
+        protected IFileSystemService FileSystemService { get; private set; }
+
+        protected IUIFactory UIFactory { get; private set; }
+
+        protected IGameInteractionService GameInteractionService { get; private set; }
 
         protected bool SetupLayout { get; set; } = true;
 
@@ -57,13 +70,41 @@ namespace WOTRMultiplayer.UI.Controllers
             ILobbyWindowController lobbyWindowController,
             IMainThreadAccessor mainThreadAccessor,
             IResourceProvider resourceProvider,
+            IFileSystemService fileSystemService,
+            IUIFactory uiFactory,
+            IGameInteractionService gameInteractionService,
             IMultiplayerActor multiplayerActor)
         {
             _logger = logger;
+            _multiplayerActor = multiplayerActor;
+
             Lobby = lobbyWindowController;
             MainThreadAccessor = mainThreadAccessor;
             ResourceProvider = resourceProvider;
-            _multiplayerActor = multiplayerActor;
+            FileSystemService = fileSystemService;
+            UIFactory = uiFactory;
+            GameInteractionService = gameInteractionService;
+        }
+
+        public virtual void Activate()
+        {
+            ActiveImage.SetActive(true);
+            MenuContent.SetActive(true);
+
+            _logger.LogInformation("Activated");
+        }
+
+        public virtual void Deactivate()
+        {
+            ActiveImage.SetActive(false);
+            MenuContent.SetActive(false);
+
+            _logger.LogInformation("Deactivated");
+        }
+
+        public ModalActionConfirmation GetDeactivationConfirmation()
+        {
+            return GetDeactivationConfirmationInternal();
         }
 
         public void Dispose()
@@ -94,6 +135,44 @@ namespace WOTRMultiplayer.UI.Controllers
             ActiveImage = MenuItem.transform.Find(SelectedGameObjectName).gameObject;
             _hoverImage = MenuItem.transform.Find(HoverGameObjectName).gameObject;
             ActiveImage.SetActive(false);
+        }
+
+        protected List<ExternalServer> GetExternalServers()
+        {
+            try
+            {
+                var content = FileSystemService.GetFileContent(ServersFilePath);
+                if (content == null)
+                {
+                    _logger.LogInformation("Server configuration doesn't exist. Creating a default configuration");
+                    var defaultServers = new List<ExternalServer>
+                    {
+                        new() { Url = "https://eu1.wotr.arva.moe", GameHubPath = "hubs/game", Name = "EU1 Default", Prefix = "EU1"  }
+                    };
+                    var json = JsonConvert.SerializeObject(defaultServers, Formatting.Indented);
+                    try
+                    {
+                        FileSystemService.WriteFile(ServersFilePath, json);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Unable to save external servers");
+                        var message = string.Format(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.ExternalServers.Errors.UnableToSave.Key }, ServersFilePath);
+                        EventBus.RaiseEvent<IMessageModalUIHandler>(x => x.HandleOpen(message));
+                    }
+                    return defaultServers;
+                }
+
+                var storedServers = JsonConvert.DeserializeObject<List<ExternalServer>>(content);
+                return storedServers;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to read external servers");
+                var message = string.Format(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.ExternalServers.Errors.UnableToLoad.Key }, ex.Message);
+                EventBus.RaiseEvent<IMessageModalUIHandler>(x => x.HandleOpen(message));
+                return [];
+            }
         }
 
         protected void OnMultiplayerOnGameStarted()
@@ -149,27 +228,6 @@ namespace WOTRMultiplayer.UI.Controllers
         private void OnHover(bool state)
         {
             _hoverImage.SetActive(state);
-        }
-
-        public virtual void Activate()
-        {
-            ActiveImage.SetActive(true);
-            MenuContent.SetActive(true);
-
-            _logger.LogInformation("Activated");
-        }
-
-        public virtual void Deactivate()
-        {
-            ActiveImage.SetActive(false);
-            MenuContent.SetActive(false);
-
-            _logger.LogInformation("Deactivated");
-        }
-
-        public ModalActionConfirmation GetDeactivationConfirmation()
-        {
-            return GetDeactivationConfirmationInternal();
         }
 
         protected void OnEveryoneIsReady()

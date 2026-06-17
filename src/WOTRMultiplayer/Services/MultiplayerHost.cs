@@ -29,6 +29,7 @@ using WOTRMultiplayer.Entities.Rest;
 using WOTRMultiplayer.Entities.Settings;
 using WOTRMultiplayer.Networking;
 using WOTRMultiplayer.Networking.Abstractions;
+using WOTRMultiplayer.Networking.Configuration;
 using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
 using WOTRMultiplayer.Networking.Messages.Requests;
@@ -82,7 +83,7 @@ namespace WOTRMultiplayer.Services
             SetupNetworkMessageHandlers();
         }
 
-        public void Create(string gameId, NetworkGameStartUp gameStartUp)
+        public void Create(string gameId, ExternalServer externalServer, NetworkGameStartUp gameStartUp)
         {
             if (_networkServer.IsActive)
             {
@@ -99,7 +100,10 @@ namespace WOTRMultiplayer.Services
             Game.Characters.AddRange(gameStartUp.Characters);
 
             var settings = SettingsService.GetSettings();
-            _networkServer.Start(settings.Host, settings.UseIPv6, settings.HostPortRangeStart, settings.HostPortRangeEnd, settings.NetworkAwaiterTimeout);
+
+            var serverConfiguration = Mapper.Map<NetworkServerConfiguration>(settings);
+            var externalServerConfiguration = Mapper.Map<ExternalServerConfiguration>(externalServer);
+            _networkServer.Start(serverConfiguration, externalServerConfiguration);
 
             OnCharactersChanged?.Invoke(Game.StartUp.Title, Game.Characters);
             Logger.LogInformation("Host has been created. GameId={GameId}, IsNewGameSequence={IsNewGameSequence}, SavePath={SavePath}", Game.Id, gameStartUp.IsNewGameSequence, gameStartUp.SavePath);
@@ -1682,6 +1686,7 @@ namespace WOTRMultiplayer.Services
             _networkServer.OnClientConnected = OnPlayerConnected;
             _networkServer.OnClientDisconnected = OnPlayerDisconnected;
             _networkServer.OnServerStarted = OnServerStarted;
+            _networkServer.OnExternalConnectivityUpdated = OnExternalConnectivityUpdated;
 
             base.SetupNetworkMessageHandlers();
 
@@ -2056,7 +2061,6 @@ namespace WOTRMultiplayer.Services
 
                 var player = new NetworkPlayer(playerId);
                 Game.Players.Add(player);
-
                 var settings = GameInteraction.GetGameSettings();
                 if (settings != null)
                 {
@@ -2073,6 +2077,17 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        private void OnExternalConnectivityUpdated(bool? isConnected, string code)
+        {
+            Game.Connectivity.External = new ExternalConnectivity
+            {
+                Code = code,
+                IsConnected = isConnected
+            };
+
+            OnGameConnectivityUpdated?.Invoke(Game.Connectivity);
+        }
+
         private void OnServerStarted(EndPoint endpoint)
         {
             var hostPlayer = new NetworkPlayer(NetworkingConsts.HostPlayerId)
@@ -2084,7 +2099,7 @@ namespace WOTRMultiplayer.Services
 
             Game.Players.Add(hostPlayer);
 
-            Game.Connectivity = new NetworkGameConnectivity
+            Game.Connectivity = new GameConnectivity
             {
                 Endpoint = endpoint
             };

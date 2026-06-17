@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Logging.Extensions;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Awaiters;
+using WOTRMultiplayer.Networking.Configuration;
 using WOTRMultiplayer.Networking.Consuming;
 using WOTRMultiplayer.Networking.Messages;
 
@@ -18,10 +19,12 @@ namespace WOTRMultiplayer.Networking
     public class NetworkServer : INetworkServer
     {
         private TimeSpan _defaultAwaiterTimeout;
-        private ServerBuilder<NetworkServerApp, NetworkConnectionToken, BeetleXMessageTypes.ProtobufServerPacket> _server;
+        private ExternalServerConfiguration _externalServerConfiguration;
 
+        private ServerBuilder<NetworkServerApp, NetworkConnectionToken, BeetleXMessageTypes.ProtobufServerPacket> _server;
         private readonly ILogger<NetworkServer> _logger;
         private readonly IMessageConsumer _messageConsumer;
+        private readonly IExternalConnectionService _externalConnectionService;
         private readonly ConcurrentDictionary<long, ConcurrentDictionary<string, TaskCompletionSource<IAwaitableResponse>>> _awaiters = new();
 
         public Action<long> OnClientConnected { get; set; }
@@ -30,14 +33,18 @@ namespace WOTRMultiplayer.Networking
 
         public Action<EndPoint> OnServerStarted { get; set; }
 
+        public Action<bool?, string> OnExternalConnectivityUpdated { get; set; }
+
         public bool IsActive => _server?.AppServer?.Status == ServerStatus.Start;
 
         public NetworkServer(
             ILogger<NetworkServer> logger,
+            IExternalConnectionService externalConnectionService,
             IMessageConsumer messageConsumer)
         {
             _logger = logger;
             _messageConsumer = messageConsumer;
+            _externalConnectionService = externalConnectionService;
         }
 
         public INetworkReceiver On<TMessage>(Action<long, TMessage> messageHandler, MessageHandlerPriority priority = MessageHandlerPriority.Default)
@@ -47,9 +54,10 @@ namespace WOTRMultiplayer.Networking
             return this;
         }
 
-        public void Start(string host, bool useIPv6, int hostPortRangeStart, int hostPortRangeEnd, TimeSpan awaiterTimeout)
+        public void Start(NetworkServerConfiguration networkServerConfiguration, ExternalServerConfiguration externalServerConfiguration)
         {
-            _defaultAwaiterTimeout = awaiterTimeout;
+            _defaultAwaiterTimeout = networkServerConfiguration.AwaiterTimeout;
+            _externalServerConfiguration = externalServerConfiguration;
 
             if (_server != null)
             {
@@ -57,10 +65,10 @@ namespace WOTRMultiplayer.Networking
             }
 
             _server = new();
-            _server.ServerOptions.DefaultListen.Host = host;
-            _server.ServerOptions.UseIPv6 = useIPv6;
-            _server.ServerOptions.DefaultListen.StartRegionPort = hostPortRangeStart;
-            _server.ServerOptions.DefaultListen.EndRegionPort = hostPortRangeEnd;
+            _server.ServerOptions.DefaultListen.Host = networkServerConfiguration.Host;
+            _server.ServerOptions.UseIPv6 = networkServerConfiguration.UseIPv6;
+            _server.ServerOptions.DefaultListen.StartRegionPort = networkServerConfiguration.PortRangeStart;
+            _server.ServerOptions.DefaultListen.EndRegionPort = networkServerConfiguration.PortRangeEnd;
             _server.ServerOptions.BufferSize = 1024 * 32;
             _server.ServerOptions.BufferPoolSize = 400;
             _server.ServerOptions.BufferPoolMaxMemory = 1200;
@@ -133,6 +141,7 @@ namespace WOTRMultiplayer.Networking
             _server?.Dispose();
             _server = null;
             _messageConsumer.Reset();
+            _externalConnectionService.Reset();
         }
 
         private void OnMessageReceived(EventMessageReceiveArgs<NetworkServerApp, NetworkConnectionToken, object> args)
@@ -179,6 +188,30 @@ namespace WOTRMultiplayer.Networking
             {
                 _logger.LogError(ex, "Unable to handle OnServerStarted");
             }
+
+            if (_externalServerConfiguration != null)
+            {
+                OnExternalConnectivityUpdated?.Invoke(null, null); // connecting without code yet
+                _externalConnectionService.OnConnected = OnExternalConnectionSucceeded;
+                _externalConnectionService.OnError = OnExternalConnectionError;
+                _externalConnectionService.OnGameCodeChanged = OnGameCodeChanged;
+                _externalConnectionService.ConnectAsync(_externalServerConfiguration);
+            }
+        }
+
+        private void OnExternalConnectionError()
+        {
+            OnExternalConnectivityUpdated?.Invoke(false, null);
+        }
+
+        private void OnExternalConnectionSucceeded()
+        {
+            OnExternalConnectivityUpdated?.Invoke(true, null);
+        }
+
+        private void OnGameCodeChanged(string code)
+        {
+            OnExternalConnectivityUpdated?.Invoke(true, code);
         }
 
         private void OnServerError(IServer server, ServerErrorEventArgs args)
