@@ -48,6 +48,10 @@ namespace WOTRMultiplayer.UI
                 _sprites = new ConcurrentDictionary<string, ConcurrentDictionary<string, UnityEngine.Sprite>>();
                 _sprites.TryAdd(WellKnownResourceBundles.Portraits, LoadBundle<UnityEngine.Sprite>(WellKnownResourceBundles.Portraits));
                 _sprites.TryAdd(WellKnownResourceBundles.UI, LoadBundle<UnityEngine.Sprite>(WellKnownResourceBundles.UI));
+                _sprites.TryAdd(WellKnownResourceBundles.Icons, LoadBundle<UnityEngine.Sprite>(WellKnownResourceBundles.Icons));
+
+                var spriteContainer = _sprites[WellKnownResourceBundles.Icons];
+                LoadSpriteAtlases(WellKnownResourceBundles.Icons, spriteContainer);
             }
 
             if (_textures == null)
@@ -57,17 +61,32 @@ namespace WOTRMultiplayer.UI
             }
         }
 
+        private void LoadSpriteAtlases(string bundleName, ConcurrentDictionary<string, UnityEngine.Sprite> container)
+        {
+            var bundle = BundlesLoadService.Instance.RequestBundle(bundleName);
+            var atlases = bundle.LoadAllAssets<UnityEngine.U2D.SpriteAtlas>();
+            foreach (var atlas in atlases)
+            {
+                var sprites = new UnityEngine.Sprite[atlas.spriteCount];
+                atlas.GetSprites(sprites);
+                foreach (var sprite in sprites)
+                {
+                    var name = sprite.name.Trim("(Clone)").ToString();
+                    container.TryAdd(name, sprite);
+                }
+            }
+        }
+
         private ConcurrentDictionary<string, T> LoadBundle<T>(string bundleName)
             where T : UnityEngine.Object
         {
             var bundle = BundlesLoadService.Instance.RequestBundle(bundleName);
-            var allSprites = bundle.LoadAllAssets<T>();
+            var allResources = bundle.LoadAllAssets<T>();
             var keyValuePairs = new ConcurrentDictionary<string, T>(StringComparer.OrdinalIgnoreCase);
-            for (int i = 0; i < allSprites.Length; i++)
+            for (int i = 0; i < allResources.Length; i++)
             {
-                var portrait = allSprites[i];
-
-                keyValuePairs.TryAdd(portrait.name, portrait);
+                var resource = allResources[i];
+                keyValuePairs.TryAdd(resource.name, resource);
             }
 
             return keyValuePairs;

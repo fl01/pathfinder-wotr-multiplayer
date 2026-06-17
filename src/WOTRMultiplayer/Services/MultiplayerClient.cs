@@ -1720,7 +1720,7 @@ namespace WOTRMultiplayer.Services
         {
             Game = new NetworkGame(null)
             {
-                Connectivity = new NetworkGameConnectivity
+                Connectivity = new GameConnectivity
                 {
                     Endpoint = endpoint
                 }

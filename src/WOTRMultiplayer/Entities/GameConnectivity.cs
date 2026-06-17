@@ -2,8 +2,10 @@
 
 namespace WOTRMultiplayer.Entities
 {
-    public class NetworkGameConnectivity
+    public class GameConnectivity
     {
         public EndPoint Endpoint { get; set; }
+
+        public ExternalConnectivity External { get; set; }
     }
 }

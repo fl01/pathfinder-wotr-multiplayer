@@ -58,7 +58,7 @@ namespace WOTRMultiplayer.Localization.UnitTests
             yield return new WellKnownKeyTestCase { Name = "multiplayerWindow->joinMenu->title", Key = () => WellKnownKeys.MultiplayerWindow.JoinMenu.Title.Key };
             yield return new WellKnownKeyTestCase { Name = "multiplayerWindow->joinMenu->hostButton->title", Key = () => WellKnownKeys.MultiplayerWindow.JoinMenu.JoinButton.Key };
             yield return new WellKnownKeyTestCase { Name = "multiplayerWindow->joinMenu->leaveButton->title", Key = () => WellKnownKeys.MultiplayerWindow.JoinMenu.LeaveButton.Key };
-            yield return new WellKnownKeyTestCase { Name = "multiplayerWindow->joinMenu->serverAddress->placeholder", Key = () => WellKnownKeys.MultiplayerWindow.JoinMenu.ServerAddress.Placeholder.Key };
+            yield return new WellKnownKeyTestCase { Name = "multiplayerWindow->joinMenu->serverAddress->placeholder", Key = () => WellKnownKeys.MultiplayerWindow.JoinMenu.DirectConnection.ServerAddress.Placeholder.Key };
             yield return new WellKnownKeyTestCase { Name = "multiplayerWindow->joinMenu->deactivation->connecting", Key = () => WellKnownKeys.MultiplayerWindow.JoinMenu.Deactivation.Connecting.Key };
             yield return new WellKnownKeyTestCase { Name = "multiplayerWindow->joinMenu->deactivation->connected", Key = () => WellKnownKeys.MultiplayerWindow.JoinMenu.Deactivation.Connected.Key };
 

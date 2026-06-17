@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using DG.Tweening;
 using Kingmaker.Localization;
-using Kingmaker.PubSubSystem;
 using Kingmaker.UI;
 using Kingmaker.UI.Common;
 using Kingmaker.Utility;
@@ -35,11 +34,19 @@ namespace WOTRMultiplayer.UI.Controllers
         public const string JoinMenuItemContentObjectName = "JoinMenuItemContent";
         public const string JoinLobbyControlsMenuObjectName = "JoinLobbyControlsMenu";
         public const string ServerAddressInputObjectName = "ServerAddressInput";
-        public const string JoinServerButtonObjectName = "JoinServerButton";
+        public const string DirectJoinServerButtonObjectName = "DirectJoinServerButton";
+        public const string GameCodeJoinServerButtonObjectName = "GameCodeJoinServerButton";
+        public const string GameCodeInputObjectName = "GameCodeInputObject";
+        public const string GamePasswordObjectName = "GamePasswordInputObject";
 
         public const string LobbyControlsMenuObjectName = "LobbyControlsMenu";
         public const string LobbyControlsMenuReadyButtonObjectName = "ReadyButton";
         public const string LobbyControlsMenuLeaveButtonObjectName = "LeaveButton";
+
+        public const string ConnectionControlsObjectName = "LobbyConnectionControls";
+        public const string ConnectionMethodObjectName = "ConnectionMethodObject";
+        public const string DirectConnectionObjectName = "LobbyDirectIPConnection";
+        public const string GameCodeConnectionObjectName = "LobbyGameCodeConnection";
 
         public const string ServerHistoryObjectName = "ServerHistory";
         public const string ServerHistoryHeaderObjectName = "ServerHistoryHeader";
@@ -50,16 +57,13 @@ namespace WOTRMultiplayer.UI.Controllers
 
         public const string GameTitleObjectName = "LobbyTitleObject";
 
-        private string ConnectionHistoryFilePath => Path.Combine(_gameInteractionService.GetPersistentDataPath(), "connections.json");
+        private string ConnectionHistoryFilePath => Path.Combine(GameInteractionService.GetPersistentDataPath(), "connections.json");
 
         private readonly ILogger<JoinMenuItemController> _logger;
-        private readonly IUIFactory _uiFactory;
         private readonly IMultiplayerClient _multiplayerClient;
-        private readonly IFileSystemService _fileSystemService;
         private readonly IMultiplayerSettingsService _multiplayerSettingsService;
         private readonly IIPEndPointParser _ipEndPointParser;
         private readonly IPlayerNotificationService _playerNotificationService;
-        private readonly IGameInteractionService _gameInteractionService;
 
         private HashSet<ConnectionHistoryRecord> _connectionHistory;
         private HashSet<ConnectionHistoryRecord> ConnectionHistory
@@ -89,16 +93,43 @@ namespace WOTRMultiplayer.UI.Controllers
             .Find(JoinLobbyControlsMenuObjectName)
             .gameObject;
 
-        protected GameObject ServerHistoryRecords => JoinLobbyControlsObject.transform
+        protected GameObject ServerHistoryRecords => DirectConnectionObject.transform
             .Find(ServerHistoryObjectName)
             .Find(ServerHistoryRecordsObjectName)
             .gameObject;
 
-        protected GameObject JoinButtonObject => JoinLobbyControlsObject.transform
-            .Find(JoinServerButtonObjectName)
+        protected TMP_Dropdown ConnectionMethodDropdown => JoinLobbyControlsObject.transform
+            .Find(ConnectionControlsObjectName)
+            .Find(ConnectionMethodObjectName)
+            .GetComponentInChildren<TMP_Dropdown>();
+
+        protected GameObject GameCodeInputObject => JoinLobbyControlsObject.transform
+            .Find(GameCodeConnectionObjectName)
+            .Find(GameCodeInputObjectName)
             .gameObject;
 
-        protected GameObject ServerAddressObject => JoinLobbyControlsObject.transform
+        protected GameObject GamePasswordInputObject => JoinLobbyControlsObject.transform
+            .Find(GameCodeConnectionObjectName)
+            .Find(GamePasswordObjectName)
+            .gameObject;
+
+        protected GameObject DirectConnectionObject => JoinLobbyControlsObject.transform
+            .Find(DirectConnectionObjectName)
+            .gameObject;
+
+        protected GameObject GameCodeConnectionObject => JoinLobbyControlsObject.transform
+            .Find(GameCodeConnectionObjectName)
+            .gameObject;
+
+        protected GameObject DirectConnectJoinButtonObject => DirectConnectionObject.transform
+            .Find(DirectJoinServerButtonObjectName)
+            .gameObject;
+
+        protected GameObject GameCodeConnectJoinButtonObject => GameCodeConnectionObject.transform
+            .Find(GameCodeJoinServerButtonObjectName)
+            .gameObject;
+
+        protected GameObject ServerAddressObject => DirectConnectionObject.transform
             .Find(ServerAddressInputObjectName)
             .gameObject;
 
@@ -127,21 +158,18 @@ namespace WOTRMultiplayer.UI.Controllers
             IMultiplayerClient multiplayerClient,
             IResourceProvider resourceProvider,
             IMultiplayerSettingsService multiplayerSettingsService,
-            IFileSystemService fileSystemService,
             IIPEndPointParser ipEndPointParser,
-            IPlayerNotificationService playerNotificationService,
+            IFileSystemService fileSystemService,
+            IUIFactory uiFactory,
             IGameInteractionService gameInteractionService,
-            IUIFactory uiFactory)
-            : base(logger, lobbyWindowController, mainThreadAccessor, resourceProvider, multiplayerClient)
+            IPlayerNotificationService playerNotificationService)
+            : base(logger, lobbyWindowController, mainThreadAccessor, resourceProvider, fileSystemService, uiFactory, gameInteractionService, multiplayerClient)
         {
             _logger = logger;
-            _uiFactory = uiFactory;
             _multiplayerClient = multiplayerClient;
-            _fileSystemService = fileSystemService;
             _multiplayerSettingsService = multiplayerSettingsService;
             _ipEndPointParser = ipEndPointParser;
             _playerNotificationService = playerNotificationService;
-            _gameInteractionService = gameInteractionService;
         }
 
         public override void Activate()
@@ -218,20 +246,20 @@ namespace WOTRMultiplayer.UI.Controllers
             var menuContentRect = _menuContent.GetComponent<RectTransform>();
             menuContentRect.sizeDelta = new Vector2(menuContentRect.sizeDelta.x * 0.4f, menuContentRect.sizeDelta.y * 0.88f);
 
-            var content = _uiFactory.CreateDefaultGameObject(_menuContent.transform);
+            var content = UIFactory.CreateDefaultGameObject(_menuContent.transform);
             content.name = RootContentScreenObjectName;
             content.AddComponent<VerticalLayoutGroup>();
-            var gameTitle = _uiFactory.CreateDefaultGameObject(content.transform);
+            var gameTitle = UIFactory.CreateDefaultGameObject(content.transform);
             gameTitle.name = GameTitleObjectName;
             var title = gameTitle.AddComponent<TextMeshProUGUI>();
             title.alignment = TextAlignmentOptions.Center;
             title.fontSize = 28;
-            title.material = _uiFactory.DefaultTextMesh.Material;
-            title.color = _uiFactory.DefaultTextMesh.Color;
+            title.material = UIFactory.DefaultTextMesh.Material;
+            title.color = UIFactory.DefaultTextMesh.Color;
             var gameTitleVertical = gameTitle.AddComponent<VerticalLayoutGroup>();
             gameTitleVertical.padding = new RectOffset(0, 0, 0, 55);
 
-            var lobbyWindow = _uiFactory.CreateDefaultGameObject(content.transform);
+            var lobbyWindow = UIFactory.CreateDefaultGameObject(content.transform);
             lobbyWindow.name = LobbyWindowObjectName;
             var lobbyWindowLayout = lobbyWindow.AddComponent<LayoutElement>();
             lobbyWindowLayout.preferredHeight = menuContentRect.sizeDelta.y;
@@ -244,14 +272,14 @@ namespace WOTRMultiplayer.UI.Controllers
             InitializeJoinLobbyControls(content.transform, menuContentRect.sizeDelta);
 
             // leave + ready buttons?
-            var lobbyControlsMenu = _uiFactory.CreateDefaultGameObject(content.transform);
+            var lobbyControlsMenu = UIFactory.CreateDefaultGameObject(content.transform);
             lobbyControlsMenu.name = LobbyControlsMenuObjectName;
             lobbyControlsMenu.AddComponent<HorizontalLayoutGroup>();
             lobbyControlsMenu.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0f);
             var lobbyControlsMenuLayout = lobbyControlsMenu.AddComponent<LayoutElement>();
             lobbyControlsMenuLayout.preferredHeight = menuContentRect.sizeDelta.y * 0.07f;
 
-            var readyButtonObject = _uiFactory.CreateButton(lobbyControlsMenu.transform);
+            var readyButtonObject = UIFactory.CreateButton(lobbyControlsMenu.transform);
             readyButtonObject.name = LobbyControlsMenuReadyButtonObjectName;
             var readyButtonObjectLayout = readyButtonObject.AddComponent<LayoutElement>();
             readyButtonObjectLayout.preferredWidth = menuContentRect.sizeDelta.x * 0.2f;
@@ -259,7 +287,7 @@ namespace WOTRMultiplayer.UI.Controllers
             var readyButton = readyButtonObject.GetComponent<OwlcatButton>();
             readyButton.OnLeftClick.AddListener(OnReadyButtonClicked);
 
-            var leaveButtonObject = _uiFactory.CreateButton(lobbyControlsMenu.transform);
+            var leaveButtonObject = UIFactory.CreateButton(lobbyControlsMenu.transform);
             leaveButtonObject.name = LobbyControlsMenuLeaveButtonObjectName;
             var leaveButtonObjectLayout = leaveButtonObject.AddComponent<LayoutElement>();
             leaveButtonObjectLayout.preferredWidth = menuContentRect.sizeDelta.x * 0.2f;
@@ -271,54 +299,166 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private void InitializeJoinLobbyControls(Transform parent, Vector2 fullSize)
         {
-            // input + button ?
-            var joinLobbyControlsMenu = _uiFactory.CreateDefaultGameObject(parent);
+            var joinLobbyControlsMenu = UIFactory.CreateDefaultGameObject(parent);
             joinLobbyControlsMenu.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0.5f);
             joinLobbyControlsMenu.name = JoinLobbyControlsMenuObjectName;
             joinLobbyControlsMenu.AddComponent<VerticalLayoutGroup>();
             joinLobbyControlsMenu.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            var serverInfoInputObject = _uiFactory.CreateInput(joinLobbyControlsMenu.transform);
-            serverInfoInputObject.name = ServerAddressInputObjectName;
-            var serverInfoInputObjectLayout = serverInfoInputObject.AddComponent<LayoutElement>();
-            serverInfoInputObjectLayout.preferredHeight = 35;
-            var serverPlaceholder = serverInfoInputObject.transform.Find(UIFactory.InputPlaceholderObjectName);
-            var serverPlaceholderInput = serverPlaceholder.GetComponent<TextMeshProUGUI>();
-            serverPlaceholderInput.SetText(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.ServerAddress.Placeholder.Key });
-            serverPlaceholderInput.alignment = TextAlignmentOptions.Center;
-            var serverInfoInputLabelObject = serverInfoInputObject.transform.Find(UIFactory.InputLabelObjectName);
-            var serverInfoInput = serverInfoInputLabelObject.GetComponent<TextMeshProUGUI>();
-            serverInfoInput.overflowMode = TextOverflowModes.Truncate;
-            serverInfoInput.alignment = TextAlignmentOptions.Center;
+            var connectionControlsObject = UIFactory.CreateDefaultGameObject(joinLobbyControlsMenu.transform);
+            connectionControlsObject.AddComponent<VerticalLayoutGroup>();
+            connectionControlsObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            connectionControlsObject.name = ConnectionControlsObjectName;
+            var connectionControlsObjectLayout = connectionControlsObject.AddComponent<LayoutElement>();
+            connectionControlsObjectLayout.preferredHeight = 150;
+            CreateConnectionControls(connectionControlsObject.transform);
 
-            var joinLobbyButtonObject = _uiFactory.CreateButton(joinLobbyControlsMenu.transform);
-            joinLobbyButtonObject.name = JoinServerButtonObjectName;
+            var directConnectionObject = UIFactory.CreateDefaultGameObject(joinLobbyControlsMenu.transform);
+            directConnectionObject.name = DirectConnectionObjectName;
+            directConnectionObject.AddComponent<VerticalLayoutGroup>();
+            directConnectionObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            CreateDirectIPConnectionControls(directConnectionObject.transform, fullSize);
+            directConnectionObject.SetActive(false);
+
+            var gameConnectionObject = UIFactory.CreateDefaultGameObject(joinLobbyControlsMenu.transform);
+            gameConnectionObject.name = GameCodeConnectionObjectName;
+            gameConnectionObject.AddComponent<VerticalLayoutGroup>();
+            gameConnectionObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            CreateGameCodeConnectionControls(gameConnectionObject.transform, fullSize);
+            gameConnectionObject.SetActive(false);
+
+            ConnectionMethodDropdown.onValueChanged.Invoke(0);
+        }
+
+        private void CreateGameCodeConnectionControls(Transform parent, Vector2 fullSize)
+        {
+            var gameCodeInputObject = UIFactory.CreateInput(parent.transform);
+            gameCodeInputObject.name = GameCodeInputObjectName;
+            var gameCodeInputObjectLayout = gameCodeInputObject.AddComponent<LayoutElement>();
+            gameCodeInputObjectLayout.preferredHeight = 35;
+            var gameCodePlaceholder = gameCodeInputObject.transform.Find(UI.UIFactory.InputPlaceholderObjectName);
+            var gameCodePlaceholderInput = gameCodePlaceholder.GetComponent<TextMeshProUGUI>();
+            gameCodePlaceholderInput.SetText(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.GameCodeConnection.GameCode.Placeholder.Key });
+            gameCodePlaceholderInput.alignment = TextAlignmentOptions.Center;
+            var gameCodeInputLabelObject = gameCodeInputObject.transform.Find(UI.UIFactory.InputLabelObjectName);
+            var gameCodeInput = gameCodeInputLabelObject.GetComponent<TextMeshProUGUI>();
+            gameCodeInput.overflowMode = TextOverflowModes.Truncate;
+            gameCodeInput.alignment = TextAlignmentOptions.Center;
+
+            var passwordInputObject = UIFactory.CreateInput(parent.transform);
+            passwordInputObject.name = GamePasswordObjectName;
+            var passwordInputObjectLayout = passwordInputObject.AddComponent<LayoutElement>();
+            passwordInputObjectLayout.preferredHeight = 35;
+            var passwordPlaceholder = passwordInputObject.transform.Find(UI.UIFactory.InputPlaceholderObjectName);
+            var passwordPlaceholderInput = passwordPlaceholder.GetComponent<TextMeshProUGUI>();
+            passwordPlaceholderInput.SetText(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.GameCodeConnection.Password.Placeholder.Key });
+            passwordPlaceholderInput.alignment = TextAlignmentOptions.Center;
+            var passwordInputLabelObject = passwordInputObject.transform.Find(UI.UIFactory.InputLabelObjectName);
+            var passwordInput = passwordInputLabelObject.GetComponent<TextMeshProUGUI>();
+            passwordInput.overflowMode = TextOverflowModes.Truncate;
+            passwordInput.alignment = TextAlignmentOptions.Center;
+            var password = passwordInputObject.GetComponent<TMP_InputField>();
+            password.text = string.Empty;
+            password.contentType = TMP_InputField.ContentType.Password;
+
+            var joinLobbyButtonObject = UIFactory.CreateButton(parent.transform);
+            joinLobbyButtonObject.name = GameCodeJoinServerButtonObjectName;
             var joinLobbyButtonObjectLayout = joinLobbyButtonObject.AddComponent<LayoutElement>();
             joinLobbyButtonObjectLayout.preferredWidth = fullSize.x * 0.35f;
             joinLobbyButtonObjectLayout.preferredHeight = 50;
             joinLobbyButtonObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
             var button = joinLobbyButtonObject.GetComponent<OwlcatButton>();
-            button.OnLeftClick.AddListener(OnJoinButtonClicked);
+            button.OnLeftClick.AddListener(OnGameCodeConnectJoinButtonClicked);
+        }
 
-            var serverHistoryContainer = _uiFactory.CreateDefaultGameObject(joinLobbyControlsMenu.transform);
+        private void CreateDirectIPConnectionControls(Transform parent, Vector2 fullSize)
+        {
+            var serverInfoInputObject = UIFactory.CreateInput(parent.transform);
+            serverInfoInputObject.name = ServerAddressInputObjectName;
+            var serverInfoInputObjectLayout = serverInfoInputObject.AddComponent<LayoutElement>();
+            serverInfoInputObjectLayout.preferredHeight = 35;
+            var serverPlaceholder = serverInfoInputObject.transform.Find(UI.UIFactory.InputPlaceholderObjectName);
+            var serverPlaceholderInput = serverPlaceholder.GetComponent<TextMeshProUGUI>();
+            serverPlaceholderInput.SetText(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.DirectConnection.ServerAddress.Placeholder.Key });
+            serverPlaceholderInput.alignment = TextAlignmentOptions.Center;
+            var serverInfoInputLabelObject = serverInfoInputObject.transform.Find(UI.UIFactory.InputLabelObjectName);
+            var serverInfoInput = serverInfoInputLabelObject.GetComponent<TextMeshProUGUI>();
+            serverInfoInput.overflowMode = TextOverflowModes.Truncate;
+            serverInfoInput.alignment = TextAlignmentOptions.Center;
+
+            var joinLobbyButtonObject = UIFactory.CreateButton(parent.transform);
+            joinLobbyButtonObject.name = DirectJoinServerButtonObjectName;
+            var joinLobbyButtonObjectLayout = joinLobbyButtonObject.AddComponent<LayoutElement>();
+            joinLobbyButtonObjectLayout.preferredWidth = fullSize.x * 0.35f;
+            joinLobbyButtonObjectLayout.preferredHeight = 50;
+            joinLobbyButtonObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            var button = joinLobbyButtonObject.GetComponent<OwlcatButton>();
+            button.OnLeftClick.AddListener(OnDirectConnectJoinButtonClicked);
+
+            var serverHistoryContainer = UIFactory.CreateDefaultGameObject(parent.transform);
             serverHistoryContainer.AddComponent<VerticalLayoutGroup>();
             serverHistoryContainer.name = ServerHistoryObjectName;
-            var serverHistoryHeaderObject = _uiFactory.CreateDefaultGameObject(serverHistoryContainer.transform);
+            var serverHistoryHeaderObject = UIFactory.CreateDefaultGameObject(serverHistoryContainer.transform);
             serverHistoryHeaderObject.name = ServerHistoryHeaderObjectName;
             serverHistoryHeaderObject.AddComponent<VerticalLayoutGroup>().padding = new RectOffset(0, 0, 15, 35); ;
             var serverHistoryHeader = serverHistoryHeaderObject.AddComponent<TextMeshProUGUI>();
-            var headerText = UIUtility.GetSaberBookFormat(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.ServerHistory.Header.Key });
+            var headerText = UIUtility.GetSaberBookFormat(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.DirectConnection.ServerHistory.Header.Key });
             serverHistoryHeader.SetText(headerText);
             serverHistoryHeader.fontSize = 28;
             serverHistoryHeader.horizontalAlignment = HorizontalAlignmentOptions.Center;
-            serverHistoryHeader.material = _uiFactory.DefaultTextMesh.Material;
-            serverHistoryHeader.color = _uiFactory.DefaultTextMesh.Color;
-            var serverHistoryRecordsObject = _uiFactory.CreateDefaultGameObject(serverHistoryContainer.transform);
+            serverHistoryHeader.material = UIFactory.DefaultTextMesh.Material;
+            serverHistoryHeader.color = UIFactory.DefaultTextMesh.Color;
+            var serverHistoryRecordsObject = UIFactory.CreateDefaultGameObject(serverHistoryContainer.transform);
             serverHistoryRecordsObject.name = ServerHistoryRecordsObjectName;
             serverHistoryRecordsObject.AddComponent<VerticalLayoutGroup>();
-            var serverHistoryRecordsBorder = _uiFactory.CreateBorderDecoration(serverHistoryRecordsObject.transform);
+            var serverHistoryRecordsBorder = UIFactory.CreateBorderDecoration(serverHistoryRecordsObject.transform);
             serverHistoryRecordsBorder.name = ServerHistoryRecordsBorderObjectName;
             var serverHistoryRecordsLayoutGroup = serverHistoryRecordsObject.AddComponent<VerticalLayoutGroup>();
+        }
+
+        private void CreateConnectionControls(Transform parent)
+        {
+            var labelObject = UIFactory.CreateDefaultGameObject(parent.transform);
+            labelObject.name = ConnectionMethodObjectName;
+            labelObject.AddComponent<VerticalLayoutGroup>();
+            labelObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var textBoxObject = UIFactory.CreateDefaultGameObject(labelObject.transform);
+            var textBox = textBoxObject.AddComponent<TextMeshProUGUI>();
+            textBox.verticalAlignment = VerticalAlignmentOptions.Middle;
+            textBox.alignment = TextAlignmentOptions.Center;
+            textBox.horizontalAlignment = HorizontalAlignmentOptions.Center;
+            textBox.SetText(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.ConnectionControls.Title.Key });
+            textBox.margin = new Vector4(0f, 0f, 0f, 25f);
+            textBox.material = UIFactory.DefaultTextMesh.Material;
+            textBox.color = UIFactory.DefaultTextMesh.Color;
+            var dropdownContainerObject = Main.Multiplayer.UIFactory.CreateDropdown(Screen.width * 0.15f, labelObject.transform);
+            var dropdownObject = dropdownContainerObject.transform.Find(UI.UIFactory.DropdownGameObjectName);
+            dropdownObject.GetComponent<RectTransform>().Centered();
+            var tmpDropdown = dropdownObject.GetComponent<TMP_Dropdown>();
+            tmpDropdown.ClearOptions();
+            var options = new List<TMP_Dropdown.OptionData>
+            {
+                new ConnectionMethodOptionData( ConnectionMethodType.DirectIP, new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.ConnectionControls.Options.DirectConnect.Key }),
+                new ConnectionMethodOptionData( ConnectionMethodType.GameCode, new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.ConnectionControls.Options.GameCodeConnect.Key }),
+
+            };
+            tmpDropdown.AddOptions(options);
+            tmpDropdown.onValueChanged.AddListener(value =>
+            {
+                var option = tmpDropdown.options[value] as ConnectionMethodOptionData;
+                switch (option.Method)
+                {
+                    case ConnectionMethodType.DirectIP:
+                        DirectConnectionObject.SetActive(true);
+                        GameCodeConnectionObject.SetActive(false);
+                        break;
+                    case ConnectionMethodType.GameCode:
+                        DirectConnectionObject.SetActive(false);
+                        GameCodeConnectionObject.SetActive(true);
+                        break;
+                }
+            });
         }
 
         private void OnMultiplayerCharacterOwnerChanged(NetworkCharacter character)
@@ -346,7 +486,7 @@ namespace WOTRMultiplayer.UI.Controllers
             base.DisposeInternal();
         }
 
-        private void OnMultiplayerConnected(NetworkGameConnectivity connectivity)
+        private void OnMultiplayerConnected(GameConnectivity connectivity)
         {
             AddSuccessfulConnectionRecord(connectivity);
 
@@ -433,36 +573,36 @@ namespace WOTRMultiplayer.UI.Controllers
             var settings = _multiplayerSettingsService.GetSettings();
             foreach (var record in ConnectionHistory.OrderByDescending(x => x.JoinedAt))
             {
-                var recordObject = _uiFactory.CreateDefaultGameObject(ServerHistoryRecords.transform);
+                var recordObject = UIFactory.CreateDefaultGameObject(ServerHistoryRecords.transform);
                 recordObject.AddComponent<HorizontalLayoutGroup>();
                 recordObject.AddComponent<ContentSizeFitter>();
                 recordObject.AddComponent<LayoutElement>().preferredHeight = 50;
 
-                var serverAddressObject = _uiFactory.CreateDefaultGameObject(recordObject.transform);
+                var serverAddressObject = UIFactory.CreateDefaultGameObject(recordObject.transform);
                 var serverAddressRect = serverAddressObject.GetComponent<RectTransform>();
                 serverAddressRect.pivot = Vector2.zero;
                 serverAddressObject.AddComponent<ContentSizeFitter>();
                 serverAddressObject.AddComponent<LayoutElement>().preferredWidth = 250;
                 var serverAddressText = serverAddressObject.AddComponent<TextMeshProUGUI>();
-                serverAddressText.material = _uiFactory.DefaultTextMesh.Material;
-                serverAddressText.color = _uiFactory.DefaultTextMesh.Color;
+                serverAddressText.material = UIFactory.DefaultTextMesh.Material;
+                serverAddressText.color = UIFactory.DefaultTextMesh.Color;
                 serverAddressText.alignment = TextAlignmentOptions.MidlineLeft;
                 serverAddressText.horizontalAlignment = HorizontalAlignmentOptions.Left;
                 var serverAddress = settings.HideServerAddress ? "***.***.***.***:****" : record.Address;
                 serverAddressText.SetText(serverAddress);
 
-                var lastJoinedObject = _uiFactory.CreateDefaultGameObject(recordObject.transform);
+                var lastJoinedObject = UIFactory.CreateDefaultGameObject(recordObject.transform);
                 var lastJoinednRect = lastJoinedObject.GetComponent<RectTransform>();
                 lastJoinednRect.pivot = Vector2.zero;
                 var lastJoinedText = lastJoinedObject.AddComponent<TextMeshProUGUI>();
                 lastJoinedText.alignment = TextAlignmentOptions.MidlineLeft;
-                lastJoinedText.material = _uiFactory.DefaultTextMesh.Material;
-                lastJoinedText.color = _uiFactory.DefaultTextMesh.Color;
+                lastJoinedText.material = UIFactory.DefaultTextMesh.Material;
+                lastJoinedText.color = UIFactory.DefaultTextMesh.Color;
                 lastJoinedText.fontStyle = FontStyles.Italic;
                 var lastJoined = GetLastJoined(record.JoinedAt);
                 lastJoinedText.SetText(lastJoined);
 
-                var joinButtonObject = _uiFactory.CreateButton(recordObject.transform);
+                var joinButtonObject = UIFactory.CreateButton(recordObject.transform);
                 var joinButtonRect = joinButtonObject.GetComponent<RectTransform>();
                 joinButtonRect.pivot = new Vector2(1, 0.5f);
                 joinButtonObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
@@ -480,24 +620,63 @@ namespace WOTRMultiplayer.UI.Controllers
             var elapsed = DateTime.UtcNow - joinedAt;
             if (elapsed.TotalSeconds <= 59)
             {
-                return string.Format(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.ServerHistory.SecondsAgo.Key }, Math.Max(1, Math.Round(elapsed.TotalSeconds, 0)));
+                return string.Format(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.DirectConnection.ServerHistory.SecondsAgo.Key }, Math.Max(1, Math.Round(elapsed.TotalSeconds, 0)));
             }
             else if (elapsed.TotalMinutes <= 59)
             {
-                return string.Format(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.ServerHistory.MinutesAgo.Key }, Math.Max(1, Math.Round(elapsed.TotalMinutes, 0)));
+                return string.Format(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.DirectConnection.ServerHistory.MinutesAgo.Key }, Math.Max(1, Math.Round(elapsed.TotalMinutes, 0)));
             }
             else if (elapsed.TotalHours <= 23)
             {
-                return string.Format(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.ServerHistory.HoursAgo.Key }, Math.Max(1, Math.Round(elapsed.TotalHours, 0)));
+                return string.Format(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.DirectConnection.ServerHistory.HoursAgo.Key }, Math.Max(1, Math.Round(elapsed.TotalHours, 0)));
             }
 
-            return string.Format(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.ServerHistory.DaysAgo.Key }, Math.Max(1, Math.Round(elapsed.TotalDays, 0)));
+            return string.Format(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.DirectConnection.ServerHistory.DaysAgo.Key }, Math.Max(1, Math.Round(elapsed.TotalDays, 0)));
         }
 
-        private void OnJoinButtonClicked()
+        private void OnDirectConnectJoinButtonClicked()
         {
             var address = ServerAddressObject.GetComponent<TMP_InputField>().text.Trim();
-            ConnectToAddress(address, JoinButtonObject);
+            ConnectToAddress(address, DirectConnectJoinButtonObject);
+        }
+
+        private void OnGameCodeConnectJoinButtonClicked()
+        {
+            var code = GameCodeInputObject.GetComponent<TMP_InputField>().text.Trim();
+            if (string.IsNullOrEmpty(code))
+            {
+                _playerNotificationService.ShowModalMessage(WellKnownKeys.MultiplayerWindow.JoinMenu.GameCodeConnection.Errors.EmptyCode.Key);
+                return;
+            }
+
+            var prefix = GetCodePrefixPart(code);
+            if (string.IsNullOrEmpty(prefix))
+            {
+                _playerNotificationService.ShowModalMessage(WellKnownKeys.MultiplayerWindow.JoinMenu.GameCodeConnection.Errors.InvalidCodeFormat.Key);
+                return;
+            }
+
+            var servers = GetExternalServers();
+            var server = servers.FirstOrDefault(s => prefix == s.Prefix);
+            if (server == null)
+            {
+                _playerNotificationService.ShowModalMessage(WellKnownKeys.MultiplayerWindow.JoinMenu.GameCodeConnection.Errors.UnroutedCode.Key, ServersFilePath);
+                return;
+            }
+
+            var password = GamePasswordInputObject.GetComponent<TMP_InputField>().text;
+
+            _logger.LogWarning("Game Code connect. Server={Server}, Code={Code}, Password={Password}", server.Name, code, password);
+            SetJoiningButtonsState(true, GameCodeConnectJoinButtonObject, [GameCodeConnectJoinButtonObject.GetComponent<OwlcatButton>()]);
+        }
+
+        private string GetCodePrefixPart(string code)
+        {
+            const string delimiter = "::";
+
+            var prefixIndex = code.IndexOf(delimiter);
+            var prefix = prefixIndex >= 0 ? code.Substring(0, prefixIndex) : null;
+            return prefix;
         }
 
         private void ConnectToAddress(string address, GameObject initiator)
@@ -521,11 +700,13 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private void SetJoiningState(bool isJoining, GameObject initiator)
         {
-            SetJoiningButtonsState(isJoining, initiator, [JoinButtonObject.GetComponent<OwlcatButton>(), .. ServerHistoryRecords.GetComponentsInChildren<OwlcatButton>()]);
+            SetJoiningButtonsState(isJoining, initiator, [GameCodeConnectJoinButtonObject.GetComponent<OwlcatButton>(), DirectConnectJoinButtonObject.GetComponent<OwlcatButton>(), .. ServerHistoryRecords.GetComponentsInChildren<OwlcatButton>()]);
         }
 
         private void SetJoiningButtonsState(bool isJoining, GameObject initiator, params OwlcatButton[] buttons)
         {
+            ConnectionMethodDropdown.interactable = !isJoining;
+
             foreach (var button in buttons)
             {
                 button.Interactable = !isJoining;
@@ -536,12 +717,14 @@ namespace WOTRMultiplayer.UI.Controllers
                 if (isJoining && button.gameObject == initiator)
                 {
                     buttonLabel.SetText(string.Empty);
-                    buttonLabel.DOText(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.ConnectingText.Key }, 2f).SetEase(Ease.Linear).SetLoops(-1, LoopType.Restart);
+                    buttonLabel.DOText(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.ConnectingText.Key }, 2f)
+                        .SetEase(Ease.Linear)
+                        .SetLoops(-1, LoopType.Restart);
                 }
             }
         }
 
-        private void AddSuccessfulConnectionRecord(NetworkGameConnectivity connectivity)
+        private void AddSuccessfulConnectionRecord(GameConnectivity connectivity)
         {
             var settings = _multiplayerSettingsService.GetSettings();
             if (!settings.TrackConnectionHistory)
@@ -580,11 +763,10 @@ namespace WOTRMultiplayer.UI.Controllers
         {
             var fullPath = Path.GetFullPath(ConnectionHistoryFilePath);
             var json = JsonConvert.SerializeObject(ConnectionHistory);
-            var isSaved = _fileSystemService.WriteFile(fullPath, json);
+            var isSaved = FileSystemService.WriteFile(fullPath, json);
             if (!isSaved)
             {
-                var message = string.Format(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.ServerHistory.Errors.UnableToSave.Key }, fullPath);
-                EventBus.RaiseEvent<IMessageModalUIHandler>(x => x.HandleOpen(message));
+                _playerNotificationService.ShowModalMessage(WellKnownKeys.MultiplayerWindow.JoinMenu.DirectConnection.ServerHistory.Errors.UnableToSave.Key);
             }
         }
 
@@ -593,7 +775,7 @@ namespace WOTRMultiplayer.UI.Controllers
             var settings = _multiplayerSettingsService.GetSettings();
             try
             {
-                var content = _fileSystemService.GetFileContent(ConnectionHistoryFilePath);
+                var content = FileSystemService.GetFileContent(ConnectionHistoryFilePath);
                 if (content == null)
                 {
                     return [];
@@ -607,8 +789,7 @@ namespace WOTRMultiplayer.UI.Controllers
                 _logger.LogError(ex, "Unable to deserialize connection history");
                 if (settings.TrackConnectionHistory)
                 {
-                    var message = string.Format(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.JoinMenu.ServerHistory.Errors.UnableToSave.Key }, ex.Message);
-                    EventBus.RaiseEvent<IMessageModalUIHandler>(x => x.HandleOpen(message));
+                    _playerNotificationService.ShowModalMessage(WellKnownKeys.MultiplayerWindow.JoinMenu.DirectConnection.ServerHistory.Errors.UnableToLoad.Key);
                 }
 
                 return [];
@@ -630,6 +811,23 @@ namespace WOTRMultiplayer.UI.Controllers
             {
                 return obj is ConnectionHistoryRecord another && another.Address == this.Address;
             }
+        }
+
+        private class ConnectionMethodOptionData : TMP_Dropdown.OptionData
+        {
+            public ConnectionMethodType Method { get; set; }
+
+            public ConnectionMethodOptionData(ConnectionMethodType connectionMethodType, string text)
+            {
+                Method = connectionMethodType;
+                base.text = text;
+            }
+        }
+
+        private enum ConnectionMethodType
+        {
+            DirectIP,
+            GameCode
         }
     }
 }

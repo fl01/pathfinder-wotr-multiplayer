@@ -20,6 +20,14 @@
                 "readyText": "Ready",
                 "notReadyText": "Not Ready"
             },
+            "externalServers": {
+                "serverDropdownTitle": "Share Game Online",
+                "noneServerName": "Disabled",
+                "errors": {
+                    "unableToLoad": "External servers configuration is corrupted and cannot be loaded.\nMake sure the following file is either deleted or in the correct format:\n{0}",
+                    "unableToSave": "External servers configuration cannot be saved.\nMake sure the game is allowed to write to the following file:\n{0}"
+                }
+            },
             "hostMenu": {
                 "title": "Host",
                 "hostButton": {
@@ -40,19 +48,41 @@
                 "joinButton": "Join",
                 "leaveButton": "Leave",
                 "connectingText": "Connecting...",
-                "serverHistory": {
-                    "header": "Connection history",
-                    "secondsAgo": "Last joined {0} second(s) ago",
-                    "minutesAgo": "Last joined {0} minute(s) ago",
-                    "hoursAgo": "Last joined {0} hour(s) ago",
-                    "daysAgo": "Last joined {0} day(s) ago",
-                    "errors": {
-                        "unableToLoad": "Connection history is corrupted and cannot be loaded",
-                        "unableToSave": "Connection history can't be saved.\nMake sure the game is allowed to write to the following folder:\n{0}"
+                "connectionControls": {
+                    "title": "Select connection method",
+                    "options": {
+                        "directConnect": "Direct IP Connect",
+                        "gameCodeConnect": "Game Code"
                     }
                 },
-                "serverAddress": {
-                    "placeholder": "Enter ip:port"
+                "directConnection": {
+                    "serverHistory": {
+                        "header": "Connection history",
+                        "secondsAgo": "Last joined {0} second(s) ago",
+                        "minutesAgo": "Last joined {0} minute(s) ago",
+                        "hoursAgo": "Last joined {0} hour(s) ago",
+                        "daysAgo": "Last joined {0} day(s) ago",
+                        "errors": {
+                            "unableToLoad": "Connection history is corrupted and cannot be loaded",
+                            "unableToSave": "Connection history can't be saved.\nMake sure the game is allowed to write to the following file:\n{0}"
+                        }
+                    },
+                    "serverAddress": {
+                        "placeholder": "Enter ip:port"
+                    }
+                },
+                "gameCodeConnection": {
+                    "gameCode": {
+                        "placeholder": "Game Code"
+                    },
+                    "password": {
+                        "placeholder": "Password"
+                    },
+                    "errors": {
+                        "emptyCode": "Game Code is empty",
+                        "invalidCodeFormat": "Game code is in invalid format",
+                        "unroutedCode": "Unable to find server for provided game code. Make sure your servers configuration is valid:\n{0}"
+                    }
                 },
                 "deactivation": {
                     "connected": "You are about to leave the multiplayer session. Are you sure?",
@@ -62,7 +92,19 @@
         },
         "lobbyWindow": {
             "server": {
-                "title": "Server"
+                "title": "Server",
+                "external": {
+                    "gameCode": {
+                        "title": "Game Code"
+                    },
+                    "state": {
+                        "connecting": "connecting",
+                        "gettingCode": "acquiring code"
+                    },
+                    "errors": {
+                        "generic": "Error"
+                    }
+                }
             },
             "players": {
                 "title": "Players"
@@ -89,6 +131,9 @@
                             "versionMismatch": "Version Mismatch"
                         }
                     }
+                },
+                "copyCode": {
+                    "title": "Copy"
                 }
             }
         },

@@ -77,7 +77,9 @@ namespace WOTRMultiplayer.Services
 
         public Action<Dictionary<long, float>> OnSaveGameTransferProgressChanged { get; set; }
 
-        public Action<NetworkGameConnectivity> OnConnected { get; set; }
+        public Action<GameConnectivity> OnConnected { get; set; }
+
+        public Action<GameConnectivity> OnGameConnectivityUpdated { get; set; }
 
         internal NetworkGame Game { get; set; }
 
@@ -143,7 +145,7 @@ namespace WOTRMultiplayer.Services
             _networkReceiver = networkReceiver;
         }
 
-        public NetworkGameConnectivity GetGameConnectivity()
+        public GameConnectivity GetGameConnectivity()
         {
             return Game?.Connectivity;
         }

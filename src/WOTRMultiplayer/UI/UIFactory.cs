@@ -466,6 +466,33 @@ namespace WOTRMultiplayer.UI
             return closeButtonObject;
         }
 
+        public GameObject CreateIconButton(Transform parent, Sprite defaultSprite, Sprite hoverSprite = null, Sprite pressedSprite = null)
+        {
+            var baseButtonObject = CreateCloseButton(parent);
+            var baseButtonLayout = baseButtonObject.GetComponent<LayoutElement>();
+            baseButtonLayout.preferredHeight = 40;
+            baseButtonLayout.preferredWidth = 40;
+            baseButtonLayout.ignoreLayout = false;
+            var baseButtonRect = baseButtonObject.GetComponent<RectTransform>();
+            baseButtonRect.pivot = new Vector2(0.5f, 0.5f);
+            baseButtonRect.anchorMin = new Vector2(0.5f, 0.5f);
+            baseButtonRect.anchorMax = new Vector2(0.5f, 0.5f);
+            var copyButton = baseButtonObject.GetComponent<OwlcatButton>();
+            foreach (var layer in copyButton.m_CommonLayer ?? [])
+            {
+                layer.Image.sprite = defaultSprite;
+                layer.SpriteState = new SpriteState
+                {
+                    pressedSprite = pressedSprite ?? defaultSprite,
+                    disabledSprite = defaultSprite,
+                    highlightedSprite = hoverSprite ?? defaultSprite,
+                    selectedSprite = defaultSprite
+                };
+            }
+
+            return baseButtonObject;
+        }
+
         public void StoreInputPrefab(GameObject inputObject)
         {
             if (inputObject == null || _inputPrefab != null)

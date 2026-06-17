@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using AutoMapper;
 using HarmonyLib;
@@ -75,6 +76,8 @@ namespace WOTRMultiplayer
 
             _logger.LogInformation("Loading mod. Version={Version}, GlobalLogLevel={GlobalLogLevel}, ConsoleLogLevel={ConsoleLogLevel}, FileLogLevel={FileLogLevel}", entry.Version.ToString(), (LogEventLevel)ModManagerSettings.GlobalMinimumLogLevel, (LogEventLevel)ModManagerSettings.ConsoleMinimumLogLevel, (LogEventLevel)ModManagerSettings.FileMinimumLogLevel);
 
+            FixSignalrDependencyResolution();
+
             try
             {
                 Subscribe();
@@ -110,6 +113,19 @@ namespace WOTRMultiplayer
             return true;
         }
 
+        private static void FixSignalrDependencyResolution()
+        {
+            AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
+            {
+                if (args.Name.StartsWith("System.Runtime.InteropServices.RuntimeInformation"))
+                {
+                    return typeof(RuntimeInformation).Assembly;
+                }
+
+                return null;
+            };
+        }
+
         private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
         {
             _logger.LogError(e.Exception, "Unobserved task exception");
@@ -133,7 +149,7 @@ namespace WOTRMultiplayer
 
         private static void InitializePortraits()
         {
-            _logger.LogInformation("Initializing portrait sprites");
+            _logger.LogInformation("Initializing assets");
             ServiceProvider.GetService<IResourceProvider>().Initialize();
         }
 

@@ -17,7 +17,8 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.json-version-parser.outputs.version }}
+      releaseVersion: ${{ steps.json-version-parser.outputs.releaseVersion }}
+      assemblyVersion: ${{ steps.json-version-parser.outputs.assemblyVersion }}
     env:
       INFO_PATH: ./src/WOTRMultiplayer/Info.json
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -31,9 +32,17 @@ jobs:
           echo 'Info Json Version: ' $baseFullVersion
           majorMinor=$(echo "${baseFullVersion%.*}")
           echo 'MajorMinorVersion: ' $majorMinor
-          releaseVersion=$(echo $majorMinor.${{ github.run_number }})
+          assemblyVersion=$(echo $majorMinor.${{ github.run_number }})
+          releaseVersion=$assemblyVersion
+          if [[ "${{ github.ref_name }}" == features/* ]]; then
+            releaseVersion="${releaseVersion}-alpha"
+          fi
+          
           echo 'Release Version: ' $releaseVersion
-          echo "version=$releaseVersion" >> $GITHUB_OUTPUT
+          echo "releaseVersion=$releaseVersion" >> $GITHUB_OUTPUT
+
+          echo 'Assembly Version: ' $assemblyVersion
+          echo "assemblyVersion=$assemblyVersion" >> $GITHUB_OUTPUT
 
   build:
     needs: [get-version]
@@ -44,7 +53,8 @@ jobs:
       BUILD_PATH: ".\\src\\WOTRMultiplayer\\bin\\Release\\net481"
       RELEASE_OUTPUT_PATH: ".\\__releases\\00_WOTRMultiplayer"
       REFS_OUTPUT_PATH: ".\\__refs"
-      CURRENT_VERSION: ${{needs.get-version.outputs.version}}
+      CURRENT_VERSION: ${{needs.get-version.outputs.releaseVersion}}
+      ASSEMBLY_VERSION: ${{needs.get-version.outputs.assemblyVersion}}
     runs-on: windows-latest
 
     steps:
@@ -71,7 +81,7 @@ jobs:
       - name: Generate Localization
         run: dotnet build ./src/WOTRMultiplayer.Localization.Generator --configuration Release
       - name: Build
-        run: dotnet build ./src /p:AssemblyVersion=${{ env.CURRENT_VERSION }} --configuration Release /p:ProduceReferenceAssembly=true
+        run: dotnet build ./src /p:AssemblyVersion=${{ env.ASSEMBLY_VERSION }} --configuration Release /p:ProduceReferenceAssembly=true
       - name: Run unit tests
         run: dotnet test ./src --configuration Release --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage"
       - name: Update Info.json
@@ -106,6 +116,18 @@ jobs:
           xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Bcl.AsyncInterfaces.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
           xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.DependencyInjection.Abstractions.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
           xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.DependencyInjection.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+
+          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.Features.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\System.Text.Json.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\System.Text.Encodings.Web.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\System.IO.Pipelines.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.AspNetCore.Connections.Abstractions.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.AspNetCore.Http.Connections.Client.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.AspNetCore.Http.Connections.Common.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.AspNetCore.SignalR.Client.Core.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.AspNetCore.SignalR.Client.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.AspNetCore.SignalR.Common.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+          xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.AspNetCore.SignalR.Protocols.Json.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
 
           xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.Logging.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
           xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.Logging.Abstractions.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"

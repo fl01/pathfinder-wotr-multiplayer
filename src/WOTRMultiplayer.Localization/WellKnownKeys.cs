@@ -75,6 +75,38 @@ public static class WellKnownKeys
             }
         }
 
+        [Description("externalServers")]
+        public static class ExternalServers
+        {
+            [Description("serverDropdownTitle")]
+            public static class ServerDropdownTitle
+            {
+                public static string Key { get; set; }
+            }
+
+            [Description("noneServerName")]
+            public static class NoneServerName
+            {
+                public static string Key { get; set; }
+            }
+
+            [Description("errors")]
+            public static class Errors
+            {
+                [Description("unableToLoad")]
+                public static class UnableToLoad
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("unableToSave")]
+                public static class UnableToSave
+                {
+                    public static string Key { get; set; }
+                }
+            }
+        }
+
         [Description("hostMenu")]
         public static class HostMenu
         {
@@ -160,63 +192,139 @@ public static class WellKnownKeys
                 public static string Key { get; set; }
             }
 
-            [Description("serverHistory")]
-            public static class ServerHistory
+            [Description("connectionControls")]
+            public static class ConnectionControls
             {
-                [Description("header")]
-                public static class Header
+                [Description("title")]
+                public static class Title
                 {
                     public static string Key { get; set; }
                 }
 
-                [Description("secondsAgo")]
-                public static class SecondsAgo
+                [Description("options")]
+                public static class Options
                 {
-                    public static string Key { get; set; }
-                }
-
-                [Description("minutesAgo")]
-                public static class MinutesAgo
-                {
-                    public static string Key { get; set; }
-                }
-
-                [Description("hoursAgo")]
-                public static class HoursAgo
-                {
-                    public static string Key { get; set; }
-                }
-
-                [Description("daysAgo")]
-                public static class DaysAgo
-                {
-                    public static string Key { get; set; }
-                }
-
-                [Description("errors")]
-                public static class Errors
-                {
-                    [Description("unableToLoad")]
-                    public static class UnableToLoad
+                    [Description("directConnect")]
+                    public static class DirectConnect
                     {
                         public static string Key { get; set; }
                     }
 
-                    [Description("unableToSave")]
-                    public static class UnableToSave
+                    [Description("gameCodeConnect")]
+                    public static class GameCodeConnect
                     {
                         public static string Key { get; set; }
                     }
                 }
             }
 
-            [Description("serverAddress")]
-            public static class ServerAddress
+            [Description("directConnection")]
+            public static class DirectConnection
             {
-                [Description("placeholder")]
-                public static class Placeholder
+                [Description("serverHistory")]
+                public static class ServerHistory
                 {
-                    public static string Key { get; set; }
+                    [Description("header")]
+                    public static class Header
+                    {
+                        public static string Key { get; set; }
+                    }
+
+                    [Description("secondsAgo")]
+                    public static class SecondsAgo
+                    {
+                        public static string Key { get; set; }
+                    }
+
+                    [Description("minutesAgo")]
+                    public static class MinutesAgo
+                    {
+                        public static string Key { get; set; }
+                    }
+
+                    [Description("hoursAgo")]
+                    public static class HoursAgo
+                    {
+                        public static string Key { get; set; }
+                    }
+
+                    [Description("daysAgo")]
+                    public static class DaysAgo
+                    {
+                        public static string Key { get; set; }
+                    }
+
+                    [Description("errors")]
+                    public static class Errors
+                    {
+                        [Description("unableToLoad")]
+                        public static class UnableToLoad
+                        {
+                            public static string Key { get; set; }
+                        }
+
+                        [Description("unableToSave")]
+                        public static class UnableToSave
+                        {
+                            public static string Key { get; set; }
+                        }
+                    }
+                }
+
+                [Description("serverAddress")]
+                public static class ServerAddress
+                {
+                    [Description("placeholder")]
+                    public static class Placeholder
+                    {
+                        public static string Key { get; set; }
+                    }
+                }
+            }
+
+            [Description("gameCodeConnection")]
+            public static class GameCodeConnection
+            {
+                [Description("gameCode")]
+                public static class GameCode
+                {
+                    [Description("placeholder")]
+                    public static class Placeholder
+                    {
+                        public static string Key { get; set; }
+                    }
+                }
+
+                [Description("password")]
+                public static class Password
+                {
+                    [Description("placeholder")]
+                    public static class Placeholder
+                    {
+                        public static string Key { get; set; }
+                    }
+                }
+
+                [Description("errors")]
+                public static class Errors
+                {
+                    [Description("emptyCode")]
+                    public static class EmptyCode
+                    {
+                        public static string Key { get; set; }
+                    }
+
+                    [Description("invalidCodeFormat")]
+                    public static class InvalidCodeFormat
+                    {
+                        public static string Key { get; set; }
+                    }
+
+                    [Description("unroutedCode")]
+                    public static class UnroutedCode
+                    {
+                        public static string Key { get; set; }
+                    }
                 }
             }
 
@@ -248,6 +356,46 @@ public static class WellKnownKeys
             public static class Title
             {
                 public static string Key { get; set; }
+            }
+
+            [Description("external")]
+            public static class External
+            {
+                [Description("gameCode")]
+                public static class GameCode
+                {
+                    [Description("title")]
+                    public static class Title
+                    {
+                        public static string Key { get; set; }
+                    }
+                }
+
+                [Description("state")]
+                public static class State
+                {
+                    [Description("connecting")]
+                    public static class Connecting
+                    {
+                        public static string Key { get; set; }
+                    }
+
+                    [Description("gettingCode")]
+                    public static class GettingCode
+                    {
+                        public static string Key { get; set; }
+                    }
+                }
+
+                [Description("errors")]
+                public static class Errors
+                {
+                    [Description("generic")]
+                    public static class Generic
+                    {
+                        public static string Key { get; set; }
+                    }
+                }
             }
         }
 
@@ -345,6 +493,16 @@ public static class WellKnownKeys
                             public static string Key { get; set; }
                         }
                     }
+                }
+            }
+
+            [Description("copyCode")]
+            public static class CopyCode
+            {
+                [Description("title")]
+                public static class Title
+                {
+                    public static string Key { get; set; }
                 }
             }
         }

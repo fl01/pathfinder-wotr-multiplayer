@@ -28,7 +28,7 @@ namespace WOTRMultiplayer.Abstractions
 {
     public interface IMultiplayerActor
     {
-        NetworkGameConnectivity GetGameConnectivity();
+        GameConnectivity GetGameConnectivity();
 
         List<NetworkPlayer> GetPlayers();
 
@@ -48,7 +48,9 @@ namespace WOTRMultiplayer.Abstractions
 
         void Reset();
 
-        Action<NetworkGameConnectivity> OnConnected { get; set; }
+        Action<GameConnectivity> OnConnected { get; set; }
+
+        Action<GameConnectivity> OnGameConnectivityUpdated { get; set; }
 
         Action<NetworkLobbyStage, List<NetworkPlayer>> OnPlayersChanged { get; set; }
 

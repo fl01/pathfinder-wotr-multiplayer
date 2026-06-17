@@ -31,7 +31,7 @@ namespace WOTRMultiplayer.Entities
 
         public NetworkGameStartUp StartUp { get; set; }
 
-        public NetworkGameConnectivity Connectivity { get; set; }
+        public GameConnectivity Connectivity { get; set; }
 
         public NetworkLobbyStage Stage { get; set; }
 

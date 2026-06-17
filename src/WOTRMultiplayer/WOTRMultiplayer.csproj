@@ -40,6 +40,20 @@
 			xcopy /q /y ".\Microsoft.Extensions.DependencyInjection.Abstractions.dll" "$(ModOutputFolder)"
 			xcopy /q /y ".\Microsoft.Extensions.DependencyInjection.dll" "$(ModOutputFolder)"
 
+			xcopy /q /y ".\Microsoft.Extensions.Features.dll" "$(ModOutputFolder)"
+			xcopy /q /y ".\System.Text.Json.dll" "$(ModOutputFolder)"
+			xcopy /q /y ".\System.Text.Encodings.Web.dll" "$(ModOutputFolder)"
+			xcopy /q /y ".\System.IO.Pipelines.dll" "$(ModOutputFolder)"
+			xcopy /q /y ".\Microsoft.AspNetCore.Connections.Abstractions.dll" "$(ModOutputFolder)"
+			xcopy /q /y ".\Microsoft.AspNetCore.Http.Connections.Client.dll" "$(ModOutputFolder)"
+			xcopy /q /y ".\Microsoft.AspNetCore.Http.Connections.Common.dll" "$(ModOutputFolder)"
+			xcopy /q /y ".\Microsoft.AspNetCore.SignalR.Client.Core.dll" "$(ModOutputFolder)"
+			xcopy /q /y ".\Microsoft.AspNetCore.SignalR.Client.dll" "$(ModOutputFolder)"
+			xcopy /q /y ".\Microsoft.AspNetCore.SignalR.Common.dll" "$(ModOutputFolder)"
+			xcopy /q /y ".\Microsoft.AspNetCore.SignalR.Protocols.Json.dll" "$(ModOutputFolder)"
+
+			xcopy /q /y ".\LiteNetLib.dll" "$(ModOutputFolder)"
+
 			xcopy /q /y ".\Microsoft.Extensions.Logging.dll" "$(ModOutputFolder)"
 			xcopy /q /y ".\Microsoft.Extensions.Logging.Abstractions.dll" "$(ModOutputFolder)"
 			xcopy /q /y ".\Microsoft.Extensions.Options.dll" "$(ModOutputFolder)"
@@ -62,7 +76,7 @@
 		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.1" />
 		<PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3" PrivateAssets="all" />
 		<PackageReference Include="FluentValidation" Version="11.12.0" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.9" />
 		<PackageReference Include="murmurhash" Version="1.0.3" />
 		<ProjectReference Include="..\WOTRMultiplayer.Localization\WOTRMultiplayer.Localization.csproj" />
 		<ProjectReference Include="..\WOTRMultiplayer.Logging\WOTRMultiplayer.Logging.csproj" />

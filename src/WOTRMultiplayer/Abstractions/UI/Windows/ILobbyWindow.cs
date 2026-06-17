@@ -8,7 +8,7 @@ namespace WOTRMultiplayer.Abstractions.UI.Windows
 {
     public interface ILobbyWindow
     {
-        Func<NetworkGameConnectivity> GetGameConnectivity { get; set; }
+        Func<GameConnectivity> GetGameConnectivity { get; set; }
 
         Func<List<NetworkPlayer>> GetPlayers { get; set; }
 
