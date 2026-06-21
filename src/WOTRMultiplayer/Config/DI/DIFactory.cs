@@ -16,7 +16,7 @@ using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.Config.Mapping;
-using WOTRMultiplayer.Networking.Abstractions;
+using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
 using WOTRMultiplayer.Networking.Extensions;
 using WOTRMultiplayer.Networking.ExternalConnectivity;
 using WOTRMultiplayer.Services;

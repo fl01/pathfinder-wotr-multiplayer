@@ -2,13 +2,21 @@
 using System.Net;
 using System.Net.Http;
 using Microsoft.AspNetCore.SignalR.Client;
-using WOTRMultiplayer.Networking.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
+using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
 
 namespace WOTRMultiplayer.Networking.ExternalConnectivity.SignalR
 {
-    public class HubConnectionFactory : IHubConnectionFactory
+    public class ExternalConnectionFactory : IExternalConnectionFactory
     {
-        public HubConnection Create(Uri url)
+        private readonly IServiceProvider _serviceProvider;
+
+        public ExternalConnectionFactory(IServiceProvider serviceProvider)
+        {
+            _serviceProvider = serviceProvider;
+        }
+
+        public IExternalConnection Create(Uri url)
         {
             var hub = new HubConnectionBuilder()
                 .WithUrl(url, options =>
@@ -23,7 +31,9 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.SignalR
                     };
                 })
                 .Build();
-            return hub;
+
+            var connection = ActivatorUtilities.CreateInstance<SignalRExternalConnection>(_serviceProvider, hub);
+            return connection;
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.Settings;
-using WOTRMultiplayer.Networking.Configuration;
 
 namespace WOTRMultiplayer.Config.Mapping
 {
@@ -9,7 +8,7 @@ namespace WOTRMultiplayer.Config.Mapping
     {
         public NetworkingProfile()
         {
-            CreateMap<NetworkMultiplayerSettings, NetworkServerConfiguration>()
+            CreateMap<NetworkMultiplayerSettings, Networking.Configuration.NetworkServerConfiguration>()
                 .ForMember(x => x.Host, opt => opt.MapFrom(f => f.Host))
                 .ForMember(x => x.UseIPv6, opt => opt.MapFrom(f => f.UseIPv6))
                 .ForMember(x => x.PortRangeStart, opt => opt.MapFrom(f => f.HostPortRangeStart))
@@ -17,7 +16,7 @@ namespace WOTRMultiplayer.Config.Mapping
                 .ForMember(x => x.AwaiterTimeout, opt => opt.MapFrom(f => f.NetworkAwaiterTimeout))
                 ;
 
-            CreateMap<ExternalServer, ExternalServerConfiguration>()
+            CreateMap<ExternalServer, Networking.Configuration.ExternalServer>()
                 .ForMember(x => x.Url, opt => opt.MapFrom(f => f.Url))
                 .ForMember(x => x.GameHubPath, opt => opt.MapFrom(f => f.GameHubPath))
                 ;

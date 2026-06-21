@@ -68,6 +68,9 @@ namespace WOTRMultiplayer.Services.Settings
 
             [Description("enable-ipv6")]
             public static WellKnownSettingKey<bool> UseIPv6 { get; } = new(true);
+
+            [Description("p2p-port")]
+            public static WellKnownSettingKey<int> PeerToPeerPort { get; } = new(0);
         }
 
         [Description("miscellaneous")]

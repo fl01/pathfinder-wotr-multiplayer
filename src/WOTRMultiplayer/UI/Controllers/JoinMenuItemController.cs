@@ -311,19 +311,20 @@ namespace WOTRMultiplayer.UI.Controllers
             connectionControlsObject.name = ConnectionControlsObjectName;
             var connectionControlsObjectLayout = connectionControlsObject.AddComponent<LayoutElement>();
             connectionControlsObjectLayout.preferredHeight = 150;
-            CreateConnectionControls(connectionControlsObject.transform);
+            CreateConnectionControls(connectionControlsObject.transform, fullSize);
 
             var directConnectionObject = UIFactory.CreateDefaultGameObject(joinLobbyControlsMenu.transform);
             directConnectionObject.name = DirectConnectionObjectName;
-            directConnectionObject.AddComponent<VerticalLayoutGroup>();
+            directConnectionObject.AddComponent<VerticalLayoutGroup>().spacing = 10f;
             directConnectionObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             CreateDirectIPConnectionControls(directConnectionObject.transform, fullSize);
             directConnectionObject.SetActive(false);
 
             var gameConnectionObject = UIFactory.CreateDefaultGameObject(joinLobbyControlsMenu.transform);
             gameConnectionObject.name = GameCodeConnectionObjectName;
-            gameConnectionObject.AddComponent<VerticalLayoutGroup>();
+            gameConnectionObject.AddComponent<VerticalLayoutGroup>().spacing = 10f;
             gameConnectionObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            gameConnectionObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
             CreateGameCodeConnectionControls(gameConnectionObject.transform, fullSize);
             gameConnectionObject.SetActive(false);
 
@@ -335,6 +336,7 @@ namespace WOTRMultiplayer.UI.Controllers
             var gameCodeInputObject = UIFactory.CreateInput(parent.transform);
             gameCodeInputObject.name = GameCodeInputObjectName;
             var gameCodeInputObjectLayout = gameCodeInputObject.AddComponent<LayoutElement>();
+            gameCodeInputObjectLayout.preferredWidth = fullSize.x * 0.65f;
             gameCodeInputObjectLayout.preferredHeight = 35;
             var gameCodePlaceholder = gameCodeInputObject.transform.Find(UI.UIFactory.InputPlaceholderObjectName);
             var gameCodePlaceholderInput = gameCodePlaceholder.GetComponent<TextMeshProUGUI>();
@@ -348,6 +350,7 @@ namespace WOTRMultiplayer.UI.Controllers
             var passwordInputObject = UIFactory.CreateInput(parent.transform);
             passwordInputObject.name = GamePasswordObjectName;
             var passwordInputObjectLayout = passwordInputObject.AddComponent<LayoutElement>();
+            passwordInputObjectLayout.preferredWidth = fullSize.x * 0.65f;
             passwordInputObjectLayout.preferredHeight = 35;
             var passwordPlaceholder = passwordInputObject.transform.Find(UI.UIFactory.InputPlaceholderObjectName);
             var passwordPlaceholderInput = passwordPlaceholder.GetComponent<TextMeshProUGUI>();
@@ -416,7 +419,7 @@ namespace WOTRMultiplayer.UI.Controllers
             var serverHistoryRecordsLayoutGroup = serverHistoryRecordsObject.AddComponent<VerticalLayoutGroup>();
         }
 
-        private void CreateConnectionControls(Transform parent)
+        private void CreateConnectionControls(Transform parent, Vector2 fullSize)
         {
             var labelObject = UIFactory.CreateDefaultGameObject(parent.transform);
             labelObject.name = ConnectionMethodObjectName;
@@ -432,7 +435,7 @@ namespace WOTRMultiplayer.UI.Controllers
             textBox.margin = new Vector4(0f, 0f, 0f, 25f);
             textBox.material = UIFactory.DefaultTextMesh.Material;
             textBox.color = UIFactory.DefaultTextMesh.Color;
-            var dropdownContainerObject = Main.Multiplayer.UIFactory.CreateDropdown(Screen.width * 0.15f, labelObject.transform);
+            var dropdownContainerObject = Main.Multiplayer.UIFactory.CreateDropdown(fullSize.x * 0.6f, labelObject.transform);
             var dropdownObject = dropdownContainerObject.transform.Find(UI.UIFactory.DropdownGameObjectName);
             dropdownObject.GetComponent<RectTransform>().Centered();
             var tmpDropdown = dropdownObject.GetComponent<TMP_Dropdown>();
@@ -666,8 +669,10 @@ namespace WOTRMultiplayer.UI.Controllers
 
             var password = GamePasswordInputObject.GetComponent<TMP_InputField>().text;
 
-            _logger.LogWarning("Game Code connect. Server={Server}, Code={Code}, Password={Password}", server.Name, code, password);
             SetJoiningButtonsState(true, GameCodeConnectJoinButtonObject, [GameCodeConnectJoinButtonObject.GetComponent<OwlcatButton>()]);
+
+            _logger.LogInformation("Connect via game code. Server={Server}, Code={Code}, HasPassword={HasPassword}", server.Name, code, !string.IsNullOrEmpty(password));
+            _multiplayerClient.Connect(code, password, server);
         }
 
         private string GetCodePrefixPart(string code)

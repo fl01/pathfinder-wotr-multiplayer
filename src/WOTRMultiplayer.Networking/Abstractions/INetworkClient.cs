@@ -2,6 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 using WOTRMultiplayer.Networking.Awaiters;
+using WOTRMultiplayer.Networking.Configuration;
 
 namespace WOTRMultiplayer.Networking.Abstractions
 {
@@ -10,6 +11,8 @@ namespace WOTRMultiplayer.Networking.Abstractions
         bool IsConnecting { get; }
 
         Task ConnectAsync(string host, int port, TimeSpan awaiterTimeout);
+
+        Task ConnectAsync(string code, string password, ExternalServerConfiguration externalServerConfiguration, TimeSpan awaiterTimeout);
 
         void Send(object message);
 

@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using WOTRMultiplayer.Networking.Configuration;
 
-namespace WOTRMultiplayer.Networking.Abstractions
+namespace WOTRMultiplayer.Networking.Abstractions.ExternalConnections
 {
     public interface IExternalConnectionService
     {
@@ -12,8 +12,12 @@ namespace WOTRMultiplayer.Networking.Abstractions
 
         Action OnError { get; set; }
 
-        Task ConnectAsync(ExternalServerConfiguration externalServer);
+        Task ConnectAsync(ExternalServerConfiguration externalServerConfiguration);
 
         void Reset();
+
+        Task JoinGameAsync(string code, string password, int port);
+
+        bool IsActive { get; }
     }
 }

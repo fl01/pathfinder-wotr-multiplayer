@@ -20,6 +20,7 @@ using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Config.DI;
 using WOTRMultiplayer.Localization;
+using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
 using WOTRMultiplayer.Services.PubSub;
 using WOTRMultiplayer.Services.Settings;
 
@@ -103,6 +104,9 @@ namespace WOTRMultiplayer
                 _logger.LogInformation("Harmony patching has been finished. PatchedMethods={PatchedMethods}", patchedMethods);
                 AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
                 TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
+                var registry = ServiceProvider.GetRequiredService<IExternalMessageRegistry>();
+                registry.Register([.. AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic)]);
             }
             catch (Exception ex)
             {

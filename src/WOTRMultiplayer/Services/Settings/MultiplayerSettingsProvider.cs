@@ -27,6 +27,7 @@ namespace WOTRMultiplayer.Services.Settings
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Networking.UseIPv6);
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Networking.HostPortRangeStart);
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Networking.HostPortRangeEnd);
+            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Networking.PeerToPeerPort);
 
             // hotkeys
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Hotkeys.Ping);
@@ -66,6 +67,7 @@ namespace WOTRMultiplayer.Services.Settings
                 HostPortRangeEnd = _settingsControllerAccessor.GetValue(WellKnownSettings.Networking.HostPortRangeEnd),
                 Host = _settingsControllerAccessor.GetValue(WellKnownSettings.Networking.Host),
                 UseIPv6 = _settingsControllerAccessor.GetValue(WellKnownSettings.Networking.UseIPv6),
+                PeerToPeerPort = _settingsControllerAccessor.GetValue(WellKnownSettings.Networking.PeerToPeerPort),
 
                 // misc
                 HideServerAddress = _settingsControllerAccessor.GetValue(WellKnownSettings.Miscellaneous.HideServerAddress),

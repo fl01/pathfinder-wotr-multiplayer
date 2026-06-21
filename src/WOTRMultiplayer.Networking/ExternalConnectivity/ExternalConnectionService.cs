@@ -1,17 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.Networking.Abstractions;
+using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
 using WOTRMultiplayer.Networking.Configuration;
+using WOTRMultiplayer.Networking.ExternalConnectivity.Messages;
 
 namespace WOTRMultiplayer.Networking.ExternalConnectivity
 {
     public class ExternalConnectionService : IExternalConnectionService
     {
         private readonly ILogger<ExternalConnectionService> _logger;
-        private readonly IHubConnectionFactory _hubConnectionFactory;
+        private readonly IExternalConnectionFactory _hubConnectionFactory;
 
         public Action<string> OnGameCodeChanged { get; set; }
 
@@ -19,43 +18,58 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         public Action OnError { get; set; }
 
-        private HubConnection _hub;
-        private readonly List<IDisposable> _connections = [];
+        public Action OnReconnected { get; set; }
+
+        public bool IsActive { get; private set; }
+
+        private IExternalConnection _externalConnection;
 
         public ExternalConnectionService(
             ILogger<ExternalConnectionService> logger,
-            IHubConnectionFactory hubConnectionFactory)
+            IExternalConnectionFactory hubConnectionFactory)
         {
             _logger = logger;
             _hubConnectionFactory = hubConnectionFactory;
         }
 
-        public async Task ConnectAsync(ExternalServerConfiguration externalServer)
+        public async Task ConnectAsync(ExternalServerConfiguration externalServerConfiguration)
         {
             try
             {
-                await Task.Delay(TimeSpan.FromSeconds(3));
-
-                if (_hub != null)
+                if (_externalConnection != null)
                 {
-                    await _hub.StopAsync();
+                    await _externalConnection.StopAsync(default);
                 }
 
-                var baseUrl = new Uri(externalServer.Url);
-                var fullUrl = new Uri(baseUrl, externalServer.GameHubPath);
-                _hub = _hubConnectionFactory.Create(fullUrl);
+                var baseUrl = new Uri(externalServerConfiguration.Server.Url);
+                var fullUrl = new Uri(baseUrl, externalServerConfiguration.Server.GameHubPath);
+                _externalConnection = _hubConnectionFactory.Create(fullUrl);
+                _externalConnection
+                    .On<GameCreatedMessage>(OnGameCreatedAsync)
+                    .On<BeginConnectingMessage>(OnBeginConnectingAsync)
+                    ;
+                _externalConnection.OnReconnected = OnExternalConnectionReconnected;
 
-                await _hub.StartAsync();
-                _logger.LogInformation("Hub connection has been estabilished. Hub={Hub}", fullUrl);
+                _logger.LogInformation("Connecting to external hub. Url={Url}", fullUrl);
+                await _externalConnection.ConnectAsync(default);
+
+                _logger.LogInformation("External connection has been estabilished. Url={Url}, AutoCreateGame={AutoCreateGame}", fullUrl, externalServerConfiguration.AutoCreateGame);
+                IsActive = true;
+
+                if (externalServerConfiguration.AutoCreateGame)
+                {
+                    var createGameMessage = new CreateGameMessage
+                    {
+                        Password = externalServerConfiguration.Password,
+                        Port = externalServerConfiguration.Port
+                    };
+
+                    await _externalConnection.SendAsync(createGameMessage);
+                }
 
                 //var p2p = new P2PClient(_logger);
                 //p2p.Start(9252);
                 OnConnected?.Invoke();
-
-                await Task.Delay(TimeSpan.FromSeconds(5)).ContinueWith(_ =>
-                {
-                    OnGameCodeChanged?.Invoke("EU1:TESTCODEABC");
-                });
             }
             catch (Exception ex)
             {
@@ -66,21 +80,39 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         public void Reset()
         {
-            _hub?.StopAsync();
+            IsActive = false;
+            _externalConnection?.StopAsync(default);
+        }
 
-            foreach (var connection in _connections)
+        public async Task JoinGameAsync(string code, string password, int port)
+        {
+            var joinGameMessage = new JoinGameMessage
             {
-                try
-                {
-                    connection.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error while disposing connection");
-                }
-            }
+                Code = code,
+                Password = password,
+                Port = port
+            };
 
-            _connections.Clear();
+            _logger.LogInformation("Joining game. Code={Code}, Port={Port}, HasPassword={HasPassword}", code, port, !string.IsNullOrEmpty(password));
+            await _externalConnection.SendAsync(joinGameMessage);
+        }
+
+        private Task OnExternalConnectionReconnected()
+        {
+            return Task.CompletedTask;
+        }
+
+        private Task OnGameCreatedAsync(GameCreatedMessage gameCreatedMessage)
+        {
+            var gameCode = gameCreatedMessage.Game.Code;
+            OnGameCodeChanged?.Invoke(gameCode);
+            return Task.CompletedTask;
+        }
+
+        private Task OnBeginConnectingAsync(BeginConnectingMessage beginConnectingMessage)
+        {
+            _logger.LogWarning("Received begin connecting. PeerId={PeerId}", beginConnectingMessage.PeerId);
+            return Task.CompletedTask;
         }
     }
 }

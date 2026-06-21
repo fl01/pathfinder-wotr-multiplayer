@@ -14,6 +14,8 @@ namespace WOTRMultiplayer.Entities.Settings
 
         public int HostPortRangeEnd { get; set; }
 
+        public int PeerToPeerPort { get; set; }
+
         public TimeSpan ForcedPauseDefaultTerminationDelay { get; set; }
 
         public TimeSpan ForcedPauseRandomEncounterTerminationDelay { get; set; }

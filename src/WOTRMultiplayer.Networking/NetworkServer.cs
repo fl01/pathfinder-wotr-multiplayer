@@ -9,6 +9,7 @@ using BeetleX.EventArgs;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Logging.Extensions;
 using WOTRMultiplayer.Networking.Abstractions;
+using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
 using WOTRMultiplayer.Networking.Awaiters;
 using WOTRMultiplayer.Networking.Configuration;
 using WOTRMultiplayer.Networking.Consuming;
