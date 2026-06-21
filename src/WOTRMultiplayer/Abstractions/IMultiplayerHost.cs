@@ -13,7 +13,7 @@ namespace WOTRMultiplayer.Abstractions
 {
     public interface IMultiplayerHost : IMultiplayerActor
     {
-        void Create(string gameId, ExternalServer externalServer, NetworkGameStartUp gameStartUp);
+        void Create(string gameId, string gamePassword, ExternalServer externalServer, NetworkGameStartUp gameStartUp);
 
         void ChangeHostedStartingPoint(string gameId, NetworkGameStartUp gameStartUp);
 

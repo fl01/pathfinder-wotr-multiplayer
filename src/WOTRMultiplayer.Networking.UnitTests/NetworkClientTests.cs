@@ -5,6 +5,7 @@ using FakeItEasy;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using WOTRMultiplayer.Networking.Abstractions;
+using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
 using WOTRMultiplayer.Networking.Consuming;
 
 namespace WOTRMultiplayer.Networking.UnitTests
@@ -17,6 +18,7 @@ namespace WOTRMultiplayer.Networking.UnitTests
         private ILogger<NetworkClient> _logger;
         private ITcpClientFactory _tcpClientFactory;
         private IMessageConsumer _messageConsumer;
+        private IExternalConnectionService _externalConnectionService;
 
         [SetUp]
         public void SetUp()
@@ -24,8 +26,9 @@ namespace WOTRMultiplayer.Networking.UnitTests
             _logger = A.Fake<ILogger<NetworkClient>>();
             _tcpClientFactory = A.Fake<ITcpClientFactory>();
             _messageConsumer = A.Fake<IMessageConsumer>();
+            _externalConnectionService = A.Fake<IExternalConnectionService>();
 
-            _client = new NetworkClient(_logger, _tcpClientFactory, _messageConsumer);
+            _client = new NetworkClient(_logger, _tcpClientFactory, _externalConnectionService, _messageConsumer);
         }
 
         [Test]

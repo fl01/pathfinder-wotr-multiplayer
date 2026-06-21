@@ -129,6 +129,8 @@ jobs:
           xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.AspNetCore.SignalR.Common.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
           xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.AspNetCore.SignalR.Protocols.Json.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
 
+          xcopy /q /y "${{ env.BUILD_PATH }}\LiteNetLib.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
+
           xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.Logging.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
           xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.Logging.Abstractions.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"
           xcopy /q /y "${{ env.BUILD_PATH }}\Microsoft.Extensions.Options.dll" "${{ env.RELEASE_OUTPUT_PATH }}\*"

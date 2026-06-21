@@ -51,6 +51,8 @@ namespace WOTRMultiplayer.UI.Controllers
         public const string MultiplayerLobbyObjectName = "MultiplayerLobby";
         public const string LobbyContentObjectName = "LobbyContent";
         public const string HostingContainerObjectName = "HostingConfiguration";
+        public const string GamePasswordObjectName = "GamePasswordInputObject";
+        public const string HostingServerInfoObjectName = "HostingServerInfoObject";
 
         public const string ModMenuRecordViewObjectName = "ModMenuModRecordView";
         public const string ModMenuContainerObjectName = "ModMenuContainerForModRecordView";
@@ -93,6 +95,9 @@ namespace WOTRMultiplayer.UI.Controllers
             .Find(SaveLoadDetails)
             .Find(MultiplayerLobbyObjectName)
             .Find(HostingContainerObjectName);
+
+        private Transform GamePasswordObject => HostingConfiguration
+            .Find(GamePasswordObjectName);
 
         private Transform ModMenuViewButtons => _menuContent
             .transform
@@ -166,7 +171,7 @@ namespace WOTRMultiplayer.UI.Controllers
                 HostButton.Interactable = slot != null;
             }));
             Game.Instance.UI.EscManager.Unsubscribe(_saveLoadViewModel.OnClose);
-
+            ResetGamePasswordField();
             saveLoadView.Show();
             base.Activate();
         }
@@ -226,6 +231,11 @@ namespace WOTRMultiplayer.UI.Controllers
             }
 
             return null;
+        }
+
+        private void ResetGamePasswordField()
+        {
+            GamePasswordObject.GetComponentInChildren<TMP_InputField>().text = string.Empty;
         }
 
         private void SetupHandlers(bool enable)
@@ -299,7 +309,8 @@ namespace WOTRMultiplayer.UI.Controllers
                 ReadyButtonObject.SetActive(true);
                 ReadyButton.Interactable = true;
                 var selectedServer = GetSelectedExternalServer();
-                _multiplayerHost.Create(gameId, selectedServer, startup);
+                var password = GamePasswordObject.GetComponentInChildren<TMP_InputField>().text;
+                _multiplayerHost.Create(gameId, password, selectedServer, startup);
 
                 SetButtonLabel(HostButtonObject, new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.HostMenu.HostButton.SelectSaveText.Key });
                 _logger.LogInformation("Hosted new game");
@@ -384,12 +395,14 @@ namespace WOTRMultiplayer.UI.Controllers
         {
             var hostingContainer = UIFactory.CreateDefaultGameObject(parent);
             hostingContainer.name = HostingContainerObjectName;
-            var lg = hostingContainer.AddComponent<VerticalLayoutGroup>();
-            lg.childAlignment = TextAnchor.MiddleCenter;
-            hostingContainer.GetComponent<RectTransform>().Centered();
+            hostingContainer.AddComponent<VerticalLayoutGroup>().spacing = 35f;
+            var hostingContainerRect = hostingContainer.GetComponent<RectTransform>();
+            hostingContainerRect.Centered();
+            hostingContainer.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            hostingContainer.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             var labelObject = UIFactory.CreateDefaultGameObject(hostingContainer.transform);
-            labelObject.name = LobbyWindowController.CharacterContainerObjectName;
+            labelObject.name = HostingServerInfoObjectName;
             labelObject.AddComponent<VerticalLayoutGroup>();
             labelObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
@@ -403,7 +416,8 @@ namespace WOTRMultiplayer.UI.Controllers
             textBox.margin = new Vector4(0f, 0f, 0f, 25f);
             textBox.material = UIFactory.DefaultTextMesh.Material;
             textBox.color = UIFactory.DefaultTextMesh.Color;
-            var dropdownContainerObject = Main.Multiplayer.UIFactory.CreateDropdown(Screen.width * 0.15f, labelObject.transform);
+            var width = parent.GetComponent<RectTransform>().sizeDelta.x * 0.45f;
+            var dropdownContainerObject = Main.Multiplayer.UIFactory.CreateDropdown(width, labelObject.transform);
             var dropdownObject = dropdownContainerObject.transform.Find(UI.UIFactory.DropdownGameObjectName);
             dropdownObject.GetComponent<RectTransform>().Centered();
             var tmpDropdown = dropdownObject.GetComponent<TMP_Dropdown>();
@@ -418,6 +432,25 @@ namespace WOTRMultiplayer.UI.Controllers
             var options = allServers.Select(x => new ExternalServerOptionData(x)).ToList<TMP_Dropdown.OptionData>();
             tmpDropdown.AddOptions(options);
             tmpDropdown.value = 0;
+
+            var passwordInputObject = UIFactory.CreateInput(hostingContainer.transform);
+            var passwordInputObjectRect = passwordInputObject.GetComponent<RectTransform>();
+            passwordInputObject.name = GamePasswordObjectName;
+            var passwordInputObjectLayout = passwordInputObject.AddComponent<LayoutElement>();
+            passwordInputObjectLayout.preferredHeight = 35;
+            passwordInputObjectLayout.preferredWidth = width;
+            var passwordPlaceholder = passwordInputObject.transform.Find(UI.UIFactory.InputPlaceholderObjectName);
+            var passwordPlaceholderInput = passwordPlaceholder.GetComponent<TextMeshProUGUI>();
+            passwordPlaceholderInput.SetText(new LocalizedString { Key = WellKnownKeys.MultiplayerWindow.ExternalServers.Password.Placeholder.Key });
+            passwordPlaceholderInput.alignment = TextAlignmentOptions.Center;
+            var passwordInputLabelObject = passwordInputObject.transform.Find(UI.UIFactory.InputLabelObjectName);
+            var passwordInput = passwordInputLabelObject.GetComponent<TextMeshProUGUI>();
+            passwordInput.overflowMode = TextOverflowModes.Truncate;
+            passwordInput.alignment = TextAlignmentOptions.Center;
+            var password = passwordInputObject.GetComponent<TMP_InputField>();
+            password.text = string.Empty;
+            password.characterLimit = 24;
+            password.contentType = TMP_InputField.ContentType.Password;
         }
 
         private ExternalServer GetSelectedExternalServer()

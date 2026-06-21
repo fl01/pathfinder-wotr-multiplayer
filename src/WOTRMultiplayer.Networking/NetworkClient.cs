@@ -6,7 +6,9 @@ using BeetleX.Clients;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Logging.Extensions;
 using WOTRMultiplayer.Networking.Abstractions;
+using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
 using WOTRMultiplayer.Networking.Awaiters;
+using WOTRMultiplayer.Networking.Configuration;
 using WOTRMultiplayer.Networking.Consuming;
 
 namespace WOTRMultiplayer.Networking
@@ -20,23 +22,46 @@ namespace WOTRMultiplayer.Networking
         private readonly ILogger<NetworkClient> _logger;
         private readonly ITcpClientFactory _tcpClientFactory;
         private readonly IMessageConsumer _messageConsumer;
+        private readonly IExternalConnectionService _externalConnectionService;
 
         public Action<Exception> OnError { get; set; }
 
         public Action<EndPoint> OnConnected { get; set; }
 
-        public bool IsActive => (_client?.IsConnected ?? false);
+        public bool IsActive => (_client?.IsConnected ?? false) || _externalConnectionService.IsActive;
 
         public bool IsConnecting { get; private set; } = false;
 
         public NetworkClient(
             ILogger<NetworkClient> logger,
             ITcpClientFactory tcpClientFactory,
+            IExternalConnectionService externalConnectionService,
             IMessageConsumer messageConsumer)
         {
             _logger = logger;
             _tcpClientFactory = tcpClientFactory;
             _messageConsumer = messageConsumer;
+            _externalConnectionService = externalConnectionService;
+        }
+
+        public async Task ConnectAsync(string code, string password, ExternalServerConfiguration externalServerConfiguration, TimeSpan awaiterTimeout)
+        {
+            IsConnecting = true;
+
+            _defaultAwaiterTimeout = awaiterTimeout;
+            try
+            {
+
+                _externalConnectionService.OnConnected = OnExternalConnectionSucceeded;
+                _externalConnectionService.OnError = OnExternalConnectionError;
+
+                await _externalConnectionService.ConnectAsync(externalServerConfiguration);
+                await _externalConnectionService.JoinGameAsync(code, password, externalServerConfiguration.Port);
+            }
+            finally
+            {
+                IsConnecting = false;
+            }
         }
 
         public async Task ConnectAsync(string host, int port, TimeSpan awaiterTimeout)
@@ -129,6 +154,16 @@ namespace WOTRMultiplayer.Networking
             IsConnecting = false;
 
             OnError?.Invoke(args.Error);
+        }
+
+        private void OnExternalConnectionSucceeded()
+        {
+            _logger.LogInformation("OnExternalConnectionSucceeded");
+        }
+
+        private void OnExternalConnectionError()
+        {
+            _logger.LogError("OnExternalConnectionError");
         }
     }
 }

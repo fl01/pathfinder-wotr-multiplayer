@@ -81,6 +81,7 @@ namespace WOTRMultiplayer.UI
             WellKnownSettings.Miscellaneous.MaxConnectionHistoryRecords.Key,
             WellKnownSettings.Networking.HostPortRangeStart.Key,
             WellKnownSettings.Networking.HostPortRangeEnd.Key,
+            WellKnownSettings.Networking.PeerToPeerPort.Key,
             ], StringComparer.OrdinalIgnoreCase);
 
         public UIFactory(
@@ -749,6 +750,14 @@ namespace WOTRMultiplayer.UI
                 WellKnownKeys.Settings.Networking.UseIPv6.Title.Key,
                 WellKnownKeys.Settings.Networking.UseIPv6.Tooltip.Key,
                 WellKnownSettings.Networking.UseIPv6);
+            // networking - p2p
+            yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Networking.Subsections.P2P.Key });
+            yield return CreateIntInputSetting(
+                WellKnownKeys.Settings.Networking.P2P.Port.Title.Key,
+                WellKnownKeys.Settings.Networking.P2P.Port.Tooltip.Key,
+                WellKnownSettings.Networking.PeerToPeerPort,
+                new NetworkPortValidator(),
+                NetworkPortValidator.MaxCharacters);
 
             // misc
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Miscellaneous.Title.Key });

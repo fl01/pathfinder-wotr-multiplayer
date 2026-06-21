@@ -48,7 +48,7 @@ namespace WOTRMultiplayer.Playground.Host
             var saveGamePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                 "AppData\\LocalLow\\Owlcat Games\\Pathfinder Wrath Of The Righteous\\Saved Games\\Manual_34_FIRST_COMBAT.zks");
             var startUp = new NetworkGameStartUp { SavePath = saveGamePath, Characters = [], Title = "Playground Host Game Title" };
-            host.Create(Guid.NewGuid().ToString(), null, startUp);
+            host.Create(Guid.NewGuid().ToString(), null, null, startUp);
 
             var verbs = CommandLineHelper.LoadVerbs();
             Parser.Default.ParseArguments(["--help"], verbs);

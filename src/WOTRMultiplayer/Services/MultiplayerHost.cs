@@ -83,7 +83,7 @@ namespace WOTRMultiplayer.Services
             SetupNetworkMessageHandlers();
         }
 
-        public void Create(string gameId, ExternalServer externalServer, NetworkGameStartUp gameStartUp)
+        public void Create(string gameId, string gamePassword, Entities.ExternalServer externalServer, NetworkGameStartUp gameStartUp)
         {
             if (_networkServer.IsActive)
             {
@@ -102,7 +102,13 @@ namespace WOTRMultiplayer.Services
             var settings = SettingsService.GetSettings();
 
             var serverConfiguration = Mapper.Map<NetworkServerConfiguration>(settings);
-            var externalServerConfiguration = Mapper.Map<ExternalServerConfiguration>(externalServer);
+            var externalServerConfiguration = new ExternalServerConfiguration
+            {
+                Password = gamePassword,
+                AutoCreateGame = true,
+                Port = settings.PeerToPeerPort,
+                Server = Mapper.Map<Networking.Configuration.ExternalServer>(externalServer)
+            };
             _networkServer.Start(serverConfiguration, externalServerConfiguration);
 
             OnCharactersChanged?.Invoke(Game.StartUp.Title, Game.Characters);

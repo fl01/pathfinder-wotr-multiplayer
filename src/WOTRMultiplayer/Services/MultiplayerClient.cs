@@ -30,6 +30,7 @@ using WOTRMultiplayer.Entities.Rest;
 using WOTRMultiplayer.Entities.Settings;
 using WOTRMultiplayer.Entities.Units;
 using WOTRMultiplayer.Networking.Abstractions;
+using WOTRMultiplayer.Networking.Configuration;
 using WOTRMultiplayer.Networking.Messages.Game;
 using WOTRMultiplayer.Networking.Messages.Lobby;
 using WOTRMultiplayer.Networking.Messages.Requests;
@@ -92,6 +93,18 @@ namespace WOTRMultiplayer.Services
         {
             var settings = SettingsService.GetSettings();
             _networkClient.ConnectAsync(address, port, settings.NetworkAwaiterTimeout).ConfigureAwait(false);
+        }
+
+        public void Connect(string code, string password, Entities.ExternalServer externalServer)
+        {
+            var settings = SettingsService.GetSettings();
+            var externalServerConfiguration = new ExternalServerConfiguration
+            {
+                AutoCreateGame = false,
+                Port = settings.PeerToPeerPort,
+                Server = Mapper.Map<Networking.Configuration.ExternalServer>(externalServer)
+            };
+            _networkClient.ConnectAsync(code, password, externalServerConfiguration, settings.NetworkAwaiterTimeout).ConfigureAwait(false);
         }
 
         public void Reset()

@@ -23,6 +23,9 @@
             "externalServers": {
                 "serverDropdownTitle": "Share Game Online",
                 "noneServerName": "Disabled",
+                "password": {
+                    "placeholder": "Game Password"
+                },
                 "errors": {
                     "unableToLoad": "External servers configuration is corrupted and cannot be loaded.\nMake sure the following file is either deleted or in the correct format:\n{0}",
                     "unableToSave": "External servers configuration cannot be saved.\nMake sure the game is allowed to write to the following file:\n{0}"
@@ -162,7 +165,10 @@
                 }
             },
             "networking": {
-                "title": "Networking",
+                "title": "Networking - Local server",
+                "subsections": {
+                    "P2P": "Networking - Peer to Peer"
+                },
                 "host": {
                     "title": "Host",
                     "tooltip": "IP address to bind the TCP port to (e.g. 127.0.0.1, 0.0.0.0). Leave empty to bind to all interfaces"
@@ -172,12 +178,18 @@
                     "tooltip": "Controls whether IPv6 addresses are included when binding to all interfaces."
                 },
                 "hostPortRangeStart": {
-                    "title": "Host Port Start",
-                    "tooltip": "The first available port within the configured range is selected to host a multiplayer game. Keep this value equal to 'Host Port End' to always host on a specific port only.\nValid values are 1024-65535"
+                    "title": "Port Range Start",
+                    "tooltip": "The first available port within the configured range is selected to host a multiplayer game. Keep this value equal to 'Port Range End' to always host on a specific port only.\nValid values are 1024-65535"
                 },
                 "hostPortRangeEnd": {
-                    "title": "Host Port End",
-                    "tooltip": "The first available port within the configured range is selected to host a multiplayer game. Keep this value equal to 'Host Port Start' to always host on a specific port only.\nValid values are 1024-65535"
+                    "title": "Port Range End",
+                    "tooltip": "The first available port within the configured range is selected to host a multiplayer game. Keep this value equal to 'Port Range Start' to always host on a specific port only.\nValid values are 1024-65535"
+                },
+                "P2P": {
+                    "port": {
+                        "title": "Port",
+                        "tooltip": "Port used for peer-to-peer connections. Leave at 0 to automatically select the first available port"
+                    }
                 }
             },
             "miscellaneous": {
