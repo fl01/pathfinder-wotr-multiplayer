@@ -56,7 +56,7 @@ namespace WOTRMultiplayer.Networking
                 _externalConnectionService.OnError = OnExternalConnectionError;
 
                 await _externalConnectionService.ConnectAsync(externalServerConfiguration);
-                await _externalConnectionService.JoinGameAsync(code, password, externalServerConfiguration.Port);
+                await _externalConnectionService.JoinGameAsync(code, password);
             }
             finally
             {
