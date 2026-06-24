@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
 using WOTRMultiplayer.Networking.Configuration;
 using WOTRMultiplayer.Networking.ExternalConnectivity.Messages;
@@ -11,6 +11,9 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
     {
         private readonly ILogger<ExternalConnectionService> _logger;
         private readonly IExternalConnectionFactory _hubConnectionFactory;
+        private readonly IPeerToPeerClient _peerToPeerClient;
+        private IExternalConnection _externalConnection;
+        private Uri _baseUrl;
 
         public Action<string> OnGameCodeChanged { get; set; }
 
@@ -22,14 +25,15 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         public bool IsActive { get; private set; }
 
-        private IExternalConnection _externalConnection;
 
         public ExternalConnectionService(
             ILogger<ExternalConnectionService> logger,
-            IExternalConnectionFactory hubConnectionFactory)
+            IExternalConnectionFactory hubConnectionFactory,
+            IPeerToPeerClient peerToPeerClient)
         {
             _logger = logger;
             _hubConnectionFactory = hubConnectionFactory;
+            _peerToPeerClient = peerToPeerClient;
         }
 
         public async Task ConnectAsync(ExternalServerConfiguration externalServerConfiguration)
@@ -41,8 +45,9 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
                     await _externalConnection.StopAsync(default);
                 }
 
-                var baseUrl = new Uri(externalServerConfiguration.Server.Url);
-                var fullUrl = new Uri(baseUrl, externalServerConfiguration.Server.GameHubPath);
+                _baseUrl = new Uri(externalServerConfiguration.Server.Url);
+
+                var fullUrl = new Uri(_baseUrl, externalServerConfiguration.Server.GameHubPath);
                 _externalConnection = _hubConnectionFactory.Create(fullUrl);
                 _externalConnection
                     .On<GameCreatedMessage>(OnGameCreatedAsync)
@@ -52,8 +57,15 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
                 _logger.LogInformation("Connecting to external hub. Url={Url}", fullUrl);
                 await _externalConnection.ConnectAsync(default);
-
                 _logger.LogInformation("External connection has been estabilished. Url={Url}, AutoCreateGame={AutoCreateGame}", fullUrl, externalServerConfiguration.AutoCreateGame);
+
+                var isStarted = _peerToPeerClient.Start(externalServerConfiguration.Port);
+                if (!isStarted)
+                {
+                    _logger.LogError("Unable to start p2p client. Port={Port}", externalServerConfiguration.Port);
+                    return;
+                }
+                _logger.LogInformation("Peer-to-Peer client has been started. Port={Port}", _peerToPeerClient.LocalPort);
                 IsActive = true;
 
                 if (externalServerConfiguration.AutoCreateGame)
@@ -61,14 +73,12 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
                     var createGameMessage = new CreateGameMessage
                     {
                         Password = externalServerConfiguration.Password,
-                        Port = externalServerConfiguration.Port
+                        Port = _peerToPeerClient.LocalPort
                     };
 
                     await _externalConnection.SendAsync(createGameMessage);
                 }
 
-                //var p2p = new P2PClient(_logger);
-                //p2p.Start(9252);
                 OnConnected?.Invoke();
             }
             catch (Exception ex)
@@ -82,18 +92,24 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
         {
             IsActive = false;
             _externalConnection?.StopAsync(default);
+            _peerToPeerClient.Reset();
         }
 
-        public async Task JoinGameAsync(string code, string password, int port)
+        public async Task JoinGameAsync(string code, string password)
         {
+            if (!_peerToPeerClient.IsActive)
+            {
+                _logger.LogWarning("Joining game is unavailable due to incorrect state of peer to peer client. IsActive={IsActive}", _peerToPeerClient.IsActive);
+                return;
+            }
+
             var joinGameMessage = new JoinGameMessage
             {
                 Code = code,
                 Password = password,
-                Port = port
             };
 
-            _logger.LogInformation("Joining game. Code={Code}, Port={Port}, HasPassword={HasPassword}", code, port, !string.IsNullOrEmpty(password));
+            _logger.LogInformation("Joining game. Code={Code}, HasPassword={HasPassword}", joinGameMessage.Code, !string.IsNullOrEmpty(joinGameMessage.Password));
             await _externalConnection.SendAsync(joinGameMessage);
         }
 
@@ -111,7 +127,8 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         private Task OnBeginConnectingAsync(BeginConnectingMessage beginConnectingMessage)
         {
-            _logger.LogWarning("Received begin connecting. PeerId={PeerId}", beginConnectingMessage.PeerId);
+            _logger.LogInformation("Received begin connecting. SessionId={SessionId}, Port={Port}", beginConnectingMessage.SessionId, beginConnectingMessage.Port);
+            _peerToPeerClient.Introduce(_baseUrl.Host, beginConnectingMessage.Port, beginConnectingMessage.SessionId);
             return Task.CompletedTask;
         }
     }

@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using AutoMapper;
+﻿using AutoMapper;
 using FakeItEasy;
 using Kingmaker.GameModes;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.Random;
@@ -471,7 +471,7 @@ namespace WOTRMultiplayer.UnitTests.Services
                 ExpectedDiscrepantMods = []
             };
 
-            yield return new ContentStateTestCase("different mod version")
+            yield return new ContentStateTestCase("different mod version") 
             {
                 HostMods = [new NetworkMod { Id = modId1, IsEnabled = true, Version = "1111" }],
                 PlayerMods = [new Networking.Messages.Contracts.NetworkMod { Id = modId1, IsEnabled = true, Version = "2222" }],

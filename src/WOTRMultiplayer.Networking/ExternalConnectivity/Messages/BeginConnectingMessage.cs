@@ -5,10 +5,6 @@
     {
         public string SessionId { get; set; }
 
-        public string PeerId { get; set; }
-
-        public string IpAddress { get; set; }
-
         public int Port { get; set; }
     }
 }

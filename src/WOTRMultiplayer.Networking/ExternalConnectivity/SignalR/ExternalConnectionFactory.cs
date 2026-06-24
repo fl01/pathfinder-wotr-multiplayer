@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Net;
 using System.Net.Http;
-using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Extensions.DependencyInjection;
 using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
+using WOTRMultiplayer.Networking.ExternalConnectivity.P2P;
 
 namespace WOTRMultiplayer.Networking.ExternalConnectivity.SignalR
 {

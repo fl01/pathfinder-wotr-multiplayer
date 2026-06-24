@@ -16,7 +16,7 @@ namespace WOTRMultiplayer.Networking.Abstractions.ExternalConnections
 
         void Reset();
 
-        Task JoinGameAsync(string code, string password, int port);
+        Task JoinGameAsync(string code, string password);
 
         bool IsActive { get; }
     }
