@@ -105,10 +105,12 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.P2P
 
         public void OnNetworkError(IPEndPoint endPoint, SocketError socketError)
         {
+            _logger.LogError("Network error. Error={Error}", socketError);
         }
 
         public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType)
         {
+            _logger.LogInformation("OnNetworkReceiveUnconnected. Type={Type}", messageType);
         }
 
         public void OnNetworkLatencyUpdate(NetPeer peer, int latency)
