@@ -12,12 +12,20 @@ namespace WOTRMultiplayer.Networking.Abstractions.ExternalConnections
 
         Action OnError { get; set; }
 
-        Task ConnectAsync(ExternalServerConfiguration externalServerConfiguration);
+        Action<int> OnNewExternalConnection { get; set; }
+
+        Task ConnectAsync(ExternalServerConfiguration externalServerConfiguration, IMessageConsumer messageConsumer);
 
         void Reset();
 
         Task JoinGameAsync(string code, string password);
 
         bool IsActive { get; }
+
+        void Send(object data);
+
+        void Send(long clientId, object message);
+
+        void SendAllExcept(long clientId, object message);
     }
 }

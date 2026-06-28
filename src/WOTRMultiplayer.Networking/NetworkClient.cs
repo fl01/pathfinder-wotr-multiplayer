@@ -1,9 +1,9 @@
-﻿using System;
+﻿using BeetleX.Clients;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Threading.Tasks;
-using BeetleX.Clients;
-using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Logging.Extensions;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
@@ -51,11 +51,10 @@ namespace WOTRMultiplayer.Networking
             _defaultAwaiterTimeout = awaiterTimeout;
             try
             {
-
                 _externalConnectionService.OnConnected = OnExternalConnectionSucceeded;
                 _externalConnectionService.OnError = OnExternalConnectionError;
 
-                await _externalConnectionService.ConnectAsync(externalServerConfiguration);
+                await _externalConnectionService.ConnectAsync(externalServerConfiguration, _messageConsumer);
                 await _externalConnectionService.JoinGameAsync(code, password);
             }
             finally
@@ -88,7 +87,9 @@ namespace WOTRMultiplayer.Networking
         public void Send(object message)
         {
             _logger.LogObject(LogLevel.Information, "Sending {MessageType}.", message);
-            _client.SendAsync(message).Wait();
+            _externalConnectionService?.Send(message);
+            var sender = _client?.SendAsync(message) ?? Task.CompletedTask;
+            sender.Wait();
         }
 
         public async Task<T> SendAndWaitForAsync<T>(IAwaitableRequest message)
@@ -120,6 +121,7 @@ namespace WOTRMultiplayer.Networking
             IsConnecting = false;
             _client?.Dispose();
             _messageConsumer.Reset();
+            _externalConnectionService.Reset();
         }
 
         private void OnPackedReceived(IClient client, object message)
@@ -158,6 +160,7 @@ namespace WOTRMultiplayer.Networking
 
         private void OnExternalConnectionSucceeded()
         {
+            OnConnected?.Invoke(null);
             _logger.LogInformation("OnExternalConnectionSucceeded");
         }
 

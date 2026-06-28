@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
+using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
 using WOTRMultiplayer.Networking.Configuration;
 using WOTRMultiplayer.Networking.ExternalConnectivity.Messages;
@@ -10,8 +11,9 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
     public class ExternalConnectionService : IExternalConnectionService
     {
         private readonly ILogger<ExternalConnectionService> _logger;
-        private readonly IExternalConnectionFactory _hubConnectionFactory;
-        private readonly IPeerToPeerClient _peerToPeerClient;
+        private readonly IExternalConnectionFactory _externalConnectionFactory;
+
+        private IPeerToPeerClient _peerToPeerClient;
         private IExternalConnection _externalConnection;
         private Uri _baseUrl;
 
@@ -25,18 +27,17 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         public bool IsActive { get; private set; }
 
+        public Action<int> OnNewExternalConnection { get; set; }
 
         public ExternalConnectionService(
             ILogger<ExternalConnectionService> logger,
-            IExternalConnectionFactory hubConnectionFactory,
-            IPeerToPeerClient peerToPeerClient)
+            IExternalConnectionFactory externalConnectionFactory)
         {
             _logger = logger;
-            _hubConnectionFactory = hubConnectionFactory;
-            _peerToPeerClient = peerToPeerClient;
+            _externalConnectionFactory = externalConnectionFactory;
         }
 
-        public async Task ConnectAsync(ExternalServerConfiguration externalServerConfiguration)
+        public async Task ConnectAsync(ExternalServerConfiguration externalServerConfiguration, IMessageConsumer messageConsumer)
         {
             try
             {
@@ -47,17 +48,22 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
                 _baseUrl = new Uri(externalServerConfiguration.Server.Url);
 
+                _logger.LogInformation("Connecting to external connection server. Url={Url}", _baseUrl);
+
                 var fullUrl = new Uri(_baseUrl, externalServerConfiguration.Server.GameHubPath);
-                _externalConnection = _hubConnectionFactory.Create(fullUrl);
+                _externalConnection = _externalConnectionFactory.Create(fullUrl);
+
                 _externalConnection
                     .On<GameCreatedMessage>(OnGameCreatedAsync)
                     .On<BeginConnectingMessage>(OnBeginConnectingAsync)
                     ;
                 _externalConnection.OnReconnected = OnExternalConnectionReconnected;
 
-                _logger.LogInformation("Connecting to external hub. Url={Url}", fullUrl);
                 await _externalConnection.ConnectAsync(default);
                 _logger.LogInformation("External connection has been estabilished. Url={Url}, AutoCreateGame={AutoCreateGame}", fullUrl, externalServerConfiguration.AutoCreateGame);
+
+                _peerToPeerClient ??= _externalConnectionFactory.CreateP2P(messageConsumer);
+                _peerToPeerClient.OnNewPeerConnected = OnNewPeerConnected;
 
                 var isStarted = _peerToPeerClient.Start(externalServerConfiguration.Port);
                 if (!isStarted)
@@ -88,11 +94,50 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
             }
         }
 
+        private void OnNewPeerConnected(int peerId)
+        {
+            _logger.LogInformation("New Peer. PeerId={PeerId}", peerId);
+            OnNewExternalConnection?.Invoke(peerId);
+        }
+
+        public void Send(object message)
+        {
+            if (!_peerToPeerClient.IsActive)
+            {
+                return;
+            }
+
+            _peerToPeerClient.Send(message);
+        }
+
+        public void Send(long clientId, object message)
+        {
+            if (!_peerToPeerClient.IsActive)
+            {
+                return;
+            }
+
+            _peerToPeerClient.Send(message);
+            _logger.LogError("TODO: Message should be sent to specific client");
+        }
+
+        public void SendAllExcept(long clientId, object message)
+        {
+            if (!_peerToPeerClient.IsActive)
+            {
+                return;
+            }
+
+            _peerToPeerClient.Send(message);
+            _logger.LogError("TODO: Message should be sent to specific clients");
+        }
+
         public void Reset()
         {
             IsActive = false;
             _externalConnection?.StopAsync(default);
-            _peerToPeerClient.Reset();
+            _peerToPeerClient?.Reset();
+            _peerToPeerClient = null;
         }
 
         public async Task JoinGameAsync(string code, string password)

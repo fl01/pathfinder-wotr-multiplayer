@@ -1,29 +1,43 @@
 ﻿using LiteNetLib;
-using LiteNetLib.Utils;
 using Microsoft.Extensions.Logging;
 using System;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
+using WOTRMultiplayer.Networking.Consuming;
+using WOTRMultiplayer.Networking.Messages;
 
 namespace WOTRMultiplayer.Networking.ExternalConnectivity.P2P
 {
     public class PeerToPeerClient : INetEventListener, INatPunchListener, IPeerToPeerClient
     {
         private readonly NetManager _net;
-        private readonly NetDataWriter _writer = new();
         private readonly ILogger<PeerToPeerClient> _logger;
+        private readonly ThreadLocal<MemoryStream> _senderStream = new(() => new MemoryStream(1024));
+        private readonly IMessageConsumer _messageConsumer;
+
         private CancellationTokenSource _updateLoop;
+
+        public const string P2PKey = "wotr";
 
         public bool IsActive => _net != null && _net.IsRunning;
 
         public int LocalPort => _net.LocalPort;
 
-        public PeerToPeerClient(ILogger<PeerToPeerClient> logger)
+        public Action<int> OnNewPeerConnected { get; set; }
+
+        public PeerToPeerClient(
+            ILogger<PeerToPeerClient> logger,
+            IMessageConsumer messageConsumer)
         {
             _logger = logger;
+            _messageConsumer = messageConsumer;
+
             _net = new NetManager(this)
             {
                 AutoRecycle = true,
@@ -35,6 +49,11 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.P2P
 
         public bool Start(int localPort)
         {
+            if (_net.IsRunning)
+            {
+                return true;
+            }
+
             var isStarted = _net.Start(localPort);
             if (!isStarted)
             {
@@ -49,9 +68,51 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.P2P
             return true;
         }
 
+        public void Send(object message)
+        {
+            try
+            {
+                var stream = _senderStream.Value;
+                stream.Position = 0;
+                stream.SetLength(0);
+
+                var typeWriter = new BinaryWriter(stream);
+
+                var type = message.GetType();
+                var typeId = NetworkMessages.Get(type);
+                if (typeId == null)
+                {
+                    _logger.LogError("Message is not registered correctly. Type={Type}", type);
+                    return;
+                }
+
+                typeWriter.Write(typeId.Value);
+                ProtoBuf.Meta.RuntimeTypeModel.Default.Serialize(stream, message);
+                var data = stream.GetBuffer();
+                var length = (int)stream.Length;
+                var peers = _net.ConnectedPeerList.ToList();
+                foreach (var peer in peers)
+                {
+                    try
+                    {
+                        peer.Send(data, 0, length, DeliveryMethod.ReliableOrdered);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Unable to send data to peer. PeerId={PeerId}", peer.Id);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to send data. Type={Type}", message?.GetType().Name);
+                throw;
+            }
+        }
+
         public void Reset()
         {
-            _net.Stop(true);
+            _net.Stop();
             ResetUpdateLoop();
         }
 
@@ -72,16 +133,36 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.P2P
         public void OnPeerConnected(NetPeer peer)
         {
             _logger.LogInformation("Peer has been connected. Address={Address}, Port={Port}", peer.Address, peer.Port);
-
-            _writer.Reset();
-            _writer.Put($"Ping {Guid.NewGuid()}");
-            peer.Send(_writer, DeliveryMethod.ReliableOrdered);
+            OnNewPeerConnected?.Invoke(peer.Id);
         }
 
         public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, DeliveryMethod method)
         {
-            var message = reader.GetString();
-            _logger.LogInformation("{Message}. PeerId={PeerId}", message, peer.Id);
+            if (_messageConsumer == null)
+            {
+                _logger.LogError("Message consumer is null");
+                return;
+            }
+
+            try
+            {
+                var rawType = reader.GetInt();
+                var messageType = NetworkMessages.Get(rawType);
+                if (messageType == null)
+                {
+                    _logger.LogError("Message type is not registered. Type={Type}", rawType);
+                    return;
+                }
+
+                var data = reader.GetBytesSegment(reader.AvailableBytes);
+                var message = ProtoBuf.Meta.RuntimeTypeModel.Default.Deserialize(data, messageType, null, null);
+                var metadata = new NetworkMessageMetadata(0, message);
+                _messageConsumer.Enqueue(metadata);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to deserialize p2p message");
+            }
 
             reader.Recycle();
         }
@@ -100,7 +181,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.P2P
         {
             _logger.LogInformation("NAT introduction succeeded. Endpoint={Endpoint}, Type={Type}, Token={Token}", targetEndPoint, type, token);
 
-            _net.Connect(targetEndPoint, "wotr");
+            _net.Connect(targetEndPoint, P2PKey);
         }
 
         public void OnNetworkError(IPEndPoint endPoint, SocketError socketError)
@@ -120,7 +201,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.P2P
         public void OnConnectionRequest(ConnectionRequest request)
         {
             _logger.LogInformation("OnConnectionRequest. Endpoint={Endpoint}", request.RemoteEndPoint);
-            request.AcceptIfKey("wotr");
+            request.AcceptIfKey(P2PKey);
         }
 
         private void ResetUpdateLoop()
