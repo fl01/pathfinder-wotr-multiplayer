@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Net;
 using System.Net.Http;
+using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
 using WOTRMultiplayer.Networking.ExternalConnectivity.P2P;
 
@@ -35,6 +36,12 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.SignalR
 
             var connection = ActivatorUtilities.CreateInstance<SignalRExternalConnection>(_serviceProvider, hub);
             return connection;
+        }
+
+        public IPeerToPeerClient CreateP2P(IMessageConsumer messageConsumer)
+        {
+            var p2p = ActivatorUtilities.CreateInstance<PeerToPeerClient>(_serviceProvider, messageConsumer);
+            return p2p;
         }
     }
 }

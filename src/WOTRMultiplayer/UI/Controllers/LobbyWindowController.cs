@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using DG.Tweening;
+﻿using DG.Tweening;
 using Kingmaker.Blueprints;
 using Kingmaker.Localization;
 using Kingmaker.UI.MVVM._VM.Tooltip.Templates;
@@ -11,6 +6,11 @@ using Kingmaker.UI.MVVM._VM.Tooltip.Utils;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
 using Owlcat.Runtime.UI.Tooltips;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using TMPro;
 using UniRx;
 using UnityEngine;
@@ -203,18 +203,21 @@ namespace WOTRMultiplayer.UI.Controllers
             serverInfoContainerSizeFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
             serverInfoContainerSizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            var settings = _multiplayerSettingsService.GetSettings();
-            var endpointText = settings.HideServerAddress ? "***.***.***.***:****" : connectivity.Endpoint.ToString();
-            AddServerInfo(serverInfoContainerObject.transform, endpointText);
-
-            var externalConnectivityInfo = _uiFactory.CreateDefaultGameObject(serverInfoContainerObject.transform);
-            var externalConnectivityHorizontalLayout = externalConnectivityInfo.AddComponent<HorizontalLayoutGroup>();
-            externalConnectivityHorizontalLayout.spacing = 10f;
+            if (connectivity.Endpoint != null)
+            {
+                var settings = _multiplayerSettingsService.GetSettings();
+                var endpointText = settings.HideServerAddress ? "***.***.***.***:****" : connectivity.Endpoint.ToString();
+                AddServerInfo(serverInfoContainerObject.transform, endpointText);
+            }
 
             if (connectivity.External == null)
             {
                 return;
             }
+
+            var externalConnectivityInfo = _uiFactory.CreateDefaultGameObject(serverInfoContainerObject.transform);
+            var externalConnectivityHorizontalLayout = externalConnectivityInfo.AddComponent<HorizontalLayoutGroup>();
+            externalConnectivityHorizontalLayout.spacing = 10f;
 
             var gameCodeTitle = new LocalizedString { Key = WellKnownKeys.LobbyWindow.Server.External.GameCode.Title.Key };
             AddServerInfo(externalConnectivityInfo.transform, $"{gameCodeTitle} -");

@@ -1,12 +1,12 @@
-﻿using System;
+﻿using BeetleX;
+using BeetleX.EventArgs;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using BeetleX;
-using BeetleX.EventArgs;
-using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Logging.Extensions;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
@@ -86,14 +86,14 @@ namespace WOTRMultiplayer.Networking
 
         public void Send(long clientId, object message)
         {
+            _logger.LogObject(LogLevel.Information, "Sending {MessageType} to Player {PlayerId}.", message, clientId);
+            _externalConnectionService?.Send(clientId, message);
+
             var session = _server.AppServer.GetSession(clientId);
             if (session == null)
             {
-                _logger.LogWarning("Client doesn't exist. ClientId={ClientId}", clientId);
                 return;
             }
-
-            _logger.LogObject(LogLevel.Information, "Sending {MessageType} to Player {PlayerId}.", message, clientId);
 
             _server.AppServer.Send(message, session);
         }
@@ -126,6 +126,8 @@ namespace WOTRMultiplayer.Networking
             _logger.LogObject(LogLevel.Information, "Sending {MessageType}.", message);
             var sessions = _server.AppServer.GetOnlines();
             _server.AppServer.Send(message, sessions);
+
+            _externalConnectionService?.Send(message);
         }
 
         public void SendAllExcept(long clientId, object message)
@@ -133,6 +135,8 @@ namespace WOTRMultiplayer.Networking
             _logger.LogObject(LogLevel.Debug, "Sending {MessageType} to all EXCEPT Player={PlayerId}.", message, clientId);
             var sessions = _server.AppServer.GetOnlines().Where(s => s.ID != clientId).ToArray();
             _server.AppServer.Send(message, sessions);
+
+            _externalConnectionService?.SendAllExcept(clientId, message);
         }
 
         public void Reset()
@@ -195,8 +199,9 @@ namespace WOTRMultiplayer.Networking
                 OnExternalConnectivityUpdated?.Invoke(null, null); // connecting without code yet
                 _externalConnectionService.OnConnected = OnExternalConnectionSucceeded;
                 _externalConnectionService.OnError = OnExternalConnectionError;
+                _externalConnectionService.OnNewExternalConnection = OnNewExternalConnection;
                 _externalConnectionService.OnGameCodeChanged = OnGameCodeChanged;
-                _externalConnectionService.ConnectAsync(_externalServerConfiguration);
+                _externalConnectionService.ConnectAsync(_externalServerConfiguration, _messageConsumer);
             }
         }
 
@@ -258,7 +263,20 @@ namespace WOTRMultiplayer.Networking
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to handle OnClientConnected");
+                _logger.LogError(ex, "Unable to handle new client connection");
+            }
+        }
+
+        private void OnNewExternalConnection(int clientId)
+        {
+            _logger.LogInformation("External client connected. ClientId={ClientId}", clientId);
+            try
+            {
+                OnClientConnected?.Invoke(clientId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to handle new external client connection");
             }
         }
 
