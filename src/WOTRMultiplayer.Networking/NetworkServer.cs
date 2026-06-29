@@ -194,7 +194,7 @@ namespace WOTRMultiplayer.Networking
                 _logger.LogError(ex, "Unable to handle OnServerStarted");
             }
 
-            if (_externalServerConfiguration != null)
+            if (_externalServerConfiguration?.Server != null)
             {
                 OnExternalConnectivityUpdated?.Invoke(null, null); // connecting without code yet
                 _externalConnectionService.OnConnected = OnExternalConnectionSucceeded;
