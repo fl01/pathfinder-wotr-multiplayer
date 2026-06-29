@@ -102,7 +102,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         public void Send(object message)
         {
-            if (!_peerToPeerClient.IsActive)
+            if (_peerToPeerClient == null || !_peerToPeerClient.IsActive)
             {
                 return;
             }
@@ -112,7 +112,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         public void Send(long clientId, object message)
         {
-            if (!_peerToPeerClient.IsActive)
+            if (_peerToPeerClient == null || !_peerToPeerClient.IsActive)
             {
                 return;
             }
@@ -123,7 +123,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         public void SendAllExcept(long clientId, object message)
         {
-            if (!_peerToPeerClient.IsActive)
+            if (_peerToPeerClient == null || !_peerToPeerClient.IsActive)
             {
                 return;
             }

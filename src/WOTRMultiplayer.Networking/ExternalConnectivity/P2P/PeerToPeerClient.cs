@@ -138,12 +138,6 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.P2P
 
         public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, DeliveryMethod method)
         {
-            if (_messageConsumer == null)
-            {
-                _logger.LogError("Message consumer is null");
-                return;
-            }
-
             try
             {
                 var rawType = reader.GetInt();
@@ -163,10 +157,8 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.P2P
             {
                 _logger.LogError(ex, "Unable to deserialize p2p message");
             }
-
-            reader.Recycle();
         }
-
+        
         public void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
         {
             _logger.LogInformation("Peer has been disconnected. Address={Address}, Port={Port}, Reason={Reason}", peer.Address, peer.Port, disconnectInfo.Reason);
