@@ -107,7 +107,7 @@ namespace WOTRMultiplayer.Services
 
         protected IValueGenerator ValueGenerator { get; private set; }
 
-        private readonly INetworkReceiver _networkReceiver;
+        private readonly INetworkConnection _networkConnection;
 
         protected abstract bool HasControlOverUI { get; }
 
@@ -128,7 +128,7 @@ namespace WOTRMultiplayer.Services
             ICombatInteractionService combatInteractionService,
             IFileSystemService fileSystemService,
             IValueGenerator valueGenerator,
-            INetworkReceiver networkReceiver)
+            INetworkConnection networkConnection)
         {
             Logger = logger;
             Mapper = mapper;
@@ -142,7 +142,7 @@ namespace WOTRMultiplayer.Services
             FileSystem = fileSystemService;
             SettingsService = multiplayerSettingsService;
             ValueGenerator = valueGenerator;
-            _networkReceiver = networkReceiver;
+            _networkConnection = networkConnection;
         }
 
         public GameConnectivity GetGameConnectivity()
@@ -3358,7 +3358,7 @@ namespace WOTRMultiplayer.Services
         }
         protected virtual void SetupNetworkMessageHandlers()
         {
-            _networkReceiver
+            _networkConnection
                 // lobby
                 .On<NotifySaveGameChunkCreated>(OnNotifySaveGameChunkCreated)
                 .On<NotifySaveGameInfoChanged>(OnNotifySaveGameInfoChanged)

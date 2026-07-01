@@ -40,11 +40,11 @@ namespace WOTRMultiplayer.Services
 {
     public class MultiplayerHost : MultiplayerActorBase, IMultiplayerHost
     {
-        private readonly INetworkServer _networkServer;
+        private readonly INetworkHostConnection _networkHost;
 
         private NetworkLobbyStage Status => Game?.Stage ?? NetworkLobbyStage.None;
 
-        public bool IsActive => _networkServer.IsActive;
+        public bool IsActive => _networkHost.IsActive;
 
         public bool IsInLobby => IsActive && Status == NetworkLobbyStage.Lobby;
 
@@ -61,7 +61,7 @@ namespace WOTRMultiplayer.Services
             ICombatInteractionService combatInteractionService,
             IMultiplayerSettingsService multiplayerSettingsProvider,
             IFileSystemService fileSystemService,
-            INetworkServer networkServer,
+            INetworkHostConnection networkHost,
             IValueGenerator valueGenerator,
             IMapper mapper)
             : base(logger,
@@ -76,23 +76,23 @@ namespace WOTRMultiplayer.Services
                   combatInteractionService,
                   fileSystemService,
                   valueGenerator,
-                  networkServer)
+                  networkHost)
         {
-            _networkServer = networkServer;
+            _networkHost = networkHost;
 
             SetupNetworkMessageHandlers();
         }
 
         public void Create(string gameId, string gamePassword, Entities.ExternalServer externalServer, NetworkGameStartUp gameStartUp)
         {
-            if (_networkServer.IsActive)
+            if (_networkHost.IsActive)
             {
-                _networkServer.Reset();
+                _networkHost.Reset();
             }
 
             Game = new NetworkGame(gameStartUp)
             {
-                LocalPlayerId = NetworkingConsts.HostPlayerId,
+                LocalPlayerId = NetworkingConstants.HostPlayerId,
                 Id = gameId,
                 SessionSeed = CreateRandomSeed()
             };
@@ -102,14 +102,19 @@ namespace WOTRMultiplayer.Services
             var settings = SettingsService.GetSettings();
 
             var serverConfiguration = Mapper.Map<NetworkServerConfiguration>(settings);
-            var externalServerConfiguration = new ExternalServerConfiguration
+            _networkHost.HostTcpServer(serverConfiguration);
+
+            if (externalServer != null)
             {
-                Password = gamePassword,
-                AutoCreateGame = true,
-                Port = settings.PeerToPeerPort,
-                Server = Mapper.Map<Networking.Configuration.ExternalServer>(externalServer)
-            };
-            _networkServer.Start(serverConfiguration, externalServerConfiguration);
+                var externalServerConfiguration = new ExternalServerConfiguration
+                {
+                    Password = gamePassword,
+                    AutoCreateGame = true,
+                    Port = settings.PeerToPeerPort,
+                    Server = Mapper.Map<Networking.Configuration.ExternalServer>(externalServer)
+                };
+                _networkHost.EnableExternalConnections(externalServerConfiguration);
+            }
 
             OnCharactersChanged?.Invoke(Game.StartUp.Title, Game.Characters);
             Logger.LogInformation("Host has been created. GameId={GameId}, IsNewGameSequence={IsNewGameSequence}, SavePath={SavePath}", Game.Id, gameStartUp.IsNewGameSequence, gameStartUp.SavePath);
@@ -175,7 +180,7 @@ namespace WOTRMultiplayer.Services
             Logger.LogInformation("Resetting");
             Game = null;
 
-            _networkServer.Reset();
+            _networkHost.Reset();
         }
 
         public bool Start()
@@ -1480,12 +1485,12 @@ namespace WOTRMultiplayer.Services
 
         protected override void Send(object message)
         {
-            _networkServer.SendAll(message);
+            _networkHost.Broadcast(message);
         }
 
         protected override void Send(long playerId, object message)
         {
-            _networkServer.Send(playerId, message);
+            _networkHost.Send(playerId, message);
         }
 
         protected override void OnCombatStageChanged(NetworkCombatStage combatStage)
@@ -1689,14 +1694,14 @@ namespace WOTRMultiplayer.Services
 
         protected override void SetupNetworkMessageHandlers()
         {
-            _networkServer.OnClientConnected = OnPlayerConnected;
-            _networkServer.OnClientDisconnected = OnPlayerDisconnected;
-            _networkServer.OnServerStarted = OnServerStarted;
-            _networkServer.OnExternalConnectivityUpdated = OnExternalConnectivityUpdated;
+            _networkHost.OnPlayerConnected = OnPlayerConnected;
+            _networkHost.OnPlayerDisconnected = OnPlayerDisconnected;
+            _networkHost.OnLocalServerStarted = OnLocalServerStarted;
+            _networkHost.OnExternalConnectivityUpdated = OnExternalConnectivityUpdated;
 
             base.SetupNetworkMessageHandlers();
 
-            _networkServer
+            _networkHost
                // requests - this is somewhat special because requester is blocking the thread (most likely main game loop) until response is received
                .On<RandomEncounterContextRequest>(OnRandomEncounterContextRequest)
 
@@ -2088,15 +2093,18 @@ namespace WOTRMultiplayer.Services
             Game.Connectivity.External = new ExternalConnectivity
             {
                 Code = code,
-                IsConnected = isConnected
+                Status = isConnected == null ? ExternalConnectivityStatus.Connecting
+                    : isConnected.Value ? ExternalConnectivityStatus.Connected
+                    : ExternalConnectivityStatus.Error
             };
 
+            Logger.LogInformation("External connectivity updated. Code={Code}, Status={Status}", Game.Connectivity.External.Code, Game.Connectivity.External.Status);
             OnGameConnectivityUpdated?.Invoke(Game.Connectivity);
         }
 
-        private void OnServerStarted(EndPoint endpoint)
+        private void OnLocalServerStarted(EndPoint endpoint)
         {
-            var hostPlayer = new NetworkPlayer(NetworkingConsts.HostPlayerId)
+            var hostPlayer = new NetworkPlayer(NetworkingConstants.HostPlayerId)
             {
                 Name = SettingsService.GetSettings().PlayerName,
                 ContentState = GameInteraction.GetInstalledContent(),
@@ -2135,7 +2143,7 @@ namespace WOTRMultiplayer.Services
 
                 InvokeOnPlayersChanged();
                 var playersChanged = CreateNotifyLobbyPlayersChanged();
-                _networkServer.SendAllExcept(playerId, playersChanged);
+                _networkHost.BroadcastExcept(playerId, playersChanged);
 
                 RefreshUIOnPlayerDisconnect(removedPlayer.Id);
 

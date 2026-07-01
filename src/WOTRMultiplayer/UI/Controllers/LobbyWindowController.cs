@@ -222,24 +222,29 @@ namespace WOTRMultiplayer.UI.Controllers
             var gameCodeTitle = new LocalizedString { Key = WellKnownKeys.LobbyWindow.Server.External.GameCode.Title.Key };
             AddServerInfo(externalConnectivityInfo.transform, $"{gameCodeTitle} -");
 
-            if (connectivity.External.IsConnected == null)
+            Color? color = null;
+            bool addInProgressAnimation = false;
+            LocalizedString statusText = null;
+
+            switch (connectivity.External.Status)
             {
-                var connectingText = new LocalizedString { Key = WellKnownKeys.LobbyWindow.Server.External.State.Connecting.Key };
-                AddServerInfo(externalConnectivityInfo.transform, connectingText, addInProgressAnimation: true);
-                return;
+                case ExternalConnectivityStatus.Connecting:
+                    statusText = new LocalizedString { Key = WellKnownKeys.LobbyWindow.Server.External.State.Connecting.Key };
+                    addInProgressAnimation = true;
+                    break;
+                case ExternalConnectivityStatus.Connected when string.IsNullOrEmpty(connectivity.External.Code):
+                    statusText = new LocalizedString { Key = WellKnownKeys.LobbyWindow.Server.External.State.GettingCode.Key };
+                    addInProgressAnimation = true;
+                    break;
+                case ExternalConnectivityStatus.Error:
+                    statusText = new LocalizedString { Key = WellKnownKeys.LobbyWindow.Server.External.Errors.Generic.Key };
+                    color = Color.red;
+                    break;
             }
 
-            if (!connectivity.External.IsConnected.GetValueOrDefault())
+            if (statusText != null)
             {
-                var error = new LocalizedString { Key = WellKnownKeys.LobbyWindow.Server.External.Errors.Generic.Key };
-                AddServerInfo(externalConnectivityInfo.transform, error, Color.red);
-                return;
-            }
-
-            if (connectivity.External.IsConnected.GetValueOrDefault() && string.IsNullOrEmpty(connectivity.External.Code))
-            {
-                var gettingCode = new LocalizedString { Key = WellKnownKeys.LobbyWindow.Server.External.State.GettingCode.Key };
-                AddServerInfo(externalConnectivityInfo.transform, gettingCode, addInProgressAnimation: true);
+                AddServerInfo(externalConnectivityInfo.transform, statusText, color, addInProgressAnimation);
                 return;
             }
 

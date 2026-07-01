@@ -1,25 +1,24 @@
-﻿using LiteNetLib;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using WOTRMultiplayer.Networking.Abstractions;
+using LiteNetLib;
+using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
 using WOTRMultiplayer.Networking.Consuming;
 using WOTRMultiplayer.Networking.Messages;
 
-namespace WOTRMultiplayer.Networking.ExternalConnectivity.P2P
+namespace WOTRMultiplayer.Networking.Channels.P2P
 {
     public class PeerToPeerClient : INetEventListener, INatPunchListener, IPeerToPeerClient
     {
         private readonly NetManager _net;
         private readonly ILogger<PeerToPeerClient> _logger;
         private readonly ThreadLocal<MemoryStream> _senderStream = new(() => new MemoryStream(1024));
-        private readonly IMessageConsumer _messageConsumer;
 
         private CancellationTokenSource _updateLoop;
 
@@ -29,14 +28,15 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.P2P
 
         public int LocalPort => _net.LocalPort;
 
-        public Action<int> OnNewPeerConnected { get; set; }
+        public Action<int> OnPeerConnectedEvent { get; set; }
 
-        public PeerToPeerClient(
-            ILogger<PeerToPeerClient> logger,
-            IMessageConsumer messageConsumer)
+        public Action<int> OnPeerDisconnectedEvent { get; set; }
+
+        public Action<NetworkMessageMetadata> OnMessageReceived { get; set; }
+
+        public PeerToPeerClient(ILogger<PeerToPeerClient> logger)
         {
             _logger = logger;
-            _messageConsumer = messageConsumer;
 
             _net = new NetManager(this)
             {
@@ -68,46 +68,38 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.P2P
             return true;
         }
 
-        public void Send(object message)
+        public void Send(long clientId, object message)
         {
-            try
+            var peer = _net.ConnectedPeerList.FirstOrDefault(p => p.Id == clientId);
+            if (peer == null)
             {
-                var stream = _senderStream.Value;
-                stream.Position = 0;
-                stream.SetLength(0);
-
-                var typeWriter = new BinaryWriter(stream);
-
-                var type = message.GetType();
-                var typeId = NetworkMessages.Get(type);
-                if (typeId == null)
-                {
-                    _logger.LogError("Message is not registered correctly. Type={Type}", type);
-                    return;
-                }
-
-                typeWriter.Write(typeId.Value);
-                ProtoBuf.Meta.RuntimeTypeModel.Default.Serialize(stream, message);
-                var data = stream.GetBuffer();
-                var length = (int)stream.Length;
-                var peers = _net.ConnectedPeerList.ToList();
-                foreach (var peer in peers)
-                {
-                    try
-                    {
-                        peer.Send(data, 0, length, DeliveryMethod.ReliableOrdered);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Unable to send data to peer. PeerId={PeerId}", peer.Id);
-                    }
-                }
+                _logger.LogError("Unable to find specified peer in connected peer list. Id={Id}", clientId);
+                return;
             }
-            catch (Exception ex)
+
+            Broadcast(message, [peer]);
+        }
+
+        public void BroadcastExcept(long clientId, object message)
+        {
+            var peers = _net.ConnectedPeerList.Where(p => p.Id != clientId).ToList();
+            if (peers.Count == 0)
             {
-                _logger.LogError(ex, "Unable to send data. Type={Type}", message?.GetType().Name);
-                throw;
+                return;
             }
+
+            Broadcast(message, peers);
+        }
+
+        public void Broadcast(object message)
+        {
+            var peers = _net.ConnectedPeerList.ToList();
+            if (peers.Count == 0)
+            {
+                return;
+            }
+
+            Broadcast(message, peers);
         }
 
         public void Reset()
@@ -132,8 +124,14 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.P2P
 
         public void OnPeerConnected(NetPeer peer)
         {
-            _logger.LogInformation("Peer has been connected. Address={Address}, Port={Port}", peer.Address, peer.Port);
-            OnNewPeerConnected?.Invoke(peer.Id);
+            _logger.LogInformation("Peer has been connected. Id={Id}", peer.Id);
+            OnPeerConnectedEvent?.Invoke(peer.Id);
+        }
+
+        public void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
+        {
+            _logger.LogInformation("Peer has been disconnected. Id={Id}, Reason={Reason}", peer.Id, disconnectInfo.Reason);
+            OnPeerDisconnectedEvent?.Invoke(peer.Id);
         }
 
         public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, DeliveryMethod method)
@@ -150,18 +148,13 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.P2P
 
                 var data = reader.GetBytesSegment(reader.AvailableBytes);
                 var message = ProtoBuf.Meta.RuntimeTypeModel.Default.Deserialize(data, messageType, null, null);
-                var metadata = new NetworkMessageMetadata(0, message);
-                _messageConsumer.Enqueue(metadata);
+                var metadata = new NetworkMessageMetadata(NetworkChannelType.P2P, peer.Id, message);
+                OnMessageReceived?.Invoke(metadata);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unable to deserialize p2p message");
             }
-        }
-        
-        public void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
-        {
-            _logger.LogInformation("Peer has been disconnected. Address={Address}, Port={Port}, Reason={Reason}", peer.Address, peer.Port, disconnectInfo.Reason);
         }
 
         public void OnNatIntroductionRequest(IPEndPoint localEndPoint, IPEndPoint remoteEndPoint, string token)
@@ -214,6 +207,47 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.P2P
             }
 
             _logger.LogInformation("Event-polling loop has been ended");
+        }
+
+        private void Broadcast(object message, List<NetPeer> peers)
+        {
+            try
+            {
+                var stream = _senderStream.Value;
+                stream.Position = 0;
+                stream.SetLength(0);
+
+                var typeWriter = new BinaryWriter(stream);
+
+                var type = message.GetType();
+                var typeId = NetworkMessages.Get(type);
+                if (typeId == null)
+                {
+                    _logger.LogError("Message is not registered correctly. Type={Type}", type);
+                    return;
+                }
+
+                typeWriter.Write(typeId.Value);
+                ProtoBuf.Meta.RuntimeTypeModel.Default.Serialize(stream, message);
+                var data = stream.GetBuffer();
+                var length = (int)stream.Length;
+                foreach (var peer in peers)
+                {
+                    try
+                    {
+                        peer.Send(data, 0, length, DeliveryMethod.ReliableOrdered);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Unable to send data to peer. PeerId={PeerId}", peer.Id);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to send data. Type={Type}", message?.GetType().Name);
+                throw;
+            }
         }
     }
 }

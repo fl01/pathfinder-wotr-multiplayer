@@ -4,7 +4,7 @@ using WOTRMultiplayer.Networking.Configuration;
 
 namespace WOTRMultiplayer.Networking.Abstractions.ExternalConnections
 {
-    public interface IExternalConnectionService
+    public interface IExternalConnectionService : INetworkChannel
     {
         Action<string> OnGameCodeChanged { get; set; }
 
@@ -12,20 +12,18 @@ namespace WOTRMultiplayer.Networking.Abstractions.ExternalConnections
 
         Action OnError { get; set; }
 
-        Action<int> OnNewExternalConnection { get; set; }
+        Action<int> OnPeerConnected { get; set; }
 
-        Task ConnectAsync(ExternalServerConfiguration externalServerConfiguration, IMessageConsumer messageConsumer);
+        Action<int> OnPeerDisconnected { get; set; }
+
+        Task ConnectAsync(ExternalServerConfiguration externalServerConfiguration);
 
         void Reset();
 
         Task JoinGameAsync(string code, string password);
 
-        bool IsActive { get; }
-
-        void Send(object data);
-
         void Send(long clientId, object message);
 
-        void SendAllExcept(long clientId, object message);
+        void BroadcastExcept(long clientId, object message);
     }
 }

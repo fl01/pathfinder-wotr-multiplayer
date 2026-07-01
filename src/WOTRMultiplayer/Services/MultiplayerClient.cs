@@ -40,7 +40,7 @@ namespace WOTRMultiplayer.Services
 {
     public class MultiplayerClient : MultiplayerActorBase, IMultiplayerClient
     {
-        private readonly INetworkClient _networkClient;
+        private readonly INetworkClientConnection _networkClient;
 
         public Action OnNetworkError { get; set; }
 
@@ -67,7 +67,7 @@ namespace WOTRMultiplayer.Services
             ICombatInteractionService combatInteractionService,
             IMultiplayerSettingsService multiplayerSettingsProvider,
             IFileSystemService fileSystemService,
-            INetworkClient networkClient,
+            INetworkClientConnection networkClient,
             IValueGenerator valueGenerator,
             IMapper mapper)
             : base(logger,
@@ -104,7 +104,8 @@ namespace WOTRMultiplayer.Services
                 Port = settings.PeerToPeerPort,
                 Server = Mapper.Map<Networking.Configuration.ExternalServer>(externalServer)
             };
-            _networkClient.ConnectAsync(code, password, externalServerConfiguration, settings.NetworkAwaiterTimeout).ConfigureAwait(false);
+
+            _networkClient.ConnectAsync(code, password, externalServerConfiguration, settings.NetworkAwaiterTimeout);
         }
 
         public void Reset()
@@ -465,7 +466,7 @@ namespace WOTRMultiplayer.Services
 
         protected override void Send(object message)
         {
-            _networkClient.Send(message);
+            _networkClient.Broadcast(message);
         }
 
         protected override void Send(long playerId, object message)

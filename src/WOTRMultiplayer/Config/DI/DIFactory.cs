@@ -16,9 +16,7 @@ using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Abstractions.Unity;
 using WOTRMultiplayer.Config.Mapping;
-using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
 using WOTRMultiplayer.Networking.Extensions;
-using WOTRMultiplayer.Networking.ExternalConnectivity;
 using WOTRMultiplayer.Services;
 using WOTRMultiplayer.Services.GameInteraction;
 using WOTRMultiplayer.Services.Hashing;
@@ -89,8 +87,6 @@ namespace WOTRMultiplayer.Config.DI
             serviceCollection.AddSingleton<IPingInteractionService, PingInteractionService>();
             serviceCollection.AddSingleton<ICombatInteractionService, CombatInteractionService>();
             serviceCollection.AddSingleton<IBuffInteractionService, BuffInteractionService>();
-
-            serviceCollection.AddSingleton<IExternalConnectionService, ExternalConnectionService>();
 
             serviceCollection.AddSingleton<IHotkeysService, HotkeysService>();
             serviceCollection.AddSingleton<MultiplayerSubscriber>();

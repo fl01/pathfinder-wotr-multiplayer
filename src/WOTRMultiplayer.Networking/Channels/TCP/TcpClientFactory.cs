@@ -1,9 +1,9 @@
 ﻿using BeetleX;
 using BeetleX.Buffers;
-using WOTRMultiplayer.Networking.Abstractions;
+using WOTRMultiplayer.Networking.Abstractions.TCP;
 using WOTRMultiplayer.Networking.Messages;
 
-namespace WOTRMultiplayer.Networking
+namespace WOTRMultiplayer.Networking.Channels.TCP
 {
     public class TcpClientFactory : ITcpClientFactory
     {

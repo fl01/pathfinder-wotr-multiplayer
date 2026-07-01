@@ -4,6 +4,6 @@
     {
         public string Code { get; set; }
 
-        public bool? IsConnected { get; set; }
+        public ExternalConnectivityStatus Status { get; set; }
     }
 }

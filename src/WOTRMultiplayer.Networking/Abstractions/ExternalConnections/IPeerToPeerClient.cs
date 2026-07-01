@@ -2,10 +2,8 @@
 
 namespace WOTRMultiplayer.Networking.Abstractions.ExternalConnections
 {
-    public interface IPeerToPeerClient
+    public interface IPeerToPeerClient : INetworkChannel
     {
-        bool IsActive { get; }
-
         int LocalPort { get; }
 
         void Reset();
@@ -14,8 +12,12 @@ namespace WOTRMultiplayer.Networking.Abstractions.ExternalConnections
 
         void Introduce(string host, int port, string sessionId);
 
-        void Send(object message);
+        void Send(long clientId, object message);
 
-        Action<int> OnNewPeerConnected { get; set; }
+        void BroadcastExcept(long clientId, object message);
+
+        Action<int> OnPeerConnectedEvent { get; set; }
+
+        Action<int> OnPeerDisconnectedEvent { get; set; }
     }
 }
