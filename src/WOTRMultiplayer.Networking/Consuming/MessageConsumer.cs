@@ -82,18 +82,18 @@ namespace WOTRMultiplayer.Networking.Consuming
                         continue;
                     }
 
-                    _logger.LogObject(LogLevel.Information, "Received {MessageType}. ReceivedFrom={ReceivedFrom}, Consumers={Consumers}", metadata.Message, metadata.PlayerId, configuredHandlers.Count);
+                    _logger.LogObject(LogLevel.Information, "Processing {MessageType}. Channel={Channel}, PlayerId={PlayerId}, ReceivedFrom={ReceivedFrom}, Consumers={Consumers}", metadata.Message, metadata.ChannelType, metadata.PlayerId, metadata.ClientId, configuredHandlers.Count);
 
                     var handlers = configuredHandlers.ToList();
                     foreach (var handler in handlers)
                     {
                         try
                         {
-                            handler.Value.Invoke(metadata.PlayerId, metadata.Message);
+                            handler.Value.Invoke(metadata.ClientId, metadata.Message);
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "Error while consuming message. PlayerId={PlayerId}, Type={Type}", metadata.PlayerId, messageType);
+                            _logger.LogError(ex, "Error while consuming message. PlayerId={PlayerId}, Type={Type}", metadata.ClientId, messageType);
                         }
                     }
                 }

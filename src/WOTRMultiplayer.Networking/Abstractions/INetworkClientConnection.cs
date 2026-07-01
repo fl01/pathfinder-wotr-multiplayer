@@ -6,15 +6,9 @@ using WOTRMultiplayer.Networking.Configuration;
 
 namespace WOTRMultiplayer.Networking.Abstractions
 {
-    public interface INetworkClient : INetworkReceiver
+    public interface INetworkClientConnection : INetworkConnection
     {
         bool IsConnecting { get; }
-
-        Task ConnectAsync(string host, int port, TimeSpan awaiterTimeout);
-
-        Task ConnectAsync(string code, string password, ExternalServerConfiguration externalServerConfiguration, TimeSpan awaiterTimeout);
-
-        void Send(object message);
 
         Task<T> SendAndWaitForAsync<T>(IAwaitableRequest message)
             where T : IAwaitableResponse;
@@ -23,6 +17,8 @@ namespace WOTRMultiplayer.Networking.Abstractions
 
         Action<EndPoint> OnConnected { get; set; }
 
-        void Reset();
+        Task ConnectAsync(string host, int port, TimeSpan awaiterTimeout);
+
+        Task ConnectAsync(string code, string password, ExternalServerConfiguration externalServerConfiguration, TimeSpan awaiterTimeout);
     }
 }

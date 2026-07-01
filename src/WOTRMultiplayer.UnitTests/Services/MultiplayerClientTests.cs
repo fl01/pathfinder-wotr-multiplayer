@@ -29,7 +29,7 @@ namespace WOTRMultiplayer.UnitTests.Services
         private ICombatInteractionService _combatInteractionService;
         private IMultiplayerSettingsService _multiplayerSettingsProvider;
         private IFileSystemService _fileSystemService;
-        private INetworkClient _networkClient;
+        private INetworkClientConnection _networkClient;
         private IValueGenerator _valueGenerator;
         private IMapper _mapper;
 
@@ -52,9 +52,8 @@ namespace WOTRMultiplayer.UnitTests.Services
             _multiplayerSettingsProvider = A.Fake<IMultiplayerSettingsService>();
             _fileSystemService = A.Fake<IFileSystemService>();
 
-
-            _networkClient = A.Fake<INetworkClient>();
-            Fake.GetFakeManager(_networkClient).AddRuleFirst(new NetworkReceiverFakeRule());
+            _networkClient = A.Fake<INetworkClientConnection>();
+            Fake.GetFakeManager(_networkClient).AddRuleFirst(new NetworkReceiverFakeRule<INetworkConnection>());
 
             _valueGenerator = A.Fake<IValueGenerator>();
 

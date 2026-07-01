@@ -41,7 +41,7 @@ namespace WOTRMultiplayer.Playground.Client
                 new DummyCombatInteractionService(),
                 new MultiplayerSettingsProvider(new DummySettingsControllerAccessor()),
                 serviceProvider.GetService<IFileSystemService>(),
-                serviceProvider.GetService<INetworkClient>(),
+                serviceProvider.GetService<INetworkClientConnection>(),
                 serviceProvider.GetService<IValueGenerator>(),
                 serviceProvider.GetService<IMapper>());
 

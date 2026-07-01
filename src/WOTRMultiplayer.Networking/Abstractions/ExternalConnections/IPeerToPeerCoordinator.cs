@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace WOTRMultiplayer.Networking.Abstractions.ExternalConnections
 {
-    public interface IExternalConnection
+    public interface IPeerToPeerCoordinator
     {
         Func<Task> OnReconnected { get; set; }
 
@@ -12,7 +12,7 @@ namespace WOTRMultiplayer.Networking.Abstractions.ExternalConnections
 
         Task ConnectAsync(CancellationToken cancellationToken);
 
-        IExternalConnection On<T>(Func<T, Task> handler)
+        IPeerToPeerCoordinator On<T>(Func<T, Task> handler)
             where T : class;
 
         Task SendAsync(object message);

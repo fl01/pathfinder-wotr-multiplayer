@@ -1,9 +1,8 @@
 ﻿using FakeItEasy.Core;
-using WOTRMultiplayer.Networking.Abstractions;
 
 namespace WOTRMultiplayer.UnitTests.FakeRules
 {
-    public class NetworkReceiverFakeRule : IFakeObjectCallRule
+    public class NetworkReceiverFakeRule<T> : IFakeObjectCallRule
     {
         public int? NumberOfTimesToCall => null;
 
@@ -14,7 +13,7 @@ namespace WOTRMultiplayer.UnitTests.FakeRules
 
         public bool IsApplicableTo(IFakeObjectCall fakeObjectCall)
         {
-            var isApplicable = fakeObjectCall.Method.DeclaringType == typeof(INetworkReceiver) && fakeObjectCall.Method.Name == "On";
+            var isApplicable = fakeObjectCall.Method.DeclaringType == typeof(T) && fakeObjectCall.Method.Name == "On";
             return isApplicable;
         }
     }

@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using BeetleX.Clients;
 
-namespace WOTRMultiplayer.Networking.Abstractions
+namespace WOTRMultiplayer.Networking.Abstractions.TCP
 {
     public interface ITcpClient : IDisposable
     {

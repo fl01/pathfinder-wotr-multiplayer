@@ -10,6 +10,7 @@ using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Config.DI;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Networking.Abstractions;
+using WOTRMultiplayer.Networking.Abstractions.TCP;
 using WOTRMultiplayer.Playground.Core;
 using WOTRMultiplayer.Playground.Core.Dummies;
 using WOTRMultiplayer.Services;
@@ -41,7 +42,7 @@ namespace WOTRMultiplayer.Playground.Host
                 new DummyCombatInteractionService(),
                 new MultiplayerSettingsProvider(new DummySettingsControllerAccessor()),
                 serviceProvider.GetService<IFileSystemService>(),
-                serviceProvider.GetService<INetworkServer>(),
+                serviceProvider.GetService<INetworkHostConnection>(),
                 serviceProvider.GetService<IValueGenerator>(),
                 serviceProvider.GetService<IMapper>());
 

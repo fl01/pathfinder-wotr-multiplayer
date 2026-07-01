@@ -9,9 +9,9 @@ using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
 
 namespace WOTRMultiplayer.Networking.ExternalConnectivity.SignalR
 {
-    public class SignalRExternalConnection : IExternalConnection
+    public class SignalRCoordinator : IPeerToPeerCoordinator
     {
-        private readonly ILogger<SignalRExternalConnection> _logger;
+        private readonly ILogger<SignalRCoordinator> _logger;
         private readonly HubConnection _hub;
         private readonly IExternalMessageRegistry _messageRegistry;
         private readonly ConcurrentDictionary<Type, Func<object, Task>> _handlers = [];
@@ -19,8 +19,8 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.SignalR
         public const string DispatchMethodName = "Dispatch";
         public Func<Task> OnReconnected { get; set; }
 
-        public SignalRExternalConnection(
-            ILogger<SignalRExternalConnection> logger,
+        public SignalRCoordinator(
+            ILogger<SignalRCoordinator> logger,
             IExternalMessageRegistry messageRegistry,
             HubConnection hub)
         {
@@ -32,7 +32,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.SignalR
             _hub.Reconnected += OnHubReconnected;
         }
 
-        public IExternalConnection On<T>(Func<T, Task> handler)
+        public IPeerToPeerCoordinator On<T>(Func<T, Task> handler)
             where T : class
         {
             _handlers.TryAdd(typeof(T), message => handler((T)message));

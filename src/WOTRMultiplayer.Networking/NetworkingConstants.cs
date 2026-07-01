@@ -1,6 +1,6 @@
 ﻿namespace WOTRMultiplayer.Networking
 {
-    public class NetworkingConsts
+    public class NetworkingConstants
     {
         public const long HostPlayerId = -1;
     }

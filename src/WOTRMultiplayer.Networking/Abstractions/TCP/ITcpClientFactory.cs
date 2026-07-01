@@ -1,4 +1,4 @@
-﻿namespace WOTRMultiplayer.Networking.Abstractions
+﻿namespace WOTRMultiplayer.Networking.Abstractions.TCP
 {
     public interface ITcpClientFactory
     {
