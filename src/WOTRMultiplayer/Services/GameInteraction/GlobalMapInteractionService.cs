@@ -148,20 +148,20 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return targetPoint != null && GlobalMapView.Instance.State.Player.Location == targetPoint.Blueprint;
         }
 
-        public void ContinueTravel(NetworkGlobalMapTraveler travaler)
+        public void ContinueTravel(NetworkGlobalMapTraveler traveler)
         {
             _mainThreadAccessor.Post(() =>
             {
-                UpdateTraveler(travaler);
+                UpdateTraveler(traveler);
                 Game.Instance.GlobalMapController?.StartTravels();
             });
         }
 
-        public void StopTravel(NetworkGlobalMapTraveler travaler)
+        public void StopTravel(NetworkGlobalMapTraveler traveler)
         {
             _mainThreadAccessor.Post(() =>
             {
-                UpdateTraveler(travaler);
+                UpdateTraveler(traveler);
 
                 GlobalMapUI.Instance.OnStop();
             });
@@ -596,8 +596,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     return;
                 }
 
-                var errros = sourceView.ViewModel.m_State.Data.MergeSquads(sourceSquadVM.SquadPosition, targetSquadVM.SquadPosition, count);
-                sourceView.ViewModel.SquadErrorsTrigger.Execute(errros);
+                var errors = sourceView.ViewModel.m_State.Data.MergeSquads(sourceSquadVM.SquadPosition, targetSquadVM.SquadPosition, count);
+                sourceView.ViewModel.SquadErrorsTrigger.Execute(errors);
                 _logger.LogInformation("Split request for crusade army squad completed. SourceArmyId={SourceArmyId}, SourceSquadPosition={SourceSquadPosition}, TargetArmyId={TargetArmyId}, TargetSquadPosition={TargetSquadPosition}, Count={Count}", sourceSquadSlot.ArmyId, sourceSquadSlot.Position, targetSquadSlot.ArmyId, targetSquadSlot.Position, count);
             });
         }
@@ -778,7 +778,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
-        public void ClearLeaderOnCrusdeArmyInfo()
+        public void ClearLeaderOnCrusadeArmyInfo()
         {
             _mainThreadAccessor.Post(() =>
             {
@@ -1381,14 +1381,14 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 var view = _uiAccessor.LeaderLevelUpPCView;
                 if (view?.ViewModel == null)
                 {
-                    _logger.LogWarning("Unable to select leader leveling skll to missing view");
+                    _logger.LogWarning("Unable to select leader leveling skill due to missing view");
                     return;
                 }
 
                 var skill = view.ViewModel.SkillsToChoose.FirstOrDefault(s => string.Equals(s.Skill.AssetGuid.ToString(), id, StringComparison.OrdinalIgnoreCase));
                 if (skill == null)
                 {
-                    _logger.LogError("Unable to select leader leveling skll to missing skill. Id={Id}", id);
+                    _logger.LogError("Unable to select leader leveling skill due to missing skill. Id={Id}", id);
                     return;
                 }
 

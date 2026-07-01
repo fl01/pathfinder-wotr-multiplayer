@@ -1,4 +1,9 @@
-﻿using DG.Tweening;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using DG.Tweening;
 using Kingmaker.Blueprints;
 using Kingmaker.Localization;
 using Kingmaker.UI.MVVM._VM.Tooltip.Templates;
@@ -6,11 +11,6 @@ using Kingmaker.UI.MVVM._VM.Tooltip.Utils;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
 using Owlcat.Runtime.UI.Tooltips;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using TMPro;
 using UniRx;
 using UnityEngine;
@@ -268,7 +268,7 @@ namespace WOTRMultiplayer.UI.Controllers
                 var characterContainer = FindCharacterContainer(character);
                 if (characterContainer == null)
                 {
-                    _logger.LogWarning("Unable to update character owner dropdow due to missing character container. CharacterName={CharacterName}, CharacterId={CharacterId}", character.Name, character.UnitId);
+                    _logger.LogWarning("Unable to update character owner dropdown due to missing character container. CharacterName={CharacterName}, CharacterId={CharacterId}", character.Name, character.UnitId);
                     return;
                 }
 
@@ -437,7 +437,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
             const int PreferredHeight = 28;
 
-            CreateProgressBar(player, playerContainerObject.transform, PreferredHeight, withBackround: false);
+            CreateProgressBar(player, playerContainerObject.transform, PreferredHeight, withBackground: false);
 
             CreateLabel(playerContainerObject.transform, PreferredHeight, defaultMesh, $"[{player.ContentState.GameVersion}]");
 
@@ -477,9 +477,9 @@ namespace WOTRMultiplayer.UI.Controllers
             textBox.SetText(text);
         }
 
-        private void CreateProgressBar(NetworkPlayer networkPlayer, Transform parent, int size, bool withBackround = false)
+        private void CreateProgressBar(NetworkPlayer networkPlayer, Transform parent, int size, bool withBackground = false)
         {
-            var progressBar = _uiFactory.CreateProgressBar(parent, size, 0.45f, withBackround);
+            var progressBar = _uiFactory.CreateProgressBar(parent, size, 0.45f, withBackground);
             progressBar.AddComponent<PlayerHandle>().Owner = networkPlayer;
         }
 
@@ -523,7 +523,7 @@ namespace WOTRMultiplayer.UI.Controllers
                 var characterContainer = CharactersInfoContainer.transform.GetChild(characterIndex);
                 if (characterContainer == null)
                 {
-                    _logger.LogInformation("Unable to update character owner dropdow due to missing character container. Index={Index}", characterIndex);
+                    _logger.LogInformation("Unable to update character owner dropdown due to missing character container. Index={Index}", characterIndex);
                     return;
                 }
 

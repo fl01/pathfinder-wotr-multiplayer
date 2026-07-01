@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
 using WOTRMultiplayer.Networking.Configuration;
@@ -60,7 +60,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
                 _externalConnection.OnReconnected = OnExternalConnectionReconnected;
 
                 await _externalConnection.ConnectAsync(default);
-                _logger.LogInformation("External connection has been estabilished. Url={Url}, AutoCreateGame={AutoCreateGame}", fullUrl, externalServerConfiguration.AutoCreateGame);
+                _logger.LogInformation("External connection has been established. Url={Url}, AutoCreateGame={AutoCreateGame}", fullUrl, externalServerConfiguration.AutoCreateGame);
 
                 _peerToPeerClient ??= _externalConnectionFactory.CreateP2P(messageConsumer);
                 _peerToPeerClient.OnNewPeerConnected = OnNewPeerConnected;
@@ -102,7 +102,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         public void Send(object message)
         {
-            if (_peerToPeerClient == null || !_peerToPeerClient.IsActive)
+            if (!IsPeerToPeerActive())
             {
                 return;
             }
@@ -112,7 +112,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         public void Send(long clientId, object message)
         {
-            if (_peerToPeerClient == null || !_peerToPeerClient.IsActive)
+            if (!IsPeerToPeerActive())
             {
                 return;
             }
@@ -123,7 +123,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         public void SendAllExcept(long clientId, object message)
         {
-            if (_peerToPeerClient == null || !_peerToPeerClient.IsActive)
+            if (!IsPeerToPeerActive())
             {
                 return;
             }
@@ -142,9 +142,9 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         public async Task JoinGameAsync(string code, string password)
         {
-            if (!_peerToPeerClient.IsActive)
+            if (!IsPeerToPeerActive())
             {
-                _logger.LogWarning("Joining game is unavailable due to incorrect state of peer to peer client. IsActive={IsActive}", _peerToPeerClient.IsActive);
+                _logger.LogWarning("Joining game is unavailable due to incorrect state of peer to peer client");
                 return;
             }
 
@@ -156,6 +156,11 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
             _logger.LogInformation("Joining game. Code={Code}, HasPassword={HasPassword}", joinGameMessage.Code, !string.IsNullOrEmpty(joinGameMessage.Password));
             await _externalConnection.SendAsync(joinGameMessage);
+        }
+
+        private bool IsPeerToPeerActive()
+        {
+            return _peerToPeerClient != null && _peerToPeerClient.IsActive;
         }
 
         private Task OnExternalConnectionReconnected()

@@ -5,8 +5,8 @@ using WOTRMultiplayer.Networking.Messages.Contracts;
 namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
-    [MessageType((int)MessageTypes.Game.NotifyGlobalMapCrusadeArmySquadSplitted)]
-    public class NotifyGlobalMapCrusadeArmySquadSplitted
+    [MessageType((int)MessageTypes.Game.NotifyGlobalMapCrusadeArmySquadSplit)]
+    public class NotifyGlobalMapCrusadeArmySquadSplit
     {
         [ProtoMember(1)]
         [LogMe]

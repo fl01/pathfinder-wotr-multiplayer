@@ -191,7 +191,7 @@
             NotifyGlobalMapCrusadeArmySquadSplitRequested,
             NotifyGlobalMapCrusadeArmySquadsSwitched,
             NotifyGlobalMapCrusadeArmySquadsMerged,
-            NotifyGlobalMapCrusadeArmySquadSplitted,
+            NotifyGlobalMapCrusadeArmySquadSplit,
             NotifyGlobalMapCrusadeArmyMergedInOne,
             NotifyGlobalMapCrusadeArmySquadDismissed,
             NotifyGlobalMapCrusadeArmyInfoShown,

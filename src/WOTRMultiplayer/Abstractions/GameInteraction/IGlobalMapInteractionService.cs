@@ -101,7 +101,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void CloseCrusadeArmySetLeaderInfo();
 
-        void ClearLeaderOnCrusdeArmyInfo();
+        void ClearLeaderOnCrusadeArmyInfo();
 
         void ClickRecruitmentOnSetLeaderScreen();
 

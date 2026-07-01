@@ -119,7 +119,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnAfterTryRollRestRandomEncounter();
 
-        void OnInterrupRestBanterBark(NetworkRestBanter networkRestBanter);
+        void OnInterruptRestBanterBark(NetworkRestBanter networkRestBanter);
 
         void OnTransferVendorItem(NetworkVendorItemTransfer networkVendorItemTransfer);
 
@@ -397,7 +397,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnGlobalMapCrusadeArmySquadsMerged(NetworkGlobalMapArmySquadSlot sourceSquadSlot, NetworkGlobalMapArmySquadSlot targetSquadSlot, int count);
 
-        bool OnGlobalMapCrusadeArmySquadSplitted(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot, int count);
+        bool OnGlobalMapCrusadeArmySquadSplit(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot, int count);
 
         bool OnGlobalMapCrusadeArmyMergedInOne(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot);
 

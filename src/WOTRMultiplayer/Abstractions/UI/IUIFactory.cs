@@ -15,7 +15,7 @@ namespace WOTRMultiplayer.Abstractions.UI
 
         void InitializeMultiplayerWindow();
 
-        GameObject CreateProgressBar(Transform parent, int size, float thickness, bool withBackround = false);
+        GameObject CreateProgressBar(Transform parent, int size, float thickness, bool withBackground = false);
 
         Sprite CreateRingSprite(int size = 256, float thickness = 0.25f);
 
@@ -23,7 +23,7 @@ namespace WOTRMultiplayer.Abstractions.UI
 
         GameObject CreateDefaultGameObject(Transform parent);
 
-        GameObject CreateDropdown(float preferedWidth, Transform parent);
+        GameObject CreateDropdown(float preferredWidth, Transform parent);
 
         GameObject CreateButton(Transform parent);
 

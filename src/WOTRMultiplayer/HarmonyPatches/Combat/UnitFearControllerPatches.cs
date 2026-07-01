@@ -41,12 +41,12 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
         private class CompilerGeneratedMovementData
         {
-            // order must match order of the anonymous class fields
+            // order must match the order of the anonymous class fields
             public UnitEntityData unit = null;
 
             public bool IsValid()
             {
-                return unit is not null and UnitEntityData;
+                return (object)unit is UnitEntityData;
             }
         }
 

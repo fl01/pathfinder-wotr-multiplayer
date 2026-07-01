@@ -262,7 +262,7 @@ namespace WOTRMultiplayer.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to initiatize combat");
+                _logger.LogError(ex, "Unable to initialize combat");
                 throw;
             }
         }
@@ -426,7 +426,7 @@ namespace WOTRMultiplayer.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while transfering inventory item. Source={Source}, Destination={Destination}", networkItemsTransfer.Source?.Id, networkItemsTransfer.Destination?.Id);
+                _logger.LogError(ex, "Error while transferring inventory item. Source={Source}, Destination={Destination}", networkItemsTransfer.Source?.Id, networkItemsTransfer.Destination?.Id);
                 throw;
             }
         }
@@ -902,7 +902,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnInterrupRestBanterBark(NetworkRestBanter networkRestBanter)
+        public void OnInterruptRestBanterBark(NetworkRestBanter networkRestBanter)
         {
             try
             {
@@ -1552,7 +1552,7 @@ namespace WOTRMultiplayer.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while increasing leveling skillpoint. StatType={StatType}", networkLevelingSkillPoint.StatType);
+                _logger.LogError(ex, "Error while increasing leveling skill point. StatType={StatType}", networkLevelingSkillPoint.StatType);
                 throw;
             }
         }
@@ -1570,7 +1570,7 @@ namespace WOTRMultiplayer.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while decreasing leveling skillpoint. StatType={StatType}", networkLevelingSkillPoint.StatType);
+                _logger.LogError(ex, "Error while decreasing leveling skill point. StatType={StatType}", networkLevelingSkillPoint.StatType);
                 throw;
             }
         }
@@ -1913,7 +1913,7 @@ namespace WOTRMultiplayer.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while processing autopause by trap detection");
+                _logger.LogError(ex, "Error while processing auto-pause by trap detection");
                 throw;
             }
         }
@@ -2808,7 +2808,7 @@ namespace WOTRMultiplayer.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while creating and equiping polymorphic item. UnitId={UnitId}", polymorphicItem.UnitId);
+                _logger.LogError(ex, "Error while creating and equipping polymorphic item. UnitId={UnitId}", polymorphicItem.UnitId);
                 throw;
             }
         }
@@ -3224,7 +3224,7 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public bool OnGlobalMapCrusadeArmySquadSplitted(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot, int count)
+        public bool OnGlobalMapCrusadeArmySquadSplit(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot, int count)
         {
             try
             {
@@ -3238,7 +3238,7 @@ namespace WOTRMultiplayer.Services
                     return false;
                 }
 
-                var canContinue = _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmySquadSplitted(globalMapArmySquadSlot, count);
+                var canContinue = _multiplayerActorAccessor.Host.OnGlobalMapCrusadeArmySquadSplit(globalMapArmySquadSlot, count);
                 return canContinue;
             }
             catch (Exception ex)
@@ -3970,7 +3970,7 @@ namespace WOTRMultiplayer.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while changing unit autouse ability. UnitId={UnitId}, AbilityName={AbilityName}", networkAutoUseAbility.UnitId, networkAutoUseAbility.Ability?.Name);
+                _logger.LogError(ex, "Error while changing unit auto-use ability. UnitId={UnitId}, AbilityName={AbilityName}", networkAutoUseAbility.UnitId, networkAutoUseAbility.Ability?.Name);
                 throw;
             }
         }

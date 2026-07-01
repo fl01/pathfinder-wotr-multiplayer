@@ -95,7 +95,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             }
 
             var sourceSquadSlot = CreateSquadSlot(__instance);
-            var canContinue = Main.Multiplayer.OnGlobalMapCrusadeArmySquadSplitted(sourceSquadSlot, count);
+            var canContinue = Main.Multiplayer.OnGlobalMapCrusadeArmySquadSplit(sourceSquadSlot, count);
             return canContinue;
         }
 

@@ -677,8 +677,8 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
 
         /// <summary>
         /// 1. loading fields via IL instructions requires to get type of anonymous class, but it's a really bad idea to have strict dependency on that anonymous compiler-generated class
-        /// 2. 'dynamic' requires an extra dlls to be addeded and loaded by the game
-        /// All options above don't look likeable enough, so sticking to this temu 'dynamic at home' anonymous class representation for now
+        /// 2. 'dynamic' requires an extra DLLs to be added and loaded by the game
+        /// All options above don't look likeable enough, so sticking to this TEMU 'dynamic at home' anonymous class representation for now
         /// </summary>
         private class CompilerGeneratedFleeMessageBoxData
         {
@@ -690,11 +690,11 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
 
             public bool IsValid()
             {
-                return controller is not null and GlobalMapController
-                    && prediction is not null and TacticalCombatResults
-                    && attacker is not null and GlobalMapArmyState
-                    && defender is not null and GlobalMapArmyState
-                    && attacker != defender;
+                return (object)controller is GlobalMapController
+                        && (object)prediction is TacticalCombatResults
+                        && (object)attacker is GlobalMapArmyState
+                        && (object)defender is GlobalMapArmyState
+                        && attacker != defender;
             }
         }
 
