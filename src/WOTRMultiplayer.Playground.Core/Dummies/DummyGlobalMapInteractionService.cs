@@ -185,7 +185,7 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void ClearLeaderOnCrusdeArmyInfo()
+        public void ClearLeaderOnCrusadeArmyInfo()
         {
         }
 

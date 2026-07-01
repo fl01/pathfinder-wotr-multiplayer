@@ -125,7 +125,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnTacticalCombatRetreat();
 
-        bool OnGlobalMapCrusadeArmySquadSplitted(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot, int count);
+        bool OnGlobalMapCrusadeArmySquadSplit(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot, int count);
 
         void OnGlobalMapCrusadeArmySquadsMerged(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot, NetworkGlobalMapArmySquadSlot targetSquadSlot, int count);
 
@@ -197,7 +197,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnKingdomLeaveSettlement();
 
-        void OnKingdomSettlementBuldingSold(NetworkKingdomSettlementBuilding kingdomSettlementBuilding);
+        void OnKingdomSettlementBuildingSold(NetworkKingdomSettlementBuilding kingdomSettlementBuilding);
 
         void OnKingdomSettlementBuilt(NetworkKingdomSettlementBuilding kingdomSettlementBuilding);
 

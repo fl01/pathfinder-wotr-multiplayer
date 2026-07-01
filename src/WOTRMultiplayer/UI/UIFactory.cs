@@ -96,7 +96,7 @@ namespace WOTRMultiplayer.UI
             _multiplayerActorAccessor = multiplayerActorAccessor;
         }
 
-        public GameObject CreateProgressBar(Transform parent, int size, float thickness, bool withBackround = false)
+        public GameObject CreateProgressBar(Transform parent, int size, float thickness, bool withBackground = false)
         {
             var root = CreateDefaultGameObject(parent.transform);
             root.name = ProgressBarObjectName;
@@ -104,7 +104,7 @@ namespace WOTRMultiplayer.UI
             layoutElement.preferredHeight = size;
             layoutElement.preferredWidth = size;
 
-            if (withBackround)
+            if (withBackground)
             {
                 var background = CreateDefaultGameObject(root.transform);
                 var bgImage = background.AddComponent<Image>();
@@ -290,7 +290,7 @@ namespace WOTRMultiplayer.UI
             return inputObject;
         }
 
-        public GameObject CreateDropdown(float preferedWidth, Transform parent)
+        public GameObject CreateDropdown(float preferredWidth, Transform parent)
         {
             var dropdownContainerObject = UnityEngine.Object.Instantiate(_dropdownPrefab, parent);
             dropdownContainerObject.CleanupAllChildren(x => x.name != DropdownGameObjectName);
@@ -299,7 +299,7 @@ namespace WOTRMultiplayer.UI
             rect.anchorMin = new Vector2(1, 0);
             rect.anchorMax = new Vector2(1, 0);
             rect.anchoredPosition = Vector2.zero;
-            rect.sizeDelta = new Vector2(preferedWidth, rect.sizeDelta.y);
+            rect.sizeDelta = new Vector2(preferredWidth, rect.sizeDelta.y);
 
             var dropdown = dropdownObject.GetComponent<TMP_Dropdown>();
             dropdown.ClearOptions();
@@ -644,7 +644,7 @@ namespace WOTRMultiplayer.UI
             var charactersSectionContentObject = CreateDefaultGameObject(charactersSectionObject.transform);
             charactersSectionContentObject.name = LobbyWindowController.CharactersSectionContentObjectName;
             charactersSectionContentObject.AddComponent<HorizontalLayoutGroup>();
-            var preferedWidth = width / Main.MaxCharactersInParty;
+            var preferredWidth = width / Main.MaxCharactersInParty;
             for (int characterIndex = 0; characterIndex < Main.MaxCharactersInParty; characterIndex++)
             {
                 var characterObject = CreateDefaultGameObject(charactersSectionContentObject.transform);
@@ -656,10 +656,10 @@ namespace WOTRMultiplayer.UI
                 characterPortrait.name = LobbyWindowController.CharacterPortraitObjectName;
                 characterPortrait.AddComponent<Image>().color = Color.clear;
                 var portraitLayoutElement = characterPortrait.AddComponent<LayoutElement>();
-                portraitLayoutElement.preferredWidth = preferedWidth;
-                portraitLayoutElement.preferredHeight = preferedWidth * 1.2f;
+                portraitLayoutElement.preferredWidth = preferredWidth;
+                portraitLayoutElement.preferredHeight = preferredWidth * 1.2f;
 
-                var dropdownContainerObject = Main.Multiplayer.UIFactory.CreateDropdown(preferedWidth, characterObject.transform);
+                var dropdownContainerObject = Main.Multiplayer.UIFactory.CreateDropdown(preferredWidth, characterObject.transform);
                 dropdownContainerObject.name = LobbyWindowController.CharacterOwnerObjectName;
                 dropdownContainerObject.AddComponent<CharacterDataBehaviour>();
             }

@@ -55,7 +55,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Rest
                 SpeakerUnitId = currentBark.Speaker.UniqueId
             };
 
-            Main.Multiplayer.OnInterrupRestBanterBark(networkBanter);
+            Main.Multiplayer.OnInterruptRestBanterBark(networkBanter);
         }
     }
 }

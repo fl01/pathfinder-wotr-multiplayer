@@ -1,4 +1,8 @@
-﻿using DG.Tweening;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using DG.Tweening;
 using Kingmaker.Localization;
 using Kingmaker.UI;
 using Kingmaker.UI.Common;
@@ -6,10 +10,6 @@ using Kingmaker.Utility;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Owlcat.Runtime.UI.Controls.Button;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -598,8 +598,8 @@ namespace WOTRMultiplayer.UI.Controllers
                 serverAddressText.SetText(serverAddress);
 
                 var lastJoinedObject = UIFactory.CreateDefaultGameObject(recordObject.transform);
-                var lastJoinednRect = lastJoinedObject.GetComponent<RectTransform>();
-                lastJoinednRect.pivot = Vector2.zero;
+                var lastJoinedRect = lastJoinedObject.GetComponent<RectTransform>();
+                lastJoinedRect.pivot = Vector2.zero;
                 var lastJoinedText = lastJoinedObject.AddComponent<TextMeshProUGUI>();
                 lastJoinedText.alignment = TextAlignmentOptions.MidlineLeft;
                 lastJoinedText.material = UIFactory.DefaultTextMesh.Material;

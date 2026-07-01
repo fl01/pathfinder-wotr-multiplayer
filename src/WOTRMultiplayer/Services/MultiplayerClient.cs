@@ -611,7 +611,7 @@ namespace WOTRMultiplayer.Services
                .On<NotifyTacticalCombatTotalDefenseUsed>(OnNotifyTacticalCombatTotalDefenseUsed)
                .On<NotifyTacticalCombatRetreated>(OnNotifyTacticalCombatRetreated)
                .On<NotifyTacticalCombatAccelerationChanged>(OnNotifyTacticalCombatAccelerationChanged)
-               .On<NotifyGlobalMapCrusadeArmySquadSplitted>(OnNotifyGlobalMapCrusadeArmySquadSplitted)
+               .On<NotifyGlobalMapCrusadeArmySquadSplit>(OnNotifyGlobalMapCrusadeArmySquadSplit)
                .On<NotifyGlobalMapCrusadeArmySquadsMerged>(OnNotifyGlobalMapCrusadeArmySquadsMerged)
                .On<NotifyGlobalMapCrusadeArmySquadsSwitched>(OnNotifyGlobalMapCrusadeArmySquadsSwitched)
                .On<NotifyGlobalMapCrusadeArmySquadSplitRequested>(OnNotifyGlobalMapCrusadeArmySquadSplitRequested)
@@ -857,7 +857,7 @@ namespace WOTRMultiplayer.Services
 
         private async void OnNotifyCombatTurnEndSynchronizationRequired(long receivedFrom, NotifyCombatTurnEndSynchronizationRequired message)
         {
-            await WaitWhileTrue(() => !CombatInteraction.IsCombatTurnFinished(), "Waiting for an active turn to end before proceeding with synchronizaiton");
+            await WaitWhileTrue(() => !CombatInteraction.IsCombatTurnFinished(), "Waiting for an active turn to end before proceeding with synchronization");
 
             var units = Mapper.Map<List<NetworkUnit>>(message.Units);
             var isSynced = await CombatInteraction.UpdateUnitsAsync(units, updatePosition: true);
@@ -1015,7 +1015,7 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifyGlobalMapCrusadeArmySetLeaderClearClicked(long receivedFrom, NotifyGlobalMapCrusadeArmySetLeaderClearClicked globalMapCrusadeArmyInfoSetLeaderCleared)
         {
-            GlobalMapInteraction.ClearLeaderOnCrusdeArmyInfo();
+            GlobalMapInteraction.ClearLeaderOnCrusadeArmyInfo();
         }
 
         private void OnNotifyGlobalMapCrusadeArmySetLeaderClosed(long receivedFrom, NotifyGlobalMapCrusadeArmySetLeaderClosed globalMapCrusadeArmyInfoSetLeaderClosed)
@@ -1141,11 +1141,11 @@ namespace WOTRMultiplayer.Services
             GlobalMapInteraction.MergeCrusadeArmySquads(sourceSquadSlot, targetSquadSlot, crusadeArmySquadsMerged.Count);
         }
 
-        private void OnNotifyGlobalMapCrusadeArmySquadSplitted(long receivedFrom, NotifyGlobalMapCrusadeArmySquadSplitted crusadeArmySquadSplitted)
+        private void OnNotifyGlobalMapCrusadeArmySquadSplit(long receivedFrom, NotifyGlobalMapCrusadeArmySquadSplit globalMapCrusadeArmySquadSplit)
         {
-            var squadSlot = Mapper.Map<NetworkGlobalMapArmySquadSlot>(crusadeArmySquadSplitted.SquadSlot);
+            var squadSlot = Mapper.Map<NetworkGlobalMapArmySquadSlot>(globalMapCrusadeArmySquadSplit.SquadSlot);
 
-            GlobalMapInteraction.SplitCrusadeArmySquad(squadSlot, crusadeArmySquadSplitted.Count);
+            GlobalMapInteraction.SplitCrusadeArmySquad(squadSlot, globalMapCrusadeArmySquadSplit.Count);
         }
 
         private void OnNotifyTacticalCombatAccelerationChanged(long receivedFrom, NotifyTacticalCombatAccelerationChanged message)
@@ -1237,13 +1237,12 @@ namespace WOTRMultiplayer.Services
             GlobalMapInteraction.SkipDay();
         }
 
-        private void OnNotifyGlobalMapCommonPopupDeclined(long receivedFrom, NotifyGlobalMapCommonPopupDeclined messsage)
+        private void OnNotifyGlobalMapCommonPopupDeclined(long receivedFrom, NotifyGlobalMapCommonPopupDeclined message)
         {
-            RemovePlayerFromTracker(Game.PlayersInGlobalMapCommonPopup, messsage.PlayerId);
+            RemovePlayerFromTracker(Game.PlayersInGlobalMapCommonPopup, message.PlayerId);
 
             GlobalMapInteraction.DeclineCommonPopup();
         }
-
 
         private void OnNotifyGlobalMapLocationMessageAccepted(long playerId, NotifyGlobalMapLocationMessageAccepted message)
         {
@@ -1551,7 +1550,7 @@ namespace WOTRMultiplayer.Services
             {
                 OnTurnEnded(message.UnitId);
                 Game.Combat.Turn = null;
-                Logger.LogWarning("Turn has been reset due to unability to start turn. UnitId={UnitId}", message.UnitId);
+                Logger.LogWarning("Turn has been reset because the turn could not be started. UnitId={UnitId}", message.UnitId);
             });
         }
 

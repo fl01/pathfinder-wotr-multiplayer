@@ -71,7 +71,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.SignalR
 
         private Task OnHubReconnected(string connectionId)
         {
-            _logger.LogWarning("Hub has been reconnected. ConnectionId={ConnectionId}");
+            _logger.LogWarning("Reconnected. ConnectionId={ConnectionId}");
             var handler = OnReconnected?.Invoke();
             return handler ?? Task.CompletedTask;
         }
@@ -89,7 +89,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.SignalR
                 var type = message.GetType();
                 if (!_handlers.TryGetValue(type, out var handler))
                 {
-                    _logger.LogWarning("Message handler is not registered. Message={Message}", type.Name);
+                    _logger.LogWarning("Message handler is not registered. Type={Type}", type.Name);
                     return;
                 }
 

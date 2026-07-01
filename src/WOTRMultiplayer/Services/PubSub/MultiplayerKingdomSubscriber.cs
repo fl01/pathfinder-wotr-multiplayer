@@ -56,7 +56,7 @@ namespace WOTRMultiplayer.Services.PubSub
                 }
 
                 var kingdomSettlementBuilding = Mapper.Map<NetworkKingdomSettlementBuilding>(building);
-                ActorAccessor.Host.OnKingdomSettlementBuldingSold(kingdomSettlementBuilding);
+                ActorAccessor.Host.OnKingdomSettlementBuildingSold(kingdomSettlementBuilding);
             }
             catch (Exception ex)
             {

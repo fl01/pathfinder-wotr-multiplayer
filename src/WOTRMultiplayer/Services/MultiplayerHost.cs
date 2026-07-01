@@ -1273,7 +1273,7 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
-        public void OnKingdomSettlementBuldingSold(NetworkKingdomSettlementBuilding kingdomSettlementBuilding)
+        public void OnKingdomSettlementBuildingSold(NetworkKingdomSettlementBuilding kingdomSettlementBuilding)
         {
             var message = new NotifyKingdomSettlementBuildingSold
             {
@@ -1377,9 +1377,9 @@ namespace WOTRMultiplayer.Services
             return true;
         }
 
-        public bool OnGlobalMapCrusadeArmySquadSplitted(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot, int count)
+        public bool OnGlobalMapCrusadeArmySquadSplit(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot, int count)
         {
-            var message = new NotifyGlobalMapCrusadeArmySquadSplitted
+            var message = new NotifyGlobalMapCrusadeArmySquadSplit
             {
                 SquadSlot = Mapper.Map<Networking.Messages.Contracts.NetworkGlobalMapArmySquadSlot>(globalMapArmySquadSlot),
                 Count = count
@@ -1697,7 +1697,7 @@ namespace WOTRMultiplayer.Services
             base.SetupNetworkMessageHandlers();
 
             _networkServer
-               // requests - this is kinda special because requester is blocking the thread (most likely main game loop) until corresponded response is received
+               // requests - this is somewhat special because requester is blocking the thread (most likely main game loop) until response is received
                .On<RandomEncounterContextRequest>(OnRandomEncounterContextRequest)
 
                // pausing
@@ -1768,7 +1768,7 @@ namespace WOTRMultiplayer.Services
                 var player = GetPlayer(receivedFrom);
                 PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Start.DesyncedStartup.Client.Key, CombatTextSeverity.Critical, player?.Name);
 
-                await WaitWhileTrue(() => CombatInteraction.IsRiderActive(), "Waiting for current turn to end before reseting combat");
+                await WaitWhileTrue(() => CombatInteraction.IsRiderActive(), "Waiting for current turn to end before resetting combat");
 
                 // this will also trigger restart for all clients in the lobby
                 CleanupUntargetableUnitsState();
@@ -2156,7 +2156,7 @@ namespace WOTRMultiplayer.Services
                     var existingPlayer = GetPlayer(playerId);
                     if (existingPlayer == null)
                     {
-                        Logger.LogError("Can't process player name update because player doesn't exist. PlayerId={playPlayerIderId}, Name={Name}", playerId, message.PlayerName);
+                        Logger.LogError("Can't process player name update because player doesn't exist. PlayerId={PlayerId}, Name={Name}", playerId, message.PlayerName);
                         return;
                     }
 
@@ -2199,10 +2199,10 @@ namespace WOTRMultiplayer.Services
         private List<NetworkDiscrepantDLC> CompareDLCs(NetworkContentState hostState, NetworkContentState clientState)
         {
             var discrepantDLCs = new List<NetworkDiscrepantDLC>();
-            var clientDlcs = clientState.DLCs.ToList();
+            var clientDLCs = clientState.DLCs.ToList();
             foreach (var hostDlc in hostState.DLCs)
             {
-                var clientDlc = clientDlcs.FirstOrDefault(d => string.Equals(d.Id, hostDlc.Id, StringComparison.OrdinalIgnoreCase));
+                var clientDlc = clientDLCs.FirstOrDefault(d => string.Equals(d.Id, hostDlc.Id, StringComparison.OrdinalIgnoreCase));
                 NetworkDiscrepancyReason? reason = null;
                 if (clientDlc == null || hostDlc.IsAvailable && !clientDlc.IsAvailable)
                 {
@@ -2220,11 +2220,11 @@ namespace WOTRMultiplayer.Services
 
                 if (clientDlc != null)
                 {
-                    clientDlcs.Remove(clientDlc);
+                    clientDLCs.Remove(clientDlc);
                 }
             }
 
-            var availableLeftovers = clientDlcs.Where(x => x.IsAvailable).Select(x => new NetworkDiscrepantDLC(x, NetworkDiscrepancyReason.Extra));
+            var availableLeftovers = clientDLCs.Where(x => x.IsAvailable).Select(x => new NetworkDiscrepantDLC(x, NetworkDiscrepancyReason.Extra));
             discrepantDLCs.AddRange(availableLeftovers);
 
             return discrepantDLCs;
@@ -2341,7 +2341,7 @@ namespace WOTRMultiplayer.Services
             }
 
             var everyoneIsReady = Game.ArmyCombat.PlayersCombatInitialization.Count(x => x.Value) >= GetSyncedPlayersCount();
-            Logger.LogInformation("Checking crusade army combat initialziation. IsReady={IsReady}", everyoneIsReady);
+            Logger.LogInformation("Checking crusade army combat initialization. IsReady={IsReady}", everyoneIsReady);
             return everyoneIsReady;
         }
 
