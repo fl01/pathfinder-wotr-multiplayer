@@ -92,7 +92,7 @@ namespace WOTRMultiplayer.Services
 
             Game = new NetworkGame(gameStartUp)
             {
-                LocalPlayerId = NetworkingConstants.HostPlayerId,
+                LocalPlayerId = NetworkConstants.HostPlayerId,
                 Id = gameId,
                 SessionSeed = CreateRandomSeed()
             };
@@ -247,7 +247,7 @@ namespace WOTRMultiplayer.Services
 
             if (Game.DialogState == null)
             {
-                Logger.LogWarning("Showing dialog cue for not initialized dialog. Most likely it is an autosave load with autostarted dialog after rest. Reinitializing dialog...");
+                Logger.LogWarning("Showing dialog cue for not initialized dialog. Most likely it is an autosave load with auto-started dialog after rest. Reinitializing dialog...");
                 Game.DialogState = new NetworkDialogState(networkDialog);
             }
 
@@ -324,7 +324,7 @@ namespace WOTRMultiplayer.Services
                 Game.DialogState = new NetworkDialogState(networkDialog);
                 lock (ActionLock)
                 {
-                    // workaround for scripted sequential dialogs (e.g. Act4 shamira -> nocticula message dialog)
+                    // workaround for scripted sequential dialogs (e.g. Act4 Shamira -> Nocticula message dialog)
                     if (networkDialog.IsScripted && previousDialog != null)
                     {
                         Logger.LogWarning("Previous cue views have been preserved. PreviousDialogName={PreviousDialogName}, NewDialogName={NewDialogName}", previousDialog.Dialog.Name, Game.DialogState.Dialog.Name);
@@ -1867,7 +1867,7 @@ namespace WOTRMultiplayer.Services
             {
                 if (Game.ForcedPause != null && (Game.ForcedPause.Reason == NetworkForcedPauseReason.AreaLoading || Game.ForcedPause.IsLifting))
                 {
-                    Logger.LogWarning("Skipping unpause request for AreaLoading pause");
+                    Logger.LogWarning("Skipping un-pause request for AreaLoading pause");
                     return;
                 }
             }
@@ -2104,7 +2104,7 @@ namespace WOTRMultiplayer.Services
 
         private void OnLocalServerStarted(EndPoint endpoint)
         {
-            var hostPlayer = new NetworkPlayer(NetworkingConstants.HostPlayerId)
+            var hostPlayer = new NetworkPlayer(NetworkConstants.HostPlayerId)
             {
                 Name = SettingsService.GetSettings().PlayerName,
                 ContentState = GameInteraction.GetInstalledContent(),
@@ -2312,7 +2312,7 @@ namespace WOTRMultiplayer.Services
                     PauseOnTrapDetected = true,
                     PauseOnSpellcastInterrupted = Kingmaker.Settings.EntitiesType.None,
                     PauseOnSpellcastStarted = Kingmaker.Settings.EntitiesType.None,
-                    // everything else is false for autopause
+                    // everything else is false for auto-pause
                 },
                 // tutorial is disabled because most of tutorial popups pause the game
                 Tutorial = new NetworkTutorialSettings()
@@ -2391,7 +2391,7 @@ namespace WOTRMultiplayer.Services
             DialogInteraction.SetDialogContinueButtonState(true);
         }
 
-        private List<NetworkPlayer> GetPlayersNotReadyToUnpause(long requestedByPlayerId)
+        private List<NetworkPlayer> GetPlayersNotReadyToResume(long requestedByPlayerId)
         {
             var result = new List<NetworkPlayer>();
             var players = GetSyncedPlayers();
@@ -2428,7 +2428,7 @@ namespace WOTRMultiplayer.Services
 
                 lock (ActionLock)
                 {
-                    var missingPlayer = GetPlayersNotReadyToUnpause(requestedByPlayerId);
+                    var missingPlayer = GetPlayersNotReadyToResume(requestedByPlayerId);
                     if (missingPlayer.Any())
                     {
                         Logger.LogInformation("Not everyone is ready, forced pause will remain. MissingPlayers={MissingPlayers}", missingPlayer.Select(x => x.Name));
@@ -2454,7 +2454,7 @@ namespace WOTRMultiplayer.Services
                         {
                             if (Game.ForcedPause == null)
                             {
-                                Logger.LogWarning("Previous forced pause lifter has been skipped due to null forcedpause. Most likely game was quickloaded");
+                                Logger.LogWarning("Previous forced pause lifter has been skipped due to null forced pause. Most likely game was quick loaded");
                                 return;
                             }
 

@@ -9,7 +9,7 @@ namespace WOTRMultiplayer.Networking.Abstractions
         Action<long> OnPlayerConnected { get; set; }
 
         Action<long> OnPlayerDisconnected { get; set; }
-        
+
         Action<EndPoint> OnLocalServerStarted { get; set; }
 
         Action<bool?, string> OnExternalConnectivityUpdated { get; set; }

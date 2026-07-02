@@ -29,6 +29,7 @@ using WOTRMultiplayer.Entities.NewGame;
 using WOTRMultiplayer.Entities.Rest;
 using WOTRMultiplayer.Entities.Settings;
 using WOTRMultiplayer.Entities.Units;
+using WOTRMultiplayer.Networking;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Configuration;
 using WOTRMultiplayer.Networking.Messages.Game;
@@ -181,7 +182,7 @@ namespace WOTRMultiplayer.Services
                 // workaround for scripted sequential dialogs (e.g. Act4 shamira -> nocticula message dialog)
                 if (previousDialog != null)
                 {
-                    Logger.LogWarning("Previous cuename has been preserved. PreviousDialogName={PreviousDialogName}, NewDialogName={NewDialogName}", previousDialog.Dialog.Name, Game.DialogState.Dialog.Name);
+                    Logger.LogWarning("Previous cue name has been preserved. PreviousDialogName={PreviousDialogName}, NewDialogName={NewDialogName}", previousDialog.Dialog.Name, Game.DialogState.Dialog.Name);
                     Game.DialogState.CurrentCueName = previousDialog.CurrentCueName;
                 }
 
@@ -443,7 +444,7 @@ namespace WOTRMultiplayer.Services
                         .OrderByDescending(x => x.IsAbility)
                         .FirstOrDefault(a => !string.Equals(a.Id, networkAIAction.Id, StringComparison.OrdinalIgnoreCase));
 
-                    // try to use another action (preferrably ability)
+                    // try to use another action (preferably ability)
                     Logger.LogWarning("Requested AI action has not been found within existing actions. UnitId={UnitId}, ActionId={ActionId}, ActionName={ActionName}, ActionType={ActionType}, FallbackActionId={FallbackActionId}, FallbackActionName={FallbackActionName}, FallbackActionType={FallbackActionType}",
                         networkAIAction.UnitId, networkAIAction.Id, networkAIAction.Name, networkAIAction.ActionType, firstDifferentAction?.Id, firstDifferentAction?.Name, firstDifferentAction?.ActionType);
 
@@ -1741,38 +1742,32 @@ namespace WOTRMultiplayer.Services
             OnConnected?.Invoke(Game.Connectivity);
         }
 
-        private void OnNetworkClientError(Exception exception)
+        private void OnNetworkClientError(NetworkError networkError)
         {
-            // should never happen?
-            if (exception is not SocketException socketException)
+            switch (networkError.Type)
             {
-                Logger.LogError(exception, "Generic error occurred");
-                InvokeOnNetworkError(WellKnownKeys.MultiplayerClient.Errors.GenericError.Key);
-                return;
-            }
-
-            string error = string.Empty;
-            SocketError? socketError = null;
-            switch (socketException.SocketErrorCode)
-            {
-                case SocketError.OperationAborted: // client disconnected by a user
-                    Logger.LogWarning("Skipping notification. SocketCode={SocketCode}", socketException.SocketErrorCode);
+                case NetworkErrorType.SocketError when networkError.SocketError != null:
+                    InvokeOnNetworkError(WellKnownKeys.MultiplayerClient.Errors.NetworkError.Key, networkError.SocketError.Value);
                     break;
-                case SocketError.ConnectionReset:
-                case SocketError.Success:
-                    error = WellKnownKeys.MultiplayerClient.Errors.Disconnected.Key;
+                case NetworkErrorType.Disconnected:
+                    // TODO: make a proper cleanup to unblock all possible UI elements as client is in single-player now
                     Game.Players.Clear();
                     UpdateRespecWindowStateOnPlayerLeave(Game.LocalPlayerId);
+                    InvokeOnNetworkError(WellKnownKeys.MultiplayerClient.Errors.Disconnected.Key);
                     break;
+                case NetworkErrorType.UnreachableSignalingServer:
+                    InvokeOnNetworkError(WellKnownKeys.MultiplayerClient.Errors.UnreachableSignalingServer.Key);
+                    break;
+                case NetworkErrorType.GameHostUnavailable:
+                    InvokeOnNetworkError(WellKnownKeys.MultiplayerClient.Errors.UnreachableGameHost.Key);
+                    break;
+                case NetworkErrorType.GameNotFound:
+                    InvokeOnNetworkError(WellKnownKeys.MultiplayerClient.Errors.GameNotFound.Key);
+                    break;
+                case NetworkErrorType.Generic:
                 default:
-                    socketError = socketException.SocketErrorCode;
-                    error = WellKnownKeys.MultiplayerClient.Errors.NetworkError.Key;
+                    InvokeOnNetworkError(WellKnownKeys.MultiplayerClient.Errors.GenericError.Key);
                     break;
-            }
-
-            if (!string.IsNullOrEmpty(error))
-            {
-                InvokeOnNetworkError(error, socketError);
             }
         }
 

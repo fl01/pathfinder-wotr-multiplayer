@@ -93,7 +93,7 @@ namespace WOTRMultiplayer.Networking.Consuming
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "Error while consuming message. PlayerId={PlayerId}, Type={Type}", metadata.ClientId, messageType);
+                            _logger.LogError(ex, "Error while consuming message. Channel={Channel}, PlayerId={PlayerId}, ReceivedFrom={ReceivedFrom}, Type={Type}", metadata.ChannelType, metadata.PlayerId, metadata.ClientId, messageType);
                         }
                     }
                 }

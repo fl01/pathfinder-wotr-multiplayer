@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
+using WOTRMultiplayer.Networking.ExternalConnectivity.Messages;
 
 namespace WOTRMultiplayer.Networking.ExternalConnectivity.SignalR
 {
@@ -17,7 +17,10 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.SignalR
         private readonly ConcurrentDictionary<Type, Func<object, Task>> _handlers = [];
 
         public const string DispatchMethodName = "Dispatch";
+
         public Func<Task> OnReconnected { get; set; }
+
+        public Func<Task> OnReconnecting { get; set; }
 
         public SignalRCoordinator(
             ILogger<SignalRCoordinator> logger,
@@ -30,6 +33,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.SignalR
 
             _hub.On<MessageEnvelope>(DispatchMethodName, Dispatch);
             _hub.Reconnected += OnHubReconnected;
+            _hub.Reconnecting += OnHubReconnecting;
         }
 
         public IPeerToPeerCoordinator On<T>(Func<T, Task> handler)
@@ -58,20 +62,38 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.SignalR
             return _hub.SendAsync(DispatchMethodName, envelope);
         }
 
-        public Task ConnectAsync(CancellationToken cancellationToken)
+        public Task ConnectAsync()
         {
-            return _hub.StartAsync(cancellationToken);
+            return _hub.StartAsync();
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        public async Task StopAsync(string code)
         {
             _hub.Reconnected -= OnHubReconnected;
-            return _hub.StopAsync(cancellationToken);
+            _hub.Reconnecting -= OnHubReconnecting;
+
+            if (_hub.State == HubConnectionState.Connected)
+            {
+                var terminateGame = new TerminateGameMessage
+                {
+                    Code = code
+                };
+                await SendAsync(terminateGame);
+            }
+
+            await _hub.StopAsync();
+        }
+
+        private Task OnHubReconnecting(Exception exception)
+        {
+            _logger.LogWarning(exception, "Reconnecting");
+            var handler = OnReconnecting?.Invoke();
+            return handler ?? Task.CompletedTask;
         }
 
         private Task OnHubReconnected(string connectionId)
         {
-            _logger.LogWarning("Reconnected. ConnectionId={ConnectionId}");
+            _logger.LogWarning("Reconnected. ConnectionId={ConnectionId}", connectionId);
             var handler = OnReconnected?.Invoke();
             return handler ?? Task.CompletedTask;
         }
@@ -92,6 +114,8 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.SignalR
                     _logger.LogWarning("Message handler is not registered. Type={Type}", type.Name);
                     return;
                 }
+
+                _logger.LogInformation("Received {MessageType}. Version={Version}", type.Name, envelope.Version);
 
                 await handler.Invoke(message);
             }

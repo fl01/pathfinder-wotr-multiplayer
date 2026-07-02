@@ -2,11 +2,11 @@
 {
     public enum MessageType
     {
-        Error,
-
         CreateGame,
         GameCreated,
         JoinGame,
+        GameNotFoundMessage,
+        GameHostUnavailableMessage,
         BeginConnecting,
         TerminateGame
     }

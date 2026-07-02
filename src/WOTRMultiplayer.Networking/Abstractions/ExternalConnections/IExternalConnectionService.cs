@@ -10,11 +10,13 @@ namespace WOTRMultiplayer.Networking.Abstractions.ExternalConnections
 
         Action OnConnected { get; set; }
 
-        Action OnError { get; set; }
+        Action<NetworkError> OnError { get; set; }
 
         Action<int> OnPeerConnected { get; set; }
 
         Action<int> OnPeerDisconnected { get; set; }
+
+        bool IsConnecting { get; }
 
         Task ConnectAsync(ExternalServerConfiguration externalServerConfiguration);
 

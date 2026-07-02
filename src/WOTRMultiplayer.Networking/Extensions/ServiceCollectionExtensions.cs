@@ -20,14 +20,14 @@ namespace WOTRMultiplayer.Networking.Extensions
             serviceCollection.AddSingleton<INetworkHostConnection, NetworkHostConnection>();
             serviceCollection.AddSingleton<INetworkClientConnection, NetworkClientConnection>();
 
-            serviceCollection.AddSingleton<IExternalConnectionService, ExternalConnectionService>();
+            serviceCollection.AddTransient<IExternalConnectionService, ExternalConnectionService>();
             serviceCollection.AddSingleton<IExternalMessageRegistry, ExternalMessageRegistry>();
             serviceCollection.AddSingleton<IPeerToPeerFactory, PeerToPeerFactory>();
             serviceCollection.AddSingleton<IPeerToPeerClient, PeerToPeerClient>();
 
             serviceCollection.AddSingleton<IIPEndPointParser, IPEndPointParser>();
 
-            serviceCollection.AddSingleton<ITcpClientFactory, TcpClientFactory>();
+            serviceCollection.AddSingleton<ITcpFactory, TcpFactory>();
             serviceCollection.AddSingleton<INetworkServer, NetworkServer>();
             serviceCollection.AddSingleton<INetworkClient, NetworkClient>();
 
