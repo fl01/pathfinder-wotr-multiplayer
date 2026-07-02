@@ -4,6 +4,7 @@ using System.Net.Http;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
+using WOTRMultiplayer.Networking.ExternalConnectivity.Retry;
 using WOTRMultiplayer.Networking.ExternalConnectivity.SignalR;
 
 namespace WOTRMultiplayer.Networking.ExternalConnectivity
@@ -31,6 +32,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
                         AutomaticDecompression = DecompressionMethods.None
                     };
                 })
+                .WithAutomaticReconnect(new FiniteTriesRetryPolicy(retryCount: 30, delay: TimeSpan.FromSeconds(3)))
                 .Build();
 
             var connection = ActivatorUtilities.CreateInstance<SignalRCoordinator>(_serviceProvider, hub);

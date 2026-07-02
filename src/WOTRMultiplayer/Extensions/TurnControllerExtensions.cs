@@ -1,6 +1,5 @@
 ﻿using Kingmaker.EntitySystem.Entities;
 using Kingmaker.TurnBasedMode;
-using Kingmaker.TurnBasedMode.Controllers;
 using TurnBased.Controllers;
 using static TurnBased.Controllers.TurnController;
 
@@ -20,7 +19,7 @@ namespace WOTRMultiplayer.Extensions
             {
                 return MovementLimit.FiveFootStep;
             }
-            
+
             return turnController.CurrentMovementLimit;
         }
     }

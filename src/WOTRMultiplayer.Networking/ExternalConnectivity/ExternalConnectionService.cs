@@ -16,16 +16,19 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         private IPeerToPeerCoordinator _peerToPeerCoordinator;
         private Uri _baseUrl;
+        private string _latestGameCode;
 
         public Action<string> OnGameCodeChanged { get; set; }
 
         public Action OnConnected { get; set; }
 
-        public Action OnError { get; set; }
+        public Action<NetworkError> OnError { get; set; }
 
         public Action OnReconnected { get; set; }
 
         public bool IsActive { get; private set; }
+
+        public bool IsConnecting { get; private set; }
 
         public Action<int> OnPeerConnected { get; set; }
 
@@ -47,26 +50,25 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
         {
             try
             {
-                if (_peerToPeerCoordinator != null)
-                {
-                    await _peerToPeerCoordinator.StopAsync(default);
-                }
-
+                IsConnecting = true;
                 _baseUrl = new Uri(externalServerConfiguration.Server.Url);
 
-                _logger.LogInformation("Connecting to p2p coordinator. Url={Url}", _baseUrl);
+                _logger.LogInformation("Connecting to P2P coordinator. Url={Url}", _baseUrl);
 
                 var fullUrl = new Uri(_baseUrl, externalServerConfiguration.Server.GameHubPath);
                 _peerToPeerCoordinator = _peerToPeerFactory.Create(fullUrl);
 
                 _peerToPeerCoordinator
+                    .On<GameNotFoundMessage>(OnGameNotFoundAsync)
+                    .On<GameHostUnavailableMessage>(OnGameHostUnavailableAsync)
                     .On<GameCreatedMessage>(OnGameCreatedAsync)
                     .On<BeginConnectingMessage>(OnBeginConnectingAsync)
                     ;
 
                 _peerToPeerCoordinator.OnReconnected = () => AutoCreateGameAsync(externalServerConfiguration);
+                _peerToPeerCoordinator.OnReconnecting = () => OnReconnectingCoordinator();
 
-                await _peerToPeerCoordinator.ConnectAsync(default);
+                await _peerToPeerCoordinator.ConnectAsync();
                 _logger.LogInformation("Connection to P2P coordinator has been established. Url={Url}, AutoCreateGame={AutoCreateGame}", fullUrl, externalServerConfiguration.AutoCreateGame);
 
                 _peerToPeerClient.OnPeerConnectedEvent = OnPeerConnectedEvent;
@@ -79,6 +81,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
                     _logger.LogError("Unable to start P2P client. Port={Port}", externalServerConfiguration.Port);
                     return;
                 }
+
                 _logger.LogInformation("P2P client has been started. Port={Port}", _peerToPeerClient.LocalPort);
                 IsActive = true;
                 await AutoCreateGameAsync(externalServerConfiguration);
@@ -87,9 +90,17 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while connecting to hub");
-                OnError?.Invoke();
+                _logger.LogError(ex, "Error while connecting to P2P coordinator");
+                var unableToConnectError = new NetworkError(NetworkErrorType.UnreachableSignalingServer);
+                OnError?.Invoke(unableToConnectError);
+                IsConnecting = false;
             }
+        }
+
+        private async Task OnReconnectingCoordinator()
+        {
+            _latestGameCode = null;
+            OnGameCodeChanged.Invoke(null);
         }
 
         private void OnP2PMessageReceived(NetworkMessageMetadata networkMessageMetadata)
@@ -124,8 +135,9 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         public void Reset()
         {
+            _logger.LogInformation("Reset");
             IsActive = false;
-            _peerToPeerCoordinator?.StopAsync(default);
+            _peerToPeerCoordinator?.StopAsync(_latestGameCode);
             _peerToPeerClient.Reset();
         }
 
@@ -133,7 +145,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
         {
             if (!IsPeerToPeerActive())
             {
-                _logger.LogWarning("Joining game is unavailable due to incorrect state of peer to peer client");
+                _logger.LogWarning("Joining game is unavailable due to incorrect state of P2P client");
                 return;
             }
 
@@ -168,17 +180,32 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
             await _peerToPeerCoordinator.SendAsync(createGameMessage);
         }
 
-        private Task OnGameCreatedAsync(GameCreatedMessage gameCreatedMessage)
+        private Task OnGameHostUnavailableAsync(GameHostUnavailableMessage message)
         {
-            var gameCode = gameCreatedMessage.Game.Code;
-            OnGameCodeChanged?.Invoke(gameCode);
+            IsConnecting = false;
+            var error = new NetworkError(NetworkErrorType.GameHostUnavailable);
+            OnError?.Invoke(error);
             return Task.CompletedTask;
         }
 
-        private Task OnBeginConnectingAsync(BeginConnectingMessage beginConnectingMessage)
+        private Task OnGameNotFoundAsync(GameNotFoundMessage message)
         {
-            _logger.LogInformation("Received begin connecting. SessionId={SessionId}, Port={Port}", beginConnectingMessage.SessionId, beginConnectingMessage.Port);
-            _peerToPeerClient.Introduce(_baseUrl.Host, beginConnectingMessage.Port, beginConnectingMessage.SessionId);
+            IsConnecting = false;
+            var error = new NetworkError(NetworkErrorType.GameNotFound);
+            OnError?.Invoke(error);
+            return Task.CompletedTask;
+        }
+
+        private Task OnGameCreatedAsync(GameCreatedMessage message)
+        {
+            _latestGameCode = message.Game.Code;
+            OnGameCodeChanged?.Invoke(_latestGameCode);
+            return Task.CompletedTask;
+        }
+
+        private Task OnBeginConnectingAsync(BeginConnectingMessage message)
+        {
+            _peerToPeerClient.Introduce(_baseUrl.Host, message.Port, message.SessionId);
             return Task.CompletedTask;
         }
     }

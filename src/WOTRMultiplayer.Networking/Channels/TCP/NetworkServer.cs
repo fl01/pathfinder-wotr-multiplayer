@@ -14,8 +14,9 @@ namespace WOTRMultiplayer.Networking.Channels.TCP
 {
     public class NetworkServer : INetworkServer
     {
-        private ServerBuilder<NetworkServerApp, NetworkConnectionToken, BeetleXMessageTypes.ProtobufServerPacket> _server;
+        private ServerBuilder<TcpServerApp, TcpSessionToken, BeetleXMessageTypes.ProtobufServerPacket> _server;
         private readonly ILogger<NetworkServer> _logger;
+        private readonly ITcpFactory _tcpFactory;
 
         public Action<long> OnClientConnected { get; set; }
 
@@ -27,9 +28,12 @@ namespace WOTRMultiplayer.Networking.Channels.TCP
 
         public Action<NetworkMessageMetadata> OnMessageReceived { get; set; }
 
-        public NetworkServer(ILogger<NetworkServer> logger)
+        public NetworkServer(
+            ILogger<NetworkServer> logger,
+            ITcpFactory tcpFactory)
         {
             _logger = logger;
+            _tcpFactory = tcpFactory;
         }
 
         public void Start(NetworkServerConfiguration networkServerConfiguration)
@@ -39,7 +43,7 @@ namespace WOTRMultiplayer.Networking.Channels.TCP
                 Reset();
             }
 
-            _server = new();
+            _server = _tcpFactory.CreateServerBuilder<TcpServerApp, TcpSessionToken, BeetleXMessageTypes.ProtobufServerPacket>();
             _server.ServerOptions.DefaultListen.Host = networkServerConfiguration.Host;
             _server.ServerOptions.UseIPv6 = networkServerConfiguration.UseIPv6;
             _server.ServerOptions.DefaultListen.StartRegionPort = networkServerConfiguration.PortRangeStart;
@@ -92,7 +96,7 @@ namespace WOTRMultiplayer.Networking.Channels.TCP
             _server = null;
         }
 
-        private void OnTcpMessageReceived(EventMessageReceiveArgs<NetworkServerApp, NetworkConnectionToken, object> args)
+        private void OnTcpMessageReceived(EventMessageReceiveArgs<TcpServerApp, TcpSessionToken, object> args)
         {
             var metadata = new NetworkMessageMetadata(NetworkChannelType.TCP, args.NetSession.ID, args.Message);
             OnMessageReceived?.Invoke(metadata);
@@ -140,7 +144,7 @@ namespace WOTRMultiplayer.Networking.Channels.TCP
             }
         }
 
-        private void OnDisconnected(ISession session, NetworkConnectionToken clientToken)
+        private void OnDisconnected(ISession session, TcpSessionToken clientToken)
         {
             _logger.LogInformation("Client disconnected. ClientId={ClientId}", session.ID);
             try
@@ -153,7 +157,7 @@ namespace WOTRMultiplayer.Networking.Channels.TCP
             }
         }
 
-        private void OnConnected(ISession session, NetworkConnectionToken clientToken)
+        private void OnConnected(ISession session, TcpSessionToken clientToken)
         {
             _logger.LogInformation("Client connected. ClientId={ClientId}", session.ID);
             try

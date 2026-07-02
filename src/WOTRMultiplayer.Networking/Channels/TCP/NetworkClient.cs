@@ -13,7 +13,7 @@ namespace WOTRMultiplayer.Networking.Channels.TCP
     {
         private ITcpClient _client;
         private readonly ILogger<NetworkClient> _logger;
-        private readonly ITcpClientFactory _tcpClientFactory;
+        private readonly ITcpFactory _tcpClientFactory;
 
         public Action<Exception> OnError { get; set; }
 
@@ -27,7 +27,7 @@ namespace WOTRMultiplayer.Networking.Channels.TCP
 
         public NetworkClient(
             ILogger<NetworkClient> logger,
-            ITcpClientFactory tcpClientFactory)
+            ITcpFactory tcpClientFactory)
         {
             _logger = logger;
             _tcpClientFactory = tcpClientFactory;
@@ -35,7 +35,7 @@ namespace WOTRMultiplayer.Networking.Channels.TCP
 
         public async Task ConnectAsync(string host, int port)
         {
-            _client = _tcpClientFactory.Create(host, port);
+            _client = _tcpClientFactory.CreateClient(host, port);
 
             _client.ClientError = OnClientError;
             _client.Connected = OnClientConnected;
@@ -61,7 +61,7 @@ namespace WOTRMultiplayer.Networking.Channels.TCP
 
         private void OnPackedReceived(IClient client, object message)
         {
-            var metadata = new NetworkMessageMetadata(NetworkChannelType.TCP, NetworkingConstants.HostPlayerId, message);
+            var metadata = new NetworkMessageMetadata(NetworkChannelType.TCP, NetworkConstants.HostPlayerId, message);
             OnMessageReceived?.Invoke(metadata);
         }
 
@@ -78,17 +78,6 @@ namespace WOTRMultiplayer.Networking.Channels.TCP
             IsConnecting = false;
 
             OnError?.Invoke(args.Error);
-        }
-
-        private void OnExternalConnectionSucceeded()
-        {
-            OnConnected?.Invoke(null);
-            _logger.LogInformation("OnExternalConnectionSucceeded");
-        }
-
-        private void OnExternalConnectionError()
-        {
-            _logger.LogError("OnExternalConnectionError");
         }
     }
 }

@@ -13,7 +13,7 @@ namespace WOTRMultiplayer.Networking.Abstractions
         Task<T> SendAndWaitForAsync<T>(IAwaitableRequest message)
             where T : IAwaitableResponse;
 
-        Action<Exception> OnError { get; set; }
+        Action<NetworkError> OnError { get; set; }
 
         Action<EndPoint> OnConnected { get; set; }
 

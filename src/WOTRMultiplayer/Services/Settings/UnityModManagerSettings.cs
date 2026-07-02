@@ -6,7 +6,7 @@ namespace WOTRMultiplayer.Services.Settings
     public class UnityModManagerSettings : UnityModManager.ModSettings
     {
         public string ModId { get; set; }
-        
+
         public string ModFolder { get; set; }
 
         public bool UseDebugConsole { get; set; } = false;

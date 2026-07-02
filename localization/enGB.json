@@ -268,7 +268,10 @@
                 "invalidPort": "Invalid port specified.\nAcceptable range is '0 > port <= 65535'.",
                 "disconnected": "You have been disconnected",
                 "genericError": "Generic error occurred",
-                "networkError": "Network error occurred. Error code: {0}"
+                "networkError": "Network error occurred.\nError code: {0}",
+                "unreachableSignalingServer": "Unable to connect to the matchmaking server",
+                "unreachableGameHost": "The game is unavailable",
+                "gameNotFound":"Game not found or password is invalid"
             }
         },
         "gameNotifications": {

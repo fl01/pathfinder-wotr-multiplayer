@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Networking.Abstractions;
@@ -18,9 +19,9 @@ namespace WOTRMultiplayer.Networking
         private TimeSpan _defaultAwaiterTimeout;
         private readonly ConcurrentDictionary<string, TaskCompletionSource<IAwaitableResponse>> _awaiters = new(StringComparer.OrdinalIgnoreCase);
 
-        public bool IsConnecting => _networkClient.IsConnecting;
+        public bool IsConnecting => _networkClient.IsConnecting || ExternalConnectionService.IsConnecting;
 
-        public Action<Exception> OnError { get; set; }
+        public Action<NetworkError> OnError { get; set; }
 
         public Action<EndPoint> OnConnected { get; set; }
 
@@ -34,12 +35,6 @@ namespace WOTRMultiplayer.Networking
             _networkClient = networkClient;
 
             SetupEventHandlers();
-        }
-
-        private void SetupEventHandlers()
-        {
-            _networkClient.OnError = exception => OnError?.Invoke(exception);
-            _networkClient.OnConnected = endpoint => OnConnected?.Invoke(endpoint);
         }
 
         public async Task ConnectAsync(string host, int port, TimeSpan awaiterTimeout)
@@ -105,6 +100,50 @@ namespace WOTRMultiplayer.Networking
             }
 
             base.OnMessageReceived(networkMessageMetadata);
+        }
+
+        private void SetupEventHandlers()
+        {
+            _networkClient.OnError = OnTcpClientError;
+            _networkClient.OnConnected = endpoint => OnConnected?.Invoke(endpoint);
+
+            ExternalConnectionService.OnError = OnExternalConnectionError;
+        }
+
+        private void OnTcpClientError(Exception exception)
+        {
+            // rare cases when BeetleX tcp client fails internally due to exhausted buffers or similar non-network issues
+            if (exception is not SocketException socketException)
+            {
+                Logger.LogError(exception, "Generic network error");
+                var genericError = new NetworkError(NetworkErrorType.Generic);
+                OnError?.Invoke(genericError);
+                return;
+            }
+
+            switch (socketException.SocketErrorCode)
+            {
+                case SocketError.OperationAborted:
+                    Logger.LogWarning("Skipping tcp client error. SocketCode={SocketCode}", socketException.SocketErrorCode);
+                    return;
+                case SocketError.ConnectionReset:
+                case SocketError.Success:
+                    var disconnectedError = new NetworkError(NetworkErrorType.Disconnected);
+                    OnError?.Invoke(disconnectedError);
+                    return;
+                default:
+                    var socketError = new NetworkError(NetworkErrorType.SocketError)
+                    {
+                        SocketError = socketException.SocketErrorCode
+                    };
+                    OnError?.Invoke(socketError);
+                    return;
+            }
+        }
+
+        private void OnExternalConnectionError(NetworkError error)
+        {
+            OnError?.Invoke(error);
         }
     }
 }

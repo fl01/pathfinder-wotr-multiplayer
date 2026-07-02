@@ -156,7 +156,7 @@ namespace WOTRMultiplayer.UnitTests.Services
             var settings = new NetworkMultiplayerSettings() { HostPortRangeStart = 123, HostPortRangeEnd = 1234 };
             A.CallTo(() => _multiplayerSettingsProvider.GetSettings()).Returns(settings);
             _multiplayerHost.Create(gameId, null, null, startUp);
-            var hostPlayer = new NetworkPlayer { Id = NetworkingConstants.HostPlayerId, IsHost = true };
+            var hostPlayer = new NetworkPlayer { Id = NetworkConstants.HostPlayerId, IsHost = true };
             var player = new NetworkPlayer { Id = 123 };
             _multiplayerHost.Game.Players.AddRange([hostPlayer, player]);
             var handler = FakeUtils.GetNetworkReceiverHandler<ClientGameServerConnectionConfirmed>(_networkServer);
@@ -182,7 +182,7 @@ namespace WOTRMultiplayer.UnitTests.Services
             var settings = new NetworkMultiplayerSettings() { HostPortRangeStart = 123, HostPortRangeEnd = 1234 };
             A.CallTo(() => _multiplayerSettingsProvider.GetSettings()).Returns(settings);
             _multiplayerHost.Create(gameId, null, null, startUp);
-            var hostPlayer = new NetworkPlayer { Id = NetworkingConstants.HostPlayerId, IsHost = true };
+            var hostPlayer = new NetworkPlayer { Id = NetworkConstants.HostPlayerId, IsHost = true };
             var player = new NetworkPlayer { Id = 123 };
             _multiplayerHost.Game.Players.AddRange([hostPlayer, player]);
             var handler = FakeUtils.GetNetworkReceiverHandler<ClientGameServerConnectionConfirmed>(_networkServer);
@@ -211,7 +211,7 @@ namespace WOTRMultiplayer.UnitTests.Services
             _multiplayerHost.Create(gameId, null, null, startUp);
             var hostPlayer = new NetworkPlayer
             {
-                Id = NetworkingConstants.HostPlayerId,
+                Id = NetworkConstants.HostPlayerId,
                 IsHost = true,
                 ContentState = new NetworkContentState
                 {
@@ -254,7 +254,7 @@ namespace WOTRMultiplayer.UnitTests.Services
             _multiplayerHost.Create(gameId, null, null, startUp);
             var hostPlayer = new NetworkPlayer
             {
-                Id = NetworkingConstants.HostPlayerId,
+                Id = NetworkConstants.HostPlayerId,
                 IsHost = true,
                 ContentState = new NetworkContentState
                 {
@@ -318,9 +318,9 @@ namespace WOTRMultiplayer.UnitTests.Services
             var gameMode = GameModeType.All.First(x => x.Index == (int)GameModeType.Enum.Rest);
             _multiplayerHost.Game = new NetworkGame(new NetworkGameStartUp())
             {
-                LocalPlayerId = NetworkingConstants.HostPlayerId,
+                LocalPlayerId = NetworkConstants.HostPlayerId,
                 Players = [
-                    new NetworkPlayer { Id = NetworkingConstants.HostPlayerId, LobbySyncStatus = NetworkLobbySyncStatus.Succeed },
+                    new NetworkPlayer { Id = NetworkConstants.HostPlayerId, LobbySyncStatus = NetworkLobbySyncStatus.Succeed },
                     new NetworkPlayer { Id = 123123, LobbySyncStatus = NetworkLobbySyncStatus.Succeed },
                     ]
             };
@@ -343,8 +343,8 @@ namespace WOTRMultiplayer.UnitTests.Services
             var gameMode = GameModeType.All.First(x => x.Index == (int)GameModeType.Enum.Rest);
             _multiplayerHost.Game = new NetworkGame(new NetworkGameStartUp())
             {
-                LocalPlayerId = NetworkingConstants.HostPlayerId,
-                Players = [new NetworkPlayer { Id = NetworkingConstants.HostPlayerId, LobbySyncStatus = NetworkLobbySyncStatus.Succeed }],
+                LocalPlayerId = NetworkConstants.HostPlayerId,
+                Players = [new NetworkPlayer { Id = NetworkConstants.HostPlayerId, LobbySyncStatus = NetworkLobbySyncStatus.Succeed }],
                 SessionSeed = 1,
                 LoadedSaveSeed = 2,
                 CurrentArea = new Entities.Area.NetworkArea { Seed = 3 },
@@ -369,8 +369,8 @@ namespace WOTRMultiplayer.UnitTests.Services
             var gameMode = GameModeType.All.First(x => x.Index == (int)GameModeType.Enum.Rest);
             _multiplayerHost.Game = new NetworkGame(new NetworkGameStartUp())
             {
-                LocalPlayerId = NetworkingConstants.HostPlayerId,
-                Players = [new NetworkPlayer { Id = NetworkingConstants.HostPlayerId, LobbySyncStatus = NetworkLobbySyncStatus.Succeed }],
+                LocalPlayerId = NetworkConstants.HostPlayerId,
+                Players = [new NetworkPlayer { Id = NetworkConstants.HostPlayerId, LobbySyncStatus = NetworkLobbySyncStatus.Succeed }],
                 SessionSeed = 1,
                 LoadedSaveSeed = 2,
                 CurrentArea = new Entities.Area.NetworkArea { Seed = 3 },

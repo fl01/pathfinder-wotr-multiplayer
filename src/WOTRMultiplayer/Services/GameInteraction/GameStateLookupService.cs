@@ -305,7 +305,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             var ability = unit.Abilities.Enumerable.FirstOrDefault(a => string.Equals(a.Data.UniqueId, abilityId, StringComparison.OrdinalIgnoreCase)
                    || string.Equals(a.Data.Blueprint.AssetGuid.ToString(), abilityBlueprintId, StringComparison.OrdinalIgnoreCase));
-            
+
             return ability?.Data;
         }
 

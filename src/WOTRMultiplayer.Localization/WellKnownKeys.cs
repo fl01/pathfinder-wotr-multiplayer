@@ -1021,6 +1021,24 @@ public static class WellKnownKeys
             {
                 public static string Key { get; set; }
             }
+
+            [Description("unreachableSignalingServer")]
+            public static class UnreachableSignalingServer
+            {
+                public static string Key { get; set; }
+            }
+
+            [Description("unreachableGameHost")]
+            public static class UnreachableGameHost
+            {
+                public static string Key { get; set; }
+            }
+
+            [Description("gameNotFound")]
+            public static class GameNotFound
+            {
+                public static string Key { get; set; }
+            }
         }
     }
 

@@ -156,7 +156,7 @@ namespace WOTRMultiplayer.Networking
             OnExternalConnectivityUpdated?.Invoke(true, code);
         }
 
-        private void OnError()
+        private void OnError(NetworkError networkError)
         {
             OnExternalConnectivityUpdated?.Invoke(false, null);
         }

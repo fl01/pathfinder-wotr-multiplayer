@@ -5,9 +5,9 @@ using WOTRMultiplayer.Networking.Messages;
 
 namespace WOTRMultiplayer.Networking.Channels.TCP
 {
-    public class TcpClientFactory : ITcpClientFactory
+    public class TcpFactory : ITcpFactory
     {
-        public ITcpClient Create(string host, int port)
+        public ITcpClient CreateClient(string host, int port)
         {
             BufferPool.POOL_MINI_SIZE = 6000;
             BufferPool.POOL_SIZE = 10000;
@@ -16,6 +16,14 @@ namespace WOTRMultiplayer.Networking.Channels.TCP
 
             var client = SocketFactory.CreateClient<BeetleTcpClient>(new BeetleXMessageTypes.ProtobufClientPacket(), host, port);
             return client;
+        }
+
+        public ServerBuilder<TApp, TToken, TPacket> CreateServerBuilder<TApp, TToken, TPacket>()
+            where TApp : IApplication, new()
+            where TToken : ISessionToken, new()
+            where TPacket : IPacket, new()
+        {
+            return new();
         }
     }
 }

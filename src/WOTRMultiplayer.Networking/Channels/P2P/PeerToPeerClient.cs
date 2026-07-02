@@ -22,7 +22,7 @@ namespace WOTRMultiplayer.Networking.Channels.P2P
 
         private CancellationTokenSource _updateLoop;
 
-        public const string P2PKey = "wotr";
+        public const string P2PKey = "WOTR";
 
         public bool IsActive => _net != null && _net.IsRunning;
 

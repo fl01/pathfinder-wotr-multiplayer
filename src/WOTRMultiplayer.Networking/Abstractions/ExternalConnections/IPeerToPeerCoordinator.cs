@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace WOTRMultiplayer.Networking.Abstractions.ExternalConnections
@@ -8,9 +7,11 @@ namespace WOTRMultiplayer.Networking.Abstractions.ExternalConnections
     {
         Func<Task> OnReconnected { get; set; }
 
-        Task StopAsync(CancellationToken cancellationToken);
+        Func<Task> OnReconnecting { get; set; }
 
-        Task ConnectAsync(CancellationToken cancellationToken);
+        Task StopAsync(string code);
+
+        Task ConnectAsync();
 
         IPeerToPeerCoordinator On<T>(Func<T, Task> handler)
             where T : class;
