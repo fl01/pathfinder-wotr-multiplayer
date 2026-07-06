@@ -144,10 +144,10 @@ namespace WOTRMultiplayer.UI.Controllers
                 var content = FileSystemService.GetFileContent(ServersFilePath);
                 if (content == null)
                 {
-                    _logger.LogInformation("Server configuration doesn't exist. Creating a default configuration");
+                    _logger.LogInformation("Creating default configuration for external servers...");
                     var defaultServers = new List<ExternalServer>
                     {
-                        new() { Url = "https://eu1.wotr.arva.moe", GameHubPath = "hubs/game", Name = "EU1 - Default", Prefix = "EU1"  }
+                        new() { Url = "https://eu.wotr.arva.moe", GameHubPath = "hubs/game", Name = "Europe", Prefix = "EU"  }
                     };
                     var json = JsonConvert.SerializeObject(defaultServers, Formatting.Indented);
                     try
