@@ -1420,15 +1420,24 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
+                    if (_uiAccessor.CommonPCView.m_MessageModalPCView.ViewModel != null)
+                    {
+                        _logger.LogWarning("Message popup is already opened");
+                        tcs.SetResult(false);
+                        return;
+                    }
+
                     switch (popup.Type)
                     {
                         case NetworkGlobalMapCommonPopupType.Fatigue:
                             UIUtility.ShowMessageBox(UIStrings.Instance.GlobalMap.PartyIsFatigue, MessageModalBase.ModalType.Dialog, _uiAccessor.GlobalMapPCView.ViewModel.OnFatigueClose);
                             tcs.SetResult(true);
+                            _logger.LogInformation("Fatigue popup has been shown");
                             return;
                         case NetworkGlobalMapCommonPopupType.Exhaust:
                             UIUtility.ShowMessageBox(UIStrings.Instance.GlobalMap.PartyIsExhausted, MessageModalBase.ModalType.Dialog, _uiAccessor.GlobalMapPCView.ViewModel.OnFatigueClose);
                             tcs.SetResult(true);
+                            _logger.LogInformation("Exhaust popup has been shown");
                             return;
                     }
 
