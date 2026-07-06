@@ -64,7 +64,7 @@ namespace WOTRMultiplayer.Networking.Channels.TCP
 
         public void Send(long clientId, object message)
         {
-            _logger.LogObject(LogLevel.Information, "Sending {MessageType} to Player {PlayerId}.", message, clientId);
+            _logger.LogObject(LogLevel.Debug, "Sending {MessageType} to Player {PlayerId}.", message, clientId);
             var session = _server.AppServer.GetSession(clientId);
             if (session == null)
             {
@@ -76,7 +76,7 @@ namespace WOTRMultiplayer.Networking.Channels.TCP
 
         public void Broadcast(object message)
         {
-            _logger.LogObject(LogLevel.Information, "Sending {MessageType}.", message);
+            _logger.LogObject(LogLevel.Debug, "Sending {MessageType}.", message);
             var sessions = _server.AppServer.GetOnlines();
             _server.AppServer.Send(message, sessions);
         }

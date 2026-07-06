@@ -47,7 +47,7 @@ namespace WOTRMultiplayer.Networking.Channels.TCP
 
         public void Broadcast(object message)
         {
-            _logger.LogObject(LogLevel.Information, "Sending {MessageType}.", message);
+            _logger.LogObject(LogLevel.Debug, "Sending {MessageType}.", message);
             var sender = _client?.SendAsync(message) ?? Task.CompletedTask;
             sender.Wait();
         }

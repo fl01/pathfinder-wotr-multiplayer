@@ -2061,30 +2061,39 @@ namespace WOTRMultiplayer.Services
 
         private void OnPlayerConnected(long playerId)
         {
-            lock (ActionLock)
+            try
             {
-                var existingPlayer = GetPlayer(playerId);
-                if (existingPlayer != null)
-                {
-                    Logger.LogWarning("Player already exists. PlayerId={PlayerId}", playerId);
-                    return;
-                }
+                Logger.LogInformation("New player connection. PlayerId={PlayerId}", playerId);
 
-                var player = new NetworkPlayer(playerId);
-                Game.Players.Add(player);
-                var settings = GameInteraction.GetGameSettings();
-                if (settings != null)
+                lock (ActionLock)
                 {
-                    settings.Multiplayer = SettingsService.GetSettings();
-                }
+                    var existingPlayer = GetPlayer(playerId);
+                    if (existingPlayer != null)
+                    {
+                        Logger.LogError("Player already exists. PlayerId={PlayerId}", playerId);
+                        return;
+                    }
 
-                var message = new GameServerConnectionSucceeded
-                {
-                    ClientPlayerId = playerId,
-                    GameSettings = Mapper.Map<Networking.Messages.Contracts.NetworkGameSettings>(settings),
-                    SessionSeed = Game.SessionSeed
-                };
-                Send(playerId, message);
+                    var player = new NetworkPlayer(playerId);
+                    Game.Players.Add(player);
+                    var settings = GameInteraction.GetGameSettings();
+                    if (settings != null)
+                    {
+                        settings.Multiplayer = SettingsService.GetSettings();
+                    }
+
+                    var message = new GameServerConnectionSucceeded
+                    {
+                        ClientPlayerId = playerId,
+                        GameSettings = Mapper.Map<Networking.Messages.Contracts.NetworkGameSettings>(settings),
+                        SessionSeed = Game.SessionSeed
+                    };
+                    Send(playerId, message);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to process new player connection");
             }
         }
 

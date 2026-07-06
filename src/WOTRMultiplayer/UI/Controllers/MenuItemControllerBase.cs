@@ -147,7 +147,7 @@ namespace WOTRMultiplayer.UI.Controllers
                     _logger.LogInformation("Server configuration doesn't exist. Creating a default configuration");
                     var defaultServers = new List<ExternalServer>
                     {
-                        new() { Url = "https://eu1.wotr.arva.moe", GameHubPath = "hubs/game", Name = "EU1 Default", Prefix = "EU1"  }
+                        new() { Url = "https://eu1.wotr.arva.moe", GameHubPath = "hubs/game", Name = "EU1 - Default", Prefix = "EU1"  }
                     };
                     var json = JsonConvert.SerializeObject(defaultServers, Formatting.Indented);
                     try

@@ -1039,6 +1039,12 @@ public static class WellKnownKeys
             {
                 public static string Key { get; set; }
             }
+
+            [Description("peerToPeerTimeout")]
+            public static class PeerToPeerTimeout
+            {
+                public static string Key { get; set; }
+            }
         }
     }
 

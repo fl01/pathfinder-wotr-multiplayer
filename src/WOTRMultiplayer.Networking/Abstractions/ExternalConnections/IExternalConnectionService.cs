@@ -12,7 +12,7 @@ namespace WOTRMultiplayer.Networking.Abstractions.ExternalConnections
 
         Action<NetworkError> OnError { get; set; }
 
-        Action<int> OnPeerConnected { get; set; }
+        Action<int, string> OnPeerConnected { get; set; }
 
         Action<int> OnPeerDisconnected { get; set; }
 

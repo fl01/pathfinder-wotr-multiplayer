@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Threading;
 using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Logging.Extensions;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
 using WOTRMultiplayer.Networking.Abstractions.TCP;
@@ -68,6 +69,8 @@ namespace WOTRMultiplayer.Networking
                 return;
             }
 
+            Logger.LogObject(LogLevel.Information, "Sending {MessageType}.", message);
+
             switch (channel)
             {
                 case NetworkChannelType.TCP:
@@ -89,6 +92,8 @@ namespace WOTRMultiplayer.Networking
                 Logger.LogError("Unable to broadcast because excluded player is not registered. PlayerId={PlayerId}", playerId);
                 return;
             }
+
+            Logger.LogObject(LogLevel.Information, "Sending {MessageType} to all EXCEPT Player={PlayerId}.", message, clientId);
 
             BroadcastExcept(channel, clientId, message);
         }
@@ -141,7 +146,7 @@ namespace WOTRMultiplayer.Networking
             _networkServer.OnServerStarted = endpoint => OnLocalServerStarted?.Invoke(endpoint);
 
             _networkServer.OnClientConnected = clientId => OnClientConnected(NetworkChannelType.TCP, clientId);
-            ExternalConnectionService.OnPeerConnected = clientId => OnClientConnected(NetworkChannelType.P2P, clientId);
+            ExternalConnectionService.OnPeerConnected = (clientId, _) => OnClientConnected(NetworkChannelType.P2P, clientId);
 
             _networkServer.OnClientDisconnected = clientId => OnClientDisconnected(NetworkChannelType.TCP, clientId);
             ExternalConnectionService.OnPeerDisconnected = clientId => OnClientDisconnected(NetworkChannelType.P2P, clientId);
@@ -206,8 +211,30 @@ namespace WOTRMultiplayer.Networking
                 return;
             }
 
+            CleanupDisconnectedClient(channelType, clientId, playerId);
+
             Logger.LogInformation("Player has been disconnected. Channel={Channel}, ChannelClientId={ChannelClientId}, PlayerId={PlayerId}", channelType, clientId, playerId);
             OnPlayerDisconnected?.Invoke(playerId);
+        }
+
+        private void CleanupDisconnectedClient(NetworkChannelType channelType, long clientId, long playerId)
+        {
+            if (!_playerToClient.TryRemove(playerId, out _))
+            {
+                Logger.LogError("Unable to cleanup player to client info. Channel={Channel}, ChannelClientId={ChannelClientId}, PlayerId={PlayerId}", channelType, clientId, playerId);
+            }
+
+            var channel = GetChannel(channelType);
+            if (!channel.TryRemove(clientId, out _))
+            {
+                Logger.LogError("Unable to cleanup channel info. Channel={Channel}, ChannelClientId={ChannelClientId}, PlayerId={PlayerId}", channelType, clientId, playerId);
+            }
+        }
+
+        private ConcurrentDictionary<long, long> GetChannel(NetworkChannelType channelType)
+        {
+            var channel = _clientToPlayer.GetOrAdd(channelType, []);
+            return channel;
         }
 
         private void OnClientConnected(NetworkChannelType channelType, long clientId)
@@ -216,8 +243,13 @@ namespace WOTRMultiplayer.Networking
             var connection = new ClientConnection { ChannelType = channelType, ClientId = clientId };
             _playerToClient.TryAdd(playerId, connection);
 
-            var channel = _clientToPlayer.GetOrAdd(channelType, []);
-            channel.TryAdd(clientId, playerId);
+            var channel = GetChannel(channelType);
+            if (!channel.TryAdd(clientId, playerId))
+            {
+                Logger.LogError("Duplicate client. Channel={Channel}, ClientId={ClientId}", channelType, clientId);
+                return;
+            }
+
             Logger.LogInformation("Player Id has been assigned. Channel={Channel}, ChannelClientId={ChannelClientId}, PlayerId={PlayerId}", channelType, clientId, playerId);
 
             OnPlayerConnected?.Invoke(playerId);
