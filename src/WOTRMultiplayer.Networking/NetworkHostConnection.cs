@@ -58,6 +58,7 @@ namespace WOTRMultiplayer.Networking
 
             _nextClientId = 0;
             _playerToClient.Clear();
+            _clientToPlayer.Clear();
             _networkServer.Reset();
         }
 
@@ -74,10 +75,10 @@ namespace WOTRMultiplayer.Networking
             switch (channel)
             {
                 case NetworkChannelType.TCP:
-                    _networkServer.Send(clientId, message);
+                    _networkServer.Send(clientId.Value, message);
                     break;
                 case NetworkChannelType.P2P:
-                    ExternalConnectionService.Send(clientId, message);
+                    ExternalConnectionService.Send(clientId.Value, message);
                     break;
                 default:
                     Logger.LogError("Unable to send to unknown channel type. ChannelType={ChannelType}", channel);
@@ -89,16 +90,18 @@ namespace WOTRMultiplayer.Networking
         {
             if (!TryGetChannelInfo(playerId, out var channel, out var clientId))
             {
-                Logger.LogError("Unable to broadcast because excluded player is not registered. PlayerId={PlayerId}", playerId);
-                return;
+                // player is already disconnected, it is safe to make global broadcast
+                Logger.LogWarning("Trying to broadcast with not registered excluded player. PlayerId={PlayerId}", playerId);
+                channel = null;
+                clientId = int.MinValue; // doesn't really matter
             }
 
             Logger.LogObject(LogLevel.Information, "Sending {MessageType} to all EXCEPT Player={PlayerId}.", message, clientId);
 
-            BroadcastExcept(channel, clientId, message);
+            BroadcastExcept(channel, clientId.Value, message);
         }
 
-        private void BroadcastExcept(NetworkChannelType channel, long clientId, object message)
+        private void BroadcastExcept(NetworkChannelType? channel, long clientId, object message)
         {
             switch (channel)
             {
@@ -109,6 +112,10 @@ namespace WOTRMultiplayer.Networking
                 case NetworkChannelType.P2P:
                     _networkServer.Broadcast(message);
                     ExternalConnectionService.BroadcastExcept(clientId, message);
+                    break;
+                case null:
+                    _networkServer.Broadcast(message);
+                    ExternalConnectionService.Broadcast(message);
                     break;
                 default:
                     Logger.LogError("Unable to broadcast to unknown channel type. ChannelType={ChannelType}", channel);
@@ -171,7 +178,7 @@ namespace WOTRMultiplayer.Networking
             OnExternalConnectivityUpdated?.Invoke(true, null);
         }
 
-        private bool TryGetChannelInfo(long playerId, out NetworkChannelType channel, out long clientId)
+        private bool TryGetChannelInfo(long playerId, out NetworkChannelType? channel, out long? clientId)
         {
             if (!_playerToClient.TryGetValue(playerId, out var connection))
             {

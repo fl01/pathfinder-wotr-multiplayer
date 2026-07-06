@@ -111,10 +111,17 @@ namespace WOTRMultiplayer.Networking
             _networkClient.OnConnected = OnTcpClientConnected;
 
             ExternalConnectionService.OnError = OnExternalConnectionError;
-            ExternalConnectionService.OnPeerConnected = OnExternalConnection;
+            ExternalConnectionService.OnPeerConnected = OnPeerConnected;
+            ExternalConnectionService.OnPeerDisconnected = OnPeerDisconnected;
         }
 
-        private void OnExternalConnection(int peerId, string gameCode)
+        private void OnPeerDisconnected(int peerId)
+        {
+            var error = new NetworkError(NetworkErrorType.Disconnected);
+            OnError?.Invoke(error);
+        }
+
+        private void OnPeerConnected(int peerId, string gameCode)
         {
             ExternalConnectionService.TerminateCoordinationAsync();
 
