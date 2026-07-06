@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
@@ -17,6 +18,9 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
         private IPeerToPeerCoordinator _peerToPeerCoordinator;
         private Uri _baseUrl;
         private string _latestGameCode;
+        private bool _isSilentP2PIntroduction = true;
+
+        private CancellationTokenSource _joiningTimeout;
 
         public Action<string> OnGameCodeChanged { get; set; }
 
@@ -116,7 +120,16 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         private void OnPeerConnectedEvent(int peerId)
         {
+            ResetJoiningTimeout();
+
             OnPeerConnected?.Invoke(peerId, _latestGameCode);
+        }
+
+        private void ResetJoiningTimeout()
+        {
+            _joiningTimeout?.Cancel();
+            _joiningTimeout?.Dispose();
+            _joiningTimeout = null;
         }
 
         private void OnPeerDisconnectedEvent(int peerId)
@@ -161,6 +174,8 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
                 Password = password,
             };
 
+            _isSilentP2PIntroduction = false;
+
             _logger.LogInformation("Joining game. Code={Code}, HasPassword={HasPassword}", joinGameMessage.Code, !string.IsNullOrEmpty(joinGameMessage.Password));
             await _peerToPeerCoordinator.SendAsync(joinGameMessage);
         }
@@ -204,6 +219,8 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         private Task OnGameCreatedAsync(GameCreatedMessage message)
         {
+            _isSilentP2PIntroduction = true;
+
             _latestGameCode = message.Game.Code;
             OnGameCodeChanged?.Invoke(_latestGameCode);
             return Task.CompletedTask;
@@ -215,6 +232,14 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
             if (string.IsNullOrEmpty(_latestGameCode))
             {
                 _latestGameCode = message.GameCode;
+            }
+
+            if (!_isSilentP2PIntroduction)
+            {
+                ResetJoiningTimeout();
+                _joiningTimeout = new CancellationTokenSource();
+                Task.Delay(TimeSpan.FromSeconds(15), _joiningTimeout.Token)
+                    .ContinueWith(_ => OnError.Invoke(new NetworkError(NetworkErrorType.P2PTimeout)), TaskContinuationOptions.OnlyOnRanToCompletion);
             }
 
             _peerToPeerClient.Introduce(_baseUrl.Host, message.Port, message.SessionId);
