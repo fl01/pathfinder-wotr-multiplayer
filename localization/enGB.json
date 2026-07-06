@@ -167,7 +167,7 @@
             "networking": {
                 "title": "Networking - Local server",
                 "subsections": {
-                    "P2P": "Networking - Peer to Peer"
+                    "P2P": "Networking - Peer-to-Peer"
                 },
                 "host": {
                     "title": "Host",
