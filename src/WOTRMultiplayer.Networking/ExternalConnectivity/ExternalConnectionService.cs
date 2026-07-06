@@ -30,7 +30,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         public bool IsConnecting { get; private set; }
 
-        public Action<int> OnPeerConnected { get; set; }
+        public Action<int, string> OnPeerConnected { get; set; }
 
         public Action<int> OnPeerDisconnected { get; set; }
 
@@ -110,7 +110,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         private void OnPeerConnectedEvent(int peerId)
         {
-            OnPeerConnected?.Invoke(peerId);
+            OnPeerConnected?.Invoke(peerId, _latestGameCode);
         }
 
         private void OnPeerDisconnectedEvent(int peerId)
@@ -205,6 +205,12 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         private Task OnBeginConnectingAsync(BeginConnectingMessage message)
         {
+            // this is applicable only to the client, since the host creates the game and sets the game code when connecting to the coordinator
+            if (string.IsNullOrEmpty(_latestGameCode))
+            {
+                _latestGameCode = message.GameCode;
+            }
+
             _peerToPeerClient.Introduce(_baseUrl.Host, message.Port, message.SessionId);
             return Task.CompletedTask;
         }

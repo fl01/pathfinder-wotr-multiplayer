@@ -23,7 +23,7 @@ namespace WOTRMultiplayer.Networking
 
         public Action<NetworkError> OnError { get; set; }
 
-        public Action<EndPoint> OnConnected { get; set; }
+        public Action<EndPoint, string> OnConnected { get; set; }
 
         public NetworkClientConnection(
             ILogger<NetworkClientConnection> logger,
@@ -84,6 +84,9 @@ namespace WOTRMultiplayer.Networking
 
         protected override void OnMessageReceived(NetworkMessageMetadata networkMessageMetadata)
         {
+            // star topology = no direct connections between clients = single connection to host 
+            networkMessageMetadata.PlayerId = NetworkConstants.HostPlayerId;
+
             // no need to deal with channels here, as clients only ever have a single connection
             if (networkMessageMetadata.Message is IAwaitableResponse awaitableResponse)
             {
@@ -105,9 +108,20 @@ namespace WOTRMultiplayer.Networking
         private void SetupEventHandlers()
         {
             _networkClient.OnError = OnTcpClientError;
-            _networkClient.OnConnected = endpoint => OnConnected?.Invoke(endpoint);
+            _networkClient.OnConnected = OnTcpClientConnected;
 
             ExternalConnectionService.OnError = OnExternalConnectionError;
+            ExternalConnectionService.OnPeerConnected = OnExternalConnection;
+        }
+
+        private void OnExternalConnection(int peerId, string gameCode)
+        {
+            OnConnected?.Invoke(null, gameCode);
+        }
+
+        private void OnTcpClientConnected(EndPoint endPoint)
+        {
+            OnConnected?.Invoke(endPoint, null);
         }
 
         private void OnTcpClientError(Exception exception)

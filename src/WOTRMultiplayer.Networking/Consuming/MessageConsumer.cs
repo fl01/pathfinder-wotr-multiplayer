@@ -89,7 +89,7 @@ namespace WOTRMultiplayer.Networking.Consuming
                     {
                         try
                         {
-                            handler.Value.Invoke(metadata.ClientId, metadata.Message);
+                            handler.Value.Invoke(metadata.PlayerId, metadata.Message);
                         }
                         catch (Exception ex)
                         {

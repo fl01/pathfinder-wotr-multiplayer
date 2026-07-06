@@ -8,6 +8,8 @@
 
         UnreachableSignalingServer,
         GameHostUnavailable,
-        GameNotFound
+        GameNotFound,
+
+        P2PTimeout
     }
 }

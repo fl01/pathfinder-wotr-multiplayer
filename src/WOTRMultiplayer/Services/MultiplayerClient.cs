@@ -1730,15 +1730,21 @@ namespace WOTRMultiplayer.Services
             InvokeOnPlayersChanged();
         }
 
-        private void OnNetworkClientConnected(EndPoint endpoint)
+        private void OnNetworkClientConnected(EndPoint endpoint, string gameCode)
         {
             Game = new NetworkGame(null)
             {
                 Connectivity = new GameConnectivity
                 {
-                    Endpoint = endpoint
+                    Endpoint = endpoint,
+                    External = string.IsNullOrEmpty(gameCode) ? null : new ExternalConnectivity
+                    {
+                        Code = gameCode,
+                        Status = ExternalConnectivityStatus.Connected
+                    }
                 }
             };
+
             OnConnected?.Invoke(Game.Connectivity);
         }
 
@@ -1763,6 +1769,9 @@ namespace WOTRMultiplayer.Services
                     break;
                 case NetworkErrorType.GameNotFound:
                     InvokeOnNetworkError(WellKnownKeys.MultiplayerClient.Errors.GameNotFound.Key);
+                    break;
+                case NetworkErrorType.P2PTimeout:
+                    InvokeOnNetworkError(WellKnownKeys.MultiplayerClient.Errors.PeerToPeerTimeout.Key);
                     break;
                 case NetworkErrorType.Generic:
                 default:

@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Logging.Extensions;
 using WOTRMultiplayer.Networking.Abstractions;
 using WOTRMultiplayer.Networking.Abstractions.ExternalConnections;
 using WOTRMultiplayer.Networking.Consuming;
@@ -49,6 +50,8 @@ namespace WOTRMultiplayer.Networking
 
         public void Broadcast(object message)
         {
+            Logger.LogObject(LogLevel.Information, "Sending {MessageType}.", message);
+
             if (_tcpNetworkChannel.IsActive)
             {
                 _tcpNetworkChannel.Broadcast(message);

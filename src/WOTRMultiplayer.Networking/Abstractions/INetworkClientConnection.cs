@@ -15,7 +15,7 @@ namespace WOTRMultiplayer.Networking.Abstractions
 
         Action<NetworkError> OnError { get; set; }
 
-        Action<EndPoint> OnConnected { get; set; }
+        Action<EndPoint, string> OnConnected { get; set; }
 
         Task ConnectAsync(string host, int port, TimeSpan awaiterTimeout);
 

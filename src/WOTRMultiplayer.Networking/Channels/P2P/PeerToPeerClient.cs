@@ -21,7 +21,6 @@ namespace WOTRMultiplayer.Networking.Channels.P2P
         private readonly ThreadLocal<MemoryStream> _senderStream = new(() => new MemoryStream(1024));
 
         private CancellationTokenSource _updateLoop;
-
         public const string P2PKey = "WOTR";
 
         public bool IsActive => _net != null && _net.IsRunning;
