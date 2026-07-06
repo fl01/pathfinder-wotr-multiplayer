@@ -116,6 +116,8 @@ namespace WOTRMultiplayer.Networking
 
         private void OnExternalConnection(int peerId, string gameCode)
         {
+            ExternalConnectionService.TerminateCoordinationAsync();
+
             OnConnected?.Invoke(null, gameCode);
         }
 

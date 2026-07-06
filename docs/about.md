@@ -64,9 +64,16 @@ It is possible to join when the game has already started, you just need to ask s
 
 ## Networking
 
-- Direct IP Connect – works fine with local network emulators or a public/static ('white') IP from your ISP.
+### Direct IP Connect
+It works fine with local network emulators or a public/static ('white') IP from your ISP.
 
-Additional options like p2p connections ("join by game code") may come in future
+### Game Codes
+P2P connection via selected server on the Host tab
+
+`AppData\LocalLow\Owlcat Games\Pathfinder Wrath Of The Righteous\Multiplayer\servers.json` contains servers configuration. Deleting this file force mod to recreate it with a default config.
+
+You can always host/configure your own P2P server in case of any issues. Sources/Container image is available [here](https://github.com/fl01/pathfinder-wotr-multiplayer-beacon)
+
 
 ## Interface
 
