@@ -66,7 +66,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
                     ;
 
                 _peerToPeerCoordinator.OnReconnected = () => AutoCreateGameAsync(externalServerConfiguration);
-                _peerToPeerCoordinator.OnReconnecting = () => OnReconnectingCoordinator();
+                _peerToPeerCoordinator.OnReconnecting = OnReconnectingCoordinatorAsync;
 
                 await _peerToPeerCoordinator.ConnectAsync();
                 _logger.LogInformation("Connection to P2P coordinator has been established. Url={Url}, AutoCreateGame={AutoCreateGame}", fullUrl, externalServerConfiguration.AutoCreateGame);
@@ -97,7 +97,13 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
             }
         }
 
-        private async Task OnReconnectingCoordinator()
+        public Task TerminateCoordinationAsync()
+        {
+            // should never be called by a host as active connection is required so clients can join mid-game
+            return _peerToPeerCoordinator.StopAsync(code: null);
+        }
+
+        private async Task OnReconnectingCoordinatorAsync()
         {
             _latestGameCode = null;
             OnGameCodeChanged.Invoke(null);

@@ -20,6 +20,8 @@ namespace WOTRMultiplayer.Networking.Abstractions.ExternalConnections
 
         Task ConnectAsync(ExternalServerConfiguration externalServerConfiguration);
 
+        Task TerminateCoordinationAsync();
+
         void Reset();
 
         Task JoinGameAsync(string code, string password);
