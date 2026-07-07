@@ -2716,8 +2716,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     return;
                 }
 
-                var polymorpItems = GetPolymorphItems(smartItem);
-                var targetItem = polymorpItems.FirstOrDefault(i => string.Equals(i.NameForAcronym, polymorphicItem.Item.Name));
+                var polymorphicItems = GetPolymorphItems(smartItem);
+                var targetItem = polymorphicItems.FirstOrDefault(i => string.Equals(i.NameForAcronym, polymorphicItem.Item.Name));
                 if (targetItem == null)
                 {
                     _logger.LogError("Unable to create and equip polymorphic item due to missing smart item variation. UnitId={UnitId}, ItemName={ItemName}", polymorphicItem.UnitId, polymorphicItem.Item.Name);

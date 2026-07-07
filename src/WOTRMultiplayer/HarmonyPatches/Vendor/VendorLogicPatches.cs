@@ -55,7 +55,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Vendor
                 return;
             }
 
-            var transfer = CreateItemTransfer(item, count, VendorItemAction.Add, VendorItemActionTarget.Sell);
+            // bulk sell: -1 means ALL items
+            var actualCount = count == -1 ? item.Count : count;
+            var transfer = CreateItemTransfer(item, actualCount, VendorItemAction.Add, VendorItemActionTarget.Sell);
             Main.Multiplayer.OnTransferVendorItem(transfer);
         }
 
