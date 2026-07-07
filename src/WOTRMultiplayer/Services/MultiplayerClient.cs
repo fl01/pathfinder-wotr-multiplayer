@@ -1756,9 +1756,12 @@ namespace WOTRMultiplayer.Services
                     InvokeOnNetworkError(WellKnownKeys.MultiplayerClient.Errors.NetworkError.Key, networkError.SocketError.Value);
                     break;
                 case NetworkErrorType.Disconnected:
-                    // TODO: make a proper cleanup to unblock all possible UI elements as client is in single-player now
-                    Game.Players.Clear();
-                    UpdateRespecWindowStateOnPlayerLeave(Game.LocalPlayerId);
+                    if (Game?.Players != null)
+                    {
+                        // TODO: make a proper cleanup to unblock all possible UI elements as client is in single-player now
+                        Game.Players.Clear();
+                        UpdateRespecWindowStateOnPlayerLeave(Game.LocalPlayerId);
+                    }
                     InvokeOnNetworkError(WellKnownKeys.MultiplayerClient.Errors.Disconnected.Key);
                     break;
                 case NetworkErrorType.UnreachableSignalingServer:
