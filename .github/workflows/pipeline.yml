@@ -36,6 +36,7 @@ jobs:
           baseRun=757
           echo "GitHub Run: ${{ github.run_number }}"
           versionRunNumber=$(( ${{ github.run_number }} - baseRun ))
+          versionRunNumber=$(( versionRunNumber < 0 ? 0 : versionRunNumber ))
           echo "Version Run: $versionRunNumber"
           
           assemblyVersion="${majorMinor}.${versionRunNumber}"
