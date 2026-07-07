@@ -27,21 +27,27 @@ jobs:
       - name: Read current version
         id: json-version-parser
         run: |
-          baseFullVersion=$(jq '.version' ${{ env.INFO_PATH }} | tr -d '"')
-          echo 'Info Json Version: ' $baseFullVersion
-          majorMinor=$(echo "${baseFullVersion%.*}")
-          echo 'MajorMinorVersion: ' $majorMinor
-          assemblyVersion=$(echo $majorMinor.${{ github.run_number }})
-          releaseVersion=$assemblyVersion
+          baseFullVersion=$(jq -r '.version' "${{ env.INFO_PATH }}")
+          echo "Info Json Version: $baseFullVersion"
+          majorMinor="${baseFullVersion%.*}"
+          echo "MajorMinorVersion: $majorMinor"
+          
+          # github run offset so the next run becomes version 1
+          baseRun=757
+          echo "GitHub Run: ${{ github.run_number }}"
+          versionRunNumber=$(( ${{ github.run_number }} - baseRun ))
+          echo "Version Run: $versionRunNumber"
+          
+          assemblyVersion="${majorMinor}.${versionRunNumber}"
+          releaseVersion="$assemblyVersion"
           if [[ "${{ github.ref_name }}" == features/* ]]; then
             releaseVersion="${releaseVersion}-alpha"
           fi
-          
-          echo 'Release Version: ' $releaseVersion
-          echo "releaseVersion=$releaseVersion" >> $GITHUB_OUTPUT
 
-          echo 'Assembly Version: ' $assemblyVersion
-          echo "assemblyVersion=$assemblyVersion" >> $GITHUB_OUTPUT
+          echo "Release Version: $releaseVersion"
+          echo "releaseVersion=$releaseVersion" >> "$GITHUB_OUTPUT"
+          echo "Assembly Version: $assemblyVersion"
+          echo "assemblyVersion=$assemblyVersion" >> "$GITHUB_OUTPUT"
 
   build:
     needs: [get-version]
