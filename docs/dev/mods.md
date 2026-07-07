@@ -64,10 +64,10 @@ You can override the lifetime if necessary, but in most cases it should be taken
 
 ## Network Messages
 
-In most cases, you will work with `INetworkServer` or `INetworkClient`. These provide direct access to network layer, allowing you to listen to existing messages or send custom ones.
+In most cases, you will need to use `INetworkHostConnection` or `INetworkClientConnection`. These provide direct access to the network layer while encapsulating everything to work with both connection types (TcpServer/P2P), allowing you to listen to existing messages or send custom ones.
 
 ### Reacting to existing messages
-Both `INetworkServer`/`INetworkClient` implement `INetworkReceiver` which has a method that can be used to subscribe to incoming messages
+Both `INetworkHostConnection`/`INetworkClientConnection` implement `INetworkConnection` which has a method that can be used to subscribe to incoming messages
 ```csharp
 On<TMessage>(Action<long, TMessage> messageHandler, MessageHandlerPriority priority)
 ```
