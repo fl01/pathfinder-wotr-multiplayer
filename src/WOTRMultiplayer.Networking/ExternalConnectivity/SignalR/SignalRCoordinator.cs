@@ -72,7 +72,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.SignalR
             _hub.Reconnected -= OnHubReconnected;
             _hub.Reconnecting -= OnHubReconnecting;
 
-            if (_hub.State == HubConnectionState.Connected)
+            if (_hub.State == HubConnectionState.Connected && !string.IsNullOrEmpty(code))
             {
                 var terminateGame = new TerminateGameMessage
                 {
