@@ -239,7 +239,12 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
                 ResetJoiningTimeout();
                 _joiningTimeout = new CancellationTokenSource();
                 Task.Delay(TimeSpan.FromSeconds(15), _joiningTimeout.Token)
-                    .ContinueWith(_ => OnError.Invoke(new NetworkError(NetworkErrorType.P2PTimeout)), TaskContinuationOptions.OnlyOnRanToCompletion);
+                    .ContinueWith(_ =>
+                    {
+                        IsConnecting = false;
+                        OnError.Invoke(new NetworkError(NetworkErrorType.P2PTimeout));
+                    }
+                    , TaskContinuationOptions.OnlyOnRanToCompletion);
             }
 
             _peerToPeerClient.Introduce(_baseUrl.Host, message.Port, message.SessionId);
