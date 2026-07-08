@@ -19,12 +19,13 @@ Look [here](/docs/about.md) for more details
 - Game Version/DLC/Mods should match across players.
 
 ### How to connect
-It works with a `Direct IP` connection by default. This means you either have a public IP or use network emulators (Hamachi, ZeroTier/Radmin VPN/anything you like) to be able to connect. Default networking configuration covers the most common needs, but you are free to configure specifics in the Settings -> Multiplayer tab.
+It works with a `Direct IP` connection by default. This means you either need a public IP or have to use network emulators (Hamachi, ZeroTier, Radmin VPN, or anything you like) to be able to connect. The default networking configuration covers the most common needs, but you are free to configure specific settings in **Settings → Multiplayer**.
 
-However, you could select the `Share Game Online` option when hosting a game. That uses the selected server to provide a "Game Code" connection. The host will receive a Game Code (visible on the lobby screen) that can be used to connect. Game Code allows you to establish `P2P connection` aka direct connection without the need to be in the same network. The downside is that this might not be available for everyone simply because of network equipment/configuration.
-There is only one "official" server available as of now, which is hosted in the EU, but it could be used anywhere as it doesn't affect your "final" in-game latency whatsoever
+Additionally, you can select the `Share Game Online` option when hosting a game. This uses the selected server to provide a `Game Code` connection. The host will receive a Game Code (visible on the lobby screen) that can be used by others to connect. A Game Code allows you to establish a `P2P connection` (a direct connection) without the need to be on the same network. The downside is that this may not work for everyone due to network equipment or configuration.
 
-Anyway, in case of any issues with P2P itself or official server (it could be bugged/overloaded/shutdown/etc) your only option is to rely on `Direct IP` + network emulators option.
+There is only one "official" server available as of now, hosted in the EU, but it can be used from anywhere since it doesn't affect your actual in-game latency whatsoever.
+
+In any case, if you encounter issues with P2P itself or the official server (it could be bugged, overloaded, offline, etc.), your only option is to rely on `Direct IP` together with network emulators.
 
 More details regarding p2p server/hosting your own server is available [here](/docs/about.md#game-codes)
 
