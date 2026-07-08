@@ -59,6 +59,8 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity.SignalR
                 Data = JsonSerializer.SerializeToElement(message)
             };
 
+            _logger.LogInformation("Sending message. Type={Type}, Version={Version}", envelope.Type, envelope.Version);
+
             return _hub.SendAsync(DispatchMethodName, envelope);
         }
 
