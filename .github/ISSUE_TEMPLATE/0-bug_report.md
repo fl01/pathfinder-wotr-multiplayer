@@ -10,8 +10,8 @@ assignees: ''
 **Describe the bug**
 A clear and concise description of what the bug is.
 
-**Number of Players**
-The number of players in the game
+**Number of Players / Connection Method**
+For example: 2 players (Game Codes) or 3 players (Direct IP + Game Codes)
 
 **To Reproduce**
 Steps to reproduce the behavior:
@@ -30,9 +30,10 @@ If applicable, add screenshots to help explain your problem.
 if any
 
 **Save File**
-attach a save file to help reproduce the issue
+It's not usually required, but having a save made close to where the bug occurs helps a lot with reproducing and fixing the problem. 
+Feel free to zip it if the `.zks` file can't be attached
 
 **Logs**
-attach logs if any
+if available, please attach the logs. Having logs from both the host and the client helps a lot.
 - Mod Logs - `Pathfinder Second Adventure\Mods\WOTRMultiplayer\logs`
 - Game Logs - `AppData\LocalLow\Owlcat Games\Pathfinder Wrath Of The Righteous` - `GameLog.txt` and `Player.log`
