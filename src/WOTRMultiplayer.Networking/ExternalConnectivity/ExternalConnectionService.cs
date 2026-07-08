@@ -120,6 +120,8 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         private void OnPeerConnectedEvent(int peerId)
         {
+            IsConnecting = false;
+
             ResetJoiningTimeout();
 
             OnPeerConnected?.Invoke(peerId, _latestGameCode);
