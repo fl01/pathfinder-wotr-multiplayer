@@ -18,7 +18,7 @@ Look [here](/docs/about.md) for more details
 - There are no changes to content, balance or how mythic paths/companions work.
 - Game Version/DLC/Mods should match across players.
 
-### How to connect
+## How to connect
 It works with a `Direct IP` connection by default. This means you either need a public IP or have to use network emulators (Hamachi, ZeroTier, Radmin VPN, or anything you like) to be able to connect. The default networking configuration covers the most common needs, but you are free to configure specific settings in **Settings → Multiplayer**.
 
 Additionally, you can select the `Share Game Online` option when hosting a game. This uses the selected server to provide a `Game Code` connection. The host will receive a Game Code (visible on the lobby screen) that can be used by others to connect. A Game Code allows you to establish a `P2P connection` (a direct connection) without the need to be on the same network. The downside is that this may not work for everyone due to network equipment or configuration.
@@ -29,5 +29,8 @@ In any case, if you encounter issues with P2P itself or the official server (it 
 
 More details regarding p2p server/hosting your own server is available [here](/docs/about.md#game-codes)
 
-### Troubleshooting
+## Troubleshooting
 Refer to [troubleshooting](/docs/troubleshooting.md) if you are having any problems launching the mod
+
+## Misc
+If you want to use [BubbleBuffs](https://github.com/factubsio/BubbleBuffs), a multiplayer compatibility mod is available [here](https://github.com/fl01/pathfinder-wotr-multiplayer-bubblebuffs)
