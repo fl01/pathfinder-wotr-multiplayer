@@ -19,15 +19,19 @@ Look [here](/docs/about.md) for more details
 - Game Version/DLC/Mods should match across players.
 
 ## How to connect
-It works with a `Direct IP` connection by default. This means you either need a public IP or have to use network emulators (Hamachi, ZeroTier, Radmin VPN, or anything you like) to be able to connect. The default networking configuration covers the most common needs, but you are free to configure specific settings in **Settings → Multiplayer**.
+The mod adds a "Multiplayer" menu to the Main Menu. Use it to access multiplayer features.
 
-Additionally, you can select the `Share Game Online` option when hosting a game. This uses the selected server to provide a `Game Code` connection. The host will receive a Game Code (visible on the lobby screen) that can be used by others to connect. A Game Code allows you to establish a `P2P connection` (a direct connection) without the need to be on the same network. The downside is that this may not work for everyone due to network equipment or configuration.
+It works with a `Direct IP` connection by default. This means you either need a public IP or have to use network emulators (Hamachi, ZeroTier, Radmin VPN, or anything you like) to be able to connect. The default networking configuration covers the most common needs, but you are free to configure specific settings in **Settings -> Multiplayer**.
 
-There is only one "official" server available as of now, hosted in the EU, but it can be used from anywhere since it doesn't affect your actual in-game latency whatsoever.
+Additionally, you can select the **Share Game Online** option when hosting a game. This uses the selected server to provide a `Game Code` connection. The host will receive a Game Code (visible on the lobby screen) that can be used by others to connect. A Game Code allows you to establish a `P2P connection` (direct connection) without the need to be on the same network. The downside is that this may not work for everyone due to network equipment or configuration.
 
-In any case, if you encounter issues with P2P itself or the official server (it could be bugged, overloaded, offline, etc.), your only option is to rely on `Direct IP` together with network emulators.
+There is currently one public server, hosted in the EU. It is only used to help players connect, so its location doesn't affect actual in-game latency.
 
-More details regarding p2p server/hosting your own server is available [here](/docs/about.md#game-codes)
+If you encounter issues with P2P itself or the public server (it could be bugged, overloaded, offline, etc.), your only option is to use **Direct IP** together with network emulators.
+
+It is also possible to play in a mixed mode, where some players connect via Game Code and others via Direct IP
+
+More details regarding p2p server/hosting your own server are available [here](/docs/about.md#game-codes)
 
 ## Troubleshooting
 Refer to [troubleshooting](/docs/troubleshooting.md) if you are having any problems launching the mod
