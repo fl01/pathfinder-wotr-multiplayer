@@ -135,7 +135,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             _gameStateLookupService = gameStateLookupService;
         }
 
-        public NetworkCampingState GetCampigState()
+        public NetworkCampingState GetCampingState()
         {
             var camping = Game.Instance.Player.Camping;
             var state = new NetworkCampingState
@@ -201,7 +201,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 _logger.LogInformation("Interacting with object via OvertipVM", mapObject.UniqueId);
                 // overtips are created by game on demand, but we need to make sure overtip exists
                 var overtipVM = new EntityOvertipVM(mapObject, OvertipsView.Instance.ViewModel);
-                // TODO: maybe get exact interactionpart
+                // TODO: maybe get exact interaction part
                 overtipVM.Interact(mapObject.Interactions.FirstOrDefault());
                 overtipVM.Dispose();
             });
@@ -583,7 +583,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    var lookupTargets = GetLootableEntitiesInventory(networkItemsTransfer.Source);
+                    var lookupTargets = GetLootableEntityInventories(networkItemsTransfer.Source);
 
                     Dictionary<NetworkItem, List<ItemEntity>> matchedItems = null;
                     var sourceCollection = lookupTargets.FirstOrDefault(x => TryFindRequiredItemsInCollection(x, networkItemsTransfer.Items, out matchedItems));
@@ -603,7 +603,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                     var destinationCollection = networkItemsTransfer.Destination == null ?
                         Game.Instance.Player.Inventory
-                        : GetLootableEntitiesInventory(networkItemsTransfer.Destination).FirstOrDefault();
+                        : GetLootableEntityInventories(networkItemsTransfer.Destination).FirstOrDefault();
 
                     if (destinationCollection == null)
                     {
@@ -759,7 +759,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 return null;
             }
 
-            // let's just hope that order is the same everytime on everyclient
+            // let's just hope that order is the same every on every client
             var sameTypeItems = slot.Owner.Unit.Body.EquipmentSlots
                 .Where(s => s.GetType() == slot.GetType())
                 .ToList();
@@ -819,7 +819,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                         return;
                     }
 
-                    // Split only works if count > 1, so it's safe to split everytime
+                    // Split only works if count > 1, so it's safe to split every time
                     item = sameItem.Split(1);
                 }
 
@@ -1007,10 +1007,10 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     return;
                 }
 
-                var stealhedUnitId = _gameStateLookupService.GetUnitEntity(networkStealthPerceptionCheck.StealthedUnitId);
-                if (stealhedUnitId == null)
+                var stealthedUnitId = _gameStateLookupService.GetUnitEntity(networkStealthPerceptionCheck.StealthedUnitId);
+                if (stealthedUnitId == null)
                 {
-                    _logger.LogError("Unable to apply stealth perception check due to missing stealther unit. StealthedUnitId={StealthedUnitId}", networkStealthPerceptionCheck.StealthedUnitId);
+                    _logger.LogError("Unable to apply stealth perception check due to missing stealthed unit. StealthedUnitId={StealthedUnitId}", networkStealthPerceptionCheck.StealthedUnitId);
                     return;
                 }
 
@@ -1024,23 +1024,23 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 perceptionCheck = Rulebook.Trigger(perceptionCheck);
 
                 // using UnitStealthController.TickUnit as a reference
-                EventBus.RaiseEvent<IUnitInStealthSpottedHandler>(x => x.HandleUnitInStealthSpotted(stealhedUnitId, perceptionCheck));
-                if (stealhedUnitId.Stealth.AddSpottedBy(initiatorUnitId))
+                EventBus.RaiseEvent<IUnitInStealthSpottedHandler>(x => x.HandleUnitInStealthSpotted(stealthedUnitId, perceptionCheck));
+                if (stealthedUnitId.Stealth.AddSpottedBy(initiatorUnitId))
                 {
-                    EventBus.RaiseEvent<IUnitSpottedHandler>(x => x.HandleUnitSpotted(stealhedUnitId, initiatorUnitId));
+                    EventBus.RaiseEvent<IUnitSpottedHandler>(x => x.HandleUnitSpotted(stealthedUnitId, initiatorUnitId));
                 }
 
-                if (UnitStealthController.SpotterBreaksStealth(stealhedUnitId, initiatorUnitId))
+                if (UnitStealthController.SpotterBreaksStealth(stealthedUnitId, initiatorUnitId))
                 {
-                    stealhedUnitId.Descriptor.State.IsInStealth = false;
-                    stealhedUnitId.Stealth.Clear();
-                    if (stealhedUnitId.IsPlayerFaction)
+                    stealthedUnitId.Descriptor.State.IsInStealth = false;
+                    stealthedUnitId.Stealth.Clear();
+                    if (stealthedUnitId.IsPlayerFaction)
                     {
-                        stealhedUnitId.Stealth.WantEnterStealth = false;
+                        stealthedUnitId.Stealth.WantEnterStealth = false;
                     }
                 }
 
-                _logger.LogInformation("Stealth perception check has been applied. InitiatorId={InitiatorId}, StealthedUnitId={StealthedUnitId}", initiatorUnitId, stealhedUnitId);
+                _logger.LogInformation("Stealth perception check has been applied. InitiatorId={InitiatorId}, StealthedUnitId={StealthedUnitId}", initiatorUnitId, stealthedUnitId);
             });
         }
 
@@ -1603,7 +1603,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Unable to interrupd bark. NetworkBanterKey={NetworkBanterKey}, NetworkSpeakerUnitId={NetworkSpeakerUnitId}", networkRestBanter.Key, networkRestBanter.SpeakerUnitId);
+                    _logger.LogError(ex, "Unable to interrupt bark. NetworkBanterKey={NetworkBanterKey}, NetworkSpeakerUnitId={NetworkSpeakerUnitId}", networkRestBanter.Key, networkRestBanter.SpeakerUnitId);
                     throw;
                 }
             });
@@ -1617,7 +1617,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 {
                     if (networkVendorItemTransfer.ItemActionTarget == VendorItemActionTarget.Sell && networkVendorItemTransfer.ItemAction == VendorItemAction.Add)
                     {
-                        // add for sell is different due to unsynced state of the player's inventory
+                        // add for sell is different due to not synced nature of the player's inventory
                         AddItemToVendorSellCollection(networkVendorItemTransfer);
                         RefreshVendorScreen();
                         return;
@@ -1643,7 +1643,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error while transfering vendor items");
+                    _logger.LogError(ex, "Error while transferring vendor items");
                     throw;
                 }
             });
@@ -1699,7 +1699,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 var spellSlot = _gameStateLookupService.GetSpellSlot(spellbook, networkSpellSlot, networkAbility.SpellLevel);
                 if (spellSlot == null)
                 {
-                    _logger.LogError("Unable to find spellslot to forget. UnitId={UnitId}, SpellbookId={SpellbookId}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}", unitId, networkAbility.SpellbookId, networkSpellSlot?.Index, networkSpellSlot?.Type);
+                    _logger.LogError("Unable to find spell slot to forget. UnitId={UnitId}, SpellbookId={SpellbookId}, SpellSlotIndex={SpellSlotIndex}, SpellSlotType={SpellSlotType}", unitId, networkAbility.SpellbookId, networkSpellSlot?.Index, networkSpellSlot?.Type);
                     return;
                 }
 
@@ -2311,7 +2311,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 var unit = _gameStateLookupService.GetUnitEntity(autoUseAbility.UnitId);
                 if (unit == null)
                 {
-                    _logger.LogError("Unable to change autouse ability due to missing unit. UnitId={UnitId}", autoUseAbility.UnitId);
+                    _logger.LogError("Unable to change auto-use ability due to missing unit. UnitId={UnitId}", autoUseAbility.UnitId);
                     return;
                 }
 
@@ -2530,7 +2530,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     items = Game.Instance.Player.Inventory;
                 }
 
-                var item = items.FirstOrDefault(i => IsSameUnholdedItem(i, networkItem) && i.Get<ItemPartShowInfoCallback>() != null);
+                var item = items.FirstOrDefault(i => IsSameItemNotHeld(i, networkItem) && i.Get<ItemPartShowInfoCallback>() != null);
                 if (item == null)
                 {
                     _logger.LogError("Unable to find item to read. ItemId={ItemId}, ItemName={ItemName}", networkItem.Id, networkItem.Name);
@@ -2787,7 +2787,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 view.m_FinalIslandItemView.m_IslandButton.Interactable = !view.ViewModel.IsTraveling.Value && view.m_FinalIslandItemView.ViewModel.m_IslandState.MayBeVisitedNow && isInteractable;
             }
 
-            _logger.LogInformation("Island Map transitikon state has been updated. IsInteractable={IsInteractable}, ReadyPlayers={ReadyPlayers}, TotalPlayers={TotalPlayers}", isInteractable, readyPlayersCount, totalPlayersCount);
+            _logger.LogInformation("Island Map transition state has been updated. IsInteractable={IsInteractable}, ReadyPlayers={ReadyPlayers}, TotalPlayers={TotalPlayers}", isInteractable, readyPlayersCount, totalPlayersCount);
         }
 
         private void UpdateCapitalCityTransitionMap(TransitionPCView view, bool isInteractable, int readyPlayersCount, int totalPlayersCount)
@@ -2870,7 +2870,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             matchedItems = [];
             foreach (var item in items)
             {
-                var existingItems = collection.Items.Where(x => IsSameUnholdedItem(x, item)).ToList();
+                var existingItems = collection.Items.Where(x => IsSameItemNotHeld(x, item)).ToList();
                 var existingItemsCount = existingItems.Sum(x => x.Count);
                 if (existingItemsCount < item.Count)
                 {
@@ -3036,7 +3036,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             view.m_SecondaryUnitButton.Interactable = isInteractable;
         }
 
-        private IEnumerable<ItemsCollection> GetLootableEntitiesInventory(NetworkLootableEntity lootableEntity)
+        private IEnumerable<ItemsCollection> GetLootableEntityInventories(NetworkLootableEntity lootableEntity)
         {
             if (lootableEntity == null)
             {
@@ -3336,7 +3336,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             }
         }
 
-        private bool IsSameUnholdedItem(ItemEntity itemEntity, NetworkItem networkLootItem)
+        private bool IsSameItemNotHeld(ItemEntity itemEntity, NetworkItem networkLootItem)
         {
             // dead units retain it's holding state
             return (itemEntity.Owner != null && itemEntity.Owner.State.IsFinallyDead || itemEntity.HoldingSlot == null) && IsSameItem(itemEntity, networkLootItem);

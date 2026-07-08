@@ -75,7 +75,7 @@ namespace WOTRMultiplayer.Services.PubSub
                     return;
                 }
 
-                var state = _gameInteractionService.GetCampigState();
+                var state = _gameInteractionService.GetCampingState();
 
                 ActorAccessor.Host.OnCampingStateChanged(state);
             }

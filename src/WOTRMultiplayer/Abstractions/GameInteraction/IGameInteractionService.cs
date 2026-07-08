@@ -147,7 +147,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void UpdateZoneLootUI(bool isInteractable, int readyPlayersCount, int totalPlayersCount);
 
-        NetworkCampingState GetCampigState();
+        NetworkCampingState GetCampingState();
 
         void UpdateZoneLootRemoveToggle(bool removeLoot);
 

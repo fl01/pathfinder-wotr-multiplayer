@@ -12,7 +12,7 @@ namespace WOTRMultiplayer.Playground.Host
         {
         }
 
-        [Verb("loaded", HelpText = "send gameloaded event")]
+        [Verb("loaded", HelpText = "send GameLoaded event")]
         public class AreaLoadedCommandVerb
         {
         }

@@ -121,7 +121,7 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public NetworkCampingState GetCampigState()
+        public NetworkCampingState GetCampingState()
         {
             return null;
         }
