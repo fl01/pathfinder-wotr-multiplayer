@@ -1,0 +1,36 @@
+name: "OnRelease"
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. 1.2.3)"
+        required: true
+        type: string
+jobs:
+  nexusmods:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.tag }}
+      FILE_NAME: wotr-multiplayer-${{ github.event_name == 'release' && github.event.release.tag_name || inputs.tag }}.zip
+    steps:
+      - name: download zip
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! gh release download "$TAG" \
+                --repo "${{ github.repository }}" \
+                --pattern "$FILE_NAME"; then
+            echo "::warning::Release asset '$FILE_NAME' not found."
+            exit 1
+          fi
+      # - name: upload
+      #   uses: Nexus-Mods/upload-action@v1
+      #   with:
+      #     api_key: ${{ secrets.NEXUSMODS_API_KEY }}
+      #     file_id: ${{ vars.NEXUSMODS_FILE_ID }}
+      #     filename: ${{ env.FILE_NAME }}
+      #     version: ${{ env.TAG }}
+      #     primary_mod_manager_download: true
