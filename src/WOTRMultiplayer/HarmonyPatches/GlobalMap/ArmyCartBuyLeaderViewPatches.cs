@@ -41,11 +41,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
         [HarmonyPostfix]
         public static void ArmyCartBuyLeaderView_BindViewImplementation_Postfix(ArmyCartBuyLeaderView __instance)
         {
-            if (!Main.Multiplayer.IsActive)
-            {
-                return;
-            }
-
+            // OnRecruitCommand handles both single/multi player
             __instance.AddDisposable(__instance.ViewModel.OnRecruitCommand.Subscribe(leader => OnRecruitCommand(leader, __instance)));
         }
 
