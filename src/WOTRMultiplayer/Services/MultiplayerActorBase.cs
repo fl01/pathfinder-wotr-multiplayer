@@ -2125,7 +2125,10 @@ namespace WOTRMultiplayer.Services
         {
             AddPlayerToTracker(Game.PlayersInGlobalMapCrusadeArmyLeaderLeveling, Game.LocalPlayerId);
 
-            var message = new NotifyGlobalMapCrusadeArmyLeaderLevelingShown();
+            var message = new NotifyGlobalMapCrusadeArmyLeaderLevelingShown
+            {
+                PlayerId = Game.LocalPlayerId
+            };
             Send(message);
 
             UpdateGlobalMapCrusadeArmyLeaderLevelingUIState();
