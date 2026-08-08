@@ -1893,12 +1893,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 };
 
                 WriteMagicHackSpell(unit, spellbook, spell, defaultBlueprint, touchBlueprint);
-
-                if (_uiAccessor.SpellbookPCView?.ViewModel != null)
-                {
-                    _uiAccessor.SpellbookPCView.ViewModel.UpdateSpellbook();
-                }
-
+                RefreshSpellbookUI();
                 _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.SpellBook.NewMagicHackSpell.Key, CombatTextSeverity.Common, new AbilityTooltipLog(spell), new AbilityLogParameter(spell.Name), new UnitLogParameter(unit.UniqueId));
                 _logger.LogInformation("Magic hack spell has been created. UnitId={UnitId}, LeftSpell={LeftSpell}, RightSpell={RightSpell}", unit.UniqueId, spell.MagicHackData.Spell1.name, spell.MagicHackData.Spell2.name);
             });
