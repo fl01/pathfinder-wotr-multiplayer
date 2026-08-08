@@ -3002,6 +3002,7 @@ namespace WOTRMultiplayer.Services
         {
             ResetGameIdGenerator();
             ResetGlobalMapCounters();
+            ResetPlayersTracker(Game.PlayersInGroupChanger);
 
             Game.ForcedPause = null;
             GameInteraction.SetPause(false);
@@ -3052,7 +3053,6 @@ namespace WOTRMultiplayer.Services
             ResetLastCombatTurn();
             ValueGenerator.ResetSeededGenerators(IdentifierLifetime.Area, IdentifierLifetime.Combat, IdentifierLifetime.CombatTurn);
 
-            ResetPlayersTracker(Game.PlayersInGroupChanger);
             ResetPlayersTracker(Game.PlayersInSkipTime);
             ResetPlayersTracker(Game.PlayersInGlobalMapLocationMessage);
             ResetPlayersTracker(Game.PlayersInZoneLoot);
