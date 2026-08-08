@@ -1238,14 +1238,20 @@ public static class WellKnownKeys
                 public static string Key { get; set; }
             }
 
+            [Description("missingMemorizationSpell")]
+            public static class MissingMemorizationSpell
+            {
+                public static string Key { get; set; }
+            }
+
             [Description("newMetamagicSpell")]
             public static class NewMetamagicSpell
             {
                 public static string Key { get; set; }
             }
 
-            [Description("missingSpell")]
-            public static class MissingSpell
+            [Description("newMagicHackSpell")]
+            public static class NewMagicHackSpell
             {
                 public static string Key { get; set; }
             }

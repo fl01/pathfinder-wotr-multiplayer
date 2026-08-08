@@ -292,7 +292,8 @@
             NotifyDungeonGameOverNewGameStarted,
             NotifyDungeonBoonSelectorShown,
             NotifyDungeonBoonSelected,
-            NotifyDungeonBoonConfirmed
+            NotifyDungeonBoonConfirmed,
+            NotifyMagicHackSpellCreated
         }
 
         public static class Mods

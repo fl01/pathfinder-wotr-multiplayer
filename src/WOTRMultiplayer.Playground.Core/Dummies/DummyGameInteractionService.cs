@@ -515,5 +515,9 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void DestroyUnits(List<string> units)
         {
         }
+
+        public void CreateMagicHackSpell(NetworkMagicHackSpell magicHackSpell)
+        {
+        }
     }
 }

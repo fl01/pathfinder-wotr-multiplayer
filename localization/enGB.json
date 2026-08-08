@@ -312,13 +312,14 @@
                 "loadingSave": "Save game load has been initiated by {0}"
             },
             "spellBook": {
-                "noSpellSlotPermission": "Changing spells is restricted to character owner only",
+                "noSpellSlotPermission": "Changing spells is restricted to the character owner",
                 "memorizedSpell": "{0} has been memorized by {1}",
                 "forgottenSpell": "{0} has been forgotten by {1}",
-                "removedCustomSpell": "Custom spell {0} has been removed from {1} spellbook",
-                "removedDuplicateMetamagicSpell": "Duplicate metamagic spell {0} has been removed from {1} spellbook.",
-                "newMetamagicSpell": "Metamagic spell {0} has been created in {1} spellbook.\nApplied metamagic: {2}",
-                "missingSpell": "Spell memorization for {0} failed due to the missing {1} spell"
+                "removedCustomSpell": "Custom spell {0} has been removed from {1}'s spellbook.",
+                "removedDuplicateMetamagicSpell": "Duplicate metamagic spell {0} has been removed from {1}'s spellbook.",
+                "missingMemorizationSpell": "Spell memorization for {0} failed because the {1} spell is missing.",
+                "newMetamagicSpell": "Metamagic spell {0} has been added to {1}'s spellbook.\nApplied metamagic: {2}",
+                "newMagicHackSpell": "Magic Hack spell {0} has been added to {1}'s spellbook."
             },
             "forcedPause": {
                 "areaLoading": "Please wait for other players to finish loading the area",

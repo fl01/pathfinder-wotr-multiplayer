@@ -365,6 +365,8 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnSpellbookMetamagicSpellCreated(NetworkMetamagicSpell metamagicSpell);
 
+        void OnSpellbookMagicHackSpellCreated(NetworkMagicHackSpell magicHackSpell);
+
         void OnRemoveCustomSpell(string unitId, NetworkAbility ability);
 
         void OnUnitInteractWithUnit(NetworkUnitInteractWithUnit networkUnitInteractWithUnit);

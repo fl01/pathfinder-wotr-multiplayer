@@ -4380,6 +4380,24 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        public void OnSpellbookMagicHackSpellCreated(NetworkMagicHackSpell magicHackSpell)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor == null)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Current.OnSpellbookMagicHackSpellCreated(magicHackSpell);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while creating magic hack spell");
+                throw;
+            }
+        }
+
         public void OnRemoveCustomSpell(string unitId, NetworkAbility ability)
         {
             try

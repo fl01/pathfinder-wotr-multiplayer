@@ -370,6 +370,12 @@ namespace WOTRMultiplayer.Config.Mapping
 
             CreateMap<NetworkBoon, Networking.Messages.Contracts.NetworkBoon>()
                 .ReverseMap();
+
+            CreateMap<NetworkMagicHackSpell, Networking.Messages.Contracts.NetworkMagicHackSpell>()
+                .ReverseMap();
+
+            CreateMap<NetworkMagicHackData, Networking.Messages.Contracts.NetworkMagicHackData>()
+                .ReverseMap();
         }
     }
 }

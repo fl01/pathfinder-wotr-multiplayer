@@ -25,6 +25,7 @@ using WOTRMultiplayer.Entities.Equipment;
 using WOTRMultiplayer.Entities.GlobalMap.Kingdom;
 using WOTRMultiplayer.Entities.MapObjects;
 using WOTRMultiplayer.Entities.NewGame;
+using WOTRMultiplayer.Entities.SpellbookManagement;
 using WOTRMultiplayer.Entities.Spells;
 using WOTRMultiplayer.Entities.Units;
 using WOTRMultiplayer.Extensions;
@@ -90,6 +91,33 @@ namespace WOTRMultiplayer.Config.Mapping
 
             CreateMap<BlueprintCampaign, NetworkCampaign>().ConstructUsing(x => Create(x))
                 .ForAllMembers(x => x.Ignore());
+
+            CreateMap<MagicHackData, NetworkMagicHackData>().ConstructUsing(Create)
+                .ForAllMembers(x => x.Ignore());
+        }
+
+        private NetworkMagicHackData Create(MagicHackData magicHackData, ResolutionContext context)
+        {
+            if (magicHackData == null)
+            {
+                return null;
+            }
+
+            var networkMagicHackData = new NetworkMagicHackData
+            {
+                Name = magicHackData.Name,
+                SpellSchool = magicHackData.SpellSchool,
+                SpellLevel = magicHackData.SpellLevel,
+                TargetType = magicHackData.SpellTargetType,
+                ThrowType = magicHackData.SavingThrowType,
+                LeftSpellBlueprintId = magicHackData.Spell1.AssetGuid.ToString(),
+                RightSpellBlueprintId = magicHackData.Spell2.AssetGuid.ToString(),
+                DeliverBlueprintId = magicHackData.DeliverBlueprint?.AssetGuid.ToString(),
+                IsTouch = magicHackData.IsTouch,
+                AdditionalAoeBlueprint = magicHackData.AdditionalAoeBlueprint?.AssetGuid.ToString()
+            };
+
+            return networkMagicHackData;
         }
 
         private NetworkCampaign Create(BlueprintCampaign blueprintCampaign)

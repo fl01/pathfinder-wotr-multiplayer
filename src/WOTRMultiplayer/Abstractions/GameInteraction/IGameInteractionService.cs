@@ -217,6 +217,8 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void CreateMetamagicSpell(NetworkMetamagicSpell metamagicSpell);
 
+        void CreateMagicHackSpell(NetworkMagicHackSpell magicHackSpell);
+
         void RemoveCustomSpell(string unitId, NetworkAbility ability);
 
         void ChooseIslandMapEntry(NetworkIslandMapTransition island);

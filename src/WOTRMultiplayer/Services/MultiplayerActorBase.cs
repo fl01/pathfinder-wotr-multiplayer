@@ -896,6 +896,15 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
+        public void OnSpellbookMagicHackSpellCreated(NetworkMagicHackSpell magicHackSpell)
+        {
+            var message = new NotifyMagicHackSpellCreated
+            {
+                MagicHackSpell = Mapper.Map<Networking.Messages.Contracts.NetworkMagicHackSpell>(magicHackSpell)
+            };
+            Send(message);
+        }
+
         /// <summary>
         /// Unlike OnRequestLevelingUI, this method is used when game is enforcing opening leveling ui
         /// State should be the same across players since it's not a result of their action
@@ -3483,6 +3492,7 @@ namespace WOTRMultiplayer.Services
                 .On<NotifySpellForgotten>(OnNotifySpellForgotten)
                 .On<NotifySpellSlotsSwapped>(OnNotifySpellSlotsSwapped)
                 .On<NotifyMetamagicSpellCreated>(OnNotifyMetamagicSpellCreated)
+                .On<NotifyMagicHackSpellCreated>(OnNotifyMagicHackSpellCreated)
                 .On<NotifyCustomSpellRemoved>(OnNotifyCustomSpellRemoved)
 
                 // vendor interaction
@@ -3716,6 +3726,13 @@ namespace WOTRMultiplayer.Services
         {
             var ability = Mapper.Map<NetworkAbility>(message.Ability);
             GameInteraction.RemoveCustomSpell(message.UnitId, ability);
+        }
+
+
+        private void OnNotifyMagicHackSpellCreated(long receivedFrom, NotifyMagicHackSpellCreated message)
+        {
+            var magicHackSpell = Mapper.Map<NetworkMagicHackSpell>(message.MagicHackSpell);
+            GameInteraction.CreateMagicHackSpell(magicHackSpell);
         }
 
         private void OnNotifyMetamagicSpellCreated(long receivedFrom, NotifyMetamagicSpellCreated message)

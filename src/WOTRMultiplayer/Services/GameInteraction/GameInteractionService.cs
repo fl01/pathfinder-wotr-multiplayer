@@ -60,6 +60,7 @@ using Kingmaker.UI.SettingsUI;
 using Kingmaker.UI.UnitSettings;
 using Kingmaker.UnitLogic;
 using Kingmaker.UnitLogic.Abilities;
+using Kingmaker.UnitLogic.Abilities.Blueprints;
 using Kingmaker.UnitLogic.ActivatableAbilities;
 using Kingmaker.UnitLogic.FactLogic;
 using Kingmaker.Utility;
@@ -1764,7 +1765,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     if (spell == null)
                     {
                         _logger.LogError("Unable to find spell for memorization. UnitId={UnitId}, SpellbookId={SpellbookId}, SpellId={SpellId}, SpellName={SpellName}", unitId, networkAbility.SpellbookId, networkAbility.Id, networkAbility.Name);
-                        _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.SpellBook.MissingSpell.Key, CombatTextSeverity.Critical, new UnitLogParameter(unitId), networkAbility.Name);
+                        _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.SpellBook.MissingMemorizationSpell.Key, CombatTextSeverity.Critical, new UnitLogParameter(unitId), networkAbility.Name);
                         return;
                     }
 
@@ -1835,6 +1836,71 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.SpellBook.RemovedCustomSpell.Key, CombatTextSeverity.Common, new AbilityTooltipLog(spell), new AbilityLogParameter(spell.Name), new UnitLogParameter(unit.UniqueId));
                 _logger.LogInformation("Custom spell has been removed. UnitId={UnitId}, SpellName={SpellName}", unit.UniqueId, spell.NameForAcronym);
                 RefreshSpellbookUI();
+            });
+        }
+
+        public void CreateMagicHackSpell(NetworkMagicHackSpell magicHackSpell)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var unit = _gameStateLookupService.GetUnitEntity(magicHackSpell.UnitId);
+                if (unit == null)
+                {
+                    _logger.LogError("Unable to create magic hack spell for missing unit. UnitId={UnitId}", magicHackSpell.UnitId);
+                    return;
+                }
+
+                var spellbook = _gameStateLookupService.GetSpellbook(unit, magicHackSpell.SpellbookId);
+                if (spellbook == null)
+                {
+                    _logger.LogError("Unable to create magic hack spell due to missing spellbook. UnitId={UnitId}, SpellbookId={SpellbookId}", magicHackSpell.UnitId, magicHackSpell.UnitId);
+                    return;
+                }
+
+                var leftSpell = GetMagicHackSpell(spellbook, magicHackSpell.MagicHackData.LeftSpellBlueprintId);
+                if (leftSpell == null)
+                {
+                    _logger.LogError("Unable to create magic hack spell due to missing left spell. UnitId={UnitId}, SpellbookId={SpellbookId}, AbilityBlueprintId={AbilityBlueprintId}", magicHackSpell.UnitId, magicHackSpell.UnitId, magicHackSpell.MagicHackData.LeftSpellBlueprintId);
+                    return;
+                }
+
+                var rightSpell = GetMagicHackSpell(spellbook, magicHackSpell.MagicHackData.RightSpellBlueprintId);
+                if (rightSpell == null)
+                {
+                    _logger.LogError("Unable to create magic hack spell due to missing right spell. UnitId={UnitId}, SpellbookId={SpellbookId}, AbilityBlueprintId={AbilityBlueprintId}", magicHackSpell.UnitId, magicHackSpell.UnitId, magicHackSpell.MagicHackData.RightSpellBlueprintId);
+                    return;
+                }
+
+                var abilityBlueprint = ResourcesLibrary.TryGetBlueprint<BlueprintAbility>(magicHackSpell.AbilityBlueprintId);
+                var defaultBlueprint = ResourcesLibrary.TryGetBlueprint<BlueprintAbility>(magicHackSpell.DefaultBlueprintId);
+                var touchBlueprint = ResourcesLibrary.TryGetBlueprint<BlueprintAbility>(magicHackSpell.TouchBlueprintId);
+
+                var spell = new AbilityData(abilityBlueprint, spellbook, magicHackSpell.SpellLevel)
+                {
+                    MagicHackData = new MagicHackData
+                    {
+                        Name = magicHackSpell.MagicHackData.Name,
+                        SpellLevel = magicHackSpell.SpellLevel,
+                        SpellSchool = magicHackSpell.MagicHackData.SpellSchool,
+                        SavingThrowType = magicHackSpell.MagicHackData.ThrowType,
+                        SpellTargetType = magicHackSpell.MagicHackData.TargetType,
+                        DeliverBlueprint = ResourcesLibrary.TryGetBlueprint<BlueprintAbility>(magicHackSpell.MagicHackData.DeliverBlueprintId),
+                        AdditionalAoeBlueprint = ResourcesLibrary.TryGetBlueprint<BlueprintAbility>(magicHackSpell.MagicHackData.AdditionalAoeBlueprint),
+                        IsTouch = magicHackSpell.MagicHackData.IsTouch,
+                        Spell1 = leftSpell.Blueprint,
+                        Spell2 = rightSpell.Blueprint
+                    }
+                };
+
+                WriteMagicHackSpell(unit, spellbook, spell, defaultBlueprint, touchBlueprint);
+
+                if (_uiAccessor.SpellbookPCView?.ViewModel != null)
+                {
+                    _uiAccessor.SpellbookPCView.ViewModel.UpdateSpellbook();
+                }
+
+                _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.SpellBook.NewMagicHackSpell.Key, CombatTextSeverity.Common, new AbilityTooltipLog(spell), new AbilityLogParameter(spell.Name), new UnitLogParameter(unit.UniqueId));
+                _logger.LogInformation("Magic hack spell has been created. UnitId={UnitId}, LeftSpell={LeftSpell}, RightSpell={RightSpell}", unit.UniqueId, spell.MagicHackData.Spell1.name, spell.MagicHackData.Spell2.name);
             });
         }
 
@@ -3016,6 +3082,44 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
                 _logger.LogInformation("Last Azlanti mode has been changed. Value={Value}", storyView.ViewModel.LastAzlantiIsOn.Value);
             });
+        }
+
+        /// <summary>
+        /// raw decompiled code of SpellbookMagicHackMixerVM.TryWriteNewSpell
+        /// </summary>
+        /// <param name="unit"></param>
+        /// <param name="spellbook"></param>
+        /// <param name="spell"></param>
+        /// <param name="defaultBlueprint"></param>
+        /// <param name="touchBlueprint"></param>
+        private void WriteMagicHackSpell(UnitEntityData unit, Spellbook spellbook, AbilityData spell, BlueprintAbility defaultBlueprint, BlueprintAbility touchBlueprint)
+        {
+            AbilityData autoUseAbility = unit.Brain.AutoUseAbility;
+            bool flag = autoUseAbility?.MagicHackData != null && (autoUseAbility.Blueprint == defaultBlueprint || autoUseAbility.Blueprint == touchBlueprint);
+            spellbook.RemoveSpell(defaultBlueprint);
+            spellbook.RemoveSpell(touchBlueprint);
+            spellbook.Owner.UISettings.RemoveAbilityFromSlots(defaultBlueprint);
+            spellbook.Owner.UISettings.RemoveAbilityFromSlots(touchBlueprint);
+            spellbook.AddCustomSpell(spell);
+            if (flag)
+            {
+                unit.Brain.AutoUseAbility = (spell.IsSuitableForAutoUse ? spell : null);
+            }
+        }
+
+        private AbilityData GetMagicHackSpell(Spellbook spellbook, string abilityBlueprintId)
+        {
+            for (int spellLevel = 0; spellLevel < spellbook.m_KnownSpells.Length; spellLevel++)
+            {
+                var spells = spellbook.m_KnownSpells[spellLevel];
+                var spell = spells.FirstOrDefault(s => s.MetamagicData == null && string.Equals(s.Blueprint.AssetGuid.ToString(), abilityBlueprintId, StringComparison.OrdinalIgnoreCase));
+                if (spell != null)
+                {
+                    return spell;
+                }
+            }
+
+            return null;
         }
 
         private void UpdateIslandsTransitionMap(MapIslandsPCView view, bool isInteractable, int readyPlayersCount, int totalPlayersCount)
