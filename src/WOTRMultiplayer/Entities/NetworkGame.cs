@@ -17,7 +17,7 @@ namespace WOTRMultiplayer.Entities
         public string Id { get; set; }
 
         /// <summary>
-        /// global seed perssistent for entire session (including loading save games)
+        /// global seed persists for the entire session (including when loading save games)
         /// </summary>
         public int SessionSeed { get; set; }
 
