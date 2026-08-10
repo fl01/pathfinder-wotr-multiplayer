@@ -3002,7 +3002,9 @@ namespace WOTRMultiplayer.Services
         {
             ResetGameIdGenerator();
             ResetGlobalMapCounters();
+
             ResetPlayersTracker(Game.PlayersInGroupChanger);
+            ResetPlayersTracker(Game.PlayersInRespecWindow);
 
             Game.ForcedPause = null;
             GameInteraction.SetPause(false);
@@ -3058,7 +3060,6 @@ namespace WOTRMultiplayer.Services
             ResetPlayersTracker(Game.PlayersInZoneLoot);
             ResetPlayersTracker(Game.PlayersInDialogPopup);
             ResetPlayersTracker(Game.PlayersInCharacterSelectionWindow);
-            ResetPlayersTracker(Game.PlayersInRespecWindow);
             ResetPlayersTracker(Game.PlayersInDungeonGameOver);
 
             ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyInfo);

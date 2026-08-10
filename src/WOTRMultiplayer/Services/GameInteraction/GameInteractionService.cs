@@ -112,11 +112,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
         private readonly IPlayerNotificationService _playerNotificationService;
         private readonly IUISyncCountersService _uiSyncCountersService;
         private readonly IGameStateLookupService _gameStateLookupService;
-        private readonly Dictionary<string, bool> _newGameStoryConfiguration = new(StringComparer.OrdinalIgnoreCase)
-        {
-            { "fd2e11ebb8a14d6599450fc27f03486a", true  }, // MainCampaign
-            { "e1bde745d6ad47c0bc9fb8e479b29153", true  }, // islands
-        };
 
         public RemoteExecutionContext RemoteContext => _networkExecutionContext.Value;
 
@@ -3385,7 +3380,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 if (widgetEntry is NewGamePhaseStoryScenarioEntityPCView story)
                 {
-                    story.m_Button.Interactable = isEnabled && _newGameStoryConfiguration.TryGetValue(story.ViewModel.m_StoryCampaign.AssetGuid.ToString(), out var isStoryEnabled) && isStoryEnabled;
+                    story.m_Button.Interactable = isEnabled;
                 }
             }
         }
