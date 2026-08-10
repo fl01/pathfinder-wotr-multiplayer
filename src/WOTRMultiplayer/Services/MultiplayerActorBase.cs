@@ -3351,8 +3351,8 @@ namespace WOTRMultiplayer.Services
         {
             if (condition())
             {
-                Logger.LogWarning(warningMessage);
-                using var timeout = new CancellationTokenSource(awaiterTimeout ?? TimeSpan.FromSeconds(30));
+                Logger.LogWarning("{Message}. Timeout={Timeout}", warningMessage, awaiterTimeout);
+                using var timeout = new CancellationTokenSource(awaiterTimeout ?? TimeSpan.FromSeconds(20));
                 while (condition())
                 {
                     await Task.Delay(10);

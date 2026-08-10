@@ -494,7 +494,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     var executor = _gameStateLookupService.GetUnitEntity(unitMoveTo.InitiatorUnitId);
                     if (executor == null)
                     {
-                        _logger.LogError("Unable to find executor unit to perform unit moveto command. InitiatorUnitId={InitiatorUnitId}", unitMoveTo.InitiatorUnitId);
+                        _logger.LogError("Unable to find executor unit to perform UnitMoveTo command. InitiatorUnitId={InitiatorUnitId}", unitMoveTo.InitiatorUnitId);
                         return;
                     }
 

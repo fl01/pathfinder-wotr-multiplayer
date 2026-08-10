@@ -188,13 +188,20 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                         };
                         Main.Multiplayer.OnUnitLootUnit(networkUnitLootUnit);
                         break;
-                    // attack/ability commands can be synced immediately if combat has not started
+                    // attack/ability commands can be synced immediately if combat has not started yet
                     case UnitAttack unitAttack when !Game.Instance.Player.IsInCombat || isGetUp:
                         // for some reason game runs x2 attack commands in this case, but second one must be suppressed to not cause an attack for other players
                         if (isGetUp && _isSecondGetUpCommand.Value)
                         {
                             Main.GetLogger<UnitCommandsPatches>().LogWarning("Doubled GetUp attack command has been ignored. UnitId={UnitId}", __instance.Executor.UniqueId);
                             _isSecondGetUpCommand.Value = false;
+                            return;
+                        }
+
+                        // charge from mount = ability cast for mount + attack command for rider
+                        if (unitAttack.IsCharge)
+                        {
+                            Main.GetLogger<UnitCommandsPatches>().LogWarning("[Charge] - Skipping NonCombat AttackCommand. ExecutorUnitId={ExecutorUnitId}, TargetUnitId={TargetUnitId}", unitAttack.Executor.UniqueId, unitAttack.Target.UniqueId);
                             return;
                         }
 
@@ -237,7 +244,13 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             {
                 if (__instance.IsCharge)
                 {
-                    Main.GetLogger<UnitCommandsPatches>().LogWarning("Skipping attack command in combat as it's a part of charge ability. ExecutorUnitId={ExecutorUnitId}, TargetUnitId={TargetUnitId}", __instance.Executor.UniqueId, __instance.Target.UniqueId);
+                    Main.GetLogger<UnitCommandsPatches>().LogWarning("[Charge] - Skipping Unit AttackCommand. ExecutorUnitId={ExecutorUnitId}, TargetUnitId={TargetUnitId}, SaddledUnitId={SaddledUnitId}", __instance.Executor.UniqueId, __instance.Target.UniqueId, __instance.Executor.GetSaddledUnit()?.UniqueId);
+                    return;
+                }
+
+                if (DoesRiderMakeSameAction(__instance.Executor))
+                {
+                    Main.GetLogger<UnitCommandsPatches>().LogWarning("[MountedCombat] - Skipping Mount AttackCommand. ExecutorUnitId={ExecutorUnitId}, TargetUnitId={TargetUnitId}", __instance.Executor.UniqueId, __instance.Target.UniqueId);
                     return;
                 }
 
@@ -297,18 +310,17 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 switch (__instance)
                 {
                     case UnitAttack unitAttack:
-                        // mount should keep trying to attack to not break attack sequence for other players
-                        if (__instance.Executor.SaddledPart != null)
+                        if (DoesRiderMakeSameAction(__instance.Executor))
                         {
-                            OnUnitAttack(unitAttack);
+                            Main.GetLogger<UnitCommandsPatches>().LogWarning("[MountedCombat] - Skipping ForceFinished Mount AttackCommand. ExecutorUnitId={ExecutorUnitId}, TargetUnitId={TargetUnitId}", __instance.Executor.UniqueId, unitAttack.Target.UniqueId);
                             return;
                         }
 
-                        Main.GetLogger<UnitCommandsPatches>().LogInformation("Forcefinished unit attack command. ExecutorUnitId={ExecutorUnitId}, TargetUnitId={TargetUnitId}, IsFullAttack={IsFullAttack}", unitAttack.Executor.UniqueId, unitAttack.Target.UniqueId, unitAttack.IsFullAttack());
+                        Main.GetLogger<UnitCommandsPatches>().LogInformation("ForceFinished unit attack command. ExecutorUnitId={ExecutorUnitId}, TargetUnitId={TargetUnitId}, IsFullAttack={IsFullAttack}", unitAttack.Executor.UniqueId, unitAttack.Target.UniqueId, unitAttack.IsFullAttack());
                         OnUnitMove(unitAttack.Executor, __instance.Executor.Position);
                         break;
                     case UnitUseAbility unitUseAbility:
-                        Main.GetLogger<UnitCommandsPatches>().LogInformation("Forcefinished unit useability command. ExecutorUnitId={ExecutorUnitId}", __instance.Executor.UniqueId, unitUseAbility.TargetUnit?.UniqueId);
+                        Main.GetLogger<UnitCommandsPatches>().LogInformation("ForceFinished unit useability command. ExecutorUnitId={ExecutorUnitId}", __instance.Executor.UniqueId, unitUseAbility.TargetUnit?.UniqueId);
                         OnUnitMove(unitUseAbility.Executor, __instance.Executor.Position);
                         break;
                 }
@@ -355,7 +367,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
 
             if (DoesRiderMakeSameAction(command.Executor))
             {
-                Main.GetLogger<UnitCommandsPatches>().LogWarning("Skipping ability use as it's a part of mounted combat unit command. UnitId={UnitId}, AbilityName={AbilityName}, AbilityId={AbilityId}", command.Executor.UniqueId, command.Ability.Name, command.Ability.UniqueId);
+                Main.GetLogger<UnitCommandsPatches>().LogWarning("[MountedCombat] - Skipping Unit UseAbility. UnitId={UnitId}, AbilityName={AbilityName}, AbilityId={AbilityId}", command.Executor.UniqueId, command.Ability.Name, command.Ability.UniqueId);
                 return true;
             }
 
@@ -393,7 +405,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 return false;
             }
 
-            // first cast with fullround available
+            // first cast with full round action available
             if (Game.Instance.TurnBasedCombatController.CurrentTurn.CurrentAbility != null
                 && Game.Instance.TurnBasedCombatController.CurrentTurn.CurrentAbility == command.Ability)
             {
@@ -406,7 +418,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 return false;
             }
 
-            // fast bomb is active, but character has no fullround action anymore
+            // fast bomb is active, but character has no full round action anymore
             if (Game.Instance.TurnBasedCombatController.CurrentTurn.CurrentAbility == null
                 && actionState.FiveFootStep.PredictionState != Kingmaker.TurnBasedMode.Controllers.CombatAction.ActionState.Used
                 && actionState.FiveFootStep.PredictionState != Kingmaker.TurnBasedMode.Controllers.CombatAction.ActionState.Available)
