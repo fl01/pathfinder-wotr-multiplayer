@@ -640,7 +640,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                         MatchSameNumberOfItems(containerItems, item.Count, matchedItem =>
                         {
                             var transferredItem = sourceCollection.Transfer(matchedItem, matchedItem.Count, destinationCollection);
-                            _logger.LogInformation("Transferred item. Name={Name}, Id={Id}, Count={Count}, Source={Source}, SourceIsStash={SourceIsStash}, Destination={Destination}, DestinationIsStash={DestinationIsStash}", transferredItem?.NameForAcronym, transferredItem?.UniqueId, transferredItem?.Count, sourceCollection.OwnerRef.Entity?.UniqueId, sourceCollection.IsSharedStash, destinationCollection.OwnerRef.Entity.UniqueId, destinationCollection.IsSharedStash);
+                            _logger.LogInformation("Transferred item. Name={Name}, Id={Id}, Count={Count}, Source={Source}, SourceIsStash={SourceIsStash}, Destination={Destination}, DestinationIsStash={DestinationIsStash}", transferredItem?.NameForAcronym, transferredItem?.UniqueId, transferredItem?.Count, sourceCollection.OwnerRef.Entity?.UniqueId, sourceCollection.IsSharedStash, destinationCollection.OwnerRef.Entity?.UniqueId, destinationCollection.IsSharedStash);
                         });
                     }
 

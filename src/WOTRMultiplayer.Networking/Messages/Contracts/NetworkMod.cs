@@ -24,7 +24,7 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
 
         public override string ToString()
         {
-            return $"{Id}-{Version}";
+            return $"{Id}-{Version}-{IsEnabled}";
         }
     }
 }

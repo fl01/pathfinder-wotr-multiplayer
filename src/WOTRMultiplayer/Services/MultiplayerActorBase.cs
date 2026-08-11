@@ -517,9 +517,7 @@ namespace WOTRMultiplayer.Services
                 Game.ForcedPause = null;
             }
 
-            ResetGameIdGenerator();
-            ResetGlobalMapCounters();
-            GlobalMapInteraction.EnableInteractions();
+            ResetOnSaveLoad();
 
             Game.LoadedSaveSeed = CreateRandomSeed();
 
@@ -3000,16 +2998,10 @@ namespace WOTRMultiplayer.Services
 
         protected void LoadSavedGame()
         {
-            ResetGameIdGenerator();
-            ResetGlobalMapCounters();
-
-            ResetPlayersTracker(Game.PlayersInGroupChanger);
-            ResetPlayersTracker(Game.PlayersInRespecWindow);
+            ResetOnSaveLoad();
 
             Game.ForcedPause = null;
             GameInteraction.SetPause(false);
-            GlobalMapInteraction.EnableInteractions();
-            Game.DialogState = null;
             // it's important to use different loading method for players who joined mid-game
             if (Game.Stage == NetworkLobbyStage.Playing)
             {
@@ -3184,6 +3176,12 @@ namespace WOTRMultiplayer.Services
 
         protected void SetAreaSeed(int seed)
         {
+            if (Game.CurrentArea == null)
+            {
+                Logger.LogError("Trying to set seed for not loaded area yet");
+                return;
+            }
+
             Game.CurrentArea.Seed = seed;
             Logger.LogInformation("Area seed has been set. Seed={Seed}", Game.CurrentArea.Seed);
         }
@@ -4552,6 +4550,19 @@ namespace WOTRMultiplayer.Services
                 }
                 CombatInteraction.MakeUnitTargetable(unitId);
             }
+        }
+
+        private void ResetOnSaveLoad()
+        {
+            Logger.LogInformation("Reset on save load");
+
+            ResetGameIdGenerator();
+            ResetGlobalMapCounters();
+            GlobalMapInteraction.EnableInteractions();
+            Game.DialogState = null;
+
+            ResetPlayersTracker(Game.PlayersInGroupChanger);
+            ResetPlayersTracker(Game.PlayersInRespecWindow);
         }
 
         private void MakeUnitUntargetable(string unitId, string groupId)

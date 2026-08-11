@@ -218,7 +218,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -888,7 +888,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Host.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Host.IsActive)
                 {
                     return null;
                 }
@@ -907,7 +907,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -925,7 +925,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -949,12 +949,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
-                {
-                    return;
-                }
-
-                if (_multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -972,12 +967,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
-                {
-                    return;
-                }
-
-                if (_multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -1000,7 +990,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -1018,7 +1008,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -1036,7 +1026,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -4035,7 +4025,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return null;
                 }
@@ -4054,7 +4044,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -4072,7 +4062,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -4090,7 +4080,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -4108,7 +4098,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -4126,7 +4116,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -4144,7 +4134,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -4162,7 +4152,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -4180,7 +4170,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -4198,7 +4188,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -4216,7 +4206,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -4234,7 +4224,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -4252,7 +4242,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -4270,7 +4260,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -4288,7 +4278,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -4306,7 +4296,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -4324,7 +4314,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -4342,7 +4332,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -4384,7 +4374,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -4402,7 +4392,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -4420,7 +4410,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -4438,7 +4428,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -4456,7 +4446,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -4474,7 +4464,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -4498,7 +4488,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -4516,7 +4506,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -4534,7 +4524,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -4552,7 +4542,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -4570,7 +4560,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -4588,7 +4578,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -4606,7 +4596,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -4624,7 +4614,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -4642,7 +4632,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null)
+                if (_multiplayerActorAccessor.Current == null)
                 {
                     return;
                 }
@@ -4660,7 +4650,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -4678,7 +4668,7 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor == null || _multiplayerActorAccessor.Client.IsActive)
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
                 {
                     return;
                 }
@@ -4691,6 +4681,5 @@ namespace WOTRMultiplayer.Services
                 throw;
             }
         }
-
     }
 }
