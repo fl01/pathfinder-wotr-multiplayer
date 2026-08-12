@@ -44,6 +44,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
             _mainThreadAccessor.Post(() =>
             {
                 var message = GetLocalizedText(messageKey, args);
+
+                if (_uiAccessor.CommonPCView.m_MessageModalPCView?.ViewModel != null)
+                {
+                    _logger.LogWarning("Unable to show modal message as another one is already shown");
+                    return;
+                }
+
                 EventBus.RaiseEvent<IMessageModalUIHandler>(x => x.HandleOpen(message, MessageModalBase.ModalType.Message, null));
 
                 _uiAccessor.CommonPCView.m_MessageModalPCView.m_AcceptButton.Interactable = canBeClosed;
