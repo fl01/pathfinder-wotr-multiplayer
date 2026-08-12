@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Kingmaker;
 using Kingmaker.Blueprints;
 using Kingmaker.DialogSystem.Blueprints;
@@ -12,14 +13,16 @@ using Kingmaker.UI.MVVM._PCView.InGame;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.Core.Utils;
 using Owlcat.Runtime.UI.Controls.Button;
+using TMPro;
 using UnityEngine;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.Unity;
+using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.Dialogs;
 using WOTRMultiplayer.Extensions;
-using WOTRMultiplayer.UI;
+using WOTRMultiplayer.UI.Graphics;
 using WOTRMultiplayer.UnityBehaviours.DialogAnswers;
 
 namespace WOTRMultiplayer.Services.GameInteraction
@@ -29,49 +32,52 @@ namespace WOTRMultiplayer.Services.GameInteraction
         public const string SuggestionIconObjectPrefix = "SuggestionIcon";
 
         private readonly ILogger<DialogInteractionService> _logger;
+        private readonly IMapper _mapper;
         private readonly IMainThreadAccessor _mainThreadAccessor;
         private readonly IUISyncCountersService _uiSyncCountersService;
         private readonly IUIAccessor _uiAccessor;
         private readonly IGameStateLookupService _gameStateLookupService;
         private readonly IMultiplayerSettingsService _multiplayerSettingsService;
-        private readonly IResourceProvider _resourceProvider;
+        private readonly IUIFactory _uiFactory;
 
         public DialogInteractionService(
             ILogger<DialogInteractionService> logger,
+            IMapper mapper,
             IMainThreadAccessor mainThreadAccessor,
             IUISyncCountersService uiSyncCountersService,
-            IResourceProvider resourceProvider,
             IUIAccessor uiAccessor,
+            IUIFactory uiFactory,
             IGameStateLookupService gameStateLookupService,
             IMultiplayerSettingsService multiplayerSettingsService)
         {
             _logger = logger;
+            _mapper = mapper;
             _mainThreadAccessor = mainThreadAccessor;
             _uiSyncCountersService = uiSyncCountersService;
-            _resourceProvider = resourceProvider;
             _uiAccessor = uiAccessor;
             _gameStateLookupService = gameStateLookupService;
             _multiplayerSettingsService = multiplayerSettingsService;
+            _uiFactory = uiFactory;
         }
 
-        public void MarkSuggestedDialogAnswers(List<NetworkDialogAnswerSuggestion> networkDialogAnswerSuggestions)
+        public void MarkSuggestedCueAnswers(List<NetworkPlayer> allPlayers, List<NetworkDialogAnswerSuggestion> networkDialogAnswerSuggestions)
         {
             _mainThreadAccessor.Post(() =>
             {
-                ImmediatlyMarkSuggestedDialogAnswers(networkDialogAnswerSuggestions);
+                MarkDialogAnswers(allPlayers, networkDialogAnswerSuggestions);
             });
         }
 
         public void ResetSuggestedDialogAnswers()
         {
-            ImmediatlyMarkSuggestedDialogAnswers([]);
+            MarkDialogAnswers([], []);
         }
 
         public void PlayUnableToSelectCueAnimation(string answerName)
         {
             _mainThreadAccessor.Post(() =>
             {
-                var answers = GetAnswers()?.Children() ?? [];
+                var answers = GetAnswersContainer()?.Children() ?? [];
                 var settings = _multiplayerSettingsService.GetSettings();
                 foreach (var answer in answers)
                 {
@@ -98,7 +104,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                         return;
                     }
 
-                    var answers = GetAnswers()?.Children() ?? [];
+                    var answers = GetAnswersContainer()?.Children() ?? [];
 
                     if (!answers.Any())
                     {
@@ -272,7 +278,10 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     return;
                 }
 
-                modalMessage?.m_AcceptButton.m_OnLeftClick.Invoke();
+                modalMessage.m_AcceptButton.Interactable = true;
+                modalMessage.m_DeclineButton.Interactable = true;
+
+                modalMessage.m_AcceptButton.m_OnLeftClick.Invoke();
                 _logger.LogInformation("Dialog popup has been closed. AreaName={AreaName}, DialogName={DialogName}, CueName={CueName}", networkDialogPopup.AreaName, networkDialogPopup.DialogName, networkDialogPopup.CueName);
             });
         }
@@ -293,7 +302,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
         }
 
-        private void ImmediatlyMarkSuggestedDialogAnswers(List<NetworkDialogAnswerSuggestion> suggestions)
+        private void MarkDialogAnswers(List<NetworkPlayer> allPlayers, List<NetworkDialogAnswerSuggestion> suggestions)
         {
             _logger.LogInformation("Marking dialog answer suggestions. Count={Count}", suggestions.Count);
             if (Game.Instance.DialogController?.Dialog == null)
@@ -302,8 +311,13 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 return;
             }
 
-            var answers = GetAnswers();
-            MarkAnswers(answers, suggestions);
+            var answersContainer = GetAnswersContainer();
+            if (answersContainer == null)
+            {
+                return;
+            }
+
+            MarkAnswers(answersContainer, allPlayers, suggestions);
 
             if (suggestions.Count > 0)
             {
@@ -311,7 +325,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             }
         }
 
-        private Transform GetAnswers()
+        private Transform GetAnswersContainer()
         {
             var dialogContext = _uiAccessor.DialogContextPCView;
             if (dialogContext == null)
@@ -338,45 +352,71 @@ namespace WOTRMultiplayer.Services.GameInteraction
             }
         }
 
-        private void MarkAnswers(Transform answersContainer, List<NetworkDialogAnswerSuggestion> suggestions)
+        private void MarkAnswers(Transform answersContainer, List<NetworkPlayer> allPlayers, List<NetworkDialogAnswerSuggestion> suggestions)
         {
-            if (answersContainer == null)
-            {
-                return;
-            }
-
+            const float offset = -12f;
+            const float overlap = 7.5f;
+            const int maxIconsCount = 4;
             for (int answerIndex = 0; answerIndex < answersContainer.childCount; answerIndex++)
             {
                 var answer = answersContainer.GetChild(answerIndex);
                 var answerView = answer.GetComponent<DialogAnswerPCView>();
                 var answerName = answerView.ViewModel.Answer.Value.name;
-                var suggestedAnswer = suggestions.FirstOrDefault(s => string.Equals(s.AnswerName, answerName));
+                var suggestedAnswer = suggestions.FirstOrDefault(s => string.Equals(s.AnswerName, answerName, StringComparison.OrdinalIgnoreCase));
 
-                answer.gameObject.CleanupAllChildren(x => x.name.StartsWith(SuggestionIconObjectPrefix));
+                var parent = answer.Find("Text");
+                parent.gameObject.CleanupAllChildren(x => x.name.StartsWith(SuggestionIconObjectPrefix));
                 if (suggestedAnswer == null)
                 {
                     continue;
                 }
 
-                var portrait = _resourceProvider.GetSprite(WellKnownResourceBundles.UI, "UI_Inventory_IconHeart");
-                var maxIcons = Math.Min(3, suggestedAnswer.Players.Count);
-                for (int i = maxIcons; i > 0; i--)
+                if (suggestedAnswer.Players.Count == allPlayers.Count && allPlayers.Count > 1)
                 {
-                    var arrow = answer.Find("Arrow");
-                    var suggestionIconObject = UnityEngine.Object.Instantiate(arrow.gameObject, answer);
+                    var starObject = new GameObject(SuggestionIconObjectPrefix + "_all");
+                    starObject.transform.SetParent(parent, false);
+                    var star = starObject.AddComponent<StarIcon>().WithDimensions(points: 8, innerRadius: 7f, outerRadius: 2.5f);
+                    star.color = _uiFactory.MuteColor(new Color(0.55f, 0.45f, 0.30f));
+                    var rect = starObject.GetComponent<RectTransform>();
+                    rect.sizeDelta = new Vector2(14f, 14f);
+                    rect.LeftCenter();
+                    rect.anchoredPosition = new Vector2(offset, 0f);
+                    continue;
+                }
+
+                var iconsCount = Math.Min(maxIconsCount, suggestedAnswer.Players.Count);
+                for (int i = 0; i < iconsCount; i++)
+                {
+                    var playerId = suggestedAnswer.Players[i];
+                    var playerColor = allPlayers.FirstOrDefault(x => x.Id == playerId)?.Color;
+                    if (playerColor == null)
+                    {
+                        continue;
+                    }
+
+                    var color = _mapper.Map<Color>(playerColor);
+                    var mutedColor = _uiFactory.MuteColor(color);
+                    var suggestionIconObject = _uiFactory.CreateCircleIcon(parent, mutedColor, size: 9f);
                     suggestionIconObject.name = SuggestionIconObjectPrefix + i.ToString();
-                    suggestionIconObject.SetActive(true);
+                    var iconRect = suggestionIconObject.GetComponent<RectTransform>();
+                    iconRect.Left();
+                    iconRect.anchoredPosition = new Vector2(offset - overlap * i, -0.5f);
+                }
 
-                    var rect = suggestionIconObject.GetComponent<RectTransform>();
-                    var preferedSize = Math.Min(rect.sizeDelta.x, rect.sizeDelta.y);
-                    rect.sizeDelta = new Vector2(preferedSize, preferedSize);
-
-                    var newPosition = new Vector3(suggestionIconObject.transform.position.x + 4 - 5 * i, suggestionIconObject.transform.position.y, suggestionIconObject.transform.position.z);
-                    suggestionIconObject.transform.SetPositionAndRotation(newPosition, suggestionIconObject.transform.rotation);
-
-                    var image = suggestionIconObject.GetComponent<UnityEngine.UI.Image>();
-                    image.color = Color.white;
-                    image.sprite = portrait;
+                if (suggestedAnswer.Players.Count > maxIconsCount)
+                {
+                    var moreSignObject = new GameObject(SuggestionIconObjectPrefix + "_more");
+                    moreSignObject.transform.SetParent(parent, worldPositionStays: false);
+                    var textBox = moreSignObject.AddComponent<TextMeshProUGUI>();
+                    textBox.text = "+";
+                    textBox.horizontalAlignment = HorizontalAlignmentOptions.Center;
+                    textBox.verticalAlignment = VerticalAlignmentOptions.Middle;
+                    textBox.fontSize = 12;
+                    textBox.color = _uiFactory.MuteColor(Color.red);
+                    var rect = moreSignObject.GetComponent<RectTransform>();
+                    rect.LeftCenter();
+                    rect.anchoredPosition = new Vector2(offset - (overlap - 0.75f) * maxIconsCount, -1.25f);
+                    continue;
                 }
             }
         }

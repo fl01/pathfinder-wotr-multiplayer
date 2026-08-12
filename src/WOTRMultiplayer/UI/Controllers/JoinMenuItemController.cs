@@ -438,7 +438,7 @@ namespace WOTRMultiplayer.UI.Controllers
             textBox.color = UIFactory.DefaultTextMesh.Color;
             var dropdownContainerObject = Main.Multiplayer.UIFactory.CreateDropdown(fullSize.x * 0.6f, labelObject.transform);
             var dropdownObject = dropdownContainerObject.transform.Find(UI.UIFactory.DropdownGameObjectName);
-            dropdownObject.GetComponent<RectTransform>().Centered();
+            dropdownObject.GetComponent<RectTransform>().Center();
             var tmpDropdown = dropdownObject.GetComponent<TMP_Dropdown>();
             tmpDropdown.ClearOptions();
             var options = new List<TMP_Dropdown.OptionData>

@@ -34,9 +34,9 @@ namespace WOTRMultiplayer.HarmonyPatches.MenuPatches
         [HarmonyPostfix]
         public static void MainMenuSideBarPCView_BindViewImplementation_Postfix()
         {
-            if (BlueprintesCachePatches.LastInitError != null)
+            if (BlueprintsCachePatches.LastInitError != null)
             {
-                EventBus.RaiseEvent<IMessageModalUIHandler>(x => x.HandleOpen(BlueprintesCachePatches.LastInitError));
+                EventBus.RaiseEvent<IMessageModalUIHandler>(x => x.HandleOpen(BlueprintsCachePatches.LastInitError));
             }
         }
     }

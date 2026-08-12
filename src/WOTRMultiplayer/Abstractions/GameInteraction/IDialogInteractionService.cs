@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.Dialogs;
 
 namespace WOTRMultiplayer.Abstractions.GameInteraction
 {
     public interface IDialogInteractionService
     {
-        void MarkSuggestedDialogAnswers(List<NetworkDialogAnswerSuggestion> networkDialogAnswerSuggestions);
+        void MarkSuggestedCueAnswers(List<NetworkPlayer> allPlayers, List<NetworkDialogAnswerSuggestion> networkDialogAnswerSuggestions);
 
         void ResetSuggestedDialogAnswers();
 

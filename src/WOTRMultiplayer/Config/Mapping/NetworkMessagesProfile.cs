@@ -376,6 +376,9 @@ namespace WOTRMultiplayer.Config.Mapping
 
             CreateMap<NetworkMagicHackData, Networking.Messages.Contracts.NetworkMagicHackData>()
                 .ReverseMap();
+
+            CreateMap<NetworkColor, Networking.Messages.Contracts.NetworkColor>()
+                .ReverseMap();
         }
     }
 }

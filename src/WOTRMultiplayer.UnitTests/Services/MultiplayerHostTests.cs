@@ -7,6 +7,7 @@ using Kingmaker.GameModes;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using WOTRMultiplayer.Abstractions.GameInteraction;
+using WOTRMultiplayer.Abstractions.Hashing;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.Settings;
@@ -43,6 +44,7 @@ namespace WOTRMultiplayer.UnitTests.Services
         private ICombatInteractionService _combatInteractionService;
         private IMultiplayerSettingsService _multiplayerSettingsProvider;
         private IFileSystemService _fileSystemService;
+        private IHashService _hashService;
         private INetworkHostConnection _networkServer;
         private IValueGenerator _valueGenerator;
         private IMapper _mapper;
@@ -66,6 +68,7 @@ namespace WOTRMultiplayer.UnitTests.Services
             _combatInteractionService = A.Fake<ICombatInteractionService>();
             _multiplayerSettingsProvider = A.Fake<IMultiplayerSettingsService>();
             _fileSystemService = A.Fake<IFileSystemService>();
+            _hashService = A.Fake<IHashService>();
 
             _networkServer = A.Fake<INetworkHostConnection>();
             Fake.GetFakeManager(_networkServer).AddRuleFirst(new NetworkReceiverFakeRule<INetworkConnection>());
@@ -85,6 +88,7 @@ namespace WOTRMultiplayer.UnitTests.Services
                 _fileSystemService,
                 _networkServer,
                 _valueGenerator,
+                _hashService,
                 _mapper);
         }
 

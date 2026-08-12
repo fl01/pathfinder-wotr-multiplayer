@@ -470,7 +470,7 @@ namespace WOTRMultiplayer.Services
         public void OnGameLoaded()
         {
             Logger.LogInformation("OnGameLoaded");
-            // Tutorial settings are save dependant, so it must be overridden if save was created without a mod
+            // Tutorial settings are save-dependent, so they must be overridden if the save was created without the mod
             var settings = new NetworkGameSettings { Tutorial = new NetworkTutorialSettings() };
             GameInteraction.ApplyGameSettings(settings);
         }
@@ -3119,7 +3119,7 @@ namespace WOTRMultiplayer.Services
 
             if (Game.Combat != null && Game.Combat.Turn == null)
             {
-                Logger.LogWarning("Midfight action. UnitId={UnitId}", sourceUnitId);
+                Logger.LogWarning("Mid-fight action. UnitId={UnitId}", sourceUnitId);
                 return false;
             }
 
@@ -3389,7 +3389,7 @@ namespace WOTRMultiplayer.Services
                     foreach (var player in Game.Players)
                     {
                         player.IsReady = false;
-                        UpdateLobbySyncStatus(player, NetworkLobbySyncStatus.None);
+                        UpdateLobbySyncStatus(player, NetworkLobbySyncStatus.Pending);
                     }
 
                     if (CanMakeNewGameSequenceDecisions())

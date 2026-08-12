@@ -214,6 +214,24 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        public void OnAlternateCueAnswerAction(string cueName, string answerName)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                {
+                    return;
+                }
+
+                _multiplayerActorAccessor.Host.MakeCueAnswerSuggestion(cueName, answerName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while making cue answer suggestion. CueName={CueName}, AnswerName={AnswerName}", cueName, answerName);
+                throw;
+            }
+        }
+
         public void OnAfterPlayDialogCue()
         {
             try

@@ -1672,7 +1672,8 @@ namespace WOTRMultiplayer.Services
             await WaitWhileTrue(() => Game.DialogState == null || !string.Equals(Game.DialogState.CurrentCueName, message.CueName, StringComparison.OrdinalIgnoreCase), "Waiting for dialog to initialize before suggesting cue answer");
 
             var suggestions = Mapper.Map<List<NetworkDialogAnswerSuggestion>>(message.Suggestions);
-            DialogInteraction.MarkSuggestedDialogAnswers(suggestions);
+            var players = GetSyncedPlayers();
+            DialogInteraction.MarkSuggestedCueAnswers(players, suggestions);
         }
 
         private void OnNotifyPartyAreaTransitioned(long playerId, NotifyPartyAreaTransitioned partyLeftArea)

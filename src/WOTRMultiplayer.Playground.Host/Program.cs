@@ -5,6 +5,7 @@ using AutoMapper;
 using CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using WOTRMultiplayer.Abstractions.Hashing;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Config.DI;
@@ -43,6 +44,7 @@ namespace WOTRMultiplayer.Playground.Host
                 serviceProvider.GetService<IFileSystemService>(),
                 serviceProvider.GetService<INetworkHostConnection>(),
                 serviceProvider.GetService<IValueGenerator>(),
+                serviceProvider.GetService<IHashService>(),
                 serviceProvider.GetService<IMapper>());
 
             var saveGamePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),

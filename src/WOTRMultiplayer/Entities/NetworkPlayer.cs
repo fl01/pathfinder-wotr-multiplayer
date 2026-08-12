@@ -12,6 +12,8 @@ namespace WOTRMultiplayer.Entities
 
         public bool IsHost { get; set; }
 
+        public NetworkColor Color { get; set; }
+
         public NetworkContentState ContentState { get; set; } = new();
 
         public NetworkLobbySyncStatus LobbySyncStatus { get; set; }

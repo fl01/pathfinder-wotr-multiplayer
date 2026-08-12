@@ -14,7 +14,7 @@ using TMPro;
 namespace WOTRMultiplayer.HarmonyPatches
 {
     [HarmonyPatch]
-    public class BlueprintesCachePatches
+    public class BlueprintsCachePatches
     {
         public static string LastInitError { get; private set; }
 
@@ -22,7 +22,7 @@ namespace WOTRMultiplayer.HarmonyPatches
         [HarmonyPostfix]
         public static void BlueprintsCache_Init_Postfix()
         {
-            Main.GetLogger<BlueprintesCachePatches>().LogInformation("Applying patch. MethodName={MethodName}", MethodBase.GetCurrentMethod().Name);
+            Main.GetLogger<BlueprintsCachePatches>().LogInformation("Applying patch. MethodName={MethodName}", MethodBase.GetCurrentMethod().Name);
 
             Main.Initialize();
 

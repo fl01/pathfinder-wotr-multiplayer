@@ -15,6 +15,10 @@ namespace WOTRMultiplayer.Abstractions.UI
 
         void InitializeMultiplayerWindow();
 
+        GameObject CreateCircleIcon(Transform parent, Color color, float size);
+
+        Color MuteColor(Color color, float blend = 0.15f, float brightnessCoefficient = 0.9f, float saturationCoefficient = 0.7f);
+
         GameObject CreateProgressBar(Transform parent, int size, float thickness, bool withBackground = false);
 
         Sprite CreateRingSprite(int size = 256, float thickness = 0.25f);
@@ -53,7 +57,7 @@ namespace WOTRMultiplayer.Abstractions.UI
 
         void StoreBackgroundArt(GameObject backgroundArt);
 
-        void PopulateMultiplayerSettingsUI(SettingsVM instance);
+        void PopulateMultiplayerSettingsUI(SettingsVM instance, bool isMultiplayerOff);
 
         IVirtualListElementView InitializeInputSettingTemplate(GameObject settingPrefab);
 

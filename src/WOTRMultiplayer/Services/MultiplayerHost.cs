@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.GameInteraction.CombatLog;
+using WOTRMultiplayer.Abstractions.Hashing;
 using WOTRMultiplayer.Abstractions.IO;
 using WOTRMultiplayer.Abstractions.Random;
 using WOTRMultiplayer.Abstractions.Settings;
@@ -38,12 +39,14 @@ using WOTRMultiplayer.Networking.Messages.Lobby;
 using WOTRMultiplayer.Networking.Messages.Requests;
 using WOTRMultiplayer.Services.GameInteraction.Contexts;
 using WOTRMultiplayer.Services.Random;
+using WOTRMultiplayer.UI;
 
 namespace WOTRMultiplayer.Services
 {
     public class MultiplayerHost : MultiplayerActorBase, IMultiplayerHost
     {
         private readonly INetworkHostConnection _networkHost;
+        private readonly IHashService _hashService;
 
         private NetworkLobbyStage Status => Game?.Stage ?? NetworkLobbyStage.None;
 
@@ -66,6 +69,7 @@ namespace WOTRMultiplayer.Services
             IFileSystemService fileSystemService,
             INetworkHostConnection networkHost,
             IValueGenerator valueGenerator,
+            IHashService hashService,
             IMapper mapper)
             : base(logger,
                   mapper,
@@ -82,6 +86,7 @@ namespace WOTRMultiplayer.Services
                   networkHost)
         {
             _networkHost = networkHost;
+            _hashService = hashService;
 
             SetupNetworkMessageHandlers();
         }
@@ -293,6 +298,20 @@ namespace WOTRMultiplayer.Services
             }
 
             return true;
+        }
+
+        public void MakeCueAnswerSuggestion(string cueName, string answerName)
+        {
+            if (Game.DialogState == null
+                || !string.Equals(Game.DialogState.CurrentCueName, cueName, StringComparison.OrdinalIgnoreCase)
+                || Game.DialogState.IsSelectingAnswer
+                || GetPlayersWhoHaveNotSeenCueYet(Game.DialogState.CurrentCueName).Count > 0)
+            {
+                Logger.LogWarning("Invalid dialog state to make answer suggestions");
+                return;
+            }
+
+            UpdateCueAnswerSuggestions(Game.LocalPlayerId, cueName, answerName);
         }
 
         public void SendSelectedAnswer()
@@ -2073,21 +2092,7 @@ namespace WOTRMultiplayer.Services
         {
             await WaitWhileTrue(() => Game.DialogState == null, "Waiting for dialog to initialize before suggesting cue answer");
 
-            Game.DialogState.AnswerSuggestions.AddOrUpdate(playerId, message.AnswerName, (key, existing) =>
-            {
-                return message.AnswerName;
-            });
-
-            List<NetworkDialogAnswerSuggestion> suggestions = [.. Game.DialogState.AnswerSuggestions.GroupBy(x => x.Value, x => x.Key).Select(x => new NetworkDialogAnswerSuggestion { AnswerName = x.Key, Players = [.. x] })];
-            DialogInteraction.MarkSuggestedDialogAnswers(suggestions);
-
-            var cueAnswerSuggested = new NotifyDialogCueAnswerSuggested
-            {
-                Dialog = Mapper.Map<Networking.Messages.Contracts.NetworkDialog>(Game.DialogState.Dialog),
-                CueName = message.CueName,
-                Suggestions = Mapper.Map<List<Networking.Messages.Contracts.NetworkDialogAnswerSuggestion>>(suggestions),
-            };
-            Send(cueAnswerSuggested);
+            UpdateCueAnswerSuggestions(playerId, message.CueName, message.AnswerName);
         }
 
         private async void OnClientDialogCueWitnessed(long playerId, ClientDialogCueWitnessed message)
@@ -2191,6 +2196,8 @@ namespace WOTRMultiplayer.Services
                 IsHost = true
             };
 
+            hostPlayer.Color = GetPlayerColor(hostPlayer.Name);
+
             Game.Players.Add(hostPlayer);
 
             Game.Connectivity = new GameConnectivity
@@ -2255,8 +2262,10 @@ namespace WOTRMultiplayer.Services
                     }
 
                     existingPlayer.Name = message.PlayerName;
-
                     existingPlayer.ContentState = Mapper.Map<NetworkContentState>(message.ContentState);
+
+                    existingPlayer.Color = GetPlayerColor(existingPlayer.Name);
+
                     var host = GetHost();
                     existingPlayer.ContentState.DiscrepantDLCs = CompareDLCs(host.ContentState, existingPlayer.ContentState);
                     existingPlayer.ContentState.DiscrepantMods = CompareMods(host.ContentState, existingPlayer.ContentState);
@@ -2282,6 +2291,41 @@ namespace WOTRMultiplayer.Services
                 Logger.LogError(ex, "Unable to handle player name response");
                 throw;
             }
+        }
+
+        private NetworkColor GetPlayerColor(string playerName)
+        {
+            var playersWithColor = Game.Players.Where(x => x.Color != null).ToList();
+            var usedColors = playersWithColor.Select(x => x.Color).ToHashSet();
+            var colorOrder = GetColorPreferences(playerName, WellKnownColors.PlayerColors.All.Count);
+
+            foreach (var index in colorOrder)
+            {
+                if (!usedColors.Contains(WellKnownColors.PlayerColors.All[index]))
+                {
+                    return WellKnownColors.PlayerColors.All[index];
+                }
+            }
+
+            var playersByColor = playersWithColor.GroupBy(p => p.Color).ToDictionary(x => x.Key, x => x.Count());
+            var leastUsedColor = colorOrder.OrderBy(c => playersByColor[WellKnownColors.PlayerColors.All[c]]).First();
+            return WellKnownColors.PlayerColors.All[leastUsedColor];
+        }
+
+        private int[] GetColorPreferences(string playerName, int colorCount)
+        {
+            var preferences = Enumerable.Range(0, colorCount).ToArray();
+
+            var seed = _hashService.Murmur3(playerName);
+            var random = new System.Random(seed);
+
+            for (var i = preferences.Length - 1; i > 0; i--)
+            {
+                var swapIndex = random.Next(i + 1);
+                (preferences[i], preferences[swapIndex]) = (preferences[swapIndex], preferences[i]);
+            }
+
+            return preferences;
         }
 
         private List<NetworkDiscrepantDLC> CompareDLCs(NetworkContentState hostState, NetworkContentState clientState)
@@ -2647,6 +2691,27 @@ namespace WOTRMultiplayer.Services
             }
 
             return unitsToAdd;
+        }
+
+        private void UpdateCueAnswerSuggestions(long playerId, string cueName, string answerName)
+        {
+            Game.DialogState.AnswerSuggestions.AddOrUpdate(playerId, answerName, (key, existing) =>
+            {
+                return answerName;
+            });
+
+            List<NetworkDialogAnswerSuggestion> suggestions = [.. Game.DialogState.AnswerSuggestions.GroupBy(x => x.Value, x => x.Key).Select(x => new NetworkDialogAnswerSuggestion { AnswerName = x.Key, Players = [.. x] })];
+
+            var syncedPlayers = GetSyncedPlayers();
+            DialogInteraction.MarkSuggestedCueAnswers(syncedPlayers, suggestions);
+
+            var cueAnswerSuggested = new NotifyDialogCueAnswerSuggested
+            {
+                Dialog = Mapper.Map<Networking.Messages.Contracts.NetworkDialog>(Game.DialogState.Dialog),
+                CueName = cueName,
+                Suggestions = Mapper.Map<List<Networking.Messages.Contracts.NetworkDialogAnswerSuggestion>>(suggestions),
+            };
+            Send(cueAnswerSuggested);
         }
     }
 }

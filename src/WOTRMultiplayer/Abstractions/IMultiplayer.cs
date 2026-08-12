@@ -50,6 +50,8 @@ namespace WOTRMultiplayer.Abstractions
 
         bool OnBeforeSelectDialogAnswer(NetworkDialog networkDialog, string cueName, string answerName, bool isExitAnswer, string manualUnitSelectionId);
 
+        void OnAlternateCueAnswerAction(string cueName, string answerName);
+
         void OnAfterPlayDialogCue();
 
         bool StartDialog(NetworkDialog networkDialog);

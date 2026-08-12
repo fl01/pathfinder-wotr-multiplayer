@@ -30,6 +30,10 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         [LogMe]
         public bool IsHost { get; set; }
 
+        [ProtoMember(7)]
+        [LogMe]
+        public NetworkColor Color { get; set; }
+
         public override string ToString()
         {
             return Id.ToString();

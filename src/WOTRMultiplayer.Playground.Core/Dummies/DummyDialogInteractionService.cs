@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using WOTRMultiplayer.Abstractions.GameInteraction;
+using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.Dialogs;
 
 namespace WOTRMultiplayer.Playground.Core.Dummies
@@ -15,7 +16,7 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
         }
 
-        public void MarkSuggestedDialogAnswers(List<NetworkDialogAnswerSuggestion> networkDialogAnswerSuggestions)
+        public void MarkSuggestedCueAnswers(List<NetworkPlayer> allPlayers, List<NetworkDialogAnswerSuggestion> networkDialogAnswerSuggestions)
         {
         }
 

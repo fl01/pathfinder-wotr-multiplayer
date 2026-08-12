@@ -25,7 +25,6 @@ using Owlcat.Runtime.UI.VirtualListSystem;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using WOTRMultiplayer.Abstractions;
 using WOTRMultiplayer.Abstractions.GameInteraction;
 using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
@@ -64,11 +63,11 @@ namespace WOTRMultiplayer.UI
         private SaveLoadPCView _saveLoadPCView;
         private GameObject _defaultGameObject;
         private GameObject _borderDecoration;
+        private Sprite _circleSprite;
 
         private readonly ILogger<UIFactory> _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly IUIAccessor _uiAccessor;
-        private readonly IMultiplayerActorAccessor _multiplayerActorAccessor;
 
         public Mesh DefaultTextMesh { get; private set; }
 
@@ -87,13 +86,11 @@ namespace WOTRMultiplayer.UI
         public UIFactory(
             ILogger<UIFactory> logger,
             IServiceProvider serviceProvider,
-            IMultiplayerActorAccessor multiplayerActorAccessor,
             IUIAccessor uiAccessor)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
             _uiAccessor = uiAccessor;
-            _multiplayerActorAccessor = multiplayerActorAccessor;
         }
 
         public GameObject CreateProgressBar(Transform parent, int size, float thickness, bool withBackground = false)
@@ -109,7 +106,7 @@ namespace WOTRMultiplayer.UI
                 var background = CreateDefaultGameObject(root.transform);
                 var bgImage = background.AddComponent<Image>();
                 bgImage.sprite = CreateRingSprite();
-                bgImage.color = new Color(0.2f, 0.2f, 0.2f, 1);
+                bgImage.color = MuteColor(new Color(0.2f, 0.2f, 0.2f, 1), blend: 0.4f, brightnessCoefficient: 0.6f);
 
                 var bgRect = bgImage.GetComponent<RectTransform>();
                 bgRect.anchorMin = Vector2.zero;
@@ -118,7 +115,6 @@ namespace WOTRMultiplayer.UI
                 bgRect.offsetMax = Vector2.zero;
             }
 
-            // Progress
             var progress = CreateDefaultGameObject(root.transform);
             progress.name = ProgressBarImageObjectName;
             var progressImage = progress.AddComponent<Image>();
@@ -249,7 +245,7 @@ namespace WOTRMultiplayer.UI
             var screen = saveLoadView.gameObject.transform.Find(HostMenuItemController.SaveLoadScreen);
             UnityEngine.Object.DestroyImmediate(screen.Find("PapperBackground").gameObject);
             var top = screen.Find("Top");
-            UnityEngine.Object.DestroyImmediate(top.gameObject);
+            top.gameObject.SetActive(false);
 
             var saveLoadDetails = screen.Find(HostMenuItemController.SaveLoadDetails);
             var picture = saveLoadDetails.Find("Picture");
@@ -572,6 +568,73 @@ namespace WOTRMultiplayer.UI
             UnityEngine.Object.DontDestroyOnLoad(_backgroundArtPrefab);
         }
 
+        public GameObject CreateCircleIcon(Transform parent, Color color, float size)
+        {
+            var circleObject = new GameObject();
+            circleObject.transform.SetParent(parent, worldPositionStays: false);
+            var circleImage = circleObject.AddComponent<Image>();
+            circleImage.sprite = _circleSprite ??= CreateCircleSprite();
+            circleImage.color = color;
+
+            var outline = circleObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0.12f, 0.08f, 0.05f, 0.4f);
+            outline.effectDistance = new Vector2(1f, -1f);
+            outline.useGraphicAlpha = true;
+
+            var sizeFitter = circleObject.AddComponent<ContentSizeFitter>();
+            sizeFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            sizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var layoutElement = circleObject.AddComponent<LayoutElement>();
+            layoutElement.preferredHeight = size;
+            layoutElement.preferredWidth = size;
+            return circleObject;
+        }
+
+        public Color MuteColor(Color color, float blend = 0.15f, float brightnessCoefficient = 0.9f, float saturationCoefficient = 0.7f)
+        {
+            Color.RGBToHSV(color, out var hue, out var saturation, out var brightness);
+
+            saturation *= saturationCoefficient;
+            brightness *= brightnessCoefficient;
+
+            var muted = Color.HSVToRGB(hue, saturation, brightness);
+
+            var mutedColor = Color.Lerp(muted, new Color(0.65f, 0.60f, 0.50f), blend);
+            return mutedColor;
+        }
+
+        private Sprite CreateCircleSprite()
+        {
+            const int TextureSize = 32;
+            var texture = new Texture2D(TextureSize, TextureSize, TextureFormat.RGBA32, false)
+            {
+                filterMode = FilterMode.Bilinear,
+                wrapMode = TextureWrapMode.Clamp
+            };
+
+            var center = (TextureSize - 1) / 2f;
+            var radius = TextureSize / 2f;
+
+            for (var y = 0; y < TextureSize; y++)
+            {
+                for (var x = 0; x < TextureSize; x++)
+                {
+                    var dx = x - center;
+                    var dy = y - center;
+
+                    var distance = Mathf.Sqrt(dx * dx + dy * dy);
+
+                    texture.SetPixel(x, y, distance <= radius ? Color.white : Color.clear);
+                }
+            }
+
+            texture.Apply();
+
+            var sprite = Sprite.Create(texture, new Rect(0, 0, TextureSize, TextureSize), new Vector2(0.5f, 0.5f));
+            return sprite;
+        }
+
         private void CreateLobbyServerInfoSection(Transform parent)
         {
             var serverInfoSectionObject = CreateDefaultGameObject(parent);
@@ -665,11 +728,11 @@ namespace WOTRMultiplayer.UI
             }
         }
 
-        public void PopulateMultiplayerSettingsUI(SettingsVM settingsVM)
+        public void PopulateMultiplayerSettingsUI(SettingsVM settingsVM, bool isMultiplayerOff)
         {
             settingsVM.m_SettingEntities.Clear();
 
-            foreach (var settingEntity in GetSettingEntities())
+            foreach (var settingEntity in GetSettingEntities(isMultiplayerOff))
             {
                 settingsVM.m_SettingEntities.Add(settingsVM.AddDisposableAndReturn(settingEntity));
             }
@@ -701,7 +764,7 @@ namespace WOTRMultiplayer.UI
             return view;
         }
 
-        private IEnumerable<VirtualListElementVMBase> GetSettingEntities()
+        private IEnumerable<VirtualListElementVMBase> GetSettingEntities(bool isMultiplayerOff)
         {
             // general
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.General.Title.Key });
@@ -710,7 +773,8 @@ namespace WOTRMultiplayer.UI
                 WellKnownKeys.Settings.General.PlayerName.Tooltip.Key,
                 WellKnownSettings.General.PlayerName,
                 new PlayerNameValidator(),
-                PlayerNameValidator.MaxLength);
+                PlayerNameValidator.MaxLength,
+                isMultiplayerOff);
 
             // dialogs
             const float defaultMinAnimationDuration = 0.5f;
@@ -718,13 +782,22 @@ namespace WOTRMultiplayer.UI
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Dialogs.Title.Key });
             yield return CreateSliderSetting(WellKnownKeys.Settings.Dialogs.SelectedAnswerAnimationDuration.Title.Key,
                 WellKnownKeys.Settings.Dialogs.SelectedAnswerAnimationDuration.Tooltip.Key,
-                WellKnownSettings.Dialogs.SelectedAnswerAnimationDuration, defaultMinAnimationDuration, defaultMaxAnimationDuration);
+                WellKnownSettings.Dialogs.SelectedAnswerAnimationDuration,
+                defaultMinAnimationDuration,
+                defaultMaxAnimationDuration,
+                isMultiplayerOff);
             yield return CreateSliderSetting(WellKnownKeys.Settings.Dialogs.NonSelectedAnswerAnimationDuration.Title.Key,
                 WellKnownKeys.Settings.Dialogs.NonSelectedAnswerAnimationDuration.Tooltip.Key,
-                WellKnownSettings.Dialogs.NonSelectedAnswerAnimationDuration, defaultMinAnimationDuration, defaultMaxAnimationDuration);
+                WellKnownSettings.Dialogs.NonSelectedAnswerAnimationDuration,
+                defaultMinAnimationDuration,
+                defaultMaxAnimationDuration,
+                isMultiplayerOff);
             yield return CreateSliderSetting(WellKnownKeys.Settings.Dialogs.BlockedAnswerAnimationDuration.Title.Key,
                 WellKnownKeys.Settings.Dialogs.BlockedAnswerAnimationDuration.Tooltip.Key,
-                WellKnownSettings.Dialogs.BlockedAnswerAnimationDuration, defaultMinAnimationDuration, defaultMaxAnimationDuration);
+                WellKnownSettings.Dialogs.BlockedAnswerAnimationDuration,
+                defaultMinAnimationDuration,
+                defaultMaxAnimationDuration,
+                isMultiplayerOff);
 
             // networking
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Networking.Title.Key });
@@ -733,23 +806,27 @@ namespace WOTRMultiplayer.UI
                 WellKnownKeys.Settings.Networking.Host.Tooltip.Key,
                 WellKnownSettings.Networking.Host,
                 new HostValidator(),
-                int.MaxValue);
+                int.MaxValue,
+                isMultiplayerOff);
             yield return CreateIntInputSetting(
                 WellKnownKeys.Settings.Networking.HostPortRangeStart.Title.Key,
                 WellKnownKeys.Settings.Networking.HostPortRangeStart.Tooltip.Key,
                 WellKnownSettings.Networking.HostPortRangeStart,
                 new NetworkPortValidator(),
-                NetworkPortValidator.MaxCharacters);
+                NetworkPortValidator.MaxCharacters,
+                isMultiplayerOff);
             yield return CreateIntInputSetting(
                 WellKnownKeys.Settings.Networking.HostPortRangeEnd.Title.Key,
                 WellKnownKeys.Settings.Networking.HostPortRangeEnd.Tooltip.Key,
                 WellKnownSettings.Networking.HostPortRangeEnd,
                 new NetworkPortValidator(),
-                NetworkPortValidator.MaxCharacters);
+                NetworkPortValidator.MaxCharacters,
+                isMultiplayerOff);
             yield return CreateBoolSetting(
                 WellKnownKeys.Settings.Networking.UseIPv6.Title.Key,
                 WellKnownKeys.Settings.Networking.UseIPv6.Tooltip.Key,
-                WellKnownSettings.Networking.UseIPv6);
+                WellKnownSettings.Networking.UseIPv6,
+                isMultiplayerOff);
             // networking - p2p
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Networking.Subsections.P2P.Key });
             yield return CreateIntInputSetting(
@@ -757,20 +834,47 @@ namespace WOTRMultiplayer.UI
                 WellKnownKeys.Settings.Networking.P2P.Port.Tooltip.Key,
                 WellKnownSettings.Networking.PeerToPeerPort,
                 new NetworkPortValidator(),
-                NetworkPortValidator.MaxCharacters);
+                NetworkPortValidator.MaxCharacters,
+                isMultiplayerOff);
 
             // misc
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Miscellaneous.Title.Key });
-            yield return CreateBoolSetting(WellKnownKeys.Settings.Miscellaneous.HideServerAddress.Title.Key, WellKnownKeys.Settings.Miscellaneous.HideServerAddress.Tooltip.Key, WellKnownSettings.Miscellaneous.HideServerAddress);
-            yield return CreateBoolSetting(WellKnownKeys.Settings.Miscellaneous.TrackConnectionHistory.Title.Key, WellKnownKeys.Settings.Miscellaneous.TrackConnectionHistory.Tooltip.Key, WellKnownSettings.Miscellaneous.TrackConnectionHistory);
-            yield return CreateSliderSetting(WellKnownKeys.Settings.Miscellaneous.MaxConnectionHistoryRecords.Title.Key, WellKnownKeys.Settings.Miscellaneous.MaxConnectionHistoryRecords.Tooltip.Key, WellKnownSettings.Miscellaneous.MaxConnectionHistoryRecords, 1, 10);
+            yield return CreateBoolSetting(
+                WellKnownKeys.Settings.Miscellaneous.HideServerAddress.Title.Key,
+                WellKnownKeys.Settings.Miscellaneous.HideServerAddress.Tooltip.Key,
+                WellKnownSettings.Miscellaneous.HideServerAddress,
+                isMultiplayerOff);
+            yield return CreateBoolSetting(
+                WellKnownKeys.Settings.Miscellaneous.TrackConnectionHistory.Title.Key,
+                WellKnownKeys.Settings.Miscellaneous.TrackConnectionHistory.Tooltip.Key,
+                WellKnownSettings.Miscellaneous.TrackConnectionHistory,
+                isMultiplayerOff);
+            yield return CreateSliderSetting(
+                WellKnownKeys.Settings.Miscellaneous.MaxConnectionHistoryRecords.Title.Key,
+                WellKnownKeys.Settings.Miscellaneous.MaxConnectionHistoryRecords.Tooltip.Key,
+                WellKnownSettings.Miscellaneous.MaxConnectionHistoryRecords,
+                1,
+                10,
+                isMultiplayerOff);
 
             // hotkeys
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.Hotkeys.Title.Key });
-            yield return CreateKeyBindingSetting(WellKnownKeys.Settings.Hotkeys.ShowLobby.Title.Key, WellKnownKeys.Settings.Hotkeys.ShowLobby.Tooltip.Key, WellKnownSettings.Hotkeys.ShowLobby);
-            yield return CreateKeyBindingSetting(WellKnownKeys.Settings.Hotkeys.Ping.Title.Key, WellKnownKeys.Settings.Hotkeys.Ping.Tooltip.Key, WellKnownSettings.Hotkeys.Ping);
-            yield return CreateKeyBindingSetting(WellKnownKeys.Settings.Hotkeys.ForceUnpause.Title.Key, WellKnownKeys.Settings.Hotkeys.ForceUnpause.Tooltip.Key, WellKnownSettings.Hotkeys.ForceUnpause);
-            yield return CreateKeyBindingSetting(WellKnownKeys.Settings.Hotkeys.ForceCombatEnd.Title.Key, WellKnownKeys.Settings.Hotkeys.ForceCombatEnd.Tooltip.Key, WellKnownSettings.Hotkeys.ForceCombatEnd);
+            yield return CreateKeyBindingSetting(
+                WellKnownKeys.Settings.Hotkeys.ShowLobby.Title.Key,
+                WellKnownKeys.Settings.Hotkeys.ShowLobby.Tooltip.Key,
+                WellKnownSettings.Hotkeys.ShowLobby);
+            yield return CreateKeyBindingSetting(
+                WellKnownKeys.Settings.Hotkeys.Ping.Title.Key,
+                WellKnownKeys.Settings.Hotkeys.Ping.Tooltip.Key,
+                WellKnownSettings.Hotkeys.Ping);
+            yield return CreateKeyBindingSetting(
+                WellKnownKeys.Settings.Hotkeys.ForceUnpause.Title.Key,
+                WellKnownKeys.Settings.Hotkeys.ForceUnpause.Tooltip.Key,
+                WellKnownSettings.Hotkeys.ForceUnpause);
+            yield return CreateKeyBindingSetting(
+                WellKnownKeys.Settings.Hotkeys.ForceCombatEnd.Title.Key,
+                WellKnownKeys.Settings.Hotkeys.ForceCombatEnd.Tooltip.Key,
+                WellKnownSettings.Hotkeys.ForceCombatEnd);
 
             // danger zone
             yield return new SettingsEntityHeaderVM(new LocalizedString { Key = WellKnownKeys.Settings.DangerZone.Title.Key });
@@ -779,43 +883,50 @@ namespace WOTRMultiplayer.UI
                 WellKnownKeys.Settings.DangerZone.DefaultForcedPauseTimeout.Tooltip.Key,
                 WellKnownSettings.DangerZone.DefaultForcedPauseTimeout,
                 new TimeSpanValidator(),
-                TimeSpanValidator.MaxLength);
+                TimeSpanValidator.MaxLength,
+                isMultiplayerOff);
             yield return CreateStringInputSetting(
                 WellKnownKeys.Settings.DangerZone.RestEncounterForcedPauseTimeout.Title.Key,
                 WellKnownKeys.Settings.DangerZone.RestEncounterForcedPauseTimeout.Tooltip.Key,
                 WellKnownSettings.DangerZone.RestEncounterForcedPauseTimeout,
                 new TimeSpanValidator(),
-                TimeSpanValidator.MaxLength);
+                TimeSpanValidator.MaxLength,
+                isMultiplayerOff);
             yield return CreateStringInputSetting(
                 WellKnownKeys.Settings.DangerZone.RestEncounterSyncTimeout.Title.Key,
                 WellKnownKeys.Settings.DangerZone.RestEncounterSyncTimeout.Tooltip.Key,
                 WellKnownSettings.DangerZone.RestEncounterSyncTimeout,
                 new TimeSpanValidator(),
-                TimeSpanValidator.MaxLength);
+                TimeSpanValidator.MaxLength,
+                isMultiplayerOff);
             yield return CreateStringInputSetting(
                 WellKnownKeys.Settings.DangerZone.NetworkAwaiterTimeout.Title.Key,
                 WellKnownKeys.Settings.DangerZone.NetworkAwaiterTimeout.Tooltip.Key,
                 WellKnownSettings.DangerZone.NetworkAwaiterTimeout,
                 new TimeSpanValidator(),
-                TimeSpanValidator.MaxLength);
+                TimeSpanValidator.MaxLength,
+                isMultiplayerOff);
             yield return CreateStringInputSetting(
                 WellKnownKeys.Settings.DangerZone.CombatTurnDelayForAI.Title.Key,
                 WellKnownKeys.Settings.DangerZone.CombatTurnDelayForAI.Tooltip.Key,
                 WellKnownSettings.DangerZone.CombatTurnDelayForAI,
                 new TimeSpanValidator(),
-                TimeSpanValidator.MaxLength);
+                TimeSpanValidator.MaxLength,
+                isMultiplayerOff);
             yield return CreateStringInputSetting(
                 WellKnownKeys.Settings.DangerZone.PlayerTurnEndDelay.Title.Key,
                 WellKnownKeys.Settings.DangerZone.PlayerTurnEndDelay.Tooltip.Key,
                 WellKnownSettings.DangerZone.PlayerTurnEndDelay,
                 new TimeSpanValidator(),
-                TimeSpanValidator.MaxLength);
+                TimeSpanValidator.MaxLength,
+                isMultiplayerOff);
             yield return CreateIntInputSetting(
                 WellKnownKeys.Settings.DangerZone.SaveGameChunkSize.Title.Key,
                 WellKnownKeys.Settings.DangerZone.SaveGameChunkSize.Tooltip.Key,
                 WellKnownSettings.DangerZone.SaveGameChunkSize,
                 new NetworkChunkSizeValidator(),
-                NetworkChunkSizeValidator.MaxLength);
+                NetworkChunkSizeValidator.MaxLength,
+                isMultiplayerOff);
         }
 
         private SettingEntityKeyBindingVM CreateKeyBindingSetting(string titleKey, string tooltipKey, WellKnownSettingKey<KeyBindingPair> settingKey)
@@ -830,7 +941,7 @@ namespace WOTRMultiplayer.UI
             return viewModel;
         }
 
-        private SettingsEntitySliderVM CreateSliderSetting(string titleKey, string tooltipKey, WellKnownSettingKey<float> settingKey, float minValue, float maxValue)
+        private SettingsEntitySliderVM CreateSliderSetting(string titleKey, string tooltipKey, WellKnownSettingKey<float> settingKey, float minValue, float maxValue, bool isMultiplayerOff)
         {
             var floatSetting = ScriptableObject.CreateInstance<UISettingsEntitySliderFloat>();
             floatSetting.m_MinValue = minValue;
@@ -841,13 +952,13 @@ namespace WOTRMultiplayer.UI
             ConfigureSetting(floatSetting, titleKey, tooltipKey);
             var setting = new SettingsEntityFloat(settingKey.Key, settingKey.DefaultValue);
             floatSetting.LinkSetting(setting);
-            ConfigureSettingModification(floatSetting);
+            ConfigureSettingModification(floatSetting, isMultiplayerOff);
 
             var viewModel = new SettingsEntitySliderVM(floatSetting);
             return viewModel;
         }
 
-        private SettingsEntitySliderVM CreateSliderSetting(string titleKey, string tooltipKey, WellKnownSettingKey<int> settingKey, int minValue, int maxValue)
+        private SettingsEntitySliderVM CreateSliderSetting(string titleKey, string tooltipKey, WellKnownSettingKey<int> settingKey, int minValue, int maxValue, bool isMultiplayerOff)
         {
             var floatSetting = ScriptableObject.CreateInstance<UISettingsEntitySliderInt>();
             floatSetting.m_MinValue = minValue;
@@ -856,63 +967,53 @@ namespace WOTRMultiplayer.UI
             ConfigureSetting(floatSetting, titleKey, tooltipKey);
             var setting = new SettingsEntityInt(settingKey.Key, settingKey.DefaultValue);
             floatSetting.LinkSetting(setting);
-            ConfigureSettingModification(floatSetting);
+            ConfigureSettingModification(floatSetting, isMultiplayerOff);
 
             var viewModel = new SettingsEntitySliderVM(floatSetting);
             return viewModel;
         }
 
-        private SettingsEntityBoolVM CreateBoolSetting(string titleKey, string tooltipKey, WellKnownSettingKey<bool> settingKey)
+        private SettingsEntityBoolVM CreateBoolSetting(string titleKey, string tooltipKey, WellKnownSettingKey<bool> settingKey, bool isMultiplayerOff)
         {
             var boolSetting = ScriptableObject.CreateInstance<UISettingsEntityBool>();
             ConfigureSetting(boolSetting, titleKey, tooltipKey);
             var setting = new SettingsEntityBool(settingKey.Key, settingKey.DefaultValue);
             boolSetting.LinkSetting(setting);
-            ConfigureSettingModification(boolSetting);
+            ConfigureSettingModification(boolSetting, isMultiplayerOff);
 
             var viewModel = new SettingsEntityBoolVM(boolSetting);
             return viewModel;
         }
 
-        private SettingsEntityStringInputVM CreateStringInputSetting(
-            string titleKey,
-            string tooltipKey,
-            WellKnownSettingKey<string> settingKey,
-            AbstractValidator<string> validator,
-            int characterLimit)
+        private SettingsEntityStringInputVM CreateStringInputSetting(string titleKey, string tooltipKey, WellKnownSettingKey<string> settingKey, AbstractValidator<string> validator, int characterLimit, bool isMultiplayerOff)
         {
             var inputSetting = ScriptableObject.CreateInstance<UIValidatableStringSettingsEntity>();
             ConfigureSetting(inputSetting, titleKey, tooltipKey);
             ConfigureValidation(inputSetting, validator, characterLimit);
             var setting = new SettingsEntityString(settingKey.Key, settingKey.DefaultValue);
             inputSetting.LinkSetting(setting);
-            ConfigureSettingModification(inputSetting);
+            ConfigureSettingModification(inputSetting, isMultiplayerOff);
 
             var viewModel = new SettingsEntityStringInputVM(inputSetting);
             return viewModel;
         }
 
-        private SettingsEntityIntInputVM CreateIntInputSetting(
-            string titleKey,
-            string tooltipKey,
-            WellKnownSettingKey<int> settingKey,
-            AbstractValidator<int> validator,
-            int characterLimit)
+        private SettingsEntityIntInputVM CreateIntInputSetting(string titleKey, string tooltipKey, WellKnownSettingKey<int> settingKey, AbstractValidator<int> validator, int characterLimit, bool isMultiplayerOff)
         {
             var inputSetting = ScriptableObject.CreateInstance<UIValidatableIntSettingsEntity>();
             ConfigureSetting(inputSetting, titleKey, tooltipKey);
             ConfigureValidation(inputSetting, validator, characterLimit);
             var setting = new SettingsEntityInt(settingKey.Key, settingKey.DefaultValue);
             inputSetting.LinkSetting(setting);
-            ConfigureSettingModification(inputSetting);
+            ConfigureSettingModification(inputSetting, isMultiplayerOff);
 
             var viewModel = new SettingsEntityIntInputVM(inputSetting);
             return viewModel;
         }
 
-        private void ConfigureSettingModification<TValue>(UISettingsEntityWithValueBase<TValue> uiSettingsEntityBase)
+        private void ConfigureSettingModification<TValue>(UISettingsEntityWithValueBase<TValue> uiSettingsEntityBase, bool isMultiplayerOff)
         {
-            var canModify = _multiplayerActorAccessor.Current == null || _editableMultiplayerSettingsInGame.Contains(uiSettingsEntityBase.Setting.Key);
+            var canModify = isMultiplayerOff || _editableMultiplayerSettingsInGame.Contains(uiSettingsEntityBase.Setting.Key);
             uiSettingsEntityBase.ManualModificationLock = !canModify;
             uiSettingsEntityBase.ModificationAllowedCheck = () => true;
         }

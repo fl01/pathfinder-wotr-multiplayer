@@ -28,6 +28,8 @@ namespace WOTRMultiplayer.Abstractions
 
         void SendSelectedAnswer();
 
+        void MakeCueAnswerSuggestion(string cueName, string answerName);
+
         void OnPerceptionCheck(NetworkPerceptionCheck check);
 
         void OnInspectionKnowledgeCheck(NetworkInspectionKnowledgeCheck check);

@@ -72,7 +72,7 @@ namespace WOTRMultiplayer.UI.Windows
             {
                 _lobbyWindowController.SetActiveOwner(LobbyWindowOwner.EscMenu);
 
-                _logger.LogInformation("Updaing lobby info");
+                _logger.LogInformation("Updating lobby info");
                 var connectivity = GetGameConnectivity();
                 _lobbyWindowController.UpdateServerInfo(connectivity);
                 var players = GetPlayers();
@@ -85,7 +85,6 @@ namespace WOTRMultiplayer.UI.Windows
                 _logger.LogError(ex, "Unable to update data within the window");
             }
 
-            _logger.LogInformation("Subscribing for esc button click");
             _escSubscription = Game.Instance.UI.EscManager.Subscribe(Close);
         }
 

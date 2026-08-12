@@ -143,14 +143,13 @@ namespace WOTRMultiplayer.UI.Controllers
             Lobby.SetActiveOwner(LobbyWindowOwner.HostMenu);
 
             var saveLoadView = _menuContent.transform.GetChild(0).GetComponent<SaveLoadPCView>();
-            _saveLoadViewModel = new SaveLoadVM(SaveLoadMode.Load, true, DisposeSaveLoadVM, RootUIContext.Instance.CommonVM);
-
+            _saveLoadViewModel = new SaveLoadVM(SaveLoadMode.Load, false, DisposeSaveLoadVM, RootUIContext.Instance.CommonVM);
             AddNewGameSaveSlot(_saveLoadViewModel);
 
             if (SetupLayout)
             {
                 SetupLayout = false;
-                /// overriding save/load/delete buttons prefab to make sure original loadsave screen is not affected
+                /// overriding save/load/delete buttons prefab to make sure original save-load screen is not affected
                 var screen = saveLoadView.gameObject.transform.Find(SaveLoadScreen);
                 var collectionView = screen.Find("SaveSlotCollectionPlace").Find("SaveSlotVirtualCollectionView");
                 var virtualView = collectionView.GetComponent<SaveSlotCollectionVirtualView>();
@@ -174,6 +173,7 @@ namespace WOTRMultiplayer.UI.Controllers
             Game.Instance.UI.EscManager.Unsubscribe(_saveLoadViewModel.OnClose);
             ResetGamePasswordField();
             saveLoadView.Show();
+
             base.Activate();
         }
 
@@ -329,7 +329,7 @@ namespace WOTRMultiplayer.UI.Controllers
                 var mainCharacterId = Guid.NewGuid().ToString();
                 var newGameSequence = new NetworkGameStartUp
                 {
-                    // empty character that can be used to assign control for leveling (chargen) screen
+                    // empty character that can be used to assign control for leveling (CharGen) screen
                     Characters = [new NetworkCharacter { Portrait = "b7aa1433ab20e3745a4a169ee34ca738_MaskGolem", UnitId = mainCharacterId }],
                     Title = saveSlot.SaveName.Value,
                     IsNewGameSequence = true,
@@ -398,7 +398,7 @@ namespace WOTRMultiplayer.UI.Controllers
             hostingContainer.name = HostingContainerObjectName;
             hostingContainer.AddComponent<VerticalLayoutGroup>().spacing = 35f;
             var hostingContainerRect = hostingContainer.GetComponent<RectTransform>();
-            hostingContainerRect.Centered();
+            hostingContainerRect.Center();
             hostingContainer.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             hostingContainer.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
 
@@ -420,7 +420,7 @@ namespace WOTRMultiplayer.UI.Controllers
             var width = parent.GetComponent<RectTransform>().sizeDelta.x * 0.45f;
             var dropdownContainerObject = Main.Multiplayer.UIFactory.CreateDropdown(width, labelObject.transform);
             var dropdownObject = dropdownContainerObject.transform.Find(UI.UIFactory.DropdownGameObjectName);
-            dropdownObject.GetComponent<RectTransform>().Centered();
+            dropdownObject.GetComponent<RectTransform>().Center();
             var tmpDropdown = dropdownObject.GetComponent<TMP_Dropdown>();
             tmpDropdown.ClearOptions();
             var servers = GetExternalServers();
@@ -487,7 +487,7 @@ namespace WOTRMultiplayer.UI.Controllers
             var replacedContainer = UnityEngine.Object.Instantiate(container, screen.transform);
             replacedContainer.name = SaveLoadDetails;
             // hack to replace container to get rid of existing unity references
-            // fakebutton must be kept intact
+            // FakeButton must be kept intact
             container.name = "OLD_" + SaveLoadDetails;
             container.gameObject.CleanupAllChildren(x => x.name != "FakeButton");
             container.gameObject.SetActive(false);

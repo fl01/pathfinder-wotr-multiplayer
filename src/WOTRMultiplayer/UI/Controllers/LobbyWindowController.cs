@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using AutoMapper;
 using DG.Tweening;
 using Kingmaker.Blueprints;
 using Kingmaker.Localization;
@@ -10,6 +11,7 @@ using Kingmaker.UI.MVVM._VM.Tooltip.Templates;
 using Kingmaker.UI.MVVM._VM.Tooltip.Utils;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.UI.Controls.Button;
+using Owlcat.Runtime.UI.Controls.Other;
 using Owlcat.Runtime.UI.Tooltips;
 using TMPro;
 using UniRx;
@@ -59,6 +61,7 @@ namespace WOTRMultiplayer.UI.Controllers
         public const string CharacterOwnerObjectName = "CharacterOwner";
 
         private readonly ILogger<LobbyWindowController> _logger;
+        private readonly IMapper _mapper;
         private readonly IUIFactory _uiFactory;
         private readonly IMainThreadAccessor _mainThreadAccessor;
         private readonly IResourceProvider _resourceProvider;
@@ -92,6 +95,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
         public LobbyWindowController(
             ILogger<LobbyWindowController> logger,
+            IMapper mapper,
             IMainThreadAccessor mainThreadAccessor,
             IResourceProvider resourceProvider,
             IMultiplayerSettingsService multiplayerSettingsService,
@@ -100,6 +104,7 @@ namespace WOTRMultiplayer.UI.Controllers
             UnityModManagerSettings unityModManagerSettings)
         {
             _logger = logger;
+            _mapper = mapper;
             _uiFactory = uiFactory;
             _mainThreadAccessor = mainThreadAccessor;
             _resourceProvider = resourceProvider;
@@ -447,11 +452,13 @@ namespace WOTRMultiplayer.UI.Controllers
 
             CreateLabel(playerContainerObject.transform, PreferredHeight, defaultMesh, $"[{player.ContentState.GameVersion}]");
 
-            var playerObject = _uiFactory.CreateDefaultGameObject(playerContainerObject.transform);
-            var playerElement = playerObject.AddComponent<LayoutElement>();
-            playerElement.preferredHeight = PreferredHeight;
-            playerObject.name = PlayerNameObjectName;
-            var playerNameBox = playerObject.AddComponent<TextMeshProUGUI>();
+            CreatePlayerColorIcon(playerContainerObject.transform, player);
+
+            var playerNameObject = _uiFactory.CreateDefaultGameObject(playerContainerObject.transform);
+            var playerNameElement = playerNameObject.AddComponent<LayoutElement>();
+            playerNameElement.preferredHeight = PreferredHeight;
+            playerNameObject.name = PlayerNameObjectName;
+            var playerNameBox = playerNameObject.AddComponent<TextMeshProUGUI>();
             playerNameBox.alignment = TextAlignmentOptions.Center;
             playerNameBox.material = defaultMesh.Material;
             playerNameBox.color = defaultMesh.Color;
@@ -469,6 +476,30 @@ namespace WOTRMultiplayer.UI.Controllers
                 var icon = isMultiplayerModDifferent ? "UI_QuestNotification_StampRed" : "UI_QuestNotification_StampYellow";
                 CreatePlayerIcon(icon, playerContainerObject.transform, PreferredHeight, new ContentDiscrepancyTooltipTemplate(player));
             }
+        }
+
+        private void CreatePlayerColorIcon(Transform parent, NetworkPlayer player)
+        {
+            var iconColor = _uiFactory.MuteColor(_mapper.Map<Color>(player.Color));
+            var playerIconObject = _uiFactory.CreateCircleIcon(parent, iconColor, 14f);
+            var button = playerIconObject.AddComponent<OwlcatButton>();
+            _disposables.Add(button.OnLeftClickAsObservable().Subscribe(_ => ShowColorPicker(player)));
+            _disposables.Add(button.OnRightClickAsObservable().Subscribe(_ => ShowColorPicker(player)));
+            var config = new TooltipConfig
+            {
+                InfoCallPCMethod = InfoCallPCMethod.None
+            };
+
+            var template = new TooltipTemplateSimple(
+                new LocalizedString { Key = WellKnownKeys.LobbyWindow.Tooltips.Players.Color.Header.Key },
+                new LocalizedString { Key = WellKnownKeys.LobbyWindow.Tooltips.Players.Color.Description.Key });
+            var tooltip = TooltipHelper.SetTooltip(playerIconObject.GetComponent<Image>(), template, config);
+            _disposables.Add(tooltip);
+        }
+
+        private void ShowColorPicker(NetworkPlayer networkPlayer)
+        {
+            _logger.LogWarning("Color picker. PlayerName={PlayerName}", networkPlayer.Name);
         }
 
         private void CreateLabel(Transform parent, int preferredHeight, Mesh mesh, string text)
@@ -518,7 +549,6 @@ namespace WOTRMultiplayer.UI.Controllers
             }
 
             _disposables.Clear();
-
         }
 
         private void UpdateCharacterOwnerDropdown(List<NetworkPlayer> networkPlayers)

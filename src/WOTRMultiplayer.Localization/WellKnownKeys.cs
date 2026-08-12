@@ -527,6 +527,26 @@ public static class WellKnownKeys
                     public static string Key { get; set; }
                 }
             }
+
+            [Description("players")]
+            public static class Players
+            {
+                [Description("color")]
+                public static class Color
+                {
+                    [Description("header")]
+                    public static class Header
+                    {
+                        public static string Key { get; set; }
+                    }
+
+                    [Description("description")]
+                    public static class Description
+                    {
+                        public static string Key { get; set; }
+                    }
+                }
+            }
         }
     }
 

@@ -129,7 +129,7 @@ namespace WOTRMultiplayer.HarmonyPatches.MenuPatches
                 return true;
             }
 
-            Main.Multiplayer.UIFactory.PopulateMultiplayerSettingsUI(__instance);
+            Main.Multiplayer.UIFactory.PopulateMultiplayerSettingsUI(__instance, !Main.Multiplayer.IsActive);
 
             return false;
         }

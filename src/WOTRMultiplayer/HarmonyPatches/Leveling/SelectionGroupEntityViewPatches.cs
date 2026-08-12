@@ -31,7 +31,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
             { typeof(CharGenVoiceItemPCView),  x => LevelingVoiceSelected((CharGenVoiceItemVM)x.ViewModel) },
         };
 
-        [HarmonyPatch(typeof(SelectionGroupEntityView<SelectionGroupEntityVM>), nameof(SelectionGroupEntityView<SelectionGroupEntityVM>.OnClick))]
+        [HarmonyPatch(typeof(SelectionGroupEntityView<SelectionGroupEntityVM>), nameof(SelectionGroupEntityView<>.OnClick))]
         [HarmonyPrefix]
         public static bool SelectionGroupEntityView_OnClick_Prefix(SelectionGroupEntityView<SelectionGroupEntityVM> __instance)
         {
@@ -71,7 +71,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
             return canContinue;
         }
 
-        [HarmonyPatch(typeof(SelectionGroupEntityView<SelectionGroupEntityVM>), nameof(SelectionGroupEntityView<SelectionGroupEntityVM>.BindViewImplementation))]
+        [HarmonyPatch(typeof(SelectionGroupEntityView<SelectionGroupEntityVM>), nameof(SelectionGroupEntityView<>.BindViewImplementation))]
         [HarmonyPostfix]
         public static void SelectionGroupEntityView_BindViewImplementation_Postfix(SelectionGroupEntityView<SelectionGroupEntityVM> __instance)
         {
@@ -89,7 +89,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
 
         private static IDisposable LevelingVoiceSelected(CharGenVoiceItemVM viewModel)
         {
-            return viewModel.IsSelected.Subscribe<bool>(isSelected =>
+            return viewModel.IsSelected.Subscribe(isSelected =>
             {
                 if (!isSelected)
                 {
@@ -108,7 +108,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
 
         private static IDisposable LevelingMythicClassSelected(CharGenMythicSelectorItemVM viewModel)
         {
-            return viewModel.IsSelected.Subscribe<bool>(isSelected =>
+            return viewModel.IsSelected.Subscribe(isSelected =>
             {
                 if (!isSelected)
                 {
@@ -122,7 +122,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
 
         private static IDisposable LevelingPortraitSelected(CharGenPortraitSelectorItemVM viewModel)
         {
-            return viewModel.IsSelected.Subscribe<bool>(isSelected =>
+            return viewModel.IsSelected.Subscribe(isSelected =>
             {
                 if (!isSelected)
                 {
@@ -142,7 +142,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
 
         private static IDisposable LevelingRaceSelected(CharGenRaceSelectorItemVM viewModel)
         {
-            return viewModel.IsSelected.Subscribe<bool>(isSelected =>
+            return viewModel.IsSelected.Subscribe(isSelected =>
             {
                 if (!isSelected)
                 {
@@ -156,7 +156,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
 
         private static IDisposable LevelingGenderSelected(CharGenGenderItemVM viewModel)
         {
-            return viewModel.IsSelected.Subscribe<bool>(isSelected =>
+            return viewModel.IsSelected.Subscribe(isSelected =>
             {
                 if (!isSelected)
                 {
@@ -170,7 +170,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Leveling
 
         private static IDisposable LevelingAlignmentSelected(CharGenAlignmentSectorVM viewModel)
         {
-            return viewModel.IsSelected.Subscribe<bool>(isSelected =>
+            return viewModel.IsSelected.Subscribe(isSelected =>
             {
                 if (!isSelected)
                 {

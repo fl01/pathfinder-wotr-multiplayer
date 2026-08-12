@@ -2,7 +2,7 @@
 {
     public enum NetworkLobbySyncStatus
     {
-        None,
+        Pending,
         Succeed,
         Failed
     }
