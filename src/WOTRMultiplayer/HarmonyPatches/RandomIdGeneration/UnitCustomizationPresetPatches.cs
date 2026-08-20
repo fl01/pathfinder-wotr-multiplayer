@@ -51,11 +51,11 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
 
             try
             {
-                var seededContext = Main.Multiplayer.GetSeededContext();
+                var seededContext = Main.Multiplayer.GetSeededContext(Services.Random.SeedKind.Session | Services.Random.SeedKind.LoadedSaveSeed | Services.Random.SeedKind.AreaSeed);
                 var identifier = $"{blueprintUnit.name}:{nameof(UnitCustomizationPreset.SelectVariation)}_{seededContext.Id}";
-                var variationIndex = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, 0, variations.Count);
+                var variationIndex = Main.Multiplayer.ValueGenerator.Range(Services.Random.IdentifierLifetime.Area, identifier, 0, variations.Count);
                 var variation = variations[variationIndex];
-                Main.GetLogger<UnitCustomizationPresetPatches>().LogDebug("Unit variation has been selected. Race={Race}, Gender={Gender}, PrefabId={PrefabId}, Identifier={Identifier}", variation.Race, variation.Gender, variation.Prefab.AssetId, identifier);
+                Main.GetLogger<UnitCustomizationPresetPatches>().LogInformation("Unit variation has been selected. Race={Race}, Gender={Gender}, PrefabId={PrefabId}, Identifier={Identifier}", variation.Race, variation.Gender, variation.Prefab.AssetId, identifier);
 
                 return variation;
             }
