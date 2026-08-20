@@ -492,13 +492,16 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private void OnMultiplayerConnected(GameConnectivity connectivity)
         {
-            if (connectivity.Endpoint != null)
+            MainThreadAccessor.Post(() =>
             {
-                AddSuccessfulConnectionRecord(connectivity);
-            }
+                if (connectivity.Endpoint != null)
+                {
+                    AddSuccessfulConnectionRecord(connectivity);
+                }
 
-            Lobby.UpdateServerInfo(connectivity);
-            ActivateLobbyControls();
+                Lobby.UpdateServerInfo(connectivity);
+                ActivateLobbyControls();
+            });
         }
 
         private void OnMultiplayerPlayersChanged(NetworkLobbyStage lobbyStage, List<NetworkPlayer> players)

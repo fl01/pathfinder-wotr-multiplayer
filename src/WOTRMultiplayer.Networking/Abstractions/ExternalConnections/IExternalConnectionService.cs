@@ -14,7 +14,7 @@ namespace WOTRMultiplayer.Networking.Abstractions.ExternalConnections
 
         Action<int, string> OnPeerConnected { get; set; }
 
-        Action<int, string> OnPeerDisconnected { get; set; }
+        Action<int, string, bool> OnPeerDisconnected { get; set; }
 
         bool IsConnecting { get; }
 

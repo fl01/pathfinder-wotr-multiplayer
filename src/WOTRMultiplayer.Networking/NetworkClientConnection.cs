@@ -115,8 +115,14 @@ namespace WOTRMultiplayer.Networking
             ExternalConnectionService.OnPeerDisconnected = OnPeerDisconnected;
         }
 
-        private void OnPeerDisconnected(int peerId, string reason)
+        private void OnPeerDisconnected(int peerId, string reason, bool isDuplicateConnection)
         {
+            if (isDuplicateConnection)
+            {
+                Logger.LogWarning("Skipping obsolete p2p connection disconnect event");
+                return;
+            }
+
             var error = new NetworkError(NetworkErrorType.Disconnected)
             {
                 Reason = reason

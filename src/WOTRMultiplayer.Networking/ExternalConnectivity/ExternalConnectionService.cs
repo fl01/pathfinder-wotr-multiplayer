@@ -39,7 +39,7 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
 
         public Action<int, string> OnPeerConnected { get; set; }
 
-        public Action<int, string> OnPeerDisconnected { get; set; }
+        public Action<int, string, bool> OnPeerDisconnected { get; set; }
 
         public Action<NetworkMessageMetadata> OnMessageReceived { get; set; }
 
@@ -148,9 +148,9 @@ namespace WOTRMultiplayer.Networking.ExternalConnectivity
             _joiningTimeout = null;
         }
 
-        private void OnPeerDisconnectedEvent(int peerId, string reason)
+        private void OnPeerDisconnectedEvent(int peerId, string reason, bool isDuplicateConnection)
         {
-            OnPeerDisconnected?.Invoke(peerId, reason);
+            OnPeerDisconnected?.Invoke(peerId, reason, isDuplicateConnection);
         }
 
         public void Broadcast(object message)

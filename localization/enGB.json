@@ -178,8 +178,8 @@
                     "P2P": "Networking - Peer-to-Peer"
                 },
                 "host": {
-                    "title": "Host",
-                    "tooltip": "IP address to bind the TCP port to (e.g. 127.0.0.1, 0.0.0.0). Leave empty to bind to all interfaces"
+                    "title": "Listen Address",
+                    "tooltip": "Leave EMPTY to bind to all interfaces"
                 },
                 "useIPv6": {
                     "title": "Use IPv6",

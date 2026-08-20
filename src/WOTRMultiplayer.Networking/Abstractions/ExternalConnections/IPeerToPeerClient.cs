@@ -18,6 +18,6 @@ namespace WOTRMultiplayer.Networking.Abstractions.ExternalConnections
 
         Action<int> OnPeerConnectedEvent { get; set; }
 
-        Action<int, string> OnPeerDisconnectedEvent { get; set; }
+        Action<int, string, bool> OnPeerDisconnectedEvent { get; set; }
     }
 }
