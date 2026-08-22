@@ -417,7 +417,6 @@ namespace WOTRMultiplayer.UI.Controllers
             serverHistoryRecordsObject.AddComponent<VerticalLayoutGroup>();
             var serverHistoryRecordsBorder = UIFactory.CreateBorderDecoration(serverHistoryRecordsObject.transform);
             serverHistoryRecordsBorder.name = ServerHistoryRecordsBorderObjectName;
-            var serverHistoryRecordsLayoutGroup = serverHistoryRecordsObject.AddComponent<VerticalLayoutGroup>();
         }
 
         private void CreateConnectionControls(Transform parent, Vector2 fullSize)

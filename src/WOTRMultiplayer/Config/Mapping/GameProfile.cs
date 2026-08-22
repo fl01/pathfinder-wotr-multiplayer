@@ -446,16 +446,7 @@ namespace WOTRMultiplayer.Config.Mapping
                 return null;
             }
 
-            var rods = abilityData.CasterUnitPartSpecialMetamagic?.m_MetamagicRodMechanics ?? [];
-            var abilityRange = abilityData.OverrideRange ?? abilityData.Range;
-            // so far only Reach metamagic (Lesser Reach Wand) requires special case in case of healing spells (cure wounds)
-            var sourceAbility = rods.Count > 0 && rods.Any(r => r.rodMechanics.Metamagic == Metamagic.Reach)
-                && (abilityRange is AbilityRange.Touch or AbilityRange.Close or AbilityRange.Medium)
-                && abilityData.ConvertedFrom != null
-                && abilityData.ConvertedFrom.GetConversions().Count() == 0
-                    ? abilityData.ConvertedFrom
-                    : abilityData;
-
+            var sourceAbility = GetSourceAbility(abilityData);
             var ability = new NetworkAbility
             {
                 Id = sourceAbility.UniqueId,
@@ -473,6 +464,30 @@ namespace WOTRMultiplayer.Config.Mapping
             };
 
             return ability;
+        }
+
+        private AbilityData GetSourceAbility(AbilityData abilityData)
+        {
+            var rods = abilityData.CasterUnitPartSpecialMetamagic?.m_MetamagicRodMechanics ?? [];
+            var abilityRange = abilityData.OverrideRange ?? abilityData.Range;
+
+            // so far only Reach metamagic (Lesser Reach Wand) requires special case in case of healing spells (cure wounds)
+            if (rods.Count > 0 && rods.Any(r => r.rodMechanics.Metamagic == Metamagic.Reach)
+                && (abilityRange is AbilityRange.Touch or AbilityRange.Close or AbilityRange.Medium)
+                && abilityData.ConvertedFrom != null
+                && abilityData.ConvertedFrom.GetConversions().Count() == 0)
+            {
+                return abilityData.ConvertedFrom;
+            }
+
+            var autoMetaMagic = abilityData.CasterUnitPartSpecialMetamagic?.m_MetamagicOnSpellList ?? [];
+            // Boundless Healing is the only known use case
+            if (autoMetaMagic != null && autoMetaMagic.Any(a => a.autoMetamagic.Metamagic.HasMetamagic(Metamagic.Reach)) && abilityData.ConvertedFrom != null)
+            {
+                return abilityData.ConvertedFrom;
+            }
+
+            return abilityData;
         }
     }
 }

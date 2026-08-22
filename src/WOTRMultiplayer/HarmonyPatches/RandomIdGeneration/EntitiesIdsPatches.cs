@@ -346,7 +346,7 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
         }
 
         /// <summary>
-        /// Act5 - Greybor - assasin quest
+        /// Act5 - Greybor - assassin quest
         /// not sure whether it's used elsewhere
         /// </summary>
         /// <param name="blueprintUnit"></param>
