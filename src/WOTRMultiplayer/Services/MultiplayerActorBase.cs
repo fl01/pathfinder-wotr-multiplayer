@@ -385,7 +385,7 @@ namespace WOTRMultiplayer.Services
 
         public virtual void OnAreaLoaded()
         {
-            Logger.LogInformation("OnAreaLoaded");
+            Logger.LogInformation("OnAreaLoaded. AreaName={AreaName}", Game.CurrentArea?.Name);
             Game.ForcedPause.ReadyPlayers.Add(Game.LocalPlayerId);
 
             if (Game.CurrentArea.IsGlobalMap)

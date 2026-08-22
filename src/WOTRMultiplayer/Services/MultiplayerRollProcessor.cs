@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 using Kingmaker.GameModes;
 using Kingmaker.RuleSystem;
@@ -22,9 +21,6 @@ namespace WOTRMultiplayer.Services
         private readonly ICombatInteractionService _combatInteractionService;
         private readonly IMultiplayerActorAccessor _multiplayerActorAccessor;
         private readonly IValueGenerator _valueGenerator;
-        private readonly HashSet<string> _importantCutsceneAreas = new([
-            "EstrodTower", // - using columns to damage enemies
-            ], StringComparer.OrdinalIgnoreCase);
 
         public MultiplayerRollProcessor(
             ILogger<MultiplayerRollProcessor> logger,
@@ -180,12 +176,12 @@ namespace WOTRMultiplayer.Services
 
             if (gameMode == GameModeType.Cutscene || gameMode == GameModeType.CutsceneGlobalMap)
             {
-                // EstrodTower - using columns to damage enemies
                 var areaName = _multiplayerActorAccessor.Current.CurrentArea?.Name;
                 var isMeaningfulCutsceneRoll = rule switch
                 {
                     RulebookTargetEvent rulebookTarget when rule is RuleSavingThrow or RuleSpellResistanceCheck => IsControlledCharacterTargeted(rulebookTarget),
-                    RuleCalculateDamage => _importantCutsceneAreas.Contains(areaName),
+                    RuleCalculateDamage => string.Equals(areaName, "EstrodTower", StringComparison.OrdinalIgnoreCase), // using columns to damage enemies
+                    RuleSavingThrow => string.Equals(areaName, "Daeran_Q2_HeavenDoorstep", StringComparison.OrdinalIgnoreCase), // distraction (drinking)
                     _ => false
                 };
                 return isMeaningfulCutsceneRoll;
