@@ -179,9 +179,11 @@ namespace WOTRMultiplayer.Services
                 var areaName = _multiplayerActorAccessor.Current.CurrentArea?.Name;
                 var isMeaningfulCutsceneRoll = rule switch
                 {
-                    RulebookTargetEvent rulebookTarget when rule is RuleSavingThrow or RuleSpellResistanceCheck => IsControlledCharacterTargeted(rulebookTarget),
+                    RulebookTargetEvent rulebookTarget when rule is RuleSpellResistanceCheck => IsControlledCharacterTargeted(rulebookTarget),
                     RuleCalculateDamage => string.Equals(areaName, "EstrodTower", StringComparison.OrdinalIgnoreCase), // using columns to damage enemies
-                    RuleSavingThrow => string.Equals(areaName, "Daeran_Q2_HeavenDoorstep", StringComparison.OrdinalIgnoreCase), // distraction (drinking)
+                    // RuleStatCheck = saving throw / skill checks
+                    RuleStatCheck statCheck => _multiplayerActorAccessor.Current.IsControlledByPlayers(statCheck.Initiator.UniqueId)
+                                                || string.Equals(areaName, "Daeran_Q2_HeavenDoorstep", StringComparison.OrdinalIgnoreCase), // distraction (drinking)
                     _ => false
                 };
                 return isMeaningfulCutsceneRoll;
