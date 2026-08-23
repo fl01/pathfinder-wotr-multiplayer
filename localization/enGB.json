@@ -356,7 +356,8 @@
                     "ended": "----- Turn Ended: {0}",
                     "delayed": "----- Turn Delayed: {0}",
                     "hostOrderDesync": "Next turn for player {0} has been overridden",
-                    "clientOrderDesync": "Next unit turn has been overridden to '{0}'"
+                    "clientOrderDesync": "Next unit turn has been overridden to '{0}'",
+                    "invalidUnit":"Current turn unit {0} is dead or missing at {1}. Killing unit / resetting combat turn."
                 },
                 "areaEffects": {
                     "missing": "Missing area effect '{0}' ({1}) was not triggered"

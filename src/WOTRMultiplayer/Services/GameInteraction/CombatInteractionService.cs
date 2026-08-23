@@ -130,14 +130,14 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 }
 
                 var gameMode = Game.Instance.m_GameModes.Peek();
-                var intialziationController = gameMode.GetController<TacticalCombatInitializationController>();
-                if (intialziationController == null)
+                var controller = gameMode.GetController<TacticalCombatInitializationController>();
+                if (controller == null)
                 {
                     _logger.LogError("Unable to initialize crusade army combat due to missing TacticalCombatInitializationController");
                     return;
                 }
 
-                intialziationController.Activate();
+                controller.Activate();
             });
         }
 
@@ -573,6 +573,31 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return tcs.Task;
         }
 
+        public Task KillUnitAndResetTurnAsync(NetworkPlayer player, string unitId)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            _mainThreadAccessor.Post(() =>
+            {
+                try
+                {
+                    KillUnit(player, unitId);
+                    Game.Instance.TurnBasedCombatController.CurrentTurn?.End();
+                    Game.Instance.TurnBasedCombatController.CurrentTurn?.Dispose();
+                    Game.Instance.TurnBasedCombatController.CurrentTurn = null;
+                    _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.Combat.Turn.InvalidUnit.Key, CombatTextSeverity.Critical, unitId, player?.Name);
+                    _logger.LogInformation("Unit has been killed / Turn has been reset as unit is invalid for one of the clients. PlayerId={PlayerId}, UnitId={UnitId}", player.Id, unitId);
+                    tcs.SetResult(true);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Unable to reset unit turn");
+                    tcs.SetResult(false);
+                }
+            });
+
+            return tcs.Task;
+        }
+
         public void SetTacticalCombatAcceleration(bool isAccelerated)
         {
             _mainThreadAccessor.Post(() =>
@@ -599,14 +624,14 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     var executor = _gameStateLookupService.GetUnitEntity(networkUnitLootUnit.InitiatorUnitId);
                     if (executor == null)
                     {
-                        _logger.LogError("Unable to find executor unit to perform lootunit command. InitiatorUnitId={InitiatorUnitId}", networkUnitLootUnit.InitiatorUnitId);
+                        _logger.LogError("Unable to find executor unit to perform LootUnit command. InitiatorUnitId={InitiatorUnitId}", networkUnitLootUnit.InitiatorUnitId);
                         return;
                     }
 
                     var target = _gameStateLookupService.GetUnitEntity(networkUnitLootUnit.TargetUnitId);
                     if (target == null)
                     {
-                        _logger.LogError("Unable to find target unit to perform lootunit command. TargetUnitId={TargetUnitId}", networkUnitLootUnit.TargetUnitId);
+                        _logger.LogError("Unable to find target unit to perform LootUnit command. TargetUnitId={TargetUnitId}", networkUnitLootUnit.TargetUnitId);
                         return;
                     }
 
@@ -629,14 +654,14 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     var executor = _gameStateLookupService.GetUnitEntity(unitInteractWithUnit.InitiatorUnitId);
                     if (executor == null)
                     {
-                        _logger.LogError("Unable to find executor unit to perform unit interactwithunit command. InitiatorUnitId={InitiatorUnitId}", unitInteractWithUnit.InitiatorUnitId);
+                        _logger.LogError("Unable to find executor unit to perform unit InteractWithUnit command. InitiatorUnitId={InitiatorUnitId}", unitInteractWithUnit.InitiatorUnitId);
                         return;
                     }
 
                     var target = _gameStateLookupService.GetUnitEntity(unitInteractWithUnit.TargetUnitId);
                     if (target == null)
                     {
-                        _logger.LogError("Unable to find target unit to perform unit interactwithunit command. TargetUnitId={TargetUnitId}", unitInteractWithUnit.TargetUnitId);
+                        _logger.LogError("Unable to find target unit to perform unit InteractWithUnit command. TargetUnitId={TargetUnitId}", unitInteractWithUnit.TargetUnitId);
                         return;
                     }
 
@@ -725,24 +750,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         public bool KillUnit(NetworkPlayer player, string unitId)
         {
-            try
-            {
-                var unit = _gameStateLookupService.GetUnitEntity(unitId);
-                if (unit == null || unit.State.IsFinallyDead || Game.Instance.CurrentMode == GameModeType.Dialog || Game.Instance.CurrentMode == GameModeType.Cutscene)
-                {
-                    return false;
-                }
-
-                _playerNotificationService.ShowWarningNotification(WellKnownKeys.GameNotifications.Combat.UnitAutokilled.Key, args: [unit.CharacterName, unit.UniqueId, player.Name]);
-                GameHelper.KillUnit(unit);
-                _logger.LogInformation("Unit has been auto-killed. FromPlayerId={FromPlayerId}, UnitId={UnitId}", player.Id, unitId);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while killing unit. FromPlayerId={FromPlayerId}, UnitId={UnitId}", player?.Id, unitId);
-                throw;
-            }
+            var unit = _gameStateLookupService.GetUnitEntity(unitId);
+            return KillUnit(player, unit);
         }
 
         public Task<bool> StartCombatAsync(NetworkCombatState networkCombatState)
@@ -991,6 +1000,27 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 }
 
                 _logger.LogDebug("Area effect has been triggered. Id={Id}, Name={Name}, Type={Type}", triggered.Id, triggered.Name, triggered.Type);
+            }
+        }
+
+        private bool KillUnit(NetworkPlayer player, UnitEntityData unit)
+        {
+            try
+            {
+                if (unit == null || unit.State.IsFinallyDead || Game.Instance.CurrentMode == GameModeType.Dialog || Game.Instance.CurrentMode == GameModeType.Cutscene)
+                {
+                    return false;
+                }
+
+                _playerNotificationService.ShowWarningNotification(WellKnownKeys.GameNotifications.Combat.UnitAutokilled.Key, args: [unit.CharacterName, unit.UniqueId, player.Name]);
+                GameHelper.KillUnit(unit);
+                _logger.LogInformation("Unit has been auto-killed. FromPlayerId={FromPlayerId}, UnitId={UnitId}", player.Id, unit.UniqueId);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while killing unit. FromPlayerId={FromPlayerId}, UnitId={UnitId}", player?.Id, unit?.UniqueId);
+                throw;
             }
         }
 

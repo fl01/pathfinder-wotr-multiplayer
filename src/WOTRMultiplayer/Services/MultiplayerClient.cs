@@ -1495,7 +1495,14 @@ namespace WOTRMultiplayer.Services
         {
             PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Turn.ClientOrderDesync.Key, CombatTextSeverity.Debug, new UnitLogParameter(message.UnitId));
             ResetCombatTurn();
-            CombatInteraction.StartTurnBasedCombatTurn(message.UnitId);
+            CombatInteraction.StartTurnBasedCombatTurn(message.UnitId, () =>
+            {
+                var invalidTurnMessage = new ClientInvalidUnitTurnStartRequested
+                {
+                    UnitId = message.UnitId
+                };
+                Send(invalidTurnMessage);
+            });
         }
 
         private void OnNotifyRestStarted(long playerId, NotifyRestStarted started)

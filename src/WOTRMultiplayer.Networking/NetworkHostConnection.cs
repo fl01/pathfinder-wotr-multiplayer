@@ -68,7 +68,7 @@ namespace WOTRMultiplayer.Networking
         {
             if (!TryGetChannelInfo(playerId, out var channel, out var clientId))
             {
-                Logger.LogError("Unable to send because target player is not registered correctly. PlayerId={PlayerId}", playerId);
+                Logger.LogError("Unable to send because target player is not registered correctly. PlayerId={PlayerId}. MessageType={MessageType}", playerId, message?.GetType().Name);
                 return;
             }
 

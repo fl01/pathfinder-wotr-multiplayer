@@ -371,7 +371,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 return true;
             }
 
-            if (IsKineticistAutousedAbility(command))
+            if (IsAutoUsedKineticistAbility(command))
             {
                 Main.GetLogger<UnitCommandsPatches>().LogWarning("Skipping ability use as it's a part of kineticist autouse. UnitId={UnitId}, AbilityName={AbilityName}, AbilityId={AbilityId}", command.Executor.UniqueId, command.Ability.Name, command.Ability.UniqueId);
                 return true;
@@ -448,7 +448,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             return shouldIgnore;
         }
 
-        private static bool IsKineticistAutousedAbility(UnitUseAbility instance)
+        private static bool IsAutoUsedKineticistAbility(UnitUseAbility instance)
         {
             var kineticistPart = instance.Executor.Get<UnitPartKineticist>();
             var shouldSkip = kineticistPart != null && kineticistPart.GatherPowerAbility?.Data == instance.Ability;

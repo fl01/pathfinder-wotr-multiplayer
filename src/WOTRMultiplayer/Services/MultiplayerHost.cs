@@ -1625,7 +1625,7 @@ namespace WOTRMultiplayer.Services
                         foreach (var playerId in players)
                         {
                             var player = GetPlayer(playerId);
-                            if (player == null)
+                            if (player == null || player.IsHost)
                             {
                                 continue;
                             }
@@ -1806,6 +1806,7 @@ namespace WOTRMultiplayer.Services
                .On<ClientCombatTurnStartSynchronized>(OnClientCombatTurnSynchronized)
                .On<ClientCombatTurnEndSynchronized>(OnClientCombatTurnEndSynchronized)
                .On<NotifyCombatLocalTurnEnded>(OnNotifyCombatLocalTurnEnded)
+               .On<ClientInvalidUnitTurnStartRequested>(OnClientInvalidUnitTurnStartRequested)
 
                // global map & crusade combat
                .On<NotifyTacticalCombatInitializationConfirmed>(OnNotifyTacticalCombatInitializationConfirmed)
@@ -1831,6 +1832,30 @@ namespace WOTRMultiplayer.Services
                // inventory
                .On<NotifyPolymorphicItemCreationRequested>(OnNotifyPolymorphicItemCreationRequested)
                ;
+        }
+
+        private async void OnClientInvalidUnitTurnStartRequested(long receivedFrom, ClientInvalidUnitTurnStartRequested message)
+        {
+            var player = GetPlayer(receivedFrom);
+            if (player == null)
+            {
+                return;
+            }
+
+            if (!string.Equals(Game.Combat.Turn?.UnitId, message.UnitId, StringComparison.OrdinalIgnoreCase))
+            {
+                Logger.LogWarning("Skipping invalid unit notification as unit doesn't match. TurnUnitId={TurnUnitId}, UnitId={UnitId}", Game.Combat.Turn?.UnitId, message.UnitId);
+                return;
+            }
+
+            lock (ActionLock)
+            {
+                Game.Combat.Turn = null;
+                Game.Combat.PlayersNextTurnInitialization.Clear();
+            }
+
+            // killing unit seems fine? desynced (did not spawn for everyone) unit cannot start turn anyway, so it must have been killed during combat startup where unit auto-kill is not enabled yet
+            await CombatInteraction.KillUnitAndResetTurnAsync(player, message.UnitId);
         }
 
         private async void OnNotifyCombatInitiated(long receivedFrom, NotifyCombatInitiated message)

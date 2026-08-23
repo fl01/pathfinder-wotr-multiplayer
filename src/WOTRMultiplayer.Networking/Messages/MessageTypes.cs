@@ -293,7 +293,8 @@
             NotifyDungeonBoonSelectorShown,
             NotifyDungeonBoonSelected,
             NotifyDungeonBoonConfirmed,
-            NotifyMagicHackSpellCreated
+            NotifyMagicHackSpellCreated,
+            ClientInvalidUnitTurnStartRequested
         }
 
         public static class Mods

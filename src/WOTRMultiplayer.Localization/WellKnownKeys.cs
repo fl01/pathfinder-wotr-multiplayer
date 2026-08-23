@@ -1410,6 +1410,12 @@ public static class WellKnownKeys
                 {
                     public static string Key { get; set; }
                 }
+
+                [Description("invalidUnit")]
+                public static class InvalidUnit
+                {
+                    public static string Key { get; set; }
+                }
             }
 
             [Description("areaEffects")]

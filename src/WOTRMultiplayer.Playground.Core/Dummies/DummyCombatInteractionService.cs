@@ -190,5 +190,10 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         public void SetTacticalCombatAcceleration(bool isAccelerated)
         {
         }
+
+        public Task KillUnitAndResetTurnAsync(NetworkPlayer networkPlayer, string unitId)
+        {
+            return Task.CompletedTask;
+        }
     }
 }

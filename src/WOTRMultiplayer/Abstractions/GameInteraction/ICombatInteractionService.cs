@@ -88,5 +88,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         Task ExcludeUnitsFromCombatAsync(List<string> units);
 
         void SetTacticalCombatAcceleration(bool isAccelerated);
+
+        Task KillUnitAndResetTurnAsync(NetworkPlayer networkPlayer, string unitId);
     }
 }
