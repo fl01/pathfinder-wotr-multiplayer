@@ -1591,8 +1591,11 @@ namespace WOTRMultiplayer.Services
         {
             base.OnLocalPlayerTurnEnd();
 
-            Game.Combat.Turn.PlayersEndTurnInitialization.Add(Game.LocalPlayerId);
-            Game.Combat.Turn.PlayersEndTurnSynchronization.Add(Game.LocalPlayerId);
+            lock (ActionLock)
+            {
+                Game.Combat.Turn.PlayersEndTurnInitialization.Add(Game.LocalPlayerId);
+                Game.Combat.Turn.PlayersEndTurnSynchronization.Add(Game.LocalPlayerId);
+            }
 
             TryEndTurn();
         }
@@ -1699,10 +1702,11 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                Logger.LogInformation("Checking if turn could be ended. Round={Round}, UnitId={UnitId}, IsAI={IsAI}", Game.Combat.Round, Game.Combat.Turn.UnitId, Game.Combat.Turn.IsAI);
-                var allPlayers = GetSyncedPlayersCount();
                 lock (ActionLock)
                 {
+                    Logger.LogInformation("Checking if turn could be ended. Round={Round}, UnitId={UnitId}, IsAI={IsAI}", Game.Combat.Round, Game.Combat.Turn.UnitId, Game.Combat.Turn.IsAI);
+                    var allPlayers = GetSyncedPlayersCount();
+
                     var initializedPlayers = Game.Combat.Turn.PlayersEndTurnInitialization.Count;
                     if (initializedPlayers < allPlayers)
                     {
@@ -1945,7 +1949,10 @@ namespace WOTRMultiplayer.Services
         {
             await WaitForTurnToBeCompletedAsync();
 
-            Game.Combat.Turn.PlayersEndTurnInitialization.Add(message.PlayerId);
+            lock (ActionLock)
+            {
+                Game.Combat.Turn.PlayersEndTurnInitialization.Add(message.PlayerId);
+            }
 
             // AI turn is ended automatically by the game
             if (!Game.Combat.Turn.IsAI)

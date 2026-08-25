@@ -211,7 +211,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-
                     var turn = Game.Instance.TurnBasedCombatController.CurrentTurn;
                     if (turn == null)
                     {
