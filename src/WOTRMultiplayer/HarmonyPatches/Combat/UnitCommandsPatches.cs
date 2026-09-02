@@ -487,7 +487,8 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 VectorPath = [.. path?.Select(x => x.ToNetworkVector3()) ?? []],
                 Destination = destination.ToNetworkVector3(),
                 MovementLimit = movementLimit?.ToString(),
-                AttackMode = attackMode?.ToString()
+                AttackMode = attackMode?.ToString(),
+                Position = unit.Position.ToNetworkVector3()
             };
 
             Main.Multiplayer.OnUnitMoveTo(unitMoveTo);

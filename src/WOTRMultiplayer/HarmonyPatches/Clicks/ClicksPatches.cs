@@ -56,7 +56,8 @@ namespace WOTRMultiplayer.HarmonyPatches.Clicks
                 VectorPath = [.. path?.Select(x => x.ToNetworkVector3()) ?? []],
                 AttackMode = attackMode?.ToString(),
                 SpeedLimit = settings.SpeedLimit,
-                ApplySpeedLimitInCombat = settings.ApplySpeedLimitInCombat
+                ApplySpeedLimitInCombat = settings.ApplySpeedLimitInCombat,
+                Position = unit.Position.ToNetworkVector3()
             };
             Main.Multiplayer.OnUnitMoveTo(unitMoveTo);
         }

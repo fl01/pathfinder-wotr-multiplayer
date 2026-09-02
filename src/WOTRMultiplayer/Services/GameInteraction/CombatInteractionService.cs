@@ -497,6 +497,11 @@ namespace WOTRMultiplayer.Services.GameInteraction
                         return;
                     }
 
+                    if (!executor.IsInCombat)
+                    {
+                        UpdateUnitPosition(executor, unitMoveTo.Position);
+                    }
+
                     RunUnitMoveToCommand(executor, unitMoveTo);
                 }
                 catch (Exception ex)
@@ -1173,7 +1178,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
             if (updatePosition)
             {
-                UpdateUnitPosition(unit, remoteUnit);
+                UpdatePositionAndOrientation(unit, remoteUnit);
             }
         }
 
@@ -1456,7 +1461,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             }
         }
 
-        private void UpdateUnitPosition(UnitEntityData unit, NetworkUnit networkUnit)
+        private void UpdatePositionAndOrientation(UnitEntityData unit, NetworkUnit networkUnit)
         {
             if (!unit.IsInCombat)
             {
@@ -1470,12 +1475,17 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 unit.Orientation = networkUnit.Orientation;
             }
 
-            if (unit.Position.x != networkUnit.Position.X
-                || unit.Position.y != networkUnit.Position.Y
-                || unit.Position.z != networkUnit.Position.Z)
+            UpdateUnitPosition(unit, networkUnit.Position);
+        }
+
+        private void UpdateUnitPosition(UnitEntityData unit, NetworkVector3 expectedPosition)
+        {
+            if (unit.Position.x != expectedPosition.X
+                || unit.Position.y != expectedPosition.Y
+                || unit.Position.z != expectedPosition.Z)
             {
-                var newPosition = networkUnit.Position.ToUnityVector3();
-                _logger.LogInformation("Updating unit position. UnitId={UnitId}, PreviousPosition={PreviousPosition}, NewPosition={NewPosition}", unit.UniqueId, unit.Position.ToString("F4"), newPosition.ToString("F4"));
+                var newPosition = expectedPosition.ToUnityVector3();
+                _logger.LogDebug("Updating unit position. UnitId={UnitId}, PreviousPosition={PreviousPosition}, NewPosition={NewPosition}", unit.UniqueId, unit.Position.ToString("F4"), newPosition.ToString("F4"));
                 unit.CombatState.PreventAttacksOfOpporunityNextFrame = true;
                 unit.View.transform.position = newPosition;
                 unit.Position = newPosition;

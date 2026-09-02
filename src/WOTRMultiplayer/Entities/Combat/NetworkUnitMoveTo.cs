@@ -6,6 +6,8 @@ namespace WOTRMultiplayer.Entities.Combat
     {
         public string InitiatorUnitId { get; set; }
 
+        public NetworkVector3 Position { get; set; }
+
         public List<NetworkVector3> VectorPath { get; set; } = [];
 
         public NetworkVector3 Destination { get; set; }

@@ -42,5 +42,9 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         [ProtoMember(9)]
         [LogMe]
         public bool ApplySpeedLimitInCombat { get; set; }
+
+        [ProtoMember(10)]
+        [LogMe]
+        public NetworkVector3 Position { get; set; }
     }
 }
