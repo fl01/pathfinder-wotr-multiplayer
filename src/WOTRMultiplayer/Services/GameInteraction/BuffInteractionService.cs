@@ -28,9 +28,15 @@ namespace WOTRMultiplayer.Services.GameInteraction
         private readonly IGameStateLookupService _gameStateLookupService;
         private readonly IMapper _mapper;
 
-        private readonly HashSet<string> _canBeCreatedInSimpleWay = [
-            "6ffd93355fb3bcf4592a5d976b1d32a9", // fighting defensively
-            ];
+        private readonly Dictionary<string, List<ChainedBuff>> _recreatableBuffs = new()
+        {
+            { "6ffd93355fb3bcf4592a5d976b1d32a9", [] }, // fighting defensively
+            { "a0bc0525895932b42bfd47f1544e6e35", // Archon's Aura
+                [
+                    new ChainedBuff { BlueprintId = "94d278269422cb54a8d456f38004e2f9", IsExclusive = true } // Archon's Aura Immunity
+                ]
+            },
+        };
 
         private TimeSpan BuffBaseTime => Game.Instance.TimeController.GameTime;
 
@@ -79,13 +85,9 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 localUnitBuffs.Remove(buff);
             }
 
-            var buffsToRemove = localUnitBuffs.Where(x => !x.Hidden).ToList();
-            RemoveUnitBuffs(unit, buffsToRemove);
+            RemoveUnitBuffs(unit, localUnitBuffs);
 
-            // TODO: straightforward buff creation is unstable af with a lot of caveats.
-            // Something like 'Burning' dot or FightingDefensively is working fine, but most of the buffs have an underlying 'UnitPart' that needs to be synced as well
-            var buffsToCreate = remoteUnitBuffs.Where(x => !x.IsHidden && _canBeCreatedInSimpleWay.Contains(x.BlueprintId)).ToList();
-            CreateUnitBuffs(unit, buffsToCreate, buffBaseTime);
+            CreateUnitBuffs(unit, remoteUnitBuffs, buffBaseTime);
 
             UpdateNegativeLevels(unit, unitBuffCollection.NegativeLevels);
 
@@ -104,14 +106,16 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private void CreateUnitBuffs(UnitEntityData unit, List<NetworkBuff> remoteUnitBuffs, TimeSpan buffBaseTime)
         {
-            if (remoteUnitBuffs.Count == 0)
-            {
-                return;
-            }
-
-            _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.Combat.Buffs.AddedBuffs.Key, CombatTextSeverity.Critical, new UnitLogParameter(unit.UniqueId), string.Join(", ", remoteUnitBuffs.Select(x => x.Name)));
+            var addedBuffs = new List<string>();
             foreach (var buffToAdd in remoteUnitBuffs)
             {
+                // TODO: straightforward buff creation is unstable af with a lot of caveats.
+                // Something like the 'Burning' DoT or 'FightingDefensively' works fine, but many buffs either have an underlying `UnitPart` or produce side effects that need to be synced as well.
+                if (!_recreatableBuffs.TryGetValue(buffToAdd.BlueprintId, out var chainedBuffs))
+                {
+                    continue;
+                }
+
                 var caster = _gameStateLookupService.GetUnitEntity(buffToAdd.CasterId) ?? unit;
                 var buff = ResourcesLibrary.TryGetBlueprint<BlueprintBuff>(buffToAdd.BlueprintId);
                 if (buff == null)
@@ -119,6 +123,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     _logger.LogError("Missing blueprint for a buff. BlueprintId={BlueprintId}", buffToAdd.BlueprintId);
                     continue;
                 }
+
+                RemoveExclusiveChainedBuffs(unit, buff.AssetGuid.ToString(), chainedBuffs);
 
                 MechanicsContext parent = GetBuffParentContext(unit, buffToAdd);
                 var context = new MechanicsContext(caster, unit, buff, parent);
@@ -132,6 +138,11 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 }
 
                 _logger.LogInformation("Buff has been added. UnitId={UnitId}, Id={Id}, Rank={Rank}, BlueprintId={BlueprintId}, Name={Name}, IsPermanent={IsPermanent}, PlannedDuration={PlannedDuration}", unit.UniqueId, newBuff.UniqueId, newBuff.Rank, buffToAdd.BlueprintId, newBuff.NameForAcronym, newBuff.IsPermanent, newBuff.PlannedDuration);
+            }
+
+            if (addedBuffs.Count > 0)
+            {
+                _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.Combat.Buffs.AddedBuffs.Key, CombatTextSeverity.Critical, new UnitLogParameter(unit.UniqueId), string.Join(", ", remoteUnitBuffs.Select(x => x.Name)));
             }
         }
 
@@ -170,16 +181,24 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private void RemoveUnitBuffs(UnitEntityData unit, List<Buff> unitBuffs)
         {
-            if (unitBuffs.Count == 0)
-            {
-                return;
-            }
-
-            _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.Combat.Buffs.RemovedBuffs.Key, CombatTextSeverity.Debug, new UnitLogParameter(unit.UniqueId), string.Join(", ", unitBuffs.Select(x => x.NameForAcronym)));
+            var removedBuffs = new List<string>();
             foreach (var buffToRemove in unitBuffs)
             {
+                if (buffToRemove.Hidden)
+                {
+                    continue;
+                }
+
+                removedBuffs.Add(buffToRemove.NameForAcronym);
                 GameHelper.RemoveBuff(unit, buffToRemove.Blueprint);
                 _logger.LogInformation("Buff has been removed. UnitId={UnitId}, Id={Id}, Name={Name}", unit.UniqueId, buffToRemove.UniqueId, buffToRemove.NameForAcronym);
+
+                RemoveExclusiveChainedBuffs(unit, buffToRemove.Blueprint.AssetGuid.ToString());
+            }
+
+            if (removedBuffs.Count > 0)
+            {
+                _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.Combat.Buffs.RemovedBuffs.Key, CombatTextSeverity.Debug, new UnitLogParameter(unit.UniqueId), string.Join(", ", removedBuffs));
             }
         }
 
@@ -207,6 +226,41 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 _logger.LogError(ex, "Error while updating buff. UnitId={UnitId}, Id={Id}, Name={Name}, Duration={Duration}, NextResourceSpendingTime={NextResourceSpendingTime}, NextTickTime={NextTickTime}",
                     unit.UniqueId, buff.UniqueId, buff.NameForAcronym, networkBuff.TimeLeft, buff.NextResourceSpendingTime, buff.NextTickTime);
             }
+        }
+
+        private void RemoveExclusiveChainedBuffs(UnitEntityData unit, string parentBlueprintId, List<ChainedBuff> chainedBuffs)
+        {
+            foreach (var chained in chainedBuffs)
+            {
+                if (!chained.IsExclusive)
+                {
+                    return;
+                }
+
+                var chainedBuffToRemove = unit.Buffs.Enumerable.FirstOrDefault(x => string.Equals(x.Blueprint.AssetGuid.ToString(), chained.BlueprintId, StringComparison.OrdinalIgnoreCase));
+                if (chainedBuffToRemove != null)
+                {
+                    GameHelper.RemoveBuff(unit, chainedBuffToRemove.Blueprint);
+                    _logger.LogInformation("Chained Buff has been removed. UnitId={UnitId}, Id={Id}, Name={Name}", unit.UniqueId, chainedBuffToRemove.UniqueId, chainedBuffToRemove.NameForAcronym);
+                }
+            }
+        }
+
+        private void RemoveExclusiveChainedBuffs(UnitEntityData unit, string parentBlueprintId)
+        {
+            if (!_recreatableBuffs.TryGetValue(parentBlueprintId, out var chainedBuffs))
+            {
+                return;
+            }
+
+            RemoveExclusiveChainedBuffs(unit, parentBlueprintId, chainedBuffs);
+        }
+
+        private class ChainedBuff
+        {
+            public string BlueprintId { get; set; }
+
+            public bool IsExclusive { get; set; }
         }
     }
 }
