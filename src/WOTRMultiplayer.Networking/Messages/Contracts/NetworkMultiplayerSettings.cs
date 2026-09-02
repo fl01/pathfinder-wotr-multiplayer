@@ -22,5 +22,9 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         [ProtoMember(4)]
         [LogMe]
         public TimeSpan PlayerTurnEndDelay { get; set; }
+
+        [ProtoMember(5)]
+        [LogMe]
+        public TimeSpan CombatPauseCooldown { get; set; }
     }
 }

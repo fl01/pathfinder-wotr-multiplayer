@@ -41,5 +41,7 @@ namespace WOTRMultiplayer.Entities.Settings
         public int SaveGameChunkSize { get; set; }
 
         public TimeSpan PlayerTurnEndDelay { get; set; }
+
+        public TimeSpan CombatPauseCooldown { get; set; }
     }
 }

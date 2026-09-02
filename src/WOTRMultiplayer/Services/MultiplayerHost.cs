@@ -1864,6 +1864,8 @@ namespace WOTRMultiplayer.Services
 
         private async void OnNotifyCombatInitiated(long receivedFrom, NotifyCombatInitiated message)
         {
+            SetPauseCooldown();
+
             var isInCombat = await WaitWhileTrue(() => Game.Combat == null, "Waiting for combat to be initiated", TimeSpan.FromSeconds(30)); // cutscenes etc
             if (!isInCombat)
             {
@@ -2038,6 +2040,12 @@ namespace WOTRMultiplayer.Services
         private void OnClientGameAutoPaused(long playerId, ClientGameAutoPaused message)
         {
             var pause = Mapper.Map<NetworkForcedPause>(message.Pause);
+            if (IsPauseOnCooldown(pause.Reason))
+            {
+                ForceUnpause();
+                return;
+            }
+
             lock (ActionLock)
             {
                 EnsureForcePaused(pause.Reason, pause.RemovalDelay);

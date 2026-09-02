@@ -141,9 +141,9 @@
                     "title": "Copy"
                 },
                 "players": {
-                    "color": { 
-                        "header":"Player Color",
-                        "description":"Color picker will be available eventually"
+                    "color": {
+                        "header": "Player Color",
+                        "description": "Color picker will be available eventually"
                     }
                 }
             }
@@ -258,11 +258,15 @@
                 },
                 "combatTurnDelayForAI": {
                     "title": "AI Turn delay",
-                    "tooltip": "AI turn for clients starts a bit later so AI actions can be synced/overridden from host if needed.\nKeep this value slightly higher than your network ping, but adjust it depending on how much the game starts to stutter during longer play sessions"
+                    "tooltip": "AI turn for clients starts a bit later so AI actions can be synced/overridden from host if needed.\nKeep this value slightly higher than your network ping, but increase it further depending on how much the game starts to stutter for the host during longer play sessions"
                 },
                 "playerTurnEndDelay": {
                     "title": "Remote Player Turn-End Delay",
                     "tooltip": "How long to wait after a remote player ends their turn before advancing the game"
+                },
+                "combatPauseCooldown": {
+                    "title": "Combat Pause Cooldown",
+                    "tooltip": "Pausing is unavailable for the specified duration once combat begins for one or more players. Set to 00:00:00 to disable"
                 },
                 "saveGameChunkSize": {
                     "title": "Save Game chunk size",
@@ -357,7 +361,7 @@
                     "delayed": "----- Turn Delayed: {0}",
                     "hostOrderDesync": "Next turn for player {0} has been overridden",
                     "clientOrderDesync": "Next unit turn has been overridden to '{0}'",
-                    "invalidUnit":"Current turn unit {0} is dead or missing at {1}. Killing unit / resetting combat turn."
+                    "invalidUnit": "Current turn unit {0} is dead or missing at {1}. Killing unit / resetting combat turn."
                 },
                 "areaEffects": {
                     "missing": "Missing area effect '{0}' ({1}) was not triggered"

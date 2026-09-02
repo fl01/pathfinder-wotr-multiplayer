@@ -920,6 +920,13 @@ namespace WOTRMultiplayer.UI
                 new TimeSpanValidator(),
                 TimeSpanValidator.MaxLength,
                 isMultiplayerOff);
+            yield return CreateStringInputSetting(
+                WellKnownKeys.Settings.DangerZone.CombatPauseCooldown.Title.Key,
+                WellKnownKeys.Settings.DangerZone.CombatPauseCooldown.Tooltip.Key,
+                WellKnownSettings.DangerZone.CombatPauseCooldown,
+                new TimeSpanValidator(),
+                TimeSpanValidator.MaxLength,
+                isMultiplayerOff);
             yield return CreateIntInputSetting(
                 WellKnownKeys.Settings.DangerZone.SaveGameChunkSize.Title.Key,
                 WellKnownKeys.Settings.DangerZone.SaveGameChunkSize.Tooltip.Key,

@@ -336,6 +336,13 @@ namespace WOTRMultiplayer.Services
 
         public void OnAutoPausedByTrapDetection()
         {
+            if (IsPauseOnCooldown(NetworkForcedPauseReason.TrapDetected))
+            {
+                // This runs as a postfix, so the game might already be paused at this point
+                ForceUnpause();
+                return;
+            }
+
             EnsureForcePaused(NetworkForcedPauseReason.TrapDetected, removalDelay: null);
             var message = new ClientGameAutoPaused
             {
@@ -753,6 +760,8 @@ namespace WOTRMultiplayer.Services
 
         private async void OnNotifyCombatInitiated(long receivedFrom, NotifyCombatInitiated message)
         {
+            SetPauseCooldown();
+
             var isInCombat = await WaitWhileTrue(() => Game.Combat == null, "Waiting for combat to be initiated", TimeSpan.FromSeconds(30));
             if (!isInCombat)
             {

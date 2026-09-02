@@ -1000,6 +1000,22 @@ public static class WellKnownKeys
                 }
             }
 
+            [Description("combatPauseCooldown")]
+            public static class CombatPauseCooldown
+            {
+                [Description("title")]
+                public static class Title
+                {
+                    public static string Key { get; set; }
+                }
+
+                [Description("tooltip")]
+                public static class Tooltip
+                {
+                    public static string Key { get; set; }
+                }
+            }
+
             [Description("saveGameChunkSize")]
             public static class SaveGameChunkSize
             {

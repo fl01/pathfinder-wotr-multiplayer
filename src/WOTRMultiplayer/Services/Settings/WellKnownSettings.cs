@@ -123,6 +123,9 @@ namespace WOTRMultiplayer.Services.Settings
             [Description("combat-turn-end-delay-for-player")]
             public static WellKnownSettingKey<TimeSpan> PlayerTurnEndDelay { get; } = new(TimeSpan.FromSeconds(0.250));
 
+            [Description("combat-pause-cooldown")]
+            public static WellKnownSettingKey<TimeSpan> CombatPauseCooldown { get; } = new(TimeSpan.FromSeconds(2));
+
             [Description("save-game-chunk-size")]
             public static WellKnownSettingKey<int> SaveGameChunkSize { get; } = new(32768);
         }

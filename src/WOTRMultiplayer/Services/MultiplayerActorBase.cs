@@ -116,6 +116,8 @@ namespace WOTRMultiplayer.Services
 
         private SeedKind[] AllSeeds { get; } = [.. Enum.GetValues(typeof(SeedKind)).Cast<SeedKind>().Where(s => s != SeedKind.All)];
 
+        private DateTime? _pauseCooldown;
+
         protected MultiplayerActorBase(
             ILogger logger,
             IMapper mapper,
@@ -2039,6 +2041,11 @@ namespace WOTRMultiplayer.Services
                 // unpaused => paused
                 if (!isPaused)
                 {
+                    if (IsPauseOnCooldown(NetworkForcedPauseReason.Manual))
+                    {
+                        return false;
+                    }
+
                     EnsureForcePaused(NetworkForcedPauseReason.Manual, removalDelay: null);
                     Game.ForcedPause.ReadyPlayers.Add(Game.LocalPlayerId);
 
@@ -2259,6 +2266,64 @@ namespace WOTRMultiplayer.Services
             if (confirmedUnits.Count > 0)
             {
                 CombatInteraction.AddUnitsToCombat(confirmedUnits);
+            }
+        }
+
+        protected void SetPauseCooldown()
+        {
+            lock (ActionLock)
+            {
+                if (Game.ForcedPause == null)
+                {
+                    return;
+                }
+
+                if (Game.ForcedPause.Reason == NetworkForcedPauseReason.Manual || Game.ForcedPause.Reason == NetworkForcedPauseReason.TrapDetected)
+                {
+                    Logger.LogInformation("Removing pause as combat has started for one or more players. PauseReason={PauseReason}", Game.ForcedPause.Reason);
+                    ForceUnpause();
+
+                    if (_pauseCooldown != null)
+                    {
+                        return;
+                    }
+
+                    var settings = SettingsService.GetSettings();
+                    if (settings.CombatPauseCooldown == TimeSpan.Zero)
+                    {
+                        Logger.LogWarning("Combat pause cooldown is disabled");
+                        return;
+                    }
+
+                    _pauseCooldown = DateTime.UtcNow.Add(settings.CombatPauseCooldown);
+                    Task.Delay(settings.CombatPauseCooldown).ContinueWith(_ =>
+                    {
+                        lock (ActionLock)
+                        {
+                            _pauseCooldown = null;
+                        }
+                    });
+                }
+            }
+        }
+
+        protected bool IsPauseOnCooldown(NetworkForcedPauseReason pauseReason)
+        {
+            lock (ActionLock)
+            {
+                if (_pauseCooldown == null)
+                {
+                    return false;
+                }
+
+                var currentTime = DateTime.UtcNow;
+                if (currentTime < _pauseCooldown.Value)
+                {
+                    Logger.LogWarning("Pause is on cooldown. CurrentTime={CurrentTime}, BanRemoval={BanRemoval}, PauseReason={PauseReason}", currentTime, _pauseCooldown, pauseReason);
+                    return true;
+                }
+
+                return false;
             }
         }
 
@@ -3044,6 +3109,7 @@ namespace WOTRMultiplayer.Services
             Game.Combat = null;
             Game.ArmyCombat = null;
             Game.Leveling = null;
+            _pauseCooldown = null;
             ResetLastCombatTurn();
             ValueGenerator.ResetSeededGenerators(IdentifierLifetime.Area, IdentifierLifetime.Combat, IdentifierLifetime.CombatTurn);
 
