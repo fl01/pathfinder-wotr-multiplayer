@@ -43,6 +43,10 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         [LogMe]
         public string CollectionOwnerRef { get; set; }
 
+        [ProtoMember(10)]
+        [LogMe]
+        public int? MetamagicMask { get; set; }
+
         public override string ToString()
         {
             return Id;

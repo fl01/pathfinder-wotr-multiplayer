@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Kingmaker.UnitLogic.Abilities;
 
 namespace WOTRMultiplayer.Entities.Equipment
 {
@@ -21,5 +22,7 @@ namespace WOTRMultiplayer.Entities.Equipment
         public string HoldingSlotOwnerId { get; set; }
 
         public string CollectionOwnerRef { get; set; }
+
+        public int? MetamagicMask { get; set; }
     }
 }

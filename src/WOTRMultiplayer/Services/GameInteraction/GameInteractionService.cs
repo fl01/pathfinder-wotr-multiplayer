@@ -3706,7 +3706,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 && itemEntity.Cost == networkLootItem.Cost
                 && itemEntity.IsLootable
                 && itemEntity.EnchantmentValue == networkLootItem.EnchantmentValue
-                && AreSameEnchantments(itemEntity.Enchantments, networkLootItem.Enchantments);
+                && AreSameEnchantments(itemEntity.Enchantments, networkLootItem.Enchantments)
+                && (int?)itemEntity.GetMetamagic()?.MetamagicMask == networkLootItem.MetamagicMask;
 
             return sameItemType;
         }

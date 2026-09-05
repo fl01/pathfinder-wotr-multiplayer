@@ -242,7 +242,8 @@ namespace WOTRMultiplayer.Config.Mapping
                 EnchantmentValue = itemEntity.EnchantmentValue,
                 Enchantments = [.. itemEntity.Enchantments.Select(x => x.Blueprint.name)],
                 HoldingSlotOwnerId = itemEntity.HoldingSlot?.Owner?.Unit.UniqueId,
-                CollectionOwnerRef = itemEntity.Collection?.OwnerRef.Id
+                CollectionOwnerRef = itemEntity.Collection?.OwnerRef.Id,
+                MetamagicMask = (int?)itemEntity.GetMetamagic()?.MetamagicMask
             };
 
             return item;
