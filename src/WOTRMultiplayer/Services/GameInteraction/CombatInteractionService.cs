@@ -1471,8 +1471,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
             if (unit.Orientation != networkUnit.Orientation)
             {
                 var previousOrientation = unit.Orientation;
-                _logger.LogInformation("Orientation has been updated. UnitId={UnitId}, PreviousOrientation={PreviousOrientation}, NewOrientation={NewOrientation}", unit.UniqueId, previousOrientation.ToString("F4"), unit.Orientation.ToString("F4"));
                 unit.Orientation = networkUnit.Orientation;
+                _logger.LogInformation("Orientation has been updated. UnitId={UnitId}, PreviousOrientation={PreviousOrientation}, NewOrientation={NewOrientation}", unit.UniqueId, previousOrientation.ToString("F4"), unit.Orientation.ToString("F4"));
             }
 
             UpdateUnitPosition(unit, networkUnit.Position);
@@ -1480,16 +1480,25 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private void UpdateUnitPosition(UnitEntityData unit, NetworkVector3 expectedPosition)
         {
-            if (unit.Position.x != expectedPosition.X
-                || unit.Position.y != expectedPosition.Y
-                || unit.Position.z != expectedPosition.Z)
+            if (unit.RiderPart != null // no need to update rider position as it's controlled by the mount's position
+                || (unit.Position.x == expectedPosition.X && unit.Position.y == expectedPosition.Y && unit.Position.z == expectedPosition.Z))
             {
-                var newPosition = expectedPosition.ToUnityVector3();
-                _logger.LogDebug("Updating unit position. UnitId={UnitId}, PreviousPosition={PreviousPosition}, NewPosition={NewPosition}", unit.UniqueId, unit.Position.ToString("F4"), newPosition.ToString("F4"));
-                unit.CombatState.PreventAttacksOfOpporunityNextFrame = true;
-                unit.View.transform.position = newPosition;
-                unit.Position = newPosition;
-                //unit.Translocate(newPosition, unit.Orientation);
+                return;
+            }
+
+
+            var newPosition = expectedPosition.ToUnityVector3();
+            unit.CombatState.PreventAttacksOfOpporunityNextFrame = true;
+            unit.View.transform.position = newPosition;
+            unit.Position = newPosition;
+
+            var rider = unit.SaddledPart?.Rider;
+            _logger.LogDebug("Updated unit position. UnitId={UnitId}, PreviousPosition={PreviousPosition}, NewPosition={NewPosition}, IsMount={IsMount}", unit.UniqueId, unit.Position.ToString("F4"), newPosition.ToString("F4"), rider != null);
+
+            if (rider != null)
+            {
+                rider.CombatState.PreventAttacksOfOpporunityNextFrame = true;
+                _logger.LogInformation("Disabled AoO (next frame) for rider due to mount position update. UnitId={UnitId}, RiderUnitId={RiderUnitId}", unit.UniqueId, rider.UniqueId);
             }
         }
     }
