@@ -1486,14 +1486,14 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 return;
             }
 
-
             var newPosition = expectedPosition.ToUnityVector3();
+            var previousPosition = unit.Position;
             unit.CombatState.PreventAttacksOfOpporunityNextFrame = true;
             unit.View.transform.position = newPosition;
             unit.Position = newPosition;
 
             var rider = unit.SaddledPart?.Rider;
-            _logger.LogDebug("Updated unit position. UnitId={UnitId}, PreviousPosition={PreviousPosition}, NewPosition={NewPosition}, IsMount={IsMount}", unit.UniqueId, unit.Position.ToString("F4"), newPosition.ToString("F4"), rider != null);
+            _logger.LogDebug("Updated unit position. UnitId={UnitId}, PreviousPosition={PreviousPosition}, NewPosition={NewPosition}, IsMount={IsMount}", unit.UniqueId, previousPosition.ToString("F4"), unit.Position.ToString("F4"), rider != null);
 
             if (rider != null)
             {
