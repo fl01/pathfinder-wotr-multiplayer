@@ -31,7 +31,6 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             if (match.IsInvalid)
             {
                 Main.GetLogger<UnitUseAbilitySubstitutionPatches>().LogError("Invalid transpiler position. Target={Target}", target);
-                PatchesUtils.Dump(matcher);
                 return matcher.Instructions();
             }
 
