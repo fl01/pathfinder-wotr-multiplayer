@@ -15,7 +15,7 @@ namespace WOTRMultiplayer.Extensions
         }
 
         /// <summary>
-        /// copy-paste of RulebookEvent.D with configurable random
+        /// RulebookEvent.D
         /// </summary>
         /// <param name="formula"></param>
         /// <param name="random"></param>
@@ -36,7 +36,7 @@ namespace WOTRMultiplayer.Extensions
         }
 
         /// <summary>
-        /// copy-paste of LinqExtensions.WeightedRandom with configurable random
+        /// LinqExtensions.WeightedRandom
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="list"></param>
@@ -63,6 +63,25 @@ namespace WOTRMultiplayer.Extensions
             }
 
             return list[list.Count - 1];
+        }
+
+        /// <summary>
+        /// LinqExtensions.Shuffle
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="random"></param>
+        public static void Shuffle<T>(this IList<T> list, Random random)
+        {
+            int i = list.Count;
+            while (i > 1)
+            {
+                int num = random.Next(0, i) % i;
+                i--;
+                T t = list[num];
+                list[num] = list[i];
+                list[i] = t;
+            }
         }
     }
 }

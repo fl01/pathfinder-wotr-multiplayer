@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Kingmaker.UnitLogic.Abilities;
 
 namespace WOTRMultiplayer.Entities.Equipment
 {

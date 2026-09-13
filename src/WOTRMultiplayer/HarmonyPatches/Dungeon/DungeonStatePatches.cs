@@ -5,7 +5,6 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using Kingmaker.Dungeon;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.HarmonyPatches.Dialogs;
 using WOTRMultiplayer.Services.Random;
 
 namespace WOTRMultiplayer.HarmonyPatches.Dungeon
@@ -49,12 +48,12 @@ namespace WOTRMultiplayer.HarmonyPatches.Dungeon
                 var seededContext = Main.Multiplayer.GetSeededContext();
                 var identifier = $"{nameof(DungeonState)}:{nameof(GenerateDungeonSeed)}_{seededContext.Id}";
                 int dungeonSeed = Main.Multiplayer.ValueGenerator.GetRandom(IdentifierLifetime.Persistent, identifier).Next();
-                Main.GetLogger<CueSelectionPatches>().LogInformation("Dungeon Seed has been generated. DungeonSeed={DungeonSeed}, Identifier={Identifier}", dungeonSeed, identifier);
+                Main.GetLogger<DungeonStatePatches>().LogInformation("Dungeon Seed has been generated. DungeonSeed={DungeonSeed}, Identifier={Identifier}", dungeonSeed, identifier);
                 return dungeonSeed;
             }
             catch (Exception ex)
             {
-                Main.GetLogger<CueSelectionPatches>().LogError(ex, "Unable to select dialog cue");
+                Main.GetLogger<DungeonStatePatches>().LogError(ex, "Unable to select dialog cue");
                 throw;
             }
         }
