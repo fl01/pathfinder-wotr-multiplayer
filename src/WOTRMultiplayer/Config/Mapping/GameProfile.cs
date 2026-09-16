@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AutoMapper;
+using Kingmaker.Armies.TacticalCombat.Parts;
 using Kingmaker.Blueprints.Area;
 using Kingmaker.Blueprints.Root;
 using Kingmaker.Dungeon;
@@ -15,6 +16,7 @@ using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.UnitLogic.Abilities.Blueprints;
 using Kingmaker.UnitLogic.Abilities.Components.AreaEffects;
 using Kingmaker.UnitLogic.Buffs;
+using Kingmaker.UnitLogic.Class.Kineticist;
 using Kingmaker.UnitLogic.Parts;
 using Kingmaker.Utility;
 using WOTRMultiplayer.Entities;
@@ -28,6 +30,7 @@ using WOTRMultiplayer.Entities.NewGame;
 using WOTRMultiplayer.Entities.SpellbookManagement;
 using WOTRMultiplayer.Entities.Spells;
 using WOTRMultiplayer.Entities.Units;
+using WOTRMultiplayer.Entities.Units.Parts;
 using WOTRMultiplayer.Extensions;
 
 namespace WOTRMultiplayer.Config.Mapping
@@ -100,6 +103,43 @@ namespace WOTRMultiplayer.Config.Mapping
 
             CreateMap<NetworkColor, UnityEngine.Color>().ConstructUsing(x => Create(x))
                 .ForAllMembers(x => x.Ignore());
+
+            CreateMap<UnitPartKineticist, NetworkUnitPartKineticist>().ConstructUsing(x => Create(x))
+                .ForAllMembers(x => x.Ignore());
+
+            CreateMap<UnitPartTacticalCombat, NetworkUnitPartTacticalCombat>().ConstructUsing(x => Create(x))
+                .ForAllMembers(x => x.Ignore());
+        }
+
+        private NetworkUnitPartTacticalCombat Create(UnitPartTacticalCombat unitPartTacticalCombat)
+        {
+            if (unitPartTacticalCombat == null)
+            {
+                return null;
+            }
+
+            var part = new NetworkUnitPartTacticalCombat
+            {
+                Count = unitPartTacticalCombat.Count,
+                SquadId = unitPartTacticalCombat.SquadId
+            };
+
+            return part;
+        }
+
+        private NetworkUnitPartKineticist Create(UnitPartKineticist unitPartKineticist)
+        {
+            if (unitPartKineticist == null)
+            {
+                return null;
+            }
+
+            var part = new NetworkUnitPartKineticist
+            {
+                AcceptedBurn = unitPartKineticist.AcceptedBurn
+            };
+
+            return part;
         }
 
         private NetworkColor Create(UnityEngine.Color unityColor)

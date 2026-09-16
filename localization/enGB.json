@@ -271,6 +271,14 @@
                 "saveGameChunkSize": {
                     "title": "Save Game chunk size",
                     "tooltip": "Controls chunk size (bytes) when transferring save game over the network. Smaller chunks can improve stability on slower or unstable connections, while larger chunks may increase transfer speed on fast networks.\nChanging this value can affect connection reliability and compatibility. Only modify it if you understand how networking and data transfer work. Incorrect values may cause slow transfers, connection issues, or failed uploads/downloads."
+                },
+                "localUnitDeathNotificationDelay": {
+                    "title": "Unit Death notification delay",
+                    "tooltip": "Adds a delay before sending a unit death notification to other players. This helps ensure the same action has already occurred for them. Set to 00:00:00 to disable"
+                },
+                "remoteUnitDeathProcessingDelay": {
+                    "title": "Unit Death processing delay",
+                    "tooltip": "Adds a delay before processing a unit death notification received from other players. This helps ensure the same action has already occurred locally. Set to 00:00:00 to disable"
                 }
             }
         },

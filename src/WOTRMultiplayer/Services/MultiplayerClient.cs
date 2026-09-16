@@ -473,6 +473,11 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        protected override bool IsArmyCombatTurnSynced()
+        {
+            return !Game.ArmyCombat.Turn.IsSyncRequired;
+        }
+
         protected override void Send(object message)
         {
             _networkClient.Broadcast(message);
@@ -505,8 +510,6 @@ namespace WOTRMultiplayer.Services
 
         protected override void OnLocalPlayerTurnEnd()
         {
-            base.OnLocalPlayerTurnEnd();
-
             if (Game.Combat.Turn.AIActions.Count > 0)
             {
                 Game.Combat.Turn.AIActions.Clear();
@@ -660,6 +663,7 @@ namespace WOTRMultiplayer.Services
                .On<NotifyGlobalMapCrusadeArmyLeaderLevelingSkillSelected>(OnNotifyGlobalMapCrusadeArmyLeaderLevelingSkillSelected)
                .On<NotifyGlobalMapCommonPopupShown>(OnNotifyGlobalMapCommonPopupShown)
                .On<NotifyGlobalMapTeleport>(OnNotifyGlobalMapTeleport)
+               .On<NotifyArmyCombatTurnSynchronizationRequired>(OnNotifyArmyCombatTurnSynchronizationRequired)
 
                // kingdom
                .On<NotifyKingdomNavigationChanged>(OnNotifyKingdomNavigationChanged)
@@ -718,6 +722,17 @@ namespace WOTRMultiplayer.Services
                .On<NotifyDungeonBoonSelected>(OnNotifyDungeonBoonSelected)
                .On<NotifyDungeonBoonConfirmed>(OnNotifyDungeonBoonConfirmed)
                ;
+        }
+
+        private async void OnNotifyArmyCombatTurnSynchronizationRequired(long receivedFrom, NotifyArmyCombatTurnSynchronizationRequired message)
+        {
+            var units = Mapper.Map<List<NetworkUnit>>(message.Units);
+
+            await CombatInteraction.UpdateArmyCombatUnitsAsync(units);
+
+            Game.ArmyCombat.Turn.IsSyncRequired = false;
+            var confirmation = new ClientArmyCombatTurnSynchronized();
+            Send(confirmation);
         }
 
         private void OnNotifyDungeonBoonConfirmed(long receivedFrom, NotifyDungeonBoonConfirmed message)

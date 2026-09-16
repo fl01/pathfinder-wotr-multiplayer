@@ -128,6 +128,12 @@ namespace WOTRMultiplayer.Services.Settings
 
             [Description("save-game-chunk-size")]
             public static WellKnownSettingKey<int> SaveGameChunkSize { get; } = new(32768);
+
+            [Description("local-unit-death-notification-delay")]
+            public static WellKnownSettingKey<TimeSpan> LocalUnitDeathNotificationDelay { get; } = new(TimeSpan.FromSeconds(1));
+
+            [Description("remote-unit-death-processing-delay")]
+            public static WellKnownSettingKey<TimeSpan> RemoteUnitDeathProcessingDelay { get; } = new(TimeSpan.FromSeconds(1));
         }
     }
 }

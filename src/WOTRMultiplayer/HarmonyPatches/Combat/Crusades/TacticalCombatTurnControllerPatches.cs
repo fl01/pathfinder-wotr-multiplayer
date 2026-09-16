@@ -22,7 +22,8 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat.Crusades
             {
                 UnitId = data.Turn.Unit?.UniqueId,
                 Number = data.Turn.Number,
-                IsAI = !data.Turn.Unit?.IsDirectlyControllable ?? false
+                IsAI = !data.Turn.Unit?.IsDirectlyControllable ?? false,
+                IsSyncRequired = true
             };
 
             Main.Multiplayer.OnCrusadeArmyCombatTurnStarted(turn);

@@ -23,6 +23,6 @@ namespace WOTRMultiplayer.Entities.Combat.Crusades
 
         public ConcurrentDictionary<int, HashSet<long>> PlayersNextTurnInitialization { get; set; } = new();
 
-        public List<NetworkAIAction> AIActions { get; set; } = [];
+        public HashSet<string> RemotelyKilledUnits { get; set; } = [];
     }
 }

@@ -934,6 +934,20 @@ namespace WOTRMultiplayer.UI
                 new NetworkChunkSizeValidator(),
                 NetworkChunkSizeValidator.MaxLength,
                 isMultiplayerOff);
+            yield return CreateStringInputSetting(
+                WellKnownKeys.Settings.DangerZone.LocalUnitDeathNotificationDelay.Title.Key,
+                WellKnownKeys.Settings.DangerZone.LocalUnitDeathNotificationDelay.Tooltip.Key,
+                WellKnownSettings.DangerZone.LocalUnitDeathNotificationDelay,
+                new TimeSpanValidator(),
+                TimeSpanValidator.MaxLength,
+                isMultiplayerOff);
+            yield return CreateStringInputSetting(
+                WellKnownKeys.Settings.DangerZone.RemoteUnitDeathProcessingDelay.Title.Key,
+                WellKnownKeys.Settings.DangerZone.RemoteUnitDeathProcessingDelay.Tooltip.Key,
+                WellKnownSettings.DangerZone.RemoteUnitDeathProcessingDelay,
+                new TimeSpanValidator(),
+                TimeSpanValidator.MaxLength,
+                isMultiplayerOff);
         }
 
         private SettingEntityKeyBindingVM CreateKeyBindingSetting(string titleKey, string tooltipKey, WellKnownSettingKey<KeyBindingPair> settingKey)

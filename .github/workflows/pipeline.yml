@@ -33,7 +33,7 @@ jobs:
           echo "MajorMinorVersion: $majorMinor"
           
           # github run offset so the next run becomes version 1
-          baseRun=757
+          baseRun=847
           echo "GitHub Run: ${{ github.run_number }}"
           versionRunNumber=$(( ${{ github.run_number }} - baseRun ))
           versionRunNumber=$(( versionRunNumber < 0 ? 0 : versionRunNumber ))

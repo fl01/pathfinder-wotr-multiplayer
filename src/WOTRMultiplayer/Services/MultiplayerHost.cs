@@ -1589,8 +1589,6 @@ namespace WOTRMultiplayer.Services
 
         protected override void OnLocalPlayerTurnEnd()
         {
-            base.OnLocalPlayerTurnEnd();
-
             lock (ActionLock)
             {
                 Game.Combat.Turn.PlayersEndTurnInitialization.Add(Game.LocalPlayerId);
@@ -1600,151 +1598,23 @@ namespace WOTRMultiplayer.Services
             TryEndTurn();
         }
 
-        private void TryStartTurn()
+        protected override bool IsArmyCombatTurnSynced()
         {
-            try
+            if (Game.ArmyCombat.Turn.IsSyncRequired)
             {
-                Logger.LogInformation("Checking if turn could be started. Round={Round}, UnitId={UnitId}", Game.Combat.Round, Game.Combat.Turn?.UnitId);
+                Game.ArmyCombat.Turn.IsSyncRequired = false;
+                Game.ArmyCombat.Turn.SyncedPlayers.Add(Game.LocalPlayerId);
 
-                lock (ActionLock)
+                var units = CombatInteraction.GetUnitsInCombat();
+                var message = new NotifyArmyCombatTurnSynchronizationRequired
                 {
-                    if (Game.Combat.Turn == null
-                        || (Game.Combat.Turn.Stage != NetworkCombatTurnStage.Starting && Game.Combat.Turn.Stage != NetworkCombatTurnStage.StartSynchronization))
-                    {
-                        Logger.LogWarning("Turn is not ready to be started yet. TurnStatus={TurnStatus}", Game.Combat.Turn?.Stage);
-                        return;
-                    }
-
-                    var desyncedPlayers = Game.Combat.PlayersNextTurnInitialization.Where(k => !string.Equals(k.Key, Game.Combat.Turn.UnitId, StringComparison.OrdinalIgnoreCase)).ToList();
-                    if (desyncedPlayers.Count > 0)
-                    {
-                        foreach (var desynced in desyncedPlayers)
-                        {
-                            Game.Combat.PlayersNextTurnInitialization.TryRemove(desynced.Key, out _);
-                        }
-
-                        var players = desyncedPlayers.SelectMany(x => x.Value).Distinct().ToList();
-                        Logger.LogWarning("Players have started different turn. Initiating recovering. Players={Players}", desyncedPlayers.ToDictionary(x => x.Key, x => x.Value.ToList()));
-                        foreach (var playerId in players)
-                        {
-                            var player = GetPlayer(playerId);
-                            if (player == null || player.IsHost)
-                            {
-                                continue;
-                            }
-
-                            PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Turn.HostOrderDesync.Key, CombatTextSeverity.Debug, player.Name);
-
-                            var desyncedTurnStartMessage = new NotifyInvalidCombatTurnStarted
-                            {
-                                UnitId = Game.Combat.Turn.UnitId,
-                            };
-                            Send(playerId, desyncedTurnStartMessage);
-                        }
-
-                        return;
-                    }
-
-                    var notInitializedPlayers = GetMissingPlayers(Game.Combat.Turn.UnitId, Game.Combat.PlayersNextTurnInitialization);
-                    if (notInitializedPlayers.Count > 0)
-                    {
-                        Logger.LogInformation("Unable to start turn due to missing players turn initialization. MissingPlayersCount={MissingPlayersCount}, MissingPlayers={MissingPlayers}", notInitializedPlayers.Count, string.Join(";", notInitializedPlayers.Select(p => p.Name)));
-                        return;
-                    }
-
-                    if (Game.Combat.Turn.Stage == NetworkCombatTurnStage.Starting)
-                    {
-                        SetCombatTurnStage(NetworkCombatTurnStage.StartSynchronization);
-                        var combatState = CombatInteraction.GetCombatState();
-                        var syncMessage = new NotifyCombatTurnStartSynchronizationRequired
-                        {
-                            CombatState = Mapper.Map<Networking.Messages.Contracts.NetworkCombatState>(combatState),
-                            TriggeredAreaEffects = Mapper.Map<List<Networking.Messages.Contracts.NetworkAreaEffect>>(Game.Combat.TriggeredAreaEffects)
-                        };
-                        Game.Combat.TriggeredAreaEffects.Clear();
-                        Send(syncMessage);
-                    }
-
-                    var notSynchronizedPlayers = GetMissingPlayers(Game.Combat.Turn.UnitId, Game.Combat.PlayersNextTurnSynchronization);
-                    if (notSynchronizedPlayers.Count > 0)
-                    {
-                        Logger.LogWarning("Unable to start turn due to missing players turn synchronization. MissingPlayers={MissingPlayers}", string.Join(";", notSynchronizedPlayers.Select(p => p.Name)));
-                        return;
-                    }
-
-                    Game.Combat.PlayersNextTurnInitialization.Clear();
-                    Game.Combat.PlayersNextTurnSynchronization.Clear();
-
-                    ValueGenerator.ResetSeededGenerators(IdentifierLifetime.CombatTurn);
-                    Game.Combat.Turn.Seed = CreateRandomSeed();
-
-                    var message = new NotifyCombatTurnStarted
-                    {
-                        Round = Game.Combat.Round,
-                        UnitId = Game.Combat.Turn.UnitId,
-                        Seed = Game.Combat.Turn.Seed.Value,
-                    };
-
-                    Send(message);
-                    SetCombatTurnStage(NetworkCombatTurnStage.Playing);
-                }
-
-                CombatInteraction.StartTurnBasedCombatTurn(Game.Combat.Turn.UnitId);
+                    Units = Mapper.Map<List<Networking.Messages.Contracts.NetworkUnit>>(units)
+                };
+                Send(message);
             }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error while trying to start turn");
-                throw;
-            }
-        }
 
-        private void TryEndTurn()
-        {
-            try
-            {
-                lock (ActionLock)
-                {
-                    Logger.LogInformation("Checking if turn could be ended. Round={Round}, UnitId={UnitId}, IsAI={IsAI}", Game.Combat.Round, Game.Combat.Turn.UnitId, Game.Combat.Turn.IsAI);
-                    var allPlayers = GetSyncedPlayersCount();
-
-                    var initializedPlayers = Game.Combat.Turn.PlayersEndTurnInitialization.Count;
-                    if (initializedPlayers < allPlayers)
-                    {
-                        Logger.LogInformation("Can't end turn due to missing player turn end initialization. ReadyPlayers={ReadyPlayers}, RequiredPlayers={RequiredPlayers}", initializedPlayers, allPlayers);
-                        return;
-                    }
-
-                    if (Game.Combat.Turn.Stage == NetworkCombatTurnStage.Ending)
-                    {
-                        SetCombatTurnStage(NetworkCombatTurnStage.EndSynchronization);
-                        var units = CombatInteraction.GetUnitsInCombat();
-                        var turnEndSyncMessage = new NotifyCombatTurnEndSynchronizationRequired
-                        {
-                            Units = Mapper.Map<List<Networking.Messages.Contracts.NetworkUnit>>(units)
-                        };
-                        Send(turnEndSyncMessage);
-                    }
-
-                    var turnEndSyncedPlayers = Game.Combat.Turn.PlayersEndTurnSynchronization.Count;
-                    if (turnEndSyncedPlayers < allPlayers)
-                    {
-                        Logger.LogInformation("Can't end turn due to missing player turn end synchronization. ReadyPlayers={ReadyPlayers}, RequiredPlayers={RequiredPlayers}", turnEndSyncedPlayers, allPlayers);
-                        return;
-                    }
-
-                    Logger.LogInformation("Turn has been ended");
-                    var turnEndMessage = new NotifyCombatTurnEnded();
-                    Send(turnEndMessage);
-
-                    // Game calls 'turn end' every tick, no need for extra calls
-                    SetCombatTurnStage(NetworkCombatTurnStage.Ended);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error while trying to end turn");
-                throw;
-            }
+            var isTurnSynced = Game.ArmyCombat.Turn.SyncedPlayers.Count >= GetSyncedPlayersCount();
+            return isTurnSynced;
         }
 
         protected override void OnLocalRestGameModeEnded()
@@ -1821,6 +1691,7 @@ namespace WOTRMultiplayer.Services
                .On<NotifyGlobalMapRecruitmentShown>(OnNotifyGlobalMapRecruitmentShown)
                .On<NotifyGlobalMapRecruitmentClosed>(OnNotifyGlobalMapRecruitmentClosed)
                .On<NotifyGlobalMapCommonPopupShown>(OnNotifyGlobalMapCommonPopupShown)
+               .On<ClientArmyCombatTurnSynchronized>(OnClientArmyCombatTurnSynchronized)
 
                // kingdom
                .On<NotifyKingdomNavigationChanged>(OnNotifyKingdomNavigationChanged)
@@ -1836,6 +1707,17 @@ namespace WOTRMultiplayer.Services
                // inventory
                .On<NotifyPolymorphicItemCreationRequested>(OnNotifyPolymorphicItemCreationRequested)
                ;
+        }
+
+        private void OnClientArmyCombatTurnSynchronized(long receivedFrom, ClientArmyCombatTurnSynchronized message)
+        {
+            lock (ActionLock)
+            {
+                if (Game.ArmyCombat?.Turn != null)
+                {
+                    Game.ArmyCombat.Turn.SyncedPlayers.Add(receivedFrom);
+                }
+            }
         }
 
         private async void OnClientInvalidUnitTurnStartRequested(long receivedFrom, ClientInvalidUnitTurnStartRequested message)
@@ -2752,6 +2634,153 @@ namespace WOTRMultiplayer.Services
                 Suggestions = Mapper.Map<List<Networking.Messages.Contracts.NetworkDialogAnswerSuggestion>>(suggestions),
             };
             Send(cueAnswerSuggested);
+        }
+
+        private void TryStartTurn()
+        {
+            try
+            {
+                Logger.LogInformation("Checking if turn could be started. Round={Round}, UnitId={UnitId}", Game.Combat.Round, Game.Combat.Turn?.UnitId);
+
+                lock (ActionLock)
+                {
+                    if (Game.Combat.Turn == null
+                        || (Game.Combat.Turn.Stage != NetworkCombatTurnStage.Starting && Game.Combat.Turn.Stage != NetworkCombatTurnStage.StartSynchronization))
+                    {
+                        Logger.LogWarning("Turn is not ready to be started yet. TurnStatus={TurnStatus}", Game.Combat.Turn?.Stage);
+                        return;
+                    }
+
+                    var desyncedPlayers = Game.Combat.PlayersNextTurnInitialization.Where(k => !string.Equals(k.Key, Game.Combat.Turn.UnitId, StringComparison.OrdinalIgnoreCase)).ToList();
+                    if (desyncedPlayers.Count > 0)
+                    {
+                        foreach (var desynced in desyncedPlayers)
+                        {
+                            Game.Combat.PlayersNextTurnInitialization.TryRemove(desynced.Key, out _);
+                        }
+
+                        var players = desyncedPlayers.SelectMany(x => x.Value).Distinct().ToList();
+                        Logger.LogWarning("Players have started different turn. Initiating recovering. Players={Players}", desyncedPlayers.ToDictionary(x => x.Key, x => x.Value.ToList()));
+                        foreach (var playerId in players)
+                        {
+                            var player = GetPlayer(playerId);
+                            if (player == null || player.IsHost)
+                            {
+                                continue;
+                            }
+
+                            PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Turn.HostOrderDesync.Key, CombatTextSeverity.Debug, player.Name);
+
+                            var desyncedTurnStartMessage = new NotifyInvalidCombatTurnStarted
+                            {
+                                UnitId = Game.Combat.Turn.UnitId,
+                            };
+                            Send(playerId, desyncedTurnStartMessage);
+                        }
+
+                        return;
+                    }
+
+                    var notInitializedPlayers = GetMissingPlayers(Game.Combat.Turn.UnitId, Game.Combat.PlayersNextTurnInitialization);
+                    if (notInitializedPlayers.Count > 0)
+                    {
+                        Logger.LogInformation("Unable to start turn due to missing players turn initialization. MissingPlayersCount={MissingPlayersCount}, MissingPlayers={MissingPlayers}", notInitializedPlayers.Count, string.Join(";", notInitializedPlayers.Select(p => p.Name)));
+                        return;
+                    }
+
+                    if (Game.Combat.Turn.Stage == NetworkCombatTurnStage.Starting)
+                    {
+                        SetCombatTurnStage(NetworkCombatTurnStage.StartSynchronization);
+                        var combatState = CombatInteraction.GetCombatState();
+                        var syncMessage = new NotifyCombatTurnStartSynchronizationRequired
+                        {
+                            CombatState = Mapper.Map<Networking.Messages.Contracts.NetworkCombatState>(combatState),
+                            TriggeredAreaEffects = Mapper.Map<List<Networking.Messages.Contracts.NetworkAreaEffect>>(Game.Combat.TriggeredAreaEffects)
+                        };
+                        Game.Combat.TriggeredAreaEffects.Clear();
+                        Send(syncMessage);
+                    }
+
+                    var notSynchronizedPlayers = GetMissingPlayers(Game.Combat.Turn.UnitId, Game.Combat.PlayersNextTurnSynchronization);
+                    if (notSynchronizedPlayers.Count > 0)
+                    {
+                        Logger.LogWarning("Unable to start turn due to missing players turn synchronization. MissingPlayers={MissingPlayers}", string.Join(";", notSynchronizedPlayers.Select(p => p.Name)));
+                        return;
+                    }
+
+                    Game.Combat.PlayersNextTurnInitialization.Clear();
+                    Game.Combat.PlayersNextTurnSynchronization.Clear();
+
+                    ValueGenerator.ResetSeededGenerators(IdentifierLifetime.CombatTurn);
+                    Game.Combat.Turn.Seed = CreateRandomSeed();
+
+                    var message = new NotifyCombatTurnStarted
+                    {
+                        Round = Game.Combat.Round,
+                        UnitId = Game.Combat.Turn.UnitId,
+                        Seed = Game.Combat.Turn.Seed.Value,
+                    };
+
+                    Send(message);
+                    SetCombatTurnStage(NetworkCombatTurnStage.Playing);
+                }
+
+                CombatInteraction.StartTurnBasedCombatTurn(Game.Combat.Turn.UnitId);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error while trying to start turn");
+                throw;
+            }
+        }
+
+        private void TryEndTurn()
+        {
+            try
+            {
+                lock (ActionLock)
+                {
+                    Logger.LogInformation("Checking if turn could be ended. Round={Round}, UnitId={UnitId}, IsAI={IsAI}", Game.Combat.Round, Game.Combat.Turn.UnitId, Game.Combat.Turn.IsAI);
+                    var allPlayers = GetSyncedPlayersCount();
+
+                    var initializedPlayers = Game.Combat.Turn.PlayersEndTurnInitialization.Count;
+                    if (initializedPlayers < allPlayers)
+                    {
+                        Logger.LogInformation("Can't end turn due to missing player turn end initialization. ReadyPlayers={ReadyPlayers}, RequiredPlayers={RequiredPlayers}", initializedPlayers, allPlayers);
+                        return;
+                    }
+
+                    if (Game.Combat.Turn.Stage == NetworkCombatTurnStage.Ending)
+                    {
+                        SetCombatTurnStage(NetworkCombatTurnStage.EndSynchronization);
+                        var units = CombatInteraction.GetUnitsInCombat();
+                        var turnEndSyncMessage = new NotifyCombatTurnEndSynchronizationRequired
+                        {
+                            Units = Mapper.Map<List<Networking.Messages.Contracts.NetworkUnit>>(units)
+                        };
+                        Send(turnEndSyncMessage);
+                    }
+
+                    var turnEndSyncedPlayers = Game.Combat.Turn.PlayersEndTurnSynchronization.Count;
+                    if (turnEndSyncedPlayers < allPlayers)
+                    {
+                        Logger.LogInformation("Can't end turn due to missing player turn end synchronization. ReadyPlayers={ReadyPlayers}, RequiredPlayers={RequiredPlayers}", turnEndSyncedPlayers, allPlayers);
+                        return;
+                    }
+
+                    Logger.LogInformation("Turn has been ended");
+                    var turnEndMessage = new NotifyCombatTurnEnded();
+                    Send(turnEndMessage);
+
+                    // Game calls 'turn end' every tick, no need for extra calls
+                    SetCombatTurnStage(NetworkCombatTurnStage.Ended);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error while trying to end turn");
+                throw;
+            }
         }
     }
 }
