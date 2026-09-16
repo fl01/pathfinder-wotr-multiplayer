@@ -22,6 +22,7 @@ Look [here](/docs/about.md) for more details
 - Campaign is mostly playable, but there are a few heavily bugged encounters
 - There are no changes to content, balance or how mythic paths/companions work.
 - Game Version/DLC/Mods should match across players.
+- Gamepad is not supported because it uses a separate console-specific UI that has not yet been adapted for multiplayer.
 
 ## How to connect
 The mod adds a "Multiplayer" menu to the Main Menu. Use it to access multiplayer features.

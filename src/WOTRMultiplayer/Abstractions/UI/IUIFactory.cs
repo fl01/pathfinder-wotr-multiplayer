@@ -41,6 +41,8 @@ namespace WOTRMultiplayer.Abstractions.UI
 
         GameObject CreateBackgroundArt(Transform parent);
 
+        void StoreCreditsScreen(GameObject gameObject);
+
         void StoreBorderDecoration(GameObject gameObject);
 
         void StoreDefaultGameObject(GameObject gameObject);

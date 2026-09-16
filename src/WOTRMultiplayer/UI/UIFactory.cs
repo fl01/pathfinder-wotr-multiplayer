@@ -6,6 +6,7 @@ using Kingmaker.Localization;
 using Kingmaker.Settings;
 using Kingmaker.UI;
 using Kingmaker.UI.Common;
+using Kingmaker.UI.MVVM._ConsoleView.ContextMenu;
 using Kingmaker.UI.MVVM._PCView.ContextMenu;
 using Kingmaker.UI.MVVM._PCView.EscMenu;
 using Kingmaker.UI.MVVM._PCView.SaveLoad;
@@ -14,7 +15,6 @@ using Kingmaker.UI.MVVM._VM.ContextMenu;
 using Kingmaker.UI.MVVM._VM.Settings;
 using Kingmaker.UI.MVVM._VM.Settings.Entities;
 using Kingmaker.UI.MVVM._VM.Settings.Entities.Decorative;
-using Kingmaker.UI.ServiceWindow.Credits;
 using Kingmaker.UI.SettingsUI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -63,6 +63,7 @@ namespace WOTRMultiplayer.UI
         private SaveLoadPCView _saveLoadPCView;
         private GameObject _defaultGameObject;
         private GameObject _borderDecoration;
+        private GameObject _creditsScreenPrefab;
         private Sprite _circleSprite;
 
         private readonly ILogger<UIFactory> _logger;
@@ -311,25 +312,40 @@ namespace WOTRMultiplayer.UI
 
         public void InitializeMultiplayerWindow()
         {
+            if (_uiAccessor.MainMenuSideBarConsoleView != null)
+            {
+                var consoleButtons = _uiAccessor.MainMenuSideBarConsoleView.transform.GetChild(1);
+                var consoleSettings = consoleButtons?.transform.Find("MainMenuEntityConsoleView_Settings");
+                var disabledMultiplayerMenu = UnityEngine.Object.Instantiate(consoleSettings, consoleButtons);
+                var gamepadText = UIUtility.GetSaberBookFormat(new LocalizedString { Key = WellKnownKeys.MainMenu.Multiplayer.Title.Key });
+                var fullText = $"<s>{gamepadText}</s><size=50%>\n<color=#CC3333>gamepad is not supported</color></size>";
+                var contextMenuItemViewModel = new ContextMenuEntityVM(new ContextMenuCollectionEntity(fullText, () => { }, false));
+                disabledMultiplayerMenu.transform.SetSiblingIndex(consoleSettings.transform.GetSiblingIndex());
+                var contextMenuItemView = disabledMultiplayerMenu.GetComponent<ContextMenuEntityConsoleView>();
+                contextMenuItemView.Bind(contextMenuItemViewModel);
+                return;
+            }
+
             var menuButtons = _uiAccessor.MainMenuSideBarPCView.transform.GetChild(0);
             var settingsMenuItem = menuButtons?.transform.Find("Settings");
             if (settingsMenuItem == null)
             {
+                _logger.LogError("Unable to find correct place to insert Multiplayer menu");
                 return;
             }
 
             var multiplayerMenu = UnityEngine.Object.Instantiate(settingsMenuItem, menuButtons);
             multiplayerMenu.transform.SetSiblingIndex(settingsMenuItem.transform.GetSiblingIndex());
-            var multiplayerMenuView = multiplayerMenu.GetComponent<ContextMenuEntityPCView>();
-            var element = CreateCopyOfCreditsScreen();
-            var multiplayerWindow = element.AddComponent<MultiplayerWindow>()
+            var multiplayerWindowContainer = UnityEngine.Object.Instantiate(_creditsScreenPrefab, Game.Instance.UI.MainMenu.transform);
+            var multiplayerWindow = multiplayerWindowContainer.AddComponent<MultiplayerWindow>()
                 .WithLogger(_serviceProvider.GetService<ILogger<MultiplayerWindow>>())
                 .WithControllers(_serviceProvider.GetService<IHostMenuItemController>(), _serviceProvider.GetService<IJoinMenuItemController>());
             multiplayerWindow.Initialize();
 
             CreateBackgroundArt(multiplayerWindow.transform.Find("BackgroundGroup"));
             var text = UIUtility.GetSaberBookFormat(new LocalizedString { Key = WellKnownKeys.MainMenu.Multiplayer.Title.Key });
-            var viewModel = new ContextMenuEntityVM(new ContextMenuCollectionEntity(UIUtility.GetSaberBookFormat(text), () => multiplayerWindow.Show(true)));
+            var viewModel = new ContextMenuEntityVM(new ContextMenuCollectionEntity(text, () => multiplayerWindow.Show(true)));
+            var multiplayerMenuView = multiplayerMenu.GetComponent<ContextMenuEntityPCView>();
             multiplayerMenuView.Bind(viewModel);
 
             // extra menu item = shift up %
@@ -338,12 +354,11 @@ namespace WOTRMultiplayer.UI
             menuButtons.SetPositionAndRotation(newPosition, menuButtons.rotation);
         }
 
-        private GameObject CreateCopyOfCreditsScreen()
+        public void CreateMultiplayerSettingsMenu(SettingsVM settingsVM)
         {
-            var copy = UnityEngine.Object.Instantiate(Game.Instance.UI.CreditsUI.gameObject, Game.Instance.UI.MainMenu.transform);
-            var originalWindow = copy.GetComponent<CreditsUIWindow>();
-            UnityEngine.Object.DestroyImmediate(originalWindow);
-            return copy;
+            var title = new LocalizedString { Key = WellKnownKeys.Settings.Title.Key };
+            settingsVM.CreateMenuEntity(title, MultiplayerSettingsMenuId);
+            Main.GetLogger<SettingsVMPatches>().LogInformation("Multiplayer settings menu has been added");
         }
 
         public GameObject CreateBorderDecoration(Transform parent)
@@ -548,6 +563,17 @@ namespace WOTRMultiplayer.UI
                 button.OnLeftClick.SetPersistentListenerState(i, UnityEngine.Events.UnityEventCallState.Off);
             }
             UnityEngine.Object.DontDestroyOnLoad(_buttonPrefab);
+        }
+
+        public void StoreCreditsScreen(GameObject gameObject)
+        {
+            if (gameObject == null || _creditsScreenPrefab != null)
+            {
+                return;
+            }
+
+            _creditsScreenPrefab = UnityEngine.Object.Instantiate(gameObject);
+            UnityEngine.Object.DontDestroyOnLoad(_creditsScreenPrefab);
         }
 
         public GameObject CreateBackgroundArt(Transform parent)
@@ -1049,13 +1075,6 @@ namespace WOTRMultiplayer.UI
         {
             uiSettingsEntityBase.m_Description = new LocalizedString { Key = titleKey };
             uiSettingsEntityBase.m_TooltipDescription = new LocalizedString { Key = tooltipKey };
-        }
-
-        public void CreateMultiplayerSettingsMenu(SettingsVM settingsVM)
-        {
-            var title = new LocalizedString { Key = WellKnownKeys.Settings.Title.Key };
-            settingsVM.CreateMenuEntity(title, MultiplayerSettingsMenuId);
-            Main.GetLogger<SettingsVMPatches>().LogInformation("Multiplayer settings menu has been added");
         }
     }
 }

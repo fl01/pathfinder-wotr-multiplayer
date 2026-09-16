@@ -59,7 +59,7 @@ namespace WOTRMultiplayer.UI.Windows
             }
 
             _isInitialized = true;
-            _logger.LogInformation("Initalizing");
+            _logger.LogInformation("Initializing");
 
             Main.Multiplayer.UIFactory.StoreDefaultGameObject(gameObject.transform.Find("Black").gameObject);
 
