@@ -8,6 +8,7 @@ using Kingmaker.Armies.TacticalCombat;
 using Kingmaker.Armies.TacticalCombat.Blueprints;
 using Kingmaker.Armies.TacticalCombat.Commands;
 using Kingmaker.Armies.TacticalCombat.Controllers;
+using Kingmaker.Armies.TacticalCombat.Parts;
 using Kingmaker.Controllers;
 using Kingmaker.Controllers.Combat;
 using Kingmaker.Designers;
@@ -602,6 +603,11 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return tcs.Task;
         }
 
+        public bool IsActiveArmyCombatUnitBusy()
+        {
+            return Game.Instance.TacticalCombat.Data?.IsBusy ?? false;
+        }
+
         public void SetTacticalCombatAcceleration(bool isAccelerated)
         {
             _mainThreadAccessor.Post(() =>
@@ -758,6 +764,66 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return KillUnit(player, unit);
         }
 
+        public Task UpdateArmyCombatUnitsAsync(List<NetworkUnit> units)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            _mainThreadAccessor.Post(() =>
+            {
+                try
+                {
+                    foreach (var networkUnit in units)
+                    {
+                        if (networkUnit.UnitPartTacticalCombat == null)
+                        {
+                            continue;
+                        }
+
+                        // unfortunately, tactical combat state doesn't hold info about dead units
+                        var unit = _gameStateLookupService.GetUnitEntity(networkUnit.Id);
+                        if (unit == null)
+                        {
+                            _logger.LogWarning("Unable to sync missing army combat unit. UnitId={UnitId}", networkUnit.Id);
+                            continue;
+                        }
+
+                        var unitTacticalCombat = unit.Get<UnitPartTacticalCombat>();
+                        if (unitTacticalCombat == null)
+                        {
+                            _logger.LogWarning("Unable to sync army combat unit due to missing UnitPartTacticalCombat. UnitId={UnitId}", unit.UniqueId);
+                            continue;
+                        }
+
+                        if (!string.Equals(unitTacticalCombat.SquadId, networkUnit.UnitPartTacticalCombat.SquadId))
+                        {
+                            _logger.LogWarning("Unable to sync army combat unit due to SquadId mismatch. UnitId={UnitId}, RemoteSquadId={RemoteSquadId}, LocalSquadId={LocalSquadId}", unit.UniqueId, networkUnit.UnitPartTacticalCombat.SquadId, unitTacticalCombat.SquadId);
+                            continue;
+                        }
+
+                        unit.Damage = networkUnit.Descriptor.Damage;
+                        var delta = unitTacticalCombat.Count - networkUnit.UnitPartTacticalCombat.Count;
+                        if (delta != 0)
+                        {
+                            unitTacticalCombat.Count = networkUnit.UnitPartTacticalCombat.Count;
+                            // byHealthChange = should NOT be logged to combat log
+                            EventBus.RaiseEvent<ITacticalCombatSquadCountHandler>(x => x.HandleSquadCountChange(unitTacticalCombat, delta, byHealthChange: true));
+                        }
+
+                        _logger.LogInformation("SquadId health has been updated. Name={Name}, UnitId={UnitId}, SquadId={SquadId}, Count={Count}, HPLeft={HPLeft}", unit.CharacterName, unit.UniqueId, unitTacticalCombat.SquadId, unitTacticalCombat.Count, unit.HPLeft);
+                    }
+
+                    tcs.SetResult(true);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error while syncing army combat units");
+                    tcs.SetResult(false);
+                    throw;
+                }
+            });
+
+            return tcs.Task;
+        }
+
         public Task<bool> StartCombatAsync(NetworkCombatState networkCombatState)
         {
             var taskCompletion = new TaskCompletionSource<bool>();
@@ -907,14 +973,10 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     TurnBasedInfo = GetUnitTurnBasedInfo(unitEntity),
                     CombatState = GetUnitCombatState(unitEntity),
                     Descriptor = GetUnitDescriptor(unitEntity),
-                    BuffCollection = _buffInteractionService.GetUnitBuffs(unitEntity)
+                    BuffCollection = _buffInteractionService.GetUnitBuffs(unitEntity),
+                    UnitPartKineticist = _mapper.Map<NetworkUnitPartKineticist>(unitEntity.Get<UnitPartKineticist>()),
+                    UnitPartTacticalCombat = _mapper.Map<NetworkUnitPartTacticalCombat>(unitEntity.Get<UnitPartTacticalCombat>())
                 };
-
-                var kineticist = unitEntity.Get<UnitPartKineticist>();
-                if (kineticist != null)
-                {
-                    unit.UnitPartKineticist = new NetworkUnitPartKineticist { AcceptedBurn = kineticist.AcceptedBurn };
-                }
 
                 units.Add(unit);
             }

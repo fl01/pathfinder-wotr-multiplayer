@@ -59,7 +59,7 @@ namespace WOTRMultiplayer.UI.Windows
             }
 
             _isInitialized = true;
-            _logger.LogInformation("Initalizing");
+            _logger.LogInformation("Initializing");
 
             Main.Multiplayer.UIFactory.StoreDefaultGameObject(gameObject.transform.Find("Black").gameObject);
 
@@ -216,12 +216,12 @@ namespace WOTRMultiplayer.UI.Windows
             return baseItem;
         }
 
-        public override void Dispose()
+        private new void OnDestroy()
         {
-            _logger.LogInformation("Dispose");
+            _logger.LogInformation("OnDestroy");
             _hostMenuController.Dispose();
             _joinMenuController.Dispose();
-            base.Dispose();
+            base.OnDestroy();
         }
     }
 }

@@ -48,7 +48,15 @@ namespace WOTRMultiplayer.Services
 {
     public abstract class MultiplayerActorBase
     {
+        public const int SaveSizeLimit = 500 * 1024 * 1024;
+
         private readonly object _actionLock = new();
+
+        private readonly INetworkConnection _networkConnection;
+
+        private SeedKind[] AllSeeds { get; } = [.. Enum.GetValues(typeof(SeedKind)).Cast<SeedKind>().Where(s => s != SeedKind.All)];
+
+        private DateTime? _pauseCooldown;
 
         public NetworkArea CurrentArea => Game.CurrentArea;
 
@@ -108,15 +116,9 @@ namespace WOTRMultiplayer.Services
 
         protected IValueGenerator ValueGenerator { get; private set; }
 
-        private readonly INetworkConnection _networkConnection;
-
         protected abstract bool HasControlOverUI { get; }
 
         protected object ActionLock => _actionLock;
-
-        private SeedKind[] AllSeeds { get; } = [.. Enum.GetValues(typeof(SeedKind)).Cast<SeedKind>().Where(s => s != SeedKind.All)];
-
-        private DateTime? _pauseCooldown;
 
         protected MultiplayerActorBase(
             ILogger logger,
@@ -1737,35 +1739,14 @@ namespace WOTRMultiplayer.Services
 
         public void OnUnitDeath(string unitId, string groupId)
         {
-            if (Game.Combat?.Turn == null)
+            if (Game.Combat != null)
             {
-                return;
+                OnUnitDeathInCombat(unitId, groupId);
             }
-
-            if (Game.Combat.UntargetableUnits.ContainsKey(groupId))
+            else if (Game.ArmyCombat != null)
             {
-                // if unit is dead for some reason
-                MakeUnitTargetable(unitId, groupId);
+                OnUnitDeathInTacticalCombat(unitId, groupId);
             }
-
-            if (Game.Combat.RemotelyKilledUnits.Contains(unitId))
-            {
-                return;
-            }
-
-            var message = new NotifyUnitKilled
-            {
-                PlayerId = Game.LocalPlayerId,
-                UnitId = unitId
-            };
-
-            Task.Run(async () =>
-            {
-                await WaitWhileTrue(CombatInteraction.IsRiderActive, "Waiting for rider to finish commands before sending unit killed notification");
-                await Task.Delay(TimeSpan.FromSeconds(1f));
-
-                Send(message);
-            });
         }
 
         public void OnTrapDisarmRolled(NetworkTrapDisarm trapDisarm)
@@ -2148,12 +2129,21 @@ namespace WOTRMultiplayer.Services
 
         public bool OnBeforeTacticalCombatTurnStart(int turnNumber)
         {
+            if (Game.ArmyCombat.Turn != null && Game.ArmyCombat.Turn.LockCounter > 0)
+            {
+                return false;
+            }
+
             var playerId = Game.LocalPlayerId;
             if (AddPlayerCrusadeArmyCombatTurnInitialization(turnNumber, playerId))
             {
                 if (turnNumber == 0)
                 {
-                    Game.ArmyCombat.Turn = new NetworkArmyCombatTurn { Number = turnNumber };
+                    Game.ArmyCombat.Turn = new NetworkArmyCombatTurn
+                    {
+                        Number = turnNumber,
+                        IsSyncRequired = true, // seems to be a bit redundant to sync on turn 0
+                    };
                 }
 
                 var message = new NotifyTacticalCombatTurnInitialized
@@ -2164,8 +2154,21 @@ namespace WOTRMultiplayer.Services
                 Send(message);
             }
 
-            var canContinue = IsCrusadeArmyCombatTurnInitialized();
-            return canContinue;
+            var isTurnInitialized = IsCrusadeArmyCombatTurnInitialized();
+            if (!isTurnInitialized)
+            {
+                return false;
+            }
+
+            var isTurnSynced = IsArmyCombatTurnSynced();
+            if (isTurnSynced)
+            {
+                // High morale proc keeps the same turn
+                Game.ArmyCombat.Turn.IsSyncRequired = true;
+                Game.ArmyCombat.Turn.SyncedPlayers.Clear();
+            }
+
+            return isTurnSynced;
         }
 
         public void OnCrusadeArmyCombatTurnStarted(NetworkArmyCombatTurn armyCombatTurn)
@@ -2244,6 +2247,8 @@ namespace WOTRMultiplayer.Services
             UpdateTransitionMapUIState();
         }
 
+        protected abstract bool IsArmyCombatTurnSynced();
+
         protected abstract void OnLocalPlayerTurnStart();
 
         protected abstract void Send(object message);
@@ -2252,9 +2257,7 @@ namespace WOTRMultiplayer.Services
 
         protected abstract bool OnToggleOffPause(out bool showReason);
 
-        protected virtual void OnLocalPlayerTurnEnd()
-        {
-        }
+        protected abstract void OnLocalPlayerTurnEnd();
 
         protected void OnTurnEnded(string unitId)
         {
@@ -3734,6 +3737,15 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifySaveGameChunkCreated(long receivedFrom, NotifySaveGameChunkCreated message)
         {
+            if (message.Content.Length > SaveSizeLimit
+                || (long)Game.StartUp.SaveGameTransfer.Content.Length + message.Content.Length > SaveSizeLimit)
+            {
+                _networkConnection.Reset();
+                Game.StartUp = null;
+                PlayerNotification.ShowModalMessage(WellKnownKeys.SysMessages.AbnormalSaveGameSize.Key);
+                return;
+            }
+
             var transfer = GetSaveGameTransferData(Game.LocalPlayerId);
             message.Content.AsSpan().CopyTo(Game.StartUp.SaveGameTransfer.Content.AsSpan(transfer.CurrentOffset));
             transfer.CurrentOffset += message.Content.Length;
@@ -3904,21 +3916,31 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (Game.Combat == null)
+                if (Game.Combat == null && Game.ArmyCombat == null)
                 {
+                    // units killed outside of combat are not synced for now
                     return;
                 }
 
-                // simple way to make sure turn is not going to end while we are trying to kill unit
                 lock (ActionLock)
                 {
-                    Game.Combat.Turn.LockCounter++;
+                    var turn = (NetworkCombatTurnBase)Game.Combat?.Turn ?? Game.ArmyCombat?.Turn;
+                    if (turn != null)
+                    {
+                        turn.LockCounter++;
+                    }
                 }
 
-                Game.Combat.RemotelyKilledUnits.Add(message.UnitId);
+                var remotelyKilledUnits = Game.Combat?.RemotelyKilledUnits ?? Game.ArmyCombat?.RemotelyKilledUnits;
+                remotelyKilledUnits?.Add(message.UnitId);
 
-                await WaitWhileTrue(CombatInteraction.IsRiderActive, "Waiting for active commands to finish before checking if unit should be killed");
-                await Task.Delay(TimeSpan.FromSeconds(1f));
+                Func<bool> awaiterCondition = Game.Combat != null ? CombatInteraction.IsRiderActive : CombatInteraction.IsActiveArmyCombatUnitBusy;
+                await WaitWhileTrue(awaiterCondition, "Waiting for an active unit to finish acting before checking if unit should be killed");
+                var settings = SettingsService.GetSettings();
+                if (settings.RemoteUnitDeathProcessingDelay > TimeSpan.Zero)
+                {
+                    await Task.Delay(settings.RemoteUnitDeathProcessingDelay);
+                }
 
                 var player = GetPlayer(message.PlayerId);
                 var isKilled = CombatInteraction.KillUnit(player, message.UnitId);
@@ -3927,7 +3949,7 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                if (Game.Combat.Turn != null && string.Equals(Game.Combat.Turn.UnitId, message.UnitId, StringComparison.OrdinalIgnoreCase))
+                if (Game.Combat?.Turn != null && string.Equals(Game.Combat.Turn.UnitId, message.UnitId, StringComparison.OrdinalIgnoreCase))
                 {
                     OnTurnEnded(message.UnitId);
                     Game.Combat.Turn = null;
@@ -3938,9 +3960,10 @@ namespace WOTRMultiplayer.Services
             {
                 lock (ActionLock)
                 {
-                    if (Game.Combat.Turn != null)
+                    var turn = (NetworkCombatTurnBase)Game.Combat?.Turn ?? Game.ArmyCombat?.Turn;
+                    if (turn != null)
                     {
-                        Game.Combat.Turn.LockCounter--;
+                        turn.LockCounter--;
                     }
                 }
             }
@@ -4669,6 +4692,53 @@ namespace WOTRMultiplayer.Services
                 SeedKind.CrusadeArmyCombatSeed => CrusadeArmyCombatSeed,
                 _ => null
             };
+        }
+
+        private void OnUnitDeathInCombat(string unitId, string groupId)
+        {
+            if (Game.Combat?.Turn == null)
+            {
+                return;
+            }
+
+            if (Game.Combat.UntargetableUnits.ContainsKey(groupId))
+            {
+                // if unit is dead for some reason
+                MakeUnitTargetable(unitId, groupId);
+            }
+
+            OnUnitDeath(unitId, Game.Combat.RemotelyKilledUnits, CombatInteraction.IsRiderActive);
+        }
+
+        private void OnUnitDeathInTacticalCombat(string unitId, string groupId)
+        {
+            OnUnitDeath(unitId, Game.ArmyCombat.RemotelyKilledUnits, CombatInteraction.IsActiveArmyCombatUnitBusy);
+        }
+
+        private void OnUnitDeath(string unitId, HashSet<string> remotelyKilledUnits, Func<bool> awaiter)
+        {
+            if (remotelyKilledUnits.Contains(unitId))
+            {
+                return;
+            }
+
+            var message = new NotifyUnitKilled
+            {
+                PlayerId = Game.LocalPlayerId,
+                UnitId = unitId
+            };
+
+            Task.Run(async () =>
+            {
+                await WaitWhileTrue(awaiter, "Waiting for an active unit to finish acting before sending unit killed notification");
+                var settings = SettingsService.GetSettings();
+                if (settings.LocalUnitDeathNotificationDelay > TimeSpan.Zero)
+                {
+                    await Task.Delay(settings.LocalUnitDeathNotificationDelay);
+                }
+
+                Send(message);
+            });
         }
     }
 }

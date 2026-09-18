@@ -26,5 +26,13 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         [ProtoMember(5)]
         [LogMe]
         public TimeSpan CombatPauseCooldown { get; set; }
+
+        [ProtoMember(6)]
+        [LogMe]
+        public TimeSpan LocalUnitDeathNotificationDelay { get; set; }
+
+        [ProtoMember(7)]
+        [LogMe]
+        public TimeSpan RemoteUnitDeathProcessingDelay { get; set; }
     }
 }

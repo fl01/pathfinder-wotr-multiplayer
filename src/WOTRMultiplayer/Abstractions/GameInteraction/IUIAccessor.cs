@@ -1,4 +1,5 @@
-﻿using Kingmaker.UI.MVVM._PCView.CharGen;
+﻿using Kingmaker.UI.MVVM._ConsoleView.MainMenu;
+using Kingmaker.UI.MVVM._PCView.CharGen;
 using Kingmaker.UI.MVVM._PCView.CityBuilder;
 using Kingmaker.UI.MVVM._PCView.CombatLog;
 using Kingmaker.UI.MVVM._PCView.Common;
@@ -120,6 +121,8 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         MapIslandsPCView MapIslandsPCView { get; }
 
         MainMenuSideBarPCView MainMenuSideBarPCView { get; }
+
+        MainMenuSideBarConsoleView MainMenuSideBarConsoleView { get; }
 
         DungeonGameOverPCView DungeonGameOverPCView { get; }
 

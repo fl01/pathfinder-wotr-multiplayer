@@ -1207,6 +1207,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     SettingsController.GeneralSettingsProvider.SetValue(WellKnownSettings.DangerZone.CombatTurnDelayForAI.Key, networkGameSettings.Multiplayer.CombatTurnDelayForAI.ToString());
                     SettingsController.GeneralSettingsProvider.SetValue(WellKnownSettings.DangerZone.PlayerTurnEndDelay.Key, networkGameSettings.Multiplayer.PlayerTurnEndDelay.ToString());
                     SettingsController.GeneralSettingsProvider.SetValue(WellKnownSettings.DangerZone.CombatPauseCooldown.Key, networkGameSettings.Multiplayer.CombatPauseCooldown.ToString());
+                    SettingsController.GeneralSettingsProvider.SetValue(WellKnownSettings.DangerZone.LocalUnitDeathNotificationDelay.Key, networkGameSettings.Multiplayer.LocalUnitDeathNotificationDelay.ToString());
+                    SettingsController.GeneralSettingsProvider.SetValue(WellKnownSettings.DangerZone.RemoteUnitDeathProcessingDelay.Key, networkGameSettings.Multiplayer.RemoteUnitDeathProcessingDelay.ToString());
                 }
             });
         }

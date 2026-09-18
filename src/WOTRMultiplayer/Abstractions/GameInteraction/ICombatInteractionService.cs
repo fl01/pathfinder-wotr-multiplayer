@@ -90,5 +90,8 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         void SetTacticalCombatAcceleration(bool isAccelerated);
 
         Task KillUnitAndResetTurnAsync(NetworkPlayer networkPlayer, string unitId);
+
+        bool IsActiveArmyCombatUnitBusy();
+        Task UpdateArmyCombatUnitsAsync(List<NetworkUnit> units);
     }
 }

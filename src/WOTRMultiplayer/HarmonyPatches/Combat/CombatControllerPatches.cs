@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -114,8 +115,11 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 return Game.Instance.SelectionCharacter.SelectedUnits.Count > 1;
             }
 
-            // there are multiple selected units while someone else starts surprise combat
-            return false;
+            // base game has a bug with charge + surprise round + selected unit count
+            // pause -> charge -> select two+ more units -> unpause -> your unit will start charging, but the charge command will be interrupted at the start of combat + your turn will be skipped
+            // returning true from this method will actually repeat base game behavior + bug, so we need to make sure to fix this condition only if some unit is charging
+            var isAnyUnitCharging = Game.Instance.Player.Party.Any(p => p.State.IsCharging);
+            return !isAnyUnitCharging;
         }
     }
 }

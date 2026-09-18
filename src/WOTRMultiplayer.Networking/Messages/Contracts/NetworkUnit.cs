@@ -33,6 +33,9 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         [ProtoMember(8)]
         public NetworkUnitPartKineticist UnitPartKineticist { get; set; }
 
+        [ProtoMember(9)]
+        public NetworkUnitPartTacticalCombat UnitPartTacticalCombat { get; set; }
+
         public override string ToString()
         {
             return Id?.ToString();

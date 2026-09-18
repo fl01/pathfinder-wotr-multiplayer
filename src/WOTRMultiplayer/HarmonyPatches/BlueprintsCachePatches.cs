@@ -182,8 +182,11 @@ namespace WOTRMultiplayer.HarmonyPatches
         {
             var bundle = BundlesLoadService.Instance.RequestBundle("mainmenupcview.res");
             var mainMenuViewGameObject = bundle.LoadAllAssets<UnityEngine.GameObject>().First();
-            var creditsSearchPanel = mainMenuViewGameObject.transform.Find("Canvas/Credits_Legacy/CreditsScreen/SearchPanel");
 
+            var creditsScreen = mainMenuViewGameObject.transform.Find("Canvas/Credits_Legacy");
+            Main.Multiplayer.UIFactory.StoreCreditsScreen(creditsScreen.gameObject);
+
+            var creditsSearchPanel = creditsScreen.transform.Find("CreditsScreen/SearchPanel");
             var inputPrefab = creditsSearchPanel.Find("Input_Field");
             Main.Multiplayer.UIFactory.StoreInputPrefab(inputPrefab.gameObject);
 

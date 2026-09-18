@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
+using Kingmaker;
 using Kingmaker.Settings;
 using Kingmaker.UI;
 using Kingmaker.UI.MVVM._VM.Settings;
@@ -136,6 +137,11 @@ namespace WOTRMultiplayer.HarmonyPatches.MenuPatches
 
         public static void CreateMultiplayerSettingsMenu(SettingsVM settingsVM)
         {
+            if (Game.Instance.ControllerMode == Game.ControllerModeType.Gamepad)
+            {
+                return;
+            }
+
             Main.Multiplayer.UIFactory.CreateMultiplayerSettingsMenu(settingsVM);
         }
     }

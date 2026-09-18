@@ -19,11 +19,17 @@ namespace WOTRMultiplayer.UI
 
             public static NetworkColor Red { get; } = new NetworkColor(0.72f, 0.25f, 0.25f);
 
+            public static NetworkColor Orange { get; } = new NetworkColor(0.78f, 0.42f, 0.22f);
+
+            public static NetworkColor Pink { get; } = new NetworkColor(0.78f, 0.38f, 0.52f);
+
+            public static NetworkColor Brown { get; } = new NetworkColor(0.58f, 0.40f, 0.28f);
+
             public static List<NetworkColor> All { get; private set; }
 
             static PlayerColors()
             {
-                All = [Blue, Green, Yellow, SkyBlue, Purple, Red];
+                All = [Blue, Green, Yellow, SkyBlue, Purple, Red, Orange, Pink, Brown];
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using Kingmaker;
 using Kingmaker.Settings;
+using Kingmaker.UI.MVVM._ConsoleView.MainMenu;
 using Kingmaker.UI.MVVM._PCView.CharGen;
 using Kingmaker.UI.MVVM._PCView.CityBuilder;
 using Kingmaker.UI.MVVM._PCView.CombatLog;
@@ -45,6 +46,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
     public class UIAccessor : IUIAccessor
     {
         private MainMenuPCView MainMenuPCView => Game.Instance.RootUiContext.m_UIView as MainMenuPCView;
+
+        private MainMenuConsoleView MainMenuConsoleView => Game.Instance.RootUiContext.m_UIView as MainMenuConsoleView;
 
         public TacticalCombatPCView TacticalCombatPCView => Game.Instance.RootUiContext.m_UIView as TacticalCombatPCView;
 
@@ -113,6 +116,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
         public MapIslandsPCView MapIslandsPCView => InGamePCView?.m_StaticPartPCView?.m_CreatedMapIslandsPCView;
 
         public MainMenuSideBarPCView MainMenuSideBarPCView => MainMenuPCView?.m_MainMenuSideBarPCView;
+
+        public MainMenuSideBarConsoleView MainMenuSideBarConsoleView => MainMenuConsoleView?.m_MenuSideBarConsoleView;
 
         public DungeonGameOverPCView DungeonGameOverPCView => InGamePCView?.m_StaticPartPCView?.m_CreatedDungeonGameOverPCView;
 

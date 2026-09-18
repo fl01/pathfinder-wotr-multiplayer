@@ -379,6 +379,9 @@ namespace WOTRMultiplayer.Config.Mapping
 
             CreateMap<NetworkColor, Networking.Messages.Contracts.NetworkColor>()
                 .ReverseMap();
+
+            CreateMap<NetworkUnitPartTacticalCombat, Networking.Messages.Contracts.NetworkUnitPartTacticalCombat>()
+                .ReverseMap();
         }
     }
 }

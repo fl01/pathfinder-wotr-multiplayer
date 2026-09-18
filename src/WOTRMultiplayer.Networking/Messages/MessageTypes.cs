@@ -294,7 +294,9 @@
             NotifyDungeonBoonSelected,
             NotifyDungeonBoonConfirmed,
             NotifyMagicHackSpellCreated,
-            ClientInvalidUnitTurnStartRequested
+            ClientInvalidUnitTurnStartRequested,
+            NotifyArmyCombatTurnSynchronizationRequired,
+            ClientArmyCombatTurnSynchronized
         }
 
         public static class Mods

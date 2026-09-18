@@ -49,6 +49,8 @@ namespace WOTRMultiplayer.Services.Settings
             _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.PlayerTurnEndDelay);
             _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.CombatPauseCooldown);
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.DangerZone.SaveGameChunkSize);
+            _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.LocalUnitDeathNotificationDelay);
+            _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.RemoteUnitDeathProcessingDelay);
         }
 
         public NetworkMultiplayerSettings GetSettings()
@@ -84,6 +86,8 @@ namespace WOTRMultiplayer.Services.Settings
                 PlayerTurnEndDelay = _settingsControllerAccessor.GetTimeSpanValue(WellKnownSettings.DangerZone.PlayerTurnEndDelay),
                 CombatPauseCooldown = _settingsControllerAccessor.GetTimeSpanValue(WellKnownSettings.DangerZone.CombatPauseCooldown),
                 SaveGameChunkSize = _settingsControllerAccessor.GetValue(WellKnownSettings.DangerZone.SaveGameChunkSize),
+                LocalUnitDeathNotificationDelay = _settingsControllerAccessor.GetTimeSpanValue(WellKnownSettings.DangerZone.LocalUnitDeathNotificationDelay),
+                RemoteUnitDeathProcessingDelay = _settingsControllerAccessor.GetTimeSpanValue(WellKnownSettings.DangerZone.RemoteUnitDeathProcessingDelay),
             };
 
             return settings;

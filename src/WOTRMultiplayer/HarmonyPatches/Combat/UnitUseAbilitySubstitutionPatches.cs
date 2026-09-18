@@ -34,13 +34,12 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
                 return matcher.Instructions();
             }
 
-            match = match.RemoveInstruction();
             var newInstructions = new List<CodeInstruction>()
             {
                 new(OpCodes.Ldarg_0),
                 new(OpCodes.Call, replaceWith),
             };
-            match.Insert(newInstructions);
+            match = match.RemoveInstruction().Insert(newInstructions);
 
             Main.GetLogger<UnitUseAbilitySubstitutionPatches>().LogDebug("Transpiler has been applied. Target={Target}", target);
             return matcher.Instructions();

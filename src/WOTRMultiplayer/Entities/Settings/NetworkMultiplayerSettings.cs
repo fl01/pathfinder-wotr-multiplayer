@@ -43,5 +43,9 @@ namespace WOTRMultiplayer.Entities.Settings
         public TimeSpan PlayerTurnEndDelay { get; set; }
 
         public TimeSpan CombatPauseCooldown { get; set; }
+
+        public TimeSpan LocalUnitDeathNotificationDelay { get; set; }
+
+        public TimeSpan RemoteUnitDeathProcessingDelay { get; set; }
     }
 }

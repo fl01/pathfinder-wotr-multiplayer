@@ -195,5 +195,15 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
         {
             return Task.CompletedTask;
         }
+
+        public bool IsActiveArmyCombatUnitBusy()
+        {
+            return false;
+        }
+
+        public Task UpdateArmyCombatUnitsAsync(List<NetworkUnit> units)
+        {
+            return Task.CompletedTask;
+        }
     }
 }
