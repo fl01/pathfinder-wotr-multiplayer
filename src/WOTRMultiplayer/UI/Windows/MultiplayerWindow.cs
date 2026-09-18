@@ -216,12 +216,12 @@ namespace WOTRMultiplayer.UI.Windows
             return baseItem;
         }
 
-        public override void Dispose()
+        private new void OnDestroy()
         {
-            _logger.LogInformation("Dispose");
+            _logger.LogInformation("OnDestroy");
             _hostMenuController.Dispose();
             _joinMenuController.Dispose();
-            base.Dispose();
+            base.OnDestroy();
         }
     }
 }
