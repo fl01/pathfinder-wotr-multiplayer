@@ -447,7 +447,8 @@ namespace WOTRMultiplayer.HarmonyPatches.RandomIdGeneration
             {
                 var seedKind = SeedKind.Session | SeedKind.LoadedSaveSeed;
                 var baseIdentifier = $"{CommonTranspilerReplacements.GetSharedIdentifierPart()}:{unit.AssetGuid}:{unit.name}:{unit.Faction}:{prefab.name}";
-                if (Rulebook.CurrentContext?.CurrentEvent is RuleSummonUnit ruleSummonUnit)
+                // DoNotLinkToCaster - usually it's some scripted summons (e.g. islands -> Arcane undertow) which could be summoned during different combat stages
+                if (Rulebook.CurrentContext?.CurrentEvent is RuleSummonUnit ruleSummonUnit && !ruleSummonUnit.DoNotLinkToCaster)
                 {
                     baseIdentifier += $":{ruleSummonUnit.Initiator?.UniqueId}";
                     seedKind |= SeedKind.CombatTurnSeed;
