@@ -116,5 +116,17 @@ namespace WOTRMultiplayer.HarmonyPatches.MapObjects
                 throw;
             }
         }
+
+        [HarmonyPatch(typeof(InteractionSkillCheckPart), nameof(InteractionSkillCheckPart.OnSettingsDidSet))]
+        [HarmonyPostfix]
+        public static void InteractionSkillCheckPart_OnSettingsDidSet_Postfix(InteractionSkillCheckPart __instance)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            Main.GetLogger<InteractionSkillCheckPartPatches>().LogDebug("[OnSettingsDidSet] MapObjectId={MapObjectId}, RequiredStat={RequiredStat}, AssetGuid={AssetGuid}", __instance?.Owner?.UniqueId, __instance.SkillOverride, __instance.m_AssetGuid);
+        }
     }
 }
