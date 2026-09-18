@@ -3,7 +3,8 @@
         "sysMessages": {
             "failedToStoreSave": "Failed to write save game file to disk.\nMake sure the game is allowed to write to the following location:\n{0}",
             "failedToTransferSave": "Failed to transfer save game file.\nError:\n{0}",
-            "failedToReadSave": "Failed to read save game file.\nMake sure the game is allowed to read the following file:\n{0}"
+            "failedToReadSave": "Failed to read save game file.\nMake sure the game is allowed to read the following file:\n{0}",
+            "gamepad": "gamepad is not supported"
         },
         "mainMenu": {
             "multiplayer": {

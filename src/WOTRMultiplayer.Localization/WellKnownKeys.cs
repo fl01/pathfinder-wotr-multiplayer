@@ -26,6 +26,12 @@ public static class WellKnownKeys
         {
             public static string Key { get; set; }
         }
+
+        [Description("gamepad")]
+        public static class Gamepad
+        {
+            public static string Key { get; set; }
+        }
     }
 
     [Description("mainMenu")]

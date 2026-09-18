@@ -317,8 +317,9 @@ namespace WOTRMultiplayer.UI
                 var consoleButtons = _uiAccessor.MainMenuSideBarConsoleView.transform.GetChild(1);
                 var consoleSettings = consoleButtons?.transform.Find("MainMenuEntityConsoleView_Settings");
                 var disabledMultiplayerMenu = UnityEngine.Object.Instantiate(consoleSettings, consoleButtons);
-                var gamepadText = UIUtility.GetSaberBookFormat(new LocalizedString { Key = WellKnownKeys.MainMenu.Multiplayer.Title.Key });
-                var fullText = $"<s>{gamepadText}</s><size=50%>\n<color=#CC3333>gamepad is not supported</color></size>";
+                var multiplayerText = UIUtility.GetSaberBookFormat(new LocalizedString { Key = WellKnownKeys.MainMenu.Multiplayer.Title.Key });
+                var gamepadText = new LocalizedString { Key = WellKnownKeys.SysMessages.Gamepad.Key };
+                var fullText = $"<s>{multiplayerText}</s><size=50%>\n<color=#CC3333>{gamepadText}</color></size>";
                 var contextMenuItemViewModel = new ContextMenuEntityVM(new ContextMenuCollectionEntity(fullText, () => { }, false));
                 disabledMultiplayerMenu.transform.SetSiblingIndex(consoleSettings.transform.GetSiblingIndex());
                 var contextMenuItemView = disabledMultiplayerMenu.GetComponent<ContextMenuEntityConsoleView>();
@@ -337,6 +338,7 @@ namespace WOTRMultiplayer.UI
             var multiplayerMenu = UnityEngine.Object.Instantiate(settingsMenuItem, menuButtons);
             multiplayerMenu.transform.SetSiblingIndex(settingsMenuItem.transform.GetSiblingIndex());
             var multiplayerWindowContainer = UnityEngine.Object.Instantiate(_creditsScreenPrefab, Game.Instance.UI.MainMenu.transform);
+            multiplayerWindowContainer.name = "MultiplayerWindowContainer";
             var multiplayerWindow = multiplayerWindowContainer.AddComponent<MultiplayerWindow>()
                 .WithLogger(_serviceProvider.GetService<ILogger<MultiplayerWindow>>())
                 .WithControllers(_serviceProvider.GetService<IHostMenuItemController>(), _serviceProvider.GetService<IJoinMenuItemController>());
