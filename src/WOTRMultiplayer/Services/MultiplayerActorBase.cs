@@ -48,6 +48,8 @@ namespace WOTRMultiplayer.Services
 {
     public abstract class MultiplayerActorBase
     {
+        public const int SaveSizeLimit = 500 * 1024 * 1024;
+
         private readonly object _actionLock = new();
 
         private readonly INetworkConnection _networkConnection;
@@ -3735,6 +3737,15 @@ namespace WOTRMultiplayer.Services
 
         private void OnNotifySaveGameChunkCreated(long receivedFrom, NotifySaveGameChunkCreated message)
         {
+            if (message.Content.Length > SaveSizeLimit
+                || (long)Game.StartUp.SaveGameTransfer.Content.Length + message.Content.Length > SaveSizeLimit)
+            {
+                _networkConnection.Reset();
+                Game.StartUp = null;
+                PlayerNotification.ShowModalMessage(WellKnownKeys.SysMessages.AbnormalSaveGameSize.Key);
+                return;
+            }
+
             var transfer = GetSaveGameTransferData(Game.LocalPlayerId);
             message.Content.AsSpan().CopyTo(Game.StartUp.SaveGameTransfer.Content.AsSpan(transfer.CurrentOffset));
             transfer.CurrentOffset += message.Content.Length;

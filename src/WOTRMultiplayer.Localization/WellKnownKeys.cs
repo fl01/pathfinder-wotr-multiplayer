@@ -27,6 +27,12 @@ public static class WellKnownKeys
             public static string Key { get; set; }
         }
 
+        [Description("abnormalSaveGameSize")]
+        public static class AbnormalSaveGameSize
+        {
+            public static string Key { get; set; }
+        }
+
         [Description("gamepad")]
         public static class Gamepad
         {
