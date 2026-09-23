@@ -137,10 +137,16 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 return convertedAbility;
             }
 
+            var fromItemAbilities = GetItemAbility(unit, networkAbility);
+            if (fromItemAbilities != null)
+            {
+                return fromItemAbilities;
+            }
+
             var fromAbilities = GetAbility(unit, networkAbility);
             if (fromAbilities != null)
             {
-                _logger.LogInformation("Ability has been found in abilities. UnitId={UnitId}, AbilityId={AbilityId}", unit.UniqueId, networkAbility.Id);
+                _logger.LogInformation("Ability has been found in abilities. UnitId={UnitId}, AbilityId={AbilityId}, AbilityName={AbilityName}", unit.UniqueId, fromAbilities.UniqueId, fromAbilities.NameForAcronym);
                 return fromAbilities;
             }
 
@@ -239,7 +245,11 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 return null;
             }
 
-            var itemAbility = unit.Abilities.Enumerable.FirstOrDefault(a => a.SourceItem?.HoldingSlot != null && string.Equals(a.SourceItem.Blueprint.AssetGuid.ToString(), networkAbility.SourceItem.BlueprintId, StringComparison.OrdinalIgnoreCase));
+            var itemAbility = unit.Abilities.Enumerable
+                .FirstOrDefault(a =>
+                    a.SourceItem?.HoldingSlot != null
+                        && string.Equals(a.SourceItem.Blueprint.AssetGuid.ToString(), networkAbility.SourceItem.BlueprintId, StringComparison.OrdinalIgnoreCase));
+
             var itemAbilityData = itemAbility?.Data;
             if (itemAbilityData != null)
             {
