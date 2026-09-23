@@ -317,7 +317,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             if (metamagic.HasValue)
             {
                 var meta = (Metamagic)metamagic.Value;
-                matchedSpells.Where(x => x.MetamagicData != null && x.MetamagicData.Has(meta));
+                matchedSpells = matchedSpells.Where(x => x.MetamagicData != null && x.MetamagicData.Has(meta));
             }
 
             var spell = matchedSpells.FirstOrDefault();
