@@ -157,7 +157,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         private void CreateMapObjectPing(NetworkPlayer player, NetworkPing ping)
         {
-            var mapObject = _gameStateLookupService.GetMapObject(ping.MapObject.Id) ?? _gameStateLookupService.GetNeareastLootBagMapObject(ping.WorldPosition, 20.Feet().Meters);
+            var mapObject = _gameStateLookupService.GetMapObject(ping.MapObject.Id) ?? _gameStateLookupService.GetNearestLootBagMapObject(ping.WorldPosition, 20.Feet().Meters);
             if (mapObject == null)
             {
                 _logger.LogWarning("Unable to enable ping missing map object. MapObjectId={MapObjectId}", ping.UnitId);

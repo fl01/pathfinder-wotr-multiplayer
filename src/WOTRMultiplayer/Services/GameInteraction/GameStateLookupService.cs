@@ -56,7 +56,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return Game.Instance.State.Units.All.FirstOrDefault(u => string.Equals(u.UniqueId, uniqueId, StringComparison.OrdinalIgnoreCase));
         }
 
-        public List<MapObjectEntityData> GetNeareastLootableMapObjects(NetworkVector3 position, float maxDistanceInMeters)
+        public List<MapObjectEntityData> GetNearestLootableMapObjects(NetworkVector3 position, float maxDistanceInMeters)
         {
             var targetPoint = position.ToUnityVector3();
             var orderedContainers = Game.Instance.State.MapObjects.All
@@ -68,9 +68,9 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return orderedContainers;
         }
 
-        public MapObjectEntityData GetNeareastLootBagMapObject(NetworkVector3 position, float maxDistanceInMeters)
+        public MapObjectEntityData GetNearestLootBagMapObject(NetworkVector3 position, float maxDistanceInMeters)
         {
-            var allNearest = GetNeareastLootableMapObjects(position, maxDistanceInMeters);
+            var allNearest = GetNearestLootableMapObjects(position, maxDistanceInMeters);
             var lootbag = allNearest.FirstOrDefault(o => o is DroppedLoot.EntityData);
             return lootbag;
         }

@@ -23,9 +23,9 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         MapObjectEntityData GetMapObject(string uniqueId);
 
-        List<MapObjectEntityData> GetNeareastLootableMapObjects(NetworkVector3 position, float maxDistanceInMeters);
+        List<MapObjectEntityData> GetNearestLootableMapObjects(NetworkVector3 position, float maxDistanceInMeters);
 
-        MapObjectEntityData GetNeareastLootBagMapObject(NetworkVector3 position, float maxDistanceInMeters);
+        MapObjectEntityData GetNearestLootBagMapObject(NetworkVector3 position, float maxDistanceInMeters);
 
         GlobalMapPointView GetGlobalMapPoint(NetworkGlobalMapLocation globalMapLocation);
 

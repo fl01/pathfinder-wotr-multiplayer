@@ -548,7 +548,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             {
                 try
                 {
-                    var mapObject = _gameStateLookupService.GetMapObject(networkClick.MapObjectId) ?? _gameStateLookupService.GetNeareastLootBagMapObject(networkClick.WorldPosition, _maxLootableEntityDistance);
+                    var mapObject = _gameStateLookupService.GetMapObject(networkClick.MapObjectId) ?? _gameStateLookupService.GetNearestLootBagMapObject(networkClick.WorldPosition, _maxLootableEntityDistance);
                     if (mapObject == null)
                     {
                         _logger.LogWarning("Unable to click missing map object. MapObjectId={MapObjectId}", networkClick.MapObjectId);
@@ -3424,7 +3424,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 default:
                     var mapObject = _gameStateLookupService.GetMapObject(lootableEntity.Id);
                     var lookupTargets = mapObject != null ? [mapObject]
-                        : _gameStateLookupService.GetNeareastLootableMapObjects(lootableEntity.Position, _maxLootableEntityDistance);
+                        : _gameStateLookupService.GetNearestLootableMapObjects(lootableEntity.Position, _maxLootableEntityDistance);
 
                     var mapObjectContainers = lookupTargets.Select(x => ((InteractionLootPart)x.Interactions.FirstOrDefault(i => i is InteractionLootPart)).Loot);
                     return mapObjectContainers;
