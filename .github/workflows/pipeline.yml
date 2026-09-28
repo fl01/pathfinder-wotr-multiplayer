@@ -71,6 +71,8 @@ jobs:
           script: |
             core.setFailed('Unable to parse version');
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -78,6 +80,10 @@ jobs:
       - name: Java version
         shell: powershell
         run: java -version
+      - name: Install SonarQube Cloud scanner
+        shell: powershell
+        run: |
+          dotnet tool update dotnet-sonarscanner --tool-path ${{ runner.temp }}\scanner
       - name: Checkout libs
         uses: actions/checkout@v4
         with:
