@@ -75,6 +75,9 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.x
+      - name: Java version
+        shell: powershell
+        run: java -version
       - name: Checkout libs
         uses: actions/checkout@v4
         with:
@@ -87,7 +90,13 @@ jobs:
       - name: Generate Localization
         run: dotnet build ./src/WOTRMultiplayer.Localization.Generator --configuration Release
       - name: Build
-        run: dotnet build ./src /p:AssemblyVersion=${{ env.ASSEMBLY_VERSION }} --configuration Release /p:ProduceReferenceAssembly=true
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: powershell
+        run: |
+          ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"fl01_pathfinder-wotr-multiplayer" /o:"fl01" /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          dotnet build ./src /p:AssemblyVersion=${{ env.ASSEMBLY_VERSION }} --configuration Release /p:ProduceReferenceAssembly=true
+          ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
       - name: Run unit tests
         run: dotnet test ./src --configuration Release --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage"
       - name: Update Info.json
