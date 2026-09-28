@@ -437,7 +437,6 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private void CreatePlayerObject(NetworkPlayer player)
         {
-            var defaultMesh = _uiFactory.DefaultTextMesh;
             var playerContainerObject = _uiFactory.CreateDefaultGameObject(PlayersSectionContent.transform);
             playerContainerObject.name = PlayerContainerObjectName;
             var horizontal = playerContainerObject.AddComponent<HorizontalLayoutGroup>();
@@ -450,7 +449,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
             CreateProgressBar(player, playerContainerObject.transform, PreferredHeight, withBackground: false);
 
-            CreateLabel(playerContainerObject.transform, PreferredHeight, defaultMesh, $"[{player.ContentState.GameVersion}]");
+            CreateLabel(playerContainerObject.transform, PreferredHeight, $"[{player.ContentState.GameVersion}]");
 
             CreatePlayerColorIcon(playerContainerObject.transform, player);
 
@@ -460,8 +459,8 @@ namespace WOTRMultiplayer.UI.Controllers
             playerNameObject.name = PlayerNameObjectName;
             var playerNameBox = playerNameObject.AddComponent<TextMeshProUGUI>();
             playerNameBox.alignment = TextAlignmentOptions.Center;
-            playerNameBox.material = defaultMesh.Material;
-            playerNameBox.color = defaultMesh.Color;
+            playerNameBox.material = _uiFactory.DefaultTextMesh.Material;
+            playerNameBox.color = _uiFactory.DefaultTextMesh.Color;
             playerNameBox.SetText(player.Name);
             playerNameBox.fontStyle = player.IsReady ? FontStyles.Normal : FontStyles.Strikethrough;
 
@@ -502,15 +501,15 @@ namespace WOTRMultiplayer.UI.Controllers
             _logger.LogWarning("Color picker. PlayerName={PlayerName}", networkPlayer.Name);
         }
 
-        private void CreateLabel(Transform parent, int preferredHeight, Mesh mesh, string text)
+        private void CreateLabel(Transform parent, int preferredHeight, string text)
         {
             var labelObject = _uiFactory.CreateDefaultGameObject(parent);
             var labelLayoutElement = labelObject.AddComponent<LayoutElement>();
             labelLayoutElement.preferredHeight = preferredHeight;
             var textBox = labelObject.AddComponent<TextMeshProUGUI>();
             textBox.alignment = TextAlignmentOptions.Center;
-            textBox.material = mesh.Material;
-            textBox.color = mesh.Color;
+            textBox.material = _uiFactory.DefaultTextMesh.Material;
+            textBox.color = _uiFactory.DefaultTextMesh.Color;
             textBox.SetText(text);
         }
 
