@@ -263,8 +263,8 @@
                     "tooltip": "AI turn for clients starts a bit later so AI actions can be synced/overridden from host if needed.\nKeep this value slightly higher than your network ping, but increase it further depending on how much the game starts to stutter for the host during longer play sessions"
                 },
                 "playerTurnEndDelay": {
-                    "title": "Remote Player Turn-End Delay",
-                    "tooltip": "How long to wait after a remote player ends their turn before advancing the game"
+                    "title": "Remote Player Turn-End delay",
+                    "tooltip": "How long to wait after a remote player ends their turn before advancing the game.\nSome spell animations are not handled correctly by the game (e.g., Kineticist Fire Blast), so the game thinks the acting character is not 'busy' and ends the turn before character actually finishes casting. This flat delay exists to mitigate such issues."
                 },
                 "combatPauseCooldown": {
                     "title": "Combat Pause Cooldown",

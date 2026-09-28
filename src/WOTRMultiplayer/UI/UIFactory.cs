@@ -769,17 +769,16 @@ namespace WOTRMultiplayer.UI
             contentRect.pivot = new Vector2(0f, 0.5f);
             contentRect.anchoredPosition = Vector2.zero;
 
+            scrollRect.content = contentRect;
+
             var contentLayout = charactersContentObject.AddComponent<HorizontalLayoutGroup>();
             contentLayout.childAlignment = TextAnchor.MiddleLeft;
             contentLayout.childForceExpandWidth = false;
             contentLayout.childForceExpandHeight = true;
 
             var contentSizeFitter = charactersContentObject.AddComponent<ContentSizeFitter>();
-
             contentSizeFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
             contentSizeFitter.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
-
-            scrollRect.content = contentRect;
 
             for (int characterIndex = 0; characterIndex < MaxDisplayedCharactersUntilScroll; characterIndex++)
             {
