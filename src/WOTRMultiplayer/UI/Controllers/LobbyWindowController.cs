@@ -55,6 +55,7 @@ namespace WOTRMultiplayer.UI.Controllers
         public const string CharactersSectionObjectName = "CharactersSection";
         public const string CharactersSectionTitleObjectName = "CharactersSectionTitle";
         public const string CharactersSectionContentObjectName = "CharactersSectionContent";
+        public const string CharactersContentObjectName = "CharactersContent";
 
         public const string CharacterContainerObjectName = "CharacterContainer";
         public const string CharacterPortraitObjectName = "CharacterPortrait";
@@ -91,7 +92,9 @@ namespace WOTRMultiplayer.UI.Controllers
         private GameObject CharactersInfoContainer => GetContentOwnedObject()?.transform
             .Find(LobbyContentObjectName)
             .Find(CharactersSectionObjectName)
-            .Find(CharactersSectionContentObjectName).gameObject;
+            .Find(CharactersSectionContentObjectName)
+            .Find(CharactersContentObjectName)
+            .gameObject;
 
         public LobbyWindowController(
             ILogger<LobbyWindowController> logger,
@@ -441,21 +444,21 @@ namespace WOTRMultiplayer.UI.Controllers
             playerContainerObject.name = PlayerContainerObjectName;
             var horizontal = playerContainerObject.AddComponent<HorizontalLayoutGroup>();
             horizontal.spacing = 6f;
+            horizontal.childAlignment = TextAnchor.MiddleCenter;
+            horizontal.childForceExpandHeight = false;
             var playerContainerSizeFitter = playerContainerObject.AddComponent<ContentSizeFitter>();
             playerContainerSizeFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
             playerContainerSizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            const int PreferredHeight = 28;
+            CreateProgressBar(player, playerContainerObject.transform, UIFactory.LobbyPlayerObjectHeight, withBackground: false);
 
-            CreateProgressBar(player, playerContainerObject.transform, PreferredHeight, withBackground: false);
-
-            CreateLabel(playerContainerObject.transform, PreferredHeight, $"[{player.ContentState.GameVersion}]");
+            CreateLabel(playerContainerObject.transform, UIFactory.LobbyPlayerObjectHeight, $"[{player.ContentState.GameVersion}]");
 
             CreatePlayerColorIcon(playerContainerObject.transform, player);
 
             var playerNameObject = _uiFactory.CreateDefaultGameObject(playerContainerObject.transform);
             var playerNameElement = playerNameObject.AddComponent<LayoutElement>();
-            playerNameElement.preferredHeight = PreferredHeight;
+            playerNameElement.preferredHeight = UIFactory.LobbyPlayerObjectHeight;
             playerNameObject.name = PlayerNameObjectName;
             var playerNameBox = playerNameObject.AddComponent<TextMeshProUGUI>();
             playerNameBox.alignment = TextAlignmentOptions.Center;
@@ -466,14 +469,14 @@ namespace WOTRMultiplayer.UI.Controllers
 
             if (player.IsReady)
             {
-                CreatePlayerIcon("UI_journal_iconok_new2", playerContainerObject.transform, PreferredHeight, null);
+                CreatePlayerIcon("UI_journal_iconok_new2", playerContainerObject.transform, UIFactory.LobbyPlayerObjectHeight, null);
             }
 
             if (player.ContentState.DiscrepantMods.Any() || player.ContentState.DiscrepantDLCs.Any())
             {
                 var isMultiplayerModDifferent = player.ContentState.DiscrepantMods.Any(x => string.Equals(x.Id, _unityModManagerSettings.ModId, StringComparison.OrdinalIgnoreCase));
                 var icon = isMultiplayerModDifferent ? "UI_QuestNotification_StampRed" : "UI_QuestNotification_StampYellow";
-                CreatePlayerIcon(icon, playerContainerObject.transform, PreferredHeight, new ContentDiscrepancyTooltipTemplate(player));
+                CreatePlayerIcon(icon, playerContainerObject.transform, UIFactory.LobbyPlayerObjectHeight, new ContentDiscrepancyTooltipTemplate(player));
             }
         }
 

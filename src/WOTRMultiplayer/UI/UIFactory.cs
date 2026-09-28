@@ -55,6 +55,8 @@ namespace WOTRMultiplayer.UI
         public const string ProgressBarImageObjectName = "ProgressBarImage";
 
         public const int LobbySectionTitleHeight = 50;
+        public const int LobbyPlayerObjectHeight = 28;
+        public const int MaxDisplayedCharactersUntilScroll = 6;
         private GameObject _dropdownPrefab;
         private GameObject _inputPrefab;
         private GameObject _buttonPrefab;
@@ -379,8 +381,7 @@ namespace WOTRMultiplayer.UI
 
             var verticalContent = CreateDefaultGameObject(lobbyContent.transform);
             verticalContent.name = LobbyWindowController.LobbyContentObjectName;
-            var rootVertical = verticalContent.AddComponent<VerticalLayoutGroup>();
-            rootVertical.padding = new RectOffset(0, 0, 0, 20);
+            verticalContent.AddComponent<VerticalLayoutGroup>();
             CreateLobbyServerInfoSection(verticalContent.transform);
 
             CreateLobbyPlayersSection(verticalContent.transform);
@@ -692,7 +693,7 @@ namespace WOTRMultiplayer.UI
         {
             var playersSectionObject = CreateDefaultGameObject(parent);
             var playersSectionRect = playersSectionObject.GetComponent<RectTransform>();
-            playersSectionRect.pivot = new Vector2(0.5f, 1f); // upper center
+            playersSectionRect.pivot = new Vector2(0.5f, 0f);
             playersSectionObject.name = LobbyWindowController.PlayersSectionObjectName;
             playersSectionObject.AddComponent<VerticalLayoutGroup>();
             var playersSectionSizeFitter = playersSectionObject.AddComponent<ContentSizeFitter>();
@@ -710,7 +711,13 @@ namespace WOTRMultiplayer.UI
 
             var playersSectionContentObject = CreateDefaultGameObject(playersSectionObject.transform);
             playersSectionContentObject.name = LobbyWindowController.PlayersSectionContentObjectName;
-            playersSectionContentObject.AddComponent<VerticalLayoutGroup>();
+            var playersSectionContentLayout = playersSectionContentObject.AddComponent<VerticalLayoutGroup>();
+            playersSectionContentLayout.childAlignment = TextAnchor.UpperCenter;
+            playersSectionContentLayout.childForceExpandHeight = false;
+            playersSectionContentLayout.childForceExpandWidth = false;
+            var playersSectionContentLayoutElement = playersSectionContentObject.AddComponent<LayoutElement>();
+            const int ReservedSpaceForPlayersCount = 6;
+            playersSectionContentLayoutElement.minHeight = UIFactory.LobbyPlayerObjectHeight * ReservedSpaceForPlayersCount;
         }
 
         private void CreateLobbyCharactersSection(float width, Transform parent)
@@ -732,13 +739,51 @@ namespace WOTRMultiplayer.UI
             characterControlTitle.color = DefaultTextMesh.Color;
             characterControlTitle.horizontalAlignment = HorizontalAlignmentOptions.Center;
             characterControlTitle.SetText(UIUtility.GetSaberBookFormat(new LocalizedString { Key = WellKnownKeys.LobbyWindow.Characters.Title.Key }));
+
+            var characterSlotWidth = width / MaxDisplayedCharactersUntilScroll;
+            var characterSlotHeight = characterSlotWidth * 1.2f;
+
             var charactersSectionContentObject = CreateDefaultGameObject(charactersSectionObject.transform);
             charactersSectionContentObject.name = LobbyWindowController.CharactersSectionContentObjectName;
-            charactersSectionContentObject.AddComponent<HorizontalLayoutGroup>();
-            var preferredWidth = width / Main.MaxCharactersInParty;
-            for (int characterIndex = 0; characterIndex < Main.MaxCharactersInParty; characterIndex++)
+
+            var scrollRectTransform = charactersSectionContentObject.GetComponent<RectTransform>();
+            scrollRectTransform.anchorMin = new Vector2(0f, 0f);
+            scrollRectTransform.anchorMax = new Vector2(1f, 0f);
+            scrollRectTransform.pivot = new Vector2(0.5f, 0.5f);
+            scrollRectTransform.offsetMin = Vector2.zero;
+            scrollRectTransform.offsetMax = Vector2.zero;
+            var scrollLayoutElement = charactersSectionContentObject.AddComponent<LayoutElement>();
+            scrollLayoutElement.preferredHeight = characterSlotHeight + LobbySectionTitleHeight * 0.75f;
+            var scrollRect = charactersSectionContentObject.AddComponent<ScrollRect>();
+            scrollRect.vertical = false;
+            scrollRect.viewport = scrollRectTransform;
+            scrollRect.movementType = ScrollRect.MovementType.Clamped;
+            charactersSectionContentObject.AddComponent<RectMask2D>();
+
+            var charactersContentObject = CreateDefaultGameObject(charactersSectionContentObject.transform);
+            charactersContentObject.name = LobbyWindowController.CharactersContentObjectName;
+
+            var contentRect = charactersContentObject.GetComponent<RectTransform>();
+            contentRect.anchorMin = new Vector2(0f, 0f);
+            contentRect.anchorMax = new Vector2(0f, 1f);
+            contentRect.pivot = new Vector2(0f, 0.5f);
+            contentRect.anchoredPosition = Vector2.zero;
+
+            var contentLayout = charactersContentObject.AddComponent<HorizontalLayoutGroup>();
+            contentLayout.childAlignment = TextAnchor.MiddleLeft;
+            contentLayout.childForceExpandWidth = false;
+            contentLayout.childForceExpandHeight = true;
+
+            var contentSizeFitter = charactersContentObject.AddComponent<ContentSizeFitter>();
+
+            contentSizeFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            contentSizeFitter.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            scrollRect.content = contentRect;
+
+            for (int characterIndex = 0; characterIndex < MaxDisplayedCharactersUntilScroll; characterIndex++)
             {
-                var characterObject = CreateDefaultGameObject(charactersSectionContentObject.transform);
+                var characterObject = CreateDefaultGameObject(charactersContentObject.transform);
                 characterObject.name = LobbyWindowController.CharacterContainerObjectName;
                 characterObject.AddComponent<VerticalLayoutGroup>();
                 characterObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
@@ -747,12 +792,16 @@ namespace WOTRMultiplayer.UI
                 characterPortrait.name = LobbyWindowController.CharacterPortraitObjectName;
                 characterPortrait.AddComponent<Image>().color = Color.clear;
                 var portraitLayoutElement = characterPortrait.AddComponent<LayoutElement>();
-                portraitLayoutElement.preferredWidth = preferredWidth;
-                portraitLayoutElement.preferredHeight = preferredWidth * 1.2f;
+                portraitLayoutElement.preferredWidth = characterSlotWidth;
+                portraitLayoutElement.preferredHeight = characterSlotHeight;
 
-                var dropdownContainerObject = Main.Multiplayer.UIFactory.CreateDropdown(preferredWidth, characterObject.transform);
+                var dropdownContainerObject = Main.Multiplayer.UIFactory.CreateDropdown(characterSlotWidth, characterObject.transform);
                 dropdownContainerObject.name = LobbyWindowController.CharacterOwnerObjectName;
                 dropdownContainerObject.AddComponent<CharacterDataBehaviour>();
+                var dropdownRect = dropdownContainerObject.GetComponent<RectTransform>();
+                dropdownRect.anchorMin = new Vector2(0.5f, 0f);
+                dropdownRect.anchorMax = new Vector2(0.5f, 0f);
+                dropdownRect.pivot = new Vector2(0.5f, 0.5f);
             }
         }
 
