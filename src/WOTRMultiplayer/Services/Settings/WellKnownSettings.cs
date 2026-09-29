@@ -121,7 +121,7 @@ namespace WOTRMultiplayer.Services.Settings
             public static WellKnownSettingKey<TimeSpan> CombatTurnDelayForAI { get; } = new(TimeSpan.FromSeconds(0.5));
 
             [Description("combat-turn-end-delay-for-player")]
-            public static WellKnownSettingKey<TimeSpan> PlayerTurnEndDelay { get; } = new(TimeSpan.FromSeconds(0.250));
+            public static WellKnownSettingKey<TimeSpan> PlayerTurnEndDelay { get; } = new(TimeSpan.FromSeconds(0.200));
 
             [Description("combat-pause-cooldown")]
             public static WellKnownSettingKey<TimeSpan> CombatPauseCooldown { get; } = new(TimeSpan.FromSeconds(2));
