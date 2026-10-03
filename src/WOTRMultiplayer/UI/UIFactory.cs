@@ -15,14 +15,18 @@ using Kingmaker.UI.MVVM._VM.ContextMenu;
 using Kingmaker.UI.MVVM._VM.Settings;
 using Kingmaker.UI.MVVM._VM.Settings.Entities;
 using Kingmaker.UI.MVVM._VM.Settings.Entities.Decorative;
+using Kingmaker.UI.MVVM._VM.Tooltip.Templates;
+using Kingmaker.UI.MVVM._VM.Tooltip.Utils;
 using Kingmaker.UI.SettingsUI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Owlcat.Runtime.Core.Utils;
 using Owlcat.Runtime.UI.Controls.Button;
 using Owlcat.Runtime.UI.MVVM;
+using Owlcat.Runtime.UI.Tooltips;
 using Owlcat.Runtime.UI.VirtualListSystem;
 using TMPro;
+using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
 using WOTRMultiplayer.Abstractions.GameInteraction;
@@ -72,6 +76,7 @@ namespace WOTRMultiplayer.UI
         private readonly ILogger<UIFactory> _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly IUIAccessor _uiAccessor;
+        private readonly IResourceProvider _resourceProvider;
 
         public Mesh DefaultTextMesh { get; private set; }
 
@@ -90,11 +95,13 @@ namespace WOTRMultiplayer.UI
         public UIFactory(
             ILogger<UIFactory> logger,
             IServiceProvider serviceProvider,
+            IResourceProvider resourceProvider,
             IUIAccessor uiAccessor)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
             _uiAccessor = uiAccessor;
+            _resourceProvider = resourceProvider;
         }
 
         public GameObject CreateProgressBar(Transform parent, int size, float thickness, bool withBackground = false)
@@ -637,6 +644,24 @@ namespace WOTRMultiplayer.UI
             return mutedColor;
         }
 
+        public IDisposable CreateIcon(Transform parent, string bundle, string iconName, int size, TooltipBaseTemplate template = null, TooltipConfig tooltipConfig = default)
+        {
+            var iconObject = CreateDefaultGameObject(parent);
+            var layoutElement = iconObject.AddComponent<LayoutElement>();
+            layoutElement.preferredHeight = size;
+            layoutElement.preferredWidth = size;
+            var image = iconObject.AddComponent<Image>();
+            var sprite = _resourceProvider.GetSprite(bundle, iconName);
+            image.sprite = sprite;
+            if (template != null)
+            {
+                var tooltipHandler = TooltipHelper.SetTooltip(image, template, tooltipConfig);
+                return tooltipHandler;
+            }
+
+            return Disposable.Empty;
+        }
+
         private Sprite CreateCircleSprite()
         {
             const int TextureSize = 32;
@@ -674,7 +699,7 @@ namespace WOTRMultiplayer.UI
             var serverInfoSectionRect = serverInfoSectionObject.GetComponent<RectTransform>();
             serverInfoSectionRect.pivot = new Vector2(0.5f, 1f); // upper center
             serverInfoSectionObject.name = LobbyWindowController.ServerInfoSectionObjectName;
-            serverInfoSectionObject.AddComponent<VerticalLayoutGroup>().padding = new RectOffset(0, 0, 0, 10);
+            serverInfoSectionObject.AddComponent<VerticalLayoutGroup>().padding = new RectOffset(0, 0, 0, 5);
             var serverInfoSectionSizeFitter = serverInfoSectionObject.AddComponent<ContentSizeFitter>();
             serverInfoSectionSizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
@@ -728,31 +753,45 @@ namespace WOTRMultiplayer.UI
         {
             var advancedControlsSectionObject = CreateDefaultGameObject(parent);
             advancedControlsSectionObject.name = LobbyWindowController.AdvancedControlSectionObjectName;
-            advancedControlsSectionObject.AddComponent<VerticalLayoutGroup>().padding = new RectOffset(0, 0, 0, 10);
+            advancedControlsSectionObject.AddComponent<VerticalLayoutGroup>().padding = new RectOffset(0, 0, 0, 5);
 
-            var titleObject = CreateDefaultGameObject(advancedControlsSectionObject.transform);
-            titleObject.name = "AdvancedControlSectionTitleObjectName";
+            var titleContainerObject = CreateDefaultGameObject(advancedControlsSectionObject.transform);
+            titleContainerObject.name = "AdvancedControlSectionTitleContainer";
+            var horizontal = titleContainerObject.AddComponent<HorizontalLayoutGroup>();
+            horizontal.spacing = 6f;
+            horizontal.childAlignment = TextAnchor.MiddleCenter;
+            horizontal.childForceExpandHeight = false;
+            var titleContainerSizeFitter = titleContainerObject.AddComponent<ContentSizeFitter>();
+            titleContainerSizeFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            titleContainerSizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var titleObject = CreateDefaultGameObject(titleContainerObject.transform);
             var title = titleObject.AddComponent<TextMeshProUGUI>();
             title.material = DefaultTextMesh.Material;
             title.color = DefaultTextMesh.Color;
             title.horizontalAlignment = HorizontalAlignmentOptions.Center;
             var titleText = UIUtility.GetSaberBookFormat(new LocalizedString { Key = WellKnownKeys.LobbyWindow.AdvancedControls.Title.Key });
             title.SetText(titleText);
+            var tooltip = new TooltipTemplateSimple(
+                new LocalizedString { Key = WellKnownKeys.LobbyWindow.Tooltips.AdvancedControls.Title.Header.Key },
+                new LocalizedString { Key = WellKnownKeys.LobbyWindow.Tooltips.AdvancedControls.Title.Description.Key }
+                );
+            CreateIcon(titleContainerObject.transform, WellKnownResourceBundles.UI, "UI_Settings_Difficulty_CustomIcon", 36, tooltip, new TooltipConfig { InfoCallPCMethod = InfoCallPCMethod.None });
 
             var itemsContainerObject = CreateDefaultGameObject(advancedControlsSectionObject.transform);
             itemsContainerObject.name = LobbyWindowController.AdvancedControlSectionItemsObjectName;
             itemsContainerObject.AddComponent<VerticalLayoutGroup>();
             var dropdownWidth = width * 0.25f;
             var titleWidth = width * 0.45f;
-            CreateAdvancedControlItem("Dialogs", WellKnownKeys.LobbyWindow.AdvancedControls.Items.Dialogs.Title.Key, NetworkPlayerControlledFeature.Dialogs, titleWidth, dropdownWidth, itemsContainerObject.transform);
-            CreateAdvancedControlItem("GlobalMap", WellKnownKeys.LobbyWindow.AdvancedControls.Items.GlobalMap.Title.Key, NetworkPlayerControlledFeature.GlobalMap, titleWidth, dropdownWidth, itemsContainerObject.transform);
-            CreateAdvancedControlItem("CrusadeArmyCombat", WellKnownKeys.LobbyWindow.AdvancedControls.Items.CrusadeArmyCombat.Title.Key, NetworkPlayerControlledFeature.CrusadeArmyCombat, titleWidth, dropdownWidth, itemsContainerObject.transform);
+            CreateAdvancedControlItem(WellKnownKeys.LobbyWindow.AdvancedControls.Items.Dialogs.Title.Key, NetworkPlayerControlledFeature.Dialogs, titleWidth, dropdownWidth, itemsContainerObject.transform);
+            CreateAdvancedControlItem(WellKnownKeys.LobbyWindow.AdvancedControls.Items.GlobalMap.Title.Key, NetworkPlayerControlledFeature.GlobalMap, titleWidth, dropdownWidth, itemsContainerObject.transform);
+            CreateAdvancedControlItem(WellKnownKeys.LobbyWindow.AdvancedControls.Items.CrusadeArmyCombat.Title.Key, NetworkPlayerControlledFeature.CrusadeArmyCombat, titleWidth, dropdownWidth, itemsContainerObject.transform);
         }
 
-        private GameObject CreateAdvancedControlItem(string name, string titleKey, NetworkPlayerControlledFeature feature, float titleWidth, float dropdownWidth, Transform parent)
+        private GameObject CreateAdvancedControlItem(string titleKey, NetworkPlayerControlledFeature feature, float titleWidth, float dropdownWidth, Transform parent)
         {
             var advancedControlItemObject = CreateDefaultGameObject(parent);
-            advancedControlItemObject.name = name;
+            advancedControlItemObject.name = feature.ToString();
             var row = advancedControlItemObject.AddComponent<HorizontalLayoutGroup>();
             row.childAlignment = TextAnchor.MiddleCenter;
             row.childForceExpandWidth = false;

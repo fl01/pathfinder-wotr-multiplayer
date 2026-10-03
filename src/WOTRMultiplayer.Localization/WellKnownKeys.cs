@@ -603,6 +603,26 @@ public static class WellKnownKeys
                     }
                 }
             }
+
+            [Description("advancedControls")]
+            public static class AdvancedControls
+            {
+                [Description("title")]
+                public static class Title
+                {
+                    [Description("header")]
+                    public static class Header
+                    {
+                        public static string Key { get; set; }
+                    }
+
+                    [Description("description")]
+                    public static class Description
+                    {
+                        public static string Key { get; set; }
+                    }
+                }
+            }
         }
     }
 

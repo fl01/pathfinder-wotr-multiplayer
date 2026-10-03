@@ -542,23 +542,8 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private void CreatePlayerIcon(string iconName, Transform parent, int size, TooltipBaseTemplate template = null)
         {
-            CreateIcon(parent, WellKnownResourceBundles.UI, iconName, size, template);
-        }
-
-        private void CreateIcon(Transform parent, string bundle, string iconName, int size, TooltipBaseTemplate template = null)
-        {
-            var iconObject = _uiFactory.CreateDefaultGameObject(parent);
-            var layoutElement = iconObject.AddComponent<LayoutElement>();
-            layoutElement.preferredHeight = size;
-            layoutElement.preferredWidth = size;
-            var image = iconObject.AddComponent<Image>();
-            var sprite = _resourceProvider.GetSprite(bundle, iconName);
-            image.sprite = sprite;
-            if (template != null)
-            {
-                var tooltipHandler = TooltipHelper.SetTooltip(image, template);
-                _disposables.Add(tooltipHandler);
-            }
+            var tooltip = _uiFactory.CreateIcon(parent, WellKnownResourceBundles.UI, iconName, size, template);
+            _disposables.Add(tooltip);
         }
 
         private void DisposeDisposables()
@@ -597,7 +582,7 @@ namespace WOTRMultiplayer.UI.Controllers
                 .Select(player => new PlayerDropdownOptionData(player))
                 .ToList<TMP_Dropdown.OptionData>();
 
-            var playerIndices = networkPlayers
+            var indexes = networkPlayers
                 .Select((player, index) => new { player.Id, index })
                 .ToDictionary(x => x.Id, x => x.index);
 
@@ -611,7 +596,7 @@ namespace WOTRMultiplayer.UI.Controllers
                 dropdown.ClearOptions();
                 dropdown.AddOptions(options);
 
-                if (selectedPlayerId >= 0 && playerIndices.TryGetValue(selectedPlayerId, out var playerIndex))
+                if (selectedPlayerId >= 0 && indexes.TryGetValue(selectedPlayerId, out var playerIndex))
                 {
                     dropdown.SetValueWithoutNotify(playerIndex);
                     dropdown.RefreshShownValue();

@@ -161,6 +161,12 @@
                         "header": "Player Color",
                         "description": "Color picker will be available eventually"
                     }
+                },
+                "advancedControls": {
+                    "title": {
+                        "header": "Advanced Controls",
+                        "description": "Choose which players manage different parts of the game"
+                    }
                 }
             }
         },

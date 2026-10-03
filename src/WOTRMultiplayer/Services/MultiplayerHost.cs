@@ -105,6 +105,10 @@ namespace WOTRMultiplayer.Services
                 SessionSeed = CreateRandomSeed()
             };
 
+            Game.FeatureControllers.Add(NetworkPlayerControlledFeature.Dialogs, Game.LocalPlayerId);
+            Game.FeatureControllers.Add(NetworkPlayerControlledFeature.GlobalMap, Game.LocalPlayerId);
+            Game.FeatureControllers.Add(NetworkPlayerControlledFeature.CrusadeArmyCombat, Game.LocalPlayerId);
+
             Game.Characters.AddRange(gameStartUp.Characters);
 
             var settings = SettingsService.GetSettings();

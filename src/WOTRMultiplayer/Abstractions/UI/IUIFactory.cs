@@ -1,6 +1,8 @@
-﻿using Kingmaker.UI.MVVM._PCView.SaveLoad;
+﻿using System;
+using Kingmaker.UI.MVVM._PCView.SaveLoad;
 using Kingmaker.UI.MVVM._PCView.Settings.Entities;
 using Kingmaker.UI.MVVM._VM.Settings;
+using Owlcat.Runtime.UI.Tooltips;
 using Owlcat.Runtime.UI.VirtualListSystem;
 using TMPro;
 using UnityEngine;
@@ -18,6 +20,8 @@ namespace WOTRMultiplayer.Abstractions.UI
         GameObject CreateCircleIcon(Transform parent, Color color, float size);
 
         Color MuteColor(Color color, float blend = 0.15f, float brightnessCoefficient = 0.9f, float saturationCoefficient = 0.7f);
+
+        IDisposable CreateIcon(Transform parent, string bundle, string iconName, int size, TooltipBaseTemplate template = null, TooltipConfig tooltipConfig = default);
 
         GameObject CreateProgressBar(Transform parent, int size, float thickness, bool withBackground = false);
 
