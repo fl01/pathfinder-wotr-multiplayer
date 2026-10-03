@@ -24,6 +24,8 @@ namespace WOTRMultiplayer.Abstractions
 
         void ChangeCharacterOwner(NetworkCharacter character, NetworkPlayer player);
 
+        void ChangeFeatureControl(NetworkPlayerControlledFeature feature, NetworkPlayer player);
+
         void OnAreaTransition(NetworkAreaTransition areaTransition);
 
         void SendSelectedAnswer();

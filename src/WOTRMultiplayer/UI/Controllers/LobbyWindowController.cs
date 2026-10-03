@@ -81,6 +81,8 @@ namespace WOTRMultiplayer.UI.Controllers
 
         public Action<NetworkCharacter, NetworkPlayer> OnCharacterOwnerChanged { get; set; }
 
+        public Action<NetworkPlayerControlledFeature, NetworkPlayer> OnFeatureControlChanged { get; set; }
+
         public ILobbyWindow Window { get; private set; }
 
         private GameObject ServerInfoSectionContent => GetContentOwnedObject()?.transform
@@ -137,6 +139,7 @@ namespace WOTRMultiplayer.UI.Controllers
             Window = null;
             ResetOwnerContent(LobbyWindowOwner.EscMenu);
             OnCharacterOwnerChanged = null;
+            OnFeatureControlChanged = null;
         }
 
         public void EnsureStandaloneWindowInitialized()
@@ -156,11 +159,13 @@ namespace WOTRMultiplayer.UI.Controllers
             if (_multiplayerActorAccessor.Host.IsActive)
             {
                 OnCharacterOwnerChanged = _multiplayerActorAccessor.Host.ChangeCharacterOwner;
+                OnFeatureControlChanged = _multiplayerActorAccessor.Host.ChangeFeatureControl;
             }
 
             if (_multiplayerActorAccessor.Client.IsActive)
             {
                 _multiplayerActorAccessor.Client.OnCharacterOwnerChanged = character => UpdateCharacterOwnerDropdown(character, silent: true);
+                _multiplayerActorAccessor.Client.OnFeaturesControlChanged = features => UpdateAdvancedControls(features, silent: true);
             }
         }
 
@@ -403,6 +408,43 @@ namespace WOTRMultiplayer.UI.Controllers
             });
         }
 
+        public void UpdateAdvancedControls(IDictionary<NetworkPlayerControlledFeature, long> features, bool silent = false)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                foreach (var feature in features)
+                {
+                    var featureRow = AdvancedControlsSectionItems.transform.Find(feature.Key.ToString());
+                    if (featureRow == null)
+                    {
+                        _logger.LogWarning("Unable to find UI row for specified feature. Feature={Feature}", feature.Key);
+                        continue;
+                    }
+
+                    var dropdown = featureRow.Find(AdvancedControlItemPlayerDropdownObjectName).Find(UIFactory.DropdownGameObjectName).GetComponent<TMP_Dropdown>();
+                    var playerOption = dropdown.options.FirstOrDefault(o => o is PlayerDropdownOptionData playerDropdownOption && playerDropdownOption.Player.Id == feature.Value);
+                    if (playerOption == null)
+                    {
+                        _logger.LogWarning("Unable to find player for specified feature. Feature={Feature}, PlayerId={PlayerId}", feature.Key, feature.Value);
+                        continue;
+                    }
+                    var playerOptionValue = dropdown.options.IndexOf(playerOption);
+                    if (silent)
+                    {
+                        dropdown.SetValueWithoutNotify(playerOptionValue);
+                    }
+                    else
+                    {
+                        dropdown.value = playerOptionValue;
+                    }
+
+                    dropdown.RefreshShownValue();
+                }
+
+                _logger.LogInformation("Player controlled features have been updated");
+            });
+        }
+
         private void ShowTooltip(MonoBehaviour component, bool isVisible, TooltipBaseTemplate tooltipBaseTemplate, TooltipConfig tooltipConfig)
         {
             if (isVisible)
@@ -500,7 +542,8 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private void CreatePlayerColorIcon(Transform parent, NetworkPlayer player)
         {
-            var iconColor = _uiFactory.MuteColor(_mapper.Map<Color>(player.Color));
+            var color = player.Color.ToUnityColor();
+            var iconColor = _uiFactory.MuteColor(color);
             var playerIconObject = _uiFactory.CreateCircleIcon(parent, iconColor, 14f);
             var button = playerIconObject.AddComponent<OwlcatButton>();
             _disposables.Add(button.OnLeftClickAsObservable().Subscribe(_ => ShowColorPicker(player)));
@@ -663,6 +706,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
             var feature = dropdown.transform.parent.gameObject.GetComponent<PlayerControlledFeatureBehaviour>().Feature;
             _logger.LogInformation("AdvancedControl dropdown changed. Feature={Feature}, PlayerId={PlayerId}", feature, playerOption.Player.Id);
+            OnFeatureControlChanged?.Invoke(feature, playerOption.Player);
         }
 
         private void OnOwnerDropdownChanged(TMP_Dropdown dropdown)

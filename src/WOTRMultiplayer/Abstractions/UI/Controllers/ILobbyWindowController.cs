@@ -22,6 +22,8 @@ namespace WOTRMultiplayer.Abstractions.UI.Controllers
 
         void UpdateCharacterOwnerDropdown(NetworkCharacter character, bool silent = false);
 
+        void UpdateAdvancedControls(IDictionary<NetworkPlayerControlledFeature, long> features, bool silent = false);
+
         void SetActiveOwner(LobbyWindowOwner owner);
 
         void ResetOwnerContent(LobbyWindowOwner owner);
@@ -37,5 +39,7 @@ namespace WOTRMultiplayer.Abstractions.UI.Controllers
         public ILobbyWindow Window { get; }
 
         Action<NetworkCharacter, NetworkPlayer> OnCharacterOwnerChanged { get; set; }
+
+        Action<NetworkPlayerControlledFeature, NetworkPlayer> OnFeatureControlChanged { get; set; }
     }
 }

@@ -250,6 +250,7 @@ namespace WOTRMultiplayer.UI.Controllers
             _multiplayerHost.OnGameStarted = enable ? OnMultiplayerOnGameStarted : null;
 
             Lobby.OnCharacterOwnerChanged = enable ? OnLobbyCharacterOwnerChanged : null;
+            Lobby.OnFeatureControlChanged = enable ? OnLobbyFeatureControlChanged : null;
         }
 
         private void AddNewGameSaveSlot(SaveLoadVM saveLoadVM)
@@ -512,6 +513,11 @@ namespace WOTRMultiplayer.UI.Controllers
         {
             _logger.LogInformation("OnLobbyCharacterOwnerChanged. CharacterName={CharacterName}, PlayerId={PlayerId}", character.Name, player.Id);
             _multiplayerHost.ChangeCharacterOwner(character, player);
+        }
+
+        private void OnLobbyFeatureControlChanged(NetworkPlayerControlledFeature feature, NetworkPlayer player)
+        {
+            _multiplayerHost.ChangeFeatureControl(feature, player);
         }
 
         private void OnMultiplayerConnectivityUpdated(GameConnectivity connectivity)

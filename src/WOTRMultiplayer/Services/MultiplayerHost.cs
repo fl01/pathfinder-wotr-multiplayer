@@ -105,9 +105,9 @@ namespace WOTRMultiplayer.Services
                 SessionSeed = CreateRandomSeed()
             };
 
-            Game.FeatureControllers.Add(NetworkPlayerControlledFeature.Dialogs, Game.LocalPlayerId);
-            Game.FeatureControllers.Add(NetworkPlayerControlledFeature.GlobalMap, Game.LocalPlayerId);
-            Game.FeatureControllers.Add(NetworkPlayerControlledFeature.CrusadeArmyCombat, Game.LocalPlayerId);
+            Game.FeatureControllers.TryAdd(NetworkPlayerControlledFeature.Dialogs, Game.LocalPlayerId);
+            Game.FeatureControllers.TryAdd(NetworkPlayerControlledFeature.GlobalMap, Game.LocalPlayerId);
+            Game.FeatureControllers.TryAdd(NetworkPlayerControlledFeature.CrusadeArmyCombat, Game.LocalPlayerId);
 
             Game.Characters.AddRange(gameStartUp.Characters);
 
@@ -149,6 +149,20 @@ namespace WOTRMultiplayer.Services
 
             OnCharactersChanged?.Invoke(Game.StartUp.Title, Game.Characters);
             Logger.LogInformation("Game starting point has been updated. GameId={GameId}, IsNewGameSequence={IsNewGameSequence}, SavePath={SavePath}", Game.Id, Game.StartUp.IsNewGameSequence, Game.StartUp.SavePath);
+        }
+
+        public void ChangeFeatureControl(NetworkPlayerControlledFeature feature, NetworkPlayer player)
+        {
+            var actualPlayer = GetPlayer(player.Id);
+            if (actualPlayer == null)
+            {
+                Logger.LogWarning("Unable to change feature control for missing player. PlayerId={PlayerId}", player.Id);
+                return;
+            }
+
+            UpdateFeatureControl(feature, actualPlayer.Id);
+
+            SendAdvancedControlsUpdate();
         }
 
         public void ChangeCharacterOwner(NetworkCharacter character, NetworkPlayer player)
@@ -1765,7 +1779,7 @@ namespace WOTRMultiplayer.Services
             {
                 Logger.LogWarning("Client combat has been restarted for some reason, but host already advanced further in startup sequence. PlayerId={PlayerId}", receivedFrom);
                 var player = GetPlayer(receivedFrom);
-                PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Start.DesyncedStartup.Client.Key, CombatTextSeverity.Critical, player?.Name);
+                PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Start.DesyncedStartup.Client.Key, CombatTextSeverity.Critical, new PlayerLogParameter(player));
 
                 await WaitWhileTrue(() => CombatInteraction.IsRiderActive(), "Waiting for current turn to end before resetting combat");
 
@@ -2154,6 +2168,15 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
+                foreach (var feature in Game.FeatureControllers.Keys)
+                {
+                    if (Game.FeatureControllers[feature] == removedPlayer.Id)
+                    {
+                        Game.FeatureControllers.AddOrUpdate(feature, Game.LocalPlayerId, (key, existing) => Game.LocalPlayerId);
+                    }
+                }
+                SendAdvancedControlsUpdate();
+
                 InvokeOnPlayersChanged();
                 var playersChanged = CreateNotifyLobbyPlayersChanged();
                 _networkHost.BroadcastExcept(playerId, playersChanged);
@@ -2206,6 +2229,8 @@ namespace WOTRMultiplayer.Services
                         Characters = Mapper.Map<List<Networking.Messages.Contracts.NetworkCharacter>>(Game.Characters)
                     };
                     Send(playerId, lobbyCharactersChanged);
+
+                    SendAdvancedControlsUpdate(playerId);
 
                     InvokeOnPlayersChanged();
 
@@ -2673,7 +2698,7 @@ namespace WOTRMultiplayer.Services
                                 continue;
                             }
 
-                            PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Turn.HostOrderDesync.Key, CombatTextSeverity.Debug, player.Name);
+                            PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Turn.HostOrderDesync.Key, CombatTextSeverity.Debug, new PlayerLogParameter(player));
 
                             var desyncedTurnStartMessage = new NotifyInvalidCombatTurnStarted
                             {
@@ -2736,6 +2761,27 @@ namespace WOTRMultiplayer.Services
                 Logger.LogError(ex, "Error while trying to start turn");
                 throw;
             }
+        }
+
+        private void SendAdvancedControlsUpdate()
+        {
+            var message = CreateAdvancedControlsChangedMessage();
+            Send(message);
+        }
+
+        private void SendAdvancedControlsUpdate(long playerId)
+        {
+            var message = CreateAdvancedControlsChangedMessage();
+            Send(playerId, message);
+        }
+
+        private NotifyAdvancedControlsChanged CreateAdvancedControlsChangedMessage()
+        {
+            var message = new NotifyAdvancedControlsChanged
+            {
+                Features = Mapper.Map<Dictionary<string, long>>(Game.FeatureControllers)
+            };
+            return message;
         }
 
         private void TryEndTurn()

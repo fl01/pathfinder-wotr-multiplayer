@@ -2874,7 +2874,7 @@ namespace WOTRMultiplayer.Services
             }
 
             PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.Session.PlayerJoinedShort.Key, addToLog: false, args: networkPlayer.Name);
-            PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Session.PlayerJoinedFull.Key, CombatTextSeverity.Common, args: networkPlayer.Name);
+            PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Session.PlayerJoinedFull.Key, CombatTextSeverity.Common, args: new PlayerLogParameter(networkPlayer));
         }
 
         protected void ShowPlayerDisconnectedMessage(NetworkPlayer networkPlayer)
@@ -3147,6 +3147,24 @@ namespace WOTRMultiplayer.Services
             if (!isSilent)
             {
                 OnCombatStageChanged(combatStage);
+            }
+        }
+
+        protected void UpdateFeatureControl(NetworkPlayerControlledFeature feature, long playerId)
+        {
+            if (Game.FeatureControllers.TryGetValue(feature, out var controlledByPlayerId) && controlledByPlayerId == playerId)
+            {
+                return;
+            }
+
+            Game.FeatureControllers.AddOrUpdate(feature, playerId, (key, existing) => playerId);
+            if (Game.Stage == NetworkLobbyStage.Playing)
+            {
+                var player = GetPlayer(playerId);
+                if (player != null)
+                {
+                    PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Session.AdvancedControlChanged.Key, CombatTextSeverity.Common, feature, new PlayerLogParameter(player));
+                }
             }
         }
 

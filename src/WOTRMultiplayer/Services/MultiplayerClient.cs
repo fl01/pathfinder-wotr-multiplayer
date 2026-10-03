@@ -48,6 +48,8 @@ namespace WOTRMultiplayer.Services
 
         public Action<NetworkCharacter> OnCharacterOwnerChanged { get; set; }
 
+        public Action<IDictionary<NetworkPlayerControlledFeature, long>> OnFeaturesControlChanged { get; set; }
+
         public bool IsActive => _networkClient.IsActive;
 
         public bool IsConnecting => _networkClient.IsConnecting;
@@ -551,6 +553,7 @@ namespace WOTRMultiplayer.Services
                .On<NotifySaveGameSyncStatusChanged>(OnNotifyLobbySyncStatusChanged)
                .On<NotifySaveGameTransferProgressChanged>(OnNotifySaveGameTransferProgressChanged)
                .On<NotifyNewGameDifficultyChanged>(OnNotifyNewGameDifficultyChanged)
+               .On<NotifyAdvancedControlsChanged>(OnNotifyAdvancedControlsChanged)
 
                // new game sequence
                .On<NotifyNewGameSequencePhaseChanged>(OnNotifyNewGameSequencePhaseChanged)
@@ -791,7 +794,7 @@ namespace WOTRMultiplayer.Services
             {
                 Logger.LogWarning("Host combat has been restarted for some reason, but client already advanced further in startup sequence");
                 var player = GetHost();
-                PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Start.DesyncedStartup.Host.Key, CombatTextSeverity.Critical, player?.Name);
+                PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Start.DesyncedStartup.Host.Key, CombatTextSeverity.Critical, new PlayerLogParameter(player));
 
                 await CombatInteraction.ForceResetCombatAsync();
                 return;
@@ -1776,25 +1779,36 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        private void OnNotifyLobbyCharactersChanged(long playerId, NotifyLobbyCharactersChanged lobbyCharactersChanged)
+        private void OnNotifyAdvancedControlsChanged(long playerId, NotifyAdvancedControlsChanged message)
+        {
+            var features = Mapper.Map<Dictionary<NetworkPlayerControlledFeature, long>>(message.Features);
+            foreach (var feature in features)
+            {
+                UpdateFeatureControl(feature.Key, feature.Value);
+            }
+
+            OnFeaturesControlChanged?.Invoke(Game.FeatureControllers);
+        }
+
+        private void OnNotifyLobbyCharactersChanged(long playerId, NotifyLobbyCharactersChanged message)
         {
             Game.Characters.Clear();
             ResetCharacterOwnership();
-            foreach (var networkCharacter in lobbyCharactersChanged.Characters)
+            foreach (var networkCharacter in message.Characters)
             {
                 var character = Mapper.Map<NetworkCharacter>(networkCharacter);
                 character.Owner = GetPlayer(networkCharacter.OwnerId);
                 Game.Characters.Add(character);
             }
 
-            OnCharactersChanged?.Invoke(lobbyCharactersChanged.Title, Game.Characters);
+            OnCharactersChanged?.Invoke(message.Title, Game.Characters);
         }
 
-        private void OnNotifyLobbyPlayersChanged(long playerId, NotifyLobbyPlayersChanged playersChanged)
+        private void OnNotifyLobbyPlayersChanged(long playerId, NotifyLobbyPlayersChanged message)
         {
             // a lot of lame lookups below, but shouldn't really matter for a small collection size
-            var disconnectedPlayers = Game.Players.Where(x => !playersChanged.Players.Any(c => c.Id == x.Id)).ToList();
-            var newPlayers = playersChanged.Players.Where(x => !Game.Players.Any(c => c.Id == x.Id)).ToList();
+            var disconnectedPlayers = Game.Players.Where(x => !message.Players.Any(c => c.Id == x.Id)).ToList();
+            var newPlayers = message.Players.Where(x => !Game.Players.Any(c => c.Id == x.Id)).ToList();
             // no need to handle player info updates here as any ready/loading/etc statuses are synced separately
 
             foreach (var disconnectedPlayer in disconnectedPlayers)

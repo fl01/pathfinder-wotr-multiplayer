@@ -1342,6 +1342,12 @@ public static class WellKnownKeys
                 public static string Key { get; set; }
             }
 
+            [Description("advancedControlChanged")]
+            public static class AdvancedControlChanged
+            {
+                public static string Key { get; set; }
+            }
+
             [Description("loadingSave")]
             public static class LoadingSave
             {

@@ -589,7 +589,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     Game.Instance.TurnBasedCombatController.CurrentTurn?.End();
                     Game.Instance.TurnBasedCombatController.CurrentTurn?.Dispose();
                     Game.Instance.TurnBasedCombatController.CurrentTurn = null;
-                    _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.Combat.Turn.InvalidUnit.Key, CombatTextSeverity.Critical, unitId, player?.Name);
+                    _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.Combat.Turn.InvalidUnit.Key, CombatTextSeverity.Critical, unitId, new PlayerLogParameter(player));
                     _logger.LogInformation("Unit has been killed / Turn has been reset as unit is invalid for one of the clients. PlayerId={PlayerId}, UnitId={UnitId}", player.Id, unitId);
                     tcs.SetResult(true);
                 }

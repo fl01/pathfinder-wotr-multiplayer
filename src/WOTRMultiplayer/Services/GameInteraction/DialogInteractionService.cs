@@ -394,7 +394,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                         continue;
                     }
 
-                    var color = _mapper.Map<Color>(playerColor);
+                    var color = playerColor.ToUnityColor();
                     var mutedColor = _uiFactory.MuteColor(color);
                     var suggestionIconObject = _uiFactory.CreateCircleIcon(parent, mutedColor, size: 9f);
                     suggestionIconObject.name = SuggestionIconObjectPrefix + i.ToString();

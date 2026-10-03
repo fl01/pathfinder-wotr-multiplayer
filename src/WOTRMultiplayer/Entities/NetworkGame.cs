@@ -40,7 +40,7 @@ namespace WOTRMultiplayer.Entities
 
         public Dictionary<string, long> CharactersOwnershipHistory { get; set; } = [];
 
-        public Dictionary<NetworkPlayerControlledFeature, long> FeatureControllers { get; set; } = [];
+        public ConcurrentDictionary<NetworkPlayerControlledFeature, long> FeatureControllers { get; set; } = [];
 
         public List<NetworkCharacter> Characters { get; set; } = [];
 

@@ -98,9 +98,6 @@ namespace WOTRMultiplayer.Config.Mapping
             CreateMap<MagicHackData, NetworkMagicHackData>().ConstructUsing(Create)
                 .ForAllMembers(x => x.Ignore());
 
-            CreateMap<UnityEngine.Color, NetworkColor>().ConstructUsing(x => Create(x))
-                .ForAllMembers(x => x.Ignore());
-
             CreateMap<NetworkColor, UnityEngine.Color>().ConstructUsing(x => Create(x))
                 .ForAllMembers(x => x.Ignore());
 
@@ -140,19 +137,6 @@ namespace WOTRMultiplayer.Config.Mapping
             };
 
             return part;
-        }
-
-        private NetworkColor Create(UnityEngine.Color unityColor)
-        {
-            var color = new NetworkColor
-            {
-                R = unityColor.r,
-                G = unityColor.g,
-                B = unityColor.b,
-                A = unityColor.a
-            };
-
-            return color;
         }
 
         private UnityEngine.Color Create(NetworkColor color)

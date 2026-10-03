@@ -340,15 +340,16 @@
                 },
                 "completed": "{0} - level has been increased",
                 "terminated": "{0} - leveling has been terminated",
-                "classMismatch": "Selected {0} class is missing.\nMake sure game content (DLCs/mods) is the same",
-                "archetypeMismatch": "Selected {0} archetype is missing.\nMake sure game content (DLCs/mods) is the same",
-                "featureMismatch": "Selected {0} feature is missing.\nMake sure game content (DLCs/mods) is the same"
+                "classMismatch": "Selected {0} class is missing.\nMake sure game content (DLCs/Mods) is the same",
+                "archetypeMismatch": "Selected {0} archetype is missing.\nMake sure game content (DLCs/Mods) is the same",
+                "featureMismatch": "Selected {0} feature is missing.\nMake sure game content (DLCs/Mods) is the same"
             },
             "session": {
                 "playerJoinedShort": "{0} has joined the game",
                 "playerJoinedFull": "New player {0} has joined the game. Load a save to play together",
                 "playerLeft": "{0} has left the game",
-                "characterOwnerChanged": "{0} is in charge of {1} now",
+                "characterOwnerChanged": "{0} is now in charge of {1}",
+                "advancedControlChanged": "Feature '{0}' is now controlled by {1}",
                 "loadingSave": "Save game load has been initiated by {0}"
             },
             "spellBook": {

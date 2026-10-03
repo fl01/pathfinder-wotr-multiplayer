@@ -95,6 +95,7 @@ namespace WOTRMultiplayer.Services
             _multiplayerActorAccessor.Host.Reset();
             _multiplayerActorAccessor.Client.Reset();
             _multiplayerActorAccessor.Client.OnCharacterOwnerChanged = null;
+            _multiplayerActorAccessor.Client.OnFeaturesControlChanged = null;
 
             _lobbyWindowController.Reset();
             UIFactory.DestroyStandaloneLobbyWindow();
