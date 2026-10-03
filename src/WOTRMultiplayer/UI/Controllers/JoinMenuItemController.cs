@@ -505,7 +505,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private void OnMultiplayerPlayersChanged(NetworkLobbyStage lobbyStage, List<NetworkPlayer> players)
         {
-            Lobby.UpdatePlayers(players);
+            Lobby.UpdatePlayers(players, isDropdownInteractable: false);
 
             MainThreadAccessor.Post(() =>
             {

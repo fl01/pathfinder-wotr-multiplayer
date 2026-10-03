@@ -343,7 +343,6 @@ namespace WOTRMultiplayer.UI.Controllers
 
             var party = saveSlot.Reference.PartyPortraits
                 .Where(p => p != null)
-                .Take(Main.MaxCharactersInParty)
                 .ToList();
 
             var characters = party.Select((x, i) => new NetworkCharacter
@@ -494,15 +493,14 @@ namespace WOTRMultiplayer.UI.Controllers
 
             replacedContainer.gameObject.SetActive(true);
             var replacedContainerRect = replacedContainer.GetComponent<RectTransform>();
-
             var lobbyWindowObject = UnityEngine.Object.Instantiate(baseLayout, replacedContainer.transform);
             lobbyWindowObject.name = MultiplayerLobbyObjectName;
             lobbyWindowObject.CleanupAllChildren();
             var title = replacedContainer.Find(SaveLoadDetailsTitle);
-            var lobbyWindowObjectPosition = new Vector3(title.transform.position.x, lobbyWindowObject.transform.position.y * 1.1f, lobbyWindowObject.transform.position.z);
+            var lobbyWindowObjectPosition = new Vector3(title.transform.position.x, lobbyWindowObject.transform.position.y * 1.05f, lobbyWindowObject.transform.position.z);
             lobbyWindowObject.transform.SetPositionAndRotation(lobbyWindowObjectPosition, lobbyWindowObject.transform.rotation);
             var lobbyWindowObjectRect = lobbyWindowObject.GetComponent<RectTransform>();
-            lobbyWindowObjectRect.sizeDelta = new Vector2(replacedContainerRect.sizeDelta.x * 0.9f, replacedContainerRect.sizeDelta.y * 0.72f);
+            lobbyWindowObjectRect.sizeDelta = new Vector2(replacedContainerRect.sizeDelta.x * 0.9f, replacedContainerRect.sizeDelta.y * 0.77f);
 
             var lobbyWindowVertical = lobbyWindowObject.AddComponent<VerticalLayoutGroup>();
             SetupHostingInfo(lobbyWindowObject.transform);
@@ -526,7 +524,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private void OnMultiplayerPlayersChanged(NetworkLobbyStage lobbyStage, List<NetworkPlayer> players)
         {
-            Lobby.UpdatePlayers(players);
+            Lobby.UpdatePlayers(players, isDropdownInteractable: true);
             var canStart = lobbyStage == NetworkLobbyStage.Lobby && players.All(p => p.IsReady);
             MainThreadAccessor.Post(() =>
             {

@@ -75,10 +75,11 @@ namespace WOTRMultiplayer.UI.Windows
                 _logger.LogInformation("Updating lobby info");
                 var connectivity = GetGameConnectivity();
                 _lobbyWindowController.UpdateServerInfo(connectivity);
+                var isDropdownInteractable = GetIsHost();
                 var players = GetPlayers();
-                _lobbyWindowController.UpdatePlayers(players);
+                _lobbyWindowController.UpdatePlayers(players, isDropdownInteractable);
                 var characters = GetCharacters();
-                _lobbyWindowController.UpdateCharacters(characters, GetIsHost());
+                _lobbyWindowController.UpdateCharacters(characters, isDropdownInteractable);
             }
             catch (Exception ex)
             {

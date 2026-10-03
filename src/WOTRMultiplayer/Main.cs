@@ -50,8 +50,6 @@ namespace WOTRMultiplayer
 
         public static IMultiplayerRollsProcessor Rolls { get; private set; }
 
-        public const int MaxCharactersInParty = 6;
-
         public static ILogger<T> GetLogger<T>()
         {
             return ServiceProvider.GetService<ILogger<T>>();
@@ -77,7 +75,7 @@ namespace WOTRMultiplayer
 
             _logger.LogInformation("Loading mod. Version={Version}, GlobalLogLevel={GlobalLogLevel}, ConsoleLogLevel={ConsoleLogLevel}, FileLogLevel={FileLogLevel}", entry.Version.ToString(), (LogEventLevel)ModManagerSettings.GlobalMinimumLogLevel, (LogEventLevel)ModManagerSettings.ConsoleMinimumLogLevel, (LogEventLevel)ModManagerSettings.FileMinimumLogLevel);
 
-            FixSignalrDependencyResolution();
+            FixSignalRDependencyResolution();
 
             try
             {
@@ -117,7 +115,7 @@ namespace WOTRMultiplayer
             return true;
         }
 
-        private static void FixSignalrDependencyResolution()
+        private static void FixSignalRDependencyResolution()
         {
             AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
             {

@@ -30,6 +30,7 @@ using WOTRMultiplayer.Abstractions.UI;
 using WOTRMultiplayer.Abstractions.UI.Controllers;
 using WOTRMultiplayer.Abstractions.UI.Controllers.Menu;
 using WOTRMultiplayer.Abstractions.UI.Windows;
+using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Extensions;
 using WOTRMultiplayer.HarmonyPatches.MenuPatches;
 using WOTRMultiplayer.Services.Settings;
@@ -256,6 +257,7 @@ namespace WOTRMultiplayer.UI
             var info = saveLoadDetails.Find(HostMenuItemController.SaveLoadDetailsInfo);
             info.gameObject.CleanupAllChildren(x => x.name != HostMenuItemController.SaveLoadDetailsInfoButtons);
             var buttons = info.Find(HostMenuItemController.SaveLoadDetailsInfoButtons);
+            buttons.GetComponent<HorizontalLayoutGroupWorkaround>().padding = new RectOffset(0, 0, 75, 0);
 
             var baseButton = buttons.Find("OwlcatButton").gameObject;
             var layout = baseButton.GetComponent<RectTransform>();
@@ -387,6 +389,8 @@ namespace WOTRMultiplayer.UI
             CreateLobbyPlayersSection(verticalContent.transform);
 
             var width = parent.GetComponent<RectTransform>().sizeDelta.x;
+            CreateAdvancedControlsSection(width, verticalContent.transform);
+
             CreateLobbyCharactersSection(width, verticalContent.transform);
 
             return lobbyContent;
@@ -462,7 +466,7 @@ namespace WOTRMultiplayer.UI
             DefaultTextMesh ??= new Mesh
             {
                 Color = defaultTextMesh.color,
-                Material = defaultTextMesh.material,
+                Material = defaultTextMesh.material
             };
         }
 
@@ -670,7 +674,7 @@ namespace WOTRMultiplayer.UI
             var serverInfoSectionRect = serverInfoSectionObject.GetComponent<RectTransform>();
             serverInfoSectionRect.pivot = new Vector2(0.5f, 1f); // upper center
             serverInfoSectionObject.name = LobbyWindowController.ServerInfoSectionObjectName;
-            serverInfoSectionObject.AddComponent<VerticalLayoutGroup>();
+            serverInfoSectionObject.AddComponent<VerticalLayoutGroup>().padding = new RectOffset(0, 0, 0, 10);
             var serverInfoSectionSizeFitter = serverInfoSectionObject.AddComponent<ContentSizeFitter>();
             serverInfoSectionSizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
@@ -716,8 +720,63 @@ namespace WOTRMultiplayer.UI
             playersSectionContentLayout.childForceExpandHeight = false;
             playersSectionContentLayout.childForceExpandWidth = false;
             var playersSectionContentLayoutElement = playersSectionContentObject.AddComponent<LayoutElement>();
-            const int ReservedSpaceForPlayersCount = 6;
+            const int ReservedSpaceForPlayersCount = 5;
             playersSectionContentLayoutElement.minHeight = UIFactory.LobbyPlayerObjectHeight * ReservedSpaceForPlayersCount;
+        }
+
+        private void CreateAdvancedControlsSection(float width, Transform parent)
+        {
+            var advancedControlsSectionObject = CreateDefaultGameObject(parent);
+            advancedControlsSectionObject.name = LobbyWindowController.AdvancedControlSectionObjectName;
+            advancedControlsSectionObject.AddComponent<VerticalLayoutGroup>().padding = new RectOffset(0, 0, 0, 10);
+
+            var titleObject = CreateDefaultGameObject(advancedControlsSectionObject.transform);
+            titleObject.name = "AdvancedControlSectionTitleObjectName";
+            var title = titleObject.AddComponent<TextMeshProUGUI>();
+            title.material = DefaultTextMesh.Material;
+            title.color = DefaultTextMesh.Color;
+            title.horizontalAlignment = HorizontalAlignmentOptions.Center;
+            var titleText = UIUtility.GetSaberBookFormat(new LocalizedString { Key = WellKnownKeys.LobbyWindow.AdvancedControls.Title.Key });
+            title.SetText(titleText);
+
+            var itemsContainerObject = CreateDefaultGameObject(advancedControlsSectionObject.transform);
+            itemsContainerObject.name = LobbyWindowController.AdvancedControlSectionItemsObjectName;
+            itemsContainerObject.AddComponent<VerticalLayoutGroup>();
+            var dropdownWidth = width * 0.25f;
+            var titleWidth = width * 0.45f;
+            CreateAdvancedControlItem("Dialogs", WellKnownKeys.LobbyWindow.AdvancedControls.Items.Dialogs.Title.Key, NetworkPlayerControlledFeature.Dialogs, titleWidth, dropdownWidth, itemsContainerObject.transform);
+            CreateAdvancedControlItem("GlobalMap", WellKnownKeys.LobbyWindow.AdvancedControls.Items.GlobalMap.Title.Key, NetworkPlayerControlledFeature.GlobalMap, titleWidth, dropdownWidth, itemsContainerObject.transform);
+            CreateAdvancedControlItem("CrusadeArmyCombat", WellKnownKeys.LobbyWindow.AdvancedControls.Items.CrusadeArmyCombat.Title.Key, NetworkPlayerControlledFeature.CrusadeArmyCombat, titleWidth, dropdownWidth, itemsContainerObject.transform);
+        }
+
+        private GameObject CreateAdvancedControlItem(string name, string titleKey, NetworkPlayerControlledFeature feature, float titleWidth, float dropdownWidth, Transform parent)
+        {
+            var advancedControlItemObject = CreateDefaultGameObject(parent);
+            advancedControlItemObject.name = name;
+            var row = advancedControlItemObject.AddComponent<HorizontalLayoutGroup>();
+            row.childAlignment = TextAnchor.MiddleCenter;
+            row.childForceExpandWidth = false;
+            row.childForceExpandHeight = false;
+            var advancedControlItemLayoutElement = advancedControlItemObject.AddComponent<LayoutElement>();
+            advancedControlItemLayoutElement.minHeight = UIFactory.LobbyPlayerObjectHeight;
+
+            var titleObject = CreateDefaultGameObject(advancedControlItemObject.transform);
+            titleObject.name = "Title";
+            var title = titleObject.AddComponent<TextMeshProUGUI>();
+            title.material = DefaultTextMesh.Material;
+            title.color = DefaultTextMesh.Color;
+            var titleLayout = titleObject.AddComponent<LayoutElement>();
+            titleLayout.minWidth = titleWidth;
+            titleLayout.preferredWidth = titleWidth;
+            title.SetText(new LocalizedString { Key = titleKey });
+            title.verticalAlignment = VerticalAlignmentOptions.Middle;
+
+            var dropdown = CreateDropdown(dropdownWidth, advancedControlItemObject.transform);
+            dropdown.AddComponent<PlayerControlledFeatureBehaviour>().Feature = feature;
+            dropdown.name = LobbyWindowController.AdvancedControlItemPlayerDropdownObjectName;
+            dropdown.transform.Find(DropdownGameObjectName).GetComponent<RectTransform>().LeftCenter();
+
+            return advancedControlItemObject;
         }
 
         private void CreateLobbyCharactersSection(float width, Transform parent)
@@ -782,26 +841,17 @@ namespace WOTRMultiplayer.UI
 
             for (int characterIndex = 0; characterIndex < MaxDisplayedCharactersUntilScroll; characterIndex++)
             {
-                var characterObject = CreateDefaultGameObject(charactersContentObject.transform);
-                characterObject.name = LobbyWindowController.CharacterContainerObjectName;
-                characterObject.AddComponent<VerticalLayoutGroup>();
-                characterObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-                var characterPortrait = CreateDefaultGameObject(characterObject.transform);
-                characterPortrait.name = LobbyWindowController.CharacterPortraitObjectName;
-                characterPortrait.AddComponent<Image>().color = Color.clear;
-                var portraitLayoutElement = characterPortrait.AddComponent<LayoutElement>();
-                portraitLayoutElement.preferredWidth = characterSlotWidth;
-                portraitLayoutElement.preferredHeight = characterSlotHeight;
-
-                var dropdownContainerObject = Main.Multiplayer.UIFactory.CreateDropdown(characterSlotWidth, characterObject.transform);
-                dropdownContainerObject.name = LobbyWindowController.CharacterOwnerObjectName;
-                dropdownContainerObject.AddComponent<CharacterDataBehaviour>();
-                var dropdownRect = dropdownContainerObject.GetComponent<RectTransform>();
-                dropdownRect.anchorMin = new Vector2(0.5f, 0f);
-                dropdownRect.anchorMax = new Vector2(0.5f, 0f);
-                dropdownRect.pivot = new Vector2(0.5f, 0.5f);
+                CreateCharacterContainer(charactersContentObject.transform, characterSlotWidth, characterSlotHeight);
             }
+        }
+
+        public GameObject CreateAdditionalCharacterContainer(Transform parent)
+        {
+            var prefab = parent.GetChild(0);  // 6 children are pre-created by default
+            var portraitLayout = prefab.Find(LobbyWindowController.CharacterPortraitObjectName).GetComponent<LayoutElement>();
+
+            var container = CreateCharacterContainer(parent, portraitLayout.preferredWidth, portraitLayout.preferredHeight);
+            return container;
         }
 
         public void PopulateMultiplayerSettingsUI(SettingsVM settingsVM, bool isMultiplayerOff)
@@ -1125,6 +1175,31 @@ namespace WOTRMultiplayer.UI
         {
             uiSettingsEntityBase.m_Description = new LocalizedString { Key = titleKey };
             uiSettingsEntityBase.m_TooltipDescription = new LocalizedString { Key = tooltipKey };
+        }
+
+        private GameObject CreateCharacterContainer(Transform parent, float characterSlotWidth, float characterSlotHeight)
+        {
+            var characterObject = CreateDefaultGameObject(parent);
+            characterObject.name = LobbyWindowController.CharacterContainerObjectName;
+            characterObject.AddComponent<VerticalLayoutGroup>();
+            characterObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var characterPortrait = CreateDefaultGameObject(characterObject.transform);
+            characterPortrait.name = LobbyWindowController.CharacterPortraitObjectName;
+            characterPortrait.AddComponent<Image>().color = Color.clear;
+            var portraitLayoutElement = characterPortrait.AddComponent<LayoutElement>();
+            portraitLayoutElement.preferredWidth = characterSlotWidth;
+            portraitLayoutElement.preferredHeight = characterSlotHeight;
+
+            var dropdownContainerObject = Main.Multiplayer.UIFactory.CreateDropdown(characterSlotWidth, characterObject.transform);
+            dropdownContainerObject.name = LobbyWindowController.CharacterOwnerObjectName;
+            dropdownContainerObject.AddComponent<CharacterDataBehaviour>();
+            var dropdownRect = dropdownContainerObject.GetComponent<RectTransform>();
+            dropdownRect.anchorMin = new Vector2(0.5f, 0f);
+            dropdownRect.anchorMax = new Vector2(0.5f, 0f);
+            dropdownRect.pivot = new Vector2(0.5f, 0.5f);
+
+            return characterObject;
         }
     }
 }

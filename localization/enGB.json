@@ -116,6 +116,20 @@
             "players": {
                 "title": "Players"
             },
+            "advancedControls": {
+                "title": "Advanced Controls",
+                "items": {
+                    "dialogs": {
+                        "title": "Dialogs"
+                    },
+                    "globalMap": {
+                        "title": "Global Map"
+                    },
+                    "crusadeArmyCombat": {
+                        "title": "Crusade Army Combat"
+                    }
+                }
+            },
             "characters": {
                 "title": "Characters"
             },

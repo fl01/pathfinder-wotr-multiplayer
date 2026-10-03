@@ -443,6 +443,50 @@ public static class WellKnownKeys
             }
         }
 
+        [Description("advancedControls")]
+        public static class AdvancedControls
+        {
+            [Description("title")]
+            public static class Title
+            {
+                public static string Key { get; set; }
+            }
+
+            [Description("items")]
+            public static class Items
+            {
+                [Description("dialogs")]
+                public static class Dialogs
+                {
+                    [Description("title")]
+                    public static class Title
+                    {
+                        public static string Key { get; set; }
+                    }
+                }
+
+                [Description("globalMap")]
+                public static class GlobalMap
+                {
+                    [Description("title")]
+                    public static class Title
+                    {
+                        public static string Key { get; set; }
+                    }
+                }
+
+                [Description("crusadeArmyCombat")]
+                public static class CrusadeArmyCombat
+                {
+                    [Description("title")]
+                    public static class Title
+                    {
+                        public static string Key { get; set; }
+                    }
+                }
+            }
+        }
+
         [Description("characters")]
         public static class Characters
         {

@@ -10,7 +10,7 @@ namespace WOTRMultiplayer.Abstractions.UI.Controllers
 {
     public interface ILobbyWindowController
     {
-        void UpdatePlayers(List<NetworkPlayer> players);
+        void UpdatePlayers(List<NetworkPlayer> players, bool isDropdownInteractable);
 
         void InitializeContent(LobbyWindowOwner owner, Transform parent);
 

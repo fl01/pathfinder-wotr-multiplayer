@@ -1745,7 +1745,7 @@ namespace WOTRMultiplayer.Services
             }
             else if (Game.ArmyCombat != null)
             {
-                OnUnitDeathInTacticalCombat(unitId, groupId);
+                OnUnitDeathInTacticalCombat(unitId);
             }
         }
 
@@ -4710,7 +4710,7 @@ namespace WOTRMultiplayer.Services
             OnUnitDeath(unitId, Game.Combat.RemotelyKilledUnits, CombatInteraction.IsRiderActive);
         }
 
-        private void OnUnitDeathInTacticalCombat(string unitId, string groupId)
+        private void OnUnitDeathInTacticalCombat(string unitId)
         {
             OnUnitDeath(unitId, Game.ArmyCombat.RemotelyKilledUnits, CombatInteraction.IsActiveArmyCombatUnitBusy);
         }

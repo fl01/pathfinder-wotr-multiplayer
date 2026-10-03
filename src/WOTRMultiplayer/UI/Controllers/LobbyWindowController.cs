@@ -52,6 +52,10 @@ namespace WOTRMultiplayer.UI.Controllers
         public const string PlayerNameObjectName = "PlayerName";
         public const string PlayerStatusObjectName = "PlayerStatus";
 
+        public const string AdvancedControlSectionObjectName = "AdvancedControlsSection";
+        public const string AdvancedControlSectionItemsObjectName = "AdvancedControlSectionItems";
+        public const string AdvancedControlItemPlayerDropdownObjectName = "AdvancedControlItemPlayerDropdown";
+
         public const string CharactersSectionObjectName = "CharactersSection";
         public const string CharactersSectionTitleObjectName = "CharactersSectionTitle";
         public const string CharactersSectionContentObjectName = "CharactersSectionContent";
@@ -89,12 +93,16 @@ namespace WOTRMultiplayer.UI.Controllers
             .Find(PlayersSectionObjectName)
             .Find(PlayersSectionContentObjectName).gameObject;
 
+        private GameObject AdvancedControlsSectionItems => GetContentOwnedObject()?.transform
+            .Find(LobbyContentObjectName)
+            .Find(AdvancedControlSectionObjectName)
+            .Find(AdvancedControlSectionItemsObjectName).gameObject;
+
         private GameObject CharactersInfoContainer => GetContentOwnedObject()?.transform
             .Find(LobbyContentObjectName)
             .Find(CharactersSectionObjectName)
             .Find(CharactersSectionContentObjectName)
-            .Find(CharactersContentObjectName)
-            .gameObject;
+            .Find(CharactersContentObjectName).gameObject;
 
         public LobbyWindowController(
             ILogger<LobbyWindowController> logger,
@@ -172,7 +180,7 @@ namespace WOTRMultiplayer.UI.Controllers
             _logger.LogInformation("Content has been created. Owner={Owner}", owner);
         }
 
-        public void UpdatePlayers(List<NetworkPlayer> players)
+        public void UpdatePlayers(List<NetworkPlayer> players, bool isDropdownInteractable)
         {
             if (GetContentOwnedObject() == null)
             {
@@ -189,7 +197,9 @@ namespace WOTRMultiplayer.UI.Controllers
                     CreatePlayerObject(player);
                 }
 
-                UpdateCharacterOwnerDropdown(players);
+                UpdateCharactersOwnership(players);
+
+                UpdateAdvancedControls(players, isDropdownInteractable);
             });
         }
 
@@ -300,7 +310,7 @@ namespace WOTRMultiplayer.UI.Controllers
                 tmpDropdown.RefreshShownValue();
                 if (silent)
                 {
-                    ListenForDropdownChange(tmpDropdown);
+                    ListenForOwnerDropdownChange(tmpDropdown);
                 }
             });
         }
@@ -345,12 +355,20 @@ namespace WOTRMultiplayer.UI.Controllers
 
             _mainThreadAccessor.Post(() =>
             {
-                for (int characterIndex = 0; characterIndex < Main.MaxCharactersInParty; characterIndex++)
+                // the plan is to dynamically create character containers in case of any mods that increase party size
+                // 6 containers are pre-created by default
+                var maxCharacters = Math.Max(CharactersInfoContainer.transform.childCount, characters.Count);
+                for (int characterIndex = 0; characterIndex < maxCharacters; characterIndex++)
                 {
                     var character = characters.Count > characterIndex ? characters[characterIndex] : null;
+                    if (character == null && characterIndex >= UIFactory.MaxDisplayedCharactersUntilScroll)
+                    {
+                        CharactersInfoContainer.transform.GetChild(characterIndex).gameObject.SetActive(false);
+                        continue;
+                    }
+
                     var sprite = GetPortraitSprite(character);
                     UpdateCharacter(characterIndex, character, sprite, isDropdownInteractable);
-
                     if (character != null && character.Owner != null)
                     {
                         UpdateCharacterOwnerDropdown(character, silent: true);
@@ -553,30 +571,71 @@ namespace WOTRMultiplayer.UI.Controllers
             _disposables.Clear();
         }
 
-        private void UpdateCharacterOwnerDropdown(List<NetworkPlayer> networkPlayers)
+        private void UpdateAdvancedControls(List<NetworkPlayer> networkPlayers, bool isDropdownInteractable)
         {
-            var options = networkPlayers.Select(x => new PlayerDropdownOptionData(x)).ToList<TMP_Dropdown.OptionData>();
-            for (int characterIndex = 0; characterIndex < Main.MaxCharactersInParty; characterIndex++)
+            UpdatePlayerDropdowns(
+                networkPlayers,
+                AdvancedControlsSectionItems.transform,
+                container => container.Find(AdvancedControlItemPlayerDropdownObjectName),
+                dropdown => dropdown.onValueChanged.AddListener(_ => OnAdvancedControlDropdownChanged(dropdown)),
+                shouldBeDisabled: !isDropdownInteractable);
+        }
+
+        private void UpdateCharactersOwnership(List<NetworkPlayer> networkPlayers)
+        {
+            UpdatePlayerDropdowns(
+                networkPlayers,
+                CharactersInfoContainer.transform,
+                container => container.Find(CharacterOwnerObjectName),
+                ListenForOwnerDropdownChange,
+                shouldBeDisabled: false);
+        }
+
+        private void UpdatePlayerDropdowns(List<NetworkPlayer> networkPlayers, Transform container, Func<Transform, Transform> dropdownResolver, Action<TMP_Dropdown> listener, bool shouldBeDisabled)
+        {
+            var options = networkPlayers
+                .Select(player => new PlayerDropdownOptionData(player))
+                .ToList<TMP_Dropdown.OptionData>();
+
+            var playerIndices = networkPlayers
+                .Select((player, index) => new { player.Id, index })
+                .ToDictionary(x => x.Id, x => x.index);
+
+            foreach (Transform item in container)
             {
-                var characterContainer = CharactersInfoContainer.transform.GetChild(characterIndex);
-                if (characterContainer == null)
+                var dropdown = dropdownResolver(item).Find(UIFactory.DropdownGameObjectName).GetComponent<TMP_Dropdown>();
+                var selectedPlayerId = GetSelectedPlayerId(item, dropdown);
+
+                RemoveAllDropdownListeners(dropdown);
+
+                dropdown.ClearOptions();
+                dropdown.AddOptions(options);
+
+                if (selectedPlayerId >= 0 && playerIndices.TryGetValue(selectedPlayerId, out var playerIndex))
                 {
-                    _logger.LogInformation("Unable to update character owner dropdown due to missing character container. Index={Index}", characterIndex);
-                    return;
+                    dropdown.SetValueWithoutNotify(playerIndex);
+                    dropdown.RefreshShownValue();
                 }
 
-                var dropdown = characterContainer.Find(CharacterOwnerObjectName);
-                var dropdownObject = dropdown.transform.Find(UIFactory.DropdownGameObjectName);
-                var tmpDropdown = dropdownObject.GetComponent<TMP_Dropdown>();
-                RemoveAllDropdownListeners(tmpDropdown);
-                tmpDropdown.onValueChanged.RemoveAllListeners();
-                var selectedValue = tmpDropdown.value;
-                tmpDropdown.ClearOptions();
-                tmpDropdown.AddOptions(options);
-                tmpDropdown.value = selectedValue;
-                tmpDropdown.RefreshShownValue();
-                ListenForDropdownChange(tmpDropdown);
+                if (shouldBeDisabled)
+                {
+                    dropdown.interactable = false;
+                }
+
+                listener(dropdown);
             }
+        }
+
+        private long GetSelectedPlayerId(Transform item, TMP_Dropdown dropdown)
+        {
+            if (!item.gameObject.activeSelf || dropdown.value < 0 || dropdown.value >= dropdown.options.Count)
+            {
+                return -1;
+            }
+
+            return dropdown.options[dropdown.value] is PlayerDropdownOptionData selectedOption
+                ? selectedOption.Player.Id
+                : -1;
         }
 
         private void RemoveAllDropdownListeners(TMP_Dropdown dropdown)
@@ -584,7 +643,7 @@ namespace WOTRMultiplayer.UI.Controllers
             dropdown.onValueChanged.RemoveAllListeners();
         }
 
-        private void ListenForDropdownChange(TMP_Dropdown dropdown)
+        private void ListenForOwnerDropdownChange(TMP_Dropdown dropdown)
         {
             dropdown.onValueChanged.AddListener(index => OnOwnerDropdownChanged(dropdown));
         }
@@ -594,8 +653,8 @@ namespace WOTRMultiplayer.UI.Controllers
             var characterContainer = CharactersInfoContainer.transform.GetChild(characterIndex);
             if (characterContainer == null)
             {
-                _logger.LogError("Character doesn't exist. Index={Index}", characterIndex);
-                return;
+                characterContainer = _uiFactory.CreateAdditionalCharacterContainer(CharactersInfoContainer.transform).transform;
+                _logger.LogInformation("Extra character container has been created. Index={Index}", characterIndex);
             }
 
             var portraitObject = characterContainer.Find(CharacterPortraitObjectName);
@@ -608,12 +667,25 @@ namespace WOTRMultiplayer.UI.Controllers
             _logger.LogInformation("Updated character portrait. Index={Index}, CharacterName={CharacterName}, CharacterId={CharacterId}, SpriteName={SpriteName}", characterIndex, character?.Name, character?.UnitId, portraitSprite?.name);
         }
 
+        private void OnAdvancedControlDropdownChanged(TMP_Dropdown dropdown)
+        {
+            var selectedOption = dropdown.options.Count >= dropdown.value ? dropdown.options[dropdown.value] : null;
+            if (selectedOption == null || selectedOption is not PlayerDropdownOptionData playerOption)
+            {
+                _logger.LogWarning("AdvancedControl dropdown contains an invalid option data");
+                return;
+            }
+
+            var feature = dropdown.transform.parent.gameObject.GetComponent<PlayerControlledFeatureBehaviour>().Feature;
+            _logger.LogInformation("AdvancedControl dropdown changed. Feature={Feature}, PlayerId={PlayerId}", feature, playerOption.Player.Id);
+        }
+
         private void OnOwnerDropdownChanged(TMP_Dropdown dropdown)
         {
             var selectedOption = dropdown.options.Count >= dropdown.value ? dropdown.options[dropdown.value] : null;
             if (selectedOption == null || selectedOption is not PlayerDropdownOptionData playerOption)
             {
-                _logger.LogWarning("Can't find selected dropdown option");
+                _logger.LogWarning("CharacterOwner dropdown contains an invalid option data");
                 return;
             }
 
