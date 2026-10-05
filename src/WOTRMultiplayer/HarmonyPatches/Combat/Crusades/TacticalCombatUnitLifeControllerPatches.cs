@@ -2,7 +2,7 @@
 using Kingmaker.Armies.TacticalCombat.Controllers;
 using Kingmaker.EntitySystem.Entities;
 
-namespace WOTRMultiplayer.HarmonyPatches.Combat
+namespace WOTRMultiplayer.HarmonyPatches.Combat.Crusades
 {
     [HarmonyPatch]
     public class TacticalCombatUnitLifeControllerPatches

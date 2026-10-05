@@ -23,9 +23,9 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat.Crusades
             }
 
             __instance.m_AutoCombatButton.Interactable = false;
-            var canControl = __instance.m_AccelerateButton.Interactable = Main.Multiplayer.CanControlTacticalCombat();
-            __instance.m_FleeButton.Interactable = canControl;
+            var canControl = Main.Multiplayer.CanControlTacticalCombat();
             __instance.m_AccelerateButton.Interactable = canControl;
+            __instance.m_FleeButton.Interactable = canControl;
 
             __instance.AddDisposable(__instance.ViewModel.IsAccelerated.Subscribe(value =>
             {

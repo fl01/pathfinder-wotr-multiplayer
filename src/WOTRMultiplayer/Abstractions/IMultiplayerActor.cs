@@ -33,9 +33,9 @@ namespace WOTRMultiplayer.Abstractions
 
         List<NetworkPlayer> GetPlayers();
 
-        List<NetworkPlayer> GetOtherPlayers();
-
         List<NetworkCharacter> GetCharacters();
+
+        IDictionary<NetworkPlayerControlledFeature, long> GetFeaturesControl();
 
         bool ReadyChanged();
 

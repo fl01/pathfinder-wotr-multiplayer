@@ -154,6 +154,7 @@ namespace WOTRMultiplayer.UI.Controllers
             Window.GetGameConnectivity = _multiplayerActorAccessor.Current.GetGameConnectivity;
             Window.GetPlayers = _multiplayerActorAccessor.Current.GetPlayers;
             Window.GetCharacters = _multiplayerActorAccessor.Current.GetCharacters;
+            Window.GetFeaturesControl = _multiplayerActorAccessor.Current.GetFeaturesControl;
             Window.GetIsHost = () => _multiplayerActorAccessor.Host.IsActive;
 
             if (_multiplayerActorAccessor.Host.IsActive)

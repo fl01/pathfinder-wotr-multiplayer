@@ -25,6 +25,8 @@ namespace WOTRMultiplayer.UI.Windows
 
         public Func<List<NetworkCharacter>> GetCharacters { get; set; }
 
+        public Func<IDictionary<NetworkPlayerControlledFeature, long>> GetFeaturesControl { get; set; }
+
         public Func<bool> GetIsHost { get; set; }
 
         public bool IsVisible => base.IsShow;
@@ -75,11 +77,14 @@ namespace WOTRMultiplayer.UI.Windows
                 _logger.LogInformation("Updating lobby info");
                 var connectivity = GetGameConnectivity();
                 _lobbyWindowController.UpdateServerInfo(connectivity);
-                var isDropdownInteractable = GetIsHost();
+                var canUpdate = GetIsHost();
                 var players = GetPlayers();
-                _lobbyWindowController.UpdatePlayers(players, isDropdownInteractable);
+                _lobbyWindowController.UpdatePlayers(players, canUpdate);
                 var characters = GetCharacters();
-                _lobbyWindowController.UpdateCharacters(characters, isDropdownInteractable);
+                _lobbyWindowController.UpdateCharacters(characters, canUpdate);
+
+                var features = GetFeaturesControl();
+                _lobbyWindowController.UpdateAdvancedControls(features, silent: true);
             }
             catch (Exception ex)
             {

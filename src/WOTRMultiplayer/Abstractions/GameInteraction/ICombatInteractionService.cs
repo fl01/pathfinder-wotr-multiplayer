@@ -92,6 +92,9 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
         Task KillUnitAndResetTurnAsync(NetworkPlayer networkPlayer, string unitId);
 
         bool IsActiveArmyCombatUnitBusy();
+
         Task UpdateArmyCombatUnitsAsync(List<NetworkUnit> units);
+
+        void UpdateTacticalCombatUIState(bool canControlTacticalCombat);
     }
 }

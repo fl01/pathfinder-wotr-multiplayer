@@ -163,17 +163,14 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public List<NetworkPlayer> GetOtherPlayers()
-        {
-            lock (ActionLock)
-            {
-                return [.. Game.Players.Where(p => p.Id != Game.LocalPlayerId) ?? []];
-            }
-        }
-
         public List<NetworkCharacter> GetCharacters()
         {
             return [.. Game.Characters ?? []];
+        }
+
+        public IDictionary<NetworkPlayerControlledFeature, long> GetFeaturesControl()
+        {
+            return Game.FeatureControllers.ToDictionary(x => x.Key, x => x.Value);
         }
 
         public bool IsControlledByLocalPlayer(string unitId)
@@ -3219,6 +3216,20 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        protected void UpdateUIStateOnFeatureControlChange(NetworkPlayerControlledFeature feature)
+        {
+            Logger.LogInformation("Updating UI on feature control change. Feature={Feature}", feature);
+            switch (feature)
+            {
+                case NetworkPlayerControlledFeature.CrusadeArmyCombat:
+                    UpdateGlobalMapCrusadeArmyBattleResultsUIState();
+
+                    var canControlTacticalCombat = HasControlOverFeature(NetworkPlayerControlledFeature.CrusadeArmyCombat);
+                    CombatInteraction.UpdateTacticalCombatUIState(canControlTacticalCombat);
+                    break;
+            }
+        }
+
         protected void UpdateFeatureControl(NetworkPlayerControlledFeature feature, long playerId)
         {
             if (Game.FeatureControllers.TryGetValue(feature, out var controlledByPlayerId) && controlledByPlayerId == playerId)
@@ -3227,8 +3238,11 @@ namespace WOTRMultiplayer.Services
             }
 
             Game.FeatureControllers.AddOrUpdate(feature, playerId, (key, existing) => playerId);
+
             if (Game.Stage == NetworkLobbyStage.Playing)
             {
+                UpdateUIStateOnFeatureControlChange(feature);
+
                 var player = GetPlayer(playerId);
                 if (player != null)
                 {

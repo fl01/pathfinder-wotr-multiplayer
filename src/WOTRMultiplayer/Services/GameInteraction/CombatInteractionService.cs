@@ -824,6 +824,29 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return tcs.Task;
         }
 
+        public void UpdateTacticalCombatUIState(bool canControlTacticalCombat)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = Main.UIAccessor.TacticalCombatPCView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to update invalid tactical combat view");
+                    return;
+                }
+
+                view.m_AccelerateButton.Interactable = canControlTacticalCombat;
+                view.m_FleeButton.Interactable = canControlTacticalCombat;
+                if (view.m_UnitCrusadeActionBarPCView?.ViewModel != null)
+                {
+                    view.m_UnitCrusadeActionBarPCView.m_DefenseButton.Interactable = canControlTacticalCombat;
+                    view.m_UnitCrusadeActionBarPCView.m_HoldButton.Interactable = canControlTacticalCombat;
+                }
+
+                _logger.LogInformation("Tactical combat UI state has been updated. CanControl={CanControl}", canControlTacticalCombat);
+            });
+        }
+
         public Task<bool> StartCombatAsync(NetworkCombatState networkCombatState)
         {
             var taskCompletion = new TaskCompletionSource<bool>();

@@ -17,6 +17,8 @@ namespace WOTRMultiplayer.Abstractions.UI.Windows
 
         Func<List<NetworkCharacter>> GetCharacters { get; set; }
 
+        Func<IDictionary<NetworkPlayerControlledFeature, long>> GetFeaturesControl { get; set; }
+
         bool IsVisible { get; }
 
         void Close();
