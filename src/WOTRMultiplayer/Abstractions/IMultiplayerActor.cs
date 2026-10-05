@@ -382,5 +382,23 @@ namespace WOTRMultiplayer.Abstractions
         void OnDungeonGameOverShown();
 
         void OnDungeonBoonSelectorShown();
+
+        bool HasControlOverFeature(NetworkPlayerControlledFeature feature);
+
+        void OnTacticalCombatRetreat();
+
+        void OnTacticalCombatAccelerationChanged(bool isAccelerated);
+
+        bool OnTacticalCombatTurnPostponed();
+
+        bool OnTacticalCombatTotalDefenseUsed();
+
+        void OnTacticalCombatUnitUseAbilityCommand(NetworkTacticalUnitUseAbilityCommand tacticalUnitUseAbilityCommand);
+
+        void OnTacticalCombatUnitAttackCommand(NetworkTacticalUnitAttackCommand tacticalUnitAttackCommand);
+
+        void OnTacticalCombatUnitMoveToCommand(NetworkTacticalUnitMoveToCommand tacticalUnitMoveToCommand);
+
+        void OnCrusadeArmyBattleResultsClosed();
     }
 }

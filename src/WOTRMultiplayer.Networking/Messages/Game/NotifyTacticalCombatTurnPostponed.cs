@@ -4,7 +4,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [MessageType((int)MessageTypes.Game.NotifyTacticalCombatTurnPostponed)]
-    public class NotifyTacticalCombatTurnPostponed
+    public class NotifyTacticalCombatTurnPostponed : IForwardableMessage
     {
     }
 }

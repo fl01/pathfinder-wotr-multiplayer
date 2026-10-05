@@ -5,7 +5,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [MessageType((int)MessageTypes.Game.NotifyTacticalCombatAccelerationChanged)]
-    public class NotifyTacticalCombatAccelerationChanged
+    public class NotifyTacticalCombatAccelerationChanged : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

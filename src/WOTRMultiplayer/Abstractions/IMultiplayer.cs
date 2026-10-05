@@ -372,7 +372,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnCrusadeArmyBattleResultsShown();
 
-        void OnCrusadeArmyBattleResultsClosed();
+        void OnCrusadeArmyBattleResultsClosed(bool isTacticalCombat);
 
         void OnCrusadeArmyBattleResultsManualCombatStarted();
 

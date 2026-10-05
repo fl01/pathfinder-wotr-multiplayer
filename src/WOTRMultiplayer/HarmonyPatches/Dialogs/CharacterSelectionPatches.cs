@@ -101,12 +101,12 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
                 var identifier = $"{nameof(CharacterSelection)}:{nameof(SelectRandomCharacter)}:{Game.Instance.CurrentlyLoadedArea.name}:{units.Length}:{Game.Instance.DialogController?.Dialog?.name}:{minInclusive}:{maxExclusive}_{seededContext.Id}";
                 int index = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, minInclusive, maxExclusive);
                 var unit = units[index];
-                Main.GetLogger<CueSelectionPatches>().LogInformation("Dialog random unit has been selected. Index={Index}, UnitName={UnitName}, MinRange={MinRange}, MaxRange={MaxRange}, Identifier={Identifier}", index, unit.CharacterName, minInclusive, maxExclusive, identifier);
+                Main.GetLogger<CharacterSelectionPatches>().LogInformation("Dialog random unit has been selected. Index={Index}, UnitName={UnitName}, MinRange={MinRange}, MaxRange={MaxRange}, Identifier={Identifier}", index, unit.CharacterName, minInclusive, maxExclusive, identifier);
                 return index;
             }
             catch (System.Exception ex)
             {
-                Main.GetLogger<CueSelectionPatches>().LogError(ex, "Unable to select random dialog character");
+                Main.GetLogger<CharacterSelectionPatches>().LogError(ex, "Unable to select random dialog character");
                 throw;
             }
         }

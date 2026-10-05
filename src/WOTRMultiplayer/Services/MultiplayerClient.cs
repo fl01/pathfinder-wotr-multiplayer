@@ -620,15 +620,7 @@ namespace WOTRMultiplayer.Services
                .On<NotifyGlobalMapAutoCrusadeCombatChanged>(OnNotifyGlobalMapAutoCrusadeCombatChanged)
                .On<NotifyGlobalMapCombatResultsClosed>(OnNotifyGlobalMapCombatResultsClosed)
                .On<NotifyCrusadeArmyBattleResultsManualCombatStarted>(OnNotifyCrusadeArmyBattleResultsManualCombatStarted)
-               .On<NotifyCrusadeArmyBattleResultsClosed>(OnNotifyCrusadeArmyBattleResultsClosed)
                .On<NotifyTacticalCombatInitialized>(OnNotifyTacticalCombatInitialized)
-               .On<NotifyTacticalUnitAttackCommandExecuted>(OnNotifyTacticalUnitAttackCommandExecuted)
-               .On<NotifyTacticalUnitUseAbilityCommandExecuted>(OnNotifyTacticalUnitUseAbilityCommandExecuted)
-               .On<NotifyTacticalUnitMoveToCommandExecuted>(OnNotifyTacticalUnitMoveToCommandExecuted)
-               .On<NotifyTacticalCombatTurnPostponed>(OnNotifyTacticalCombatTurnPostponed)
-               .On<NotifyTacticalCombatTotalDefenseUsed>(OnNotifyTacticalCombatTotalDefenseUsed)
-               .On<NotifyTacticalCombatRetreated>(OnNotifyTacticalCombatRetreated)
-               .On<NotifyTacticalCombatAccelerationChanged>(OnNotifyTacticalCombatAccelerationChanged)
                .On<NotifyGlobalMapCrusadeArmySquadSplit>(OnNotifyGlobalMapCrusadeArmySquadSplit)
                .On<NotifyGlobalMapCrusadeArmySquadsMerged>(OnNotifyGlobalMapCrusadeArmySquadsMerged)
                .On<NotifyGlobalMapCrusadeArmySquadsSwitched>(OnNotifyGlobalMapCrusadeArmySquadsSwitched)
@@ -1225,60 +1217,10 @@ namespace WOTRMultiplayer.Services
             GlobalMapInteraction.SplitCrusadeArmySquad(squadSlot, globalMapCrusadeArmySquadSplit.Count);
         }
 
-        private void OnNotifyTacticalCombatAccelerationChanged(long receivedFrom, NotifyTacticalCombatAccelerationChanged message)
-        {
-            CombatInteraction.SetTacticalCombatAcceleration(message.IsAccelerated);
-        }
-
-        private void OnNotifyTacticalCombatRetreated(long receivedFrom, NotifyTacticalCombatRetreated tacticalCombatRetreated)
-        {
-            CombatInteraction.RetreatFromTacticalCombat();
-        }
-
-        private void OnNotifyTacticalCombatTotalDefenseUsed(long receivedFrom, NotifyTacticalCombatTotalDefenseUsed tacticalCombatTotalDefenseUsed)
-        {
-            CombatInteraction.UseTacticalCombatTotalDefense();
-        }
-
-        private void OnNotifyTacticalCombatTurnPostponed(long receivedFrom, NotifyTacticalCombatTurnPostponed tacticalCombatTurnPostponed)
-        {
-            CombatInteraction.PostponeTacticalCombatTurn();
-        }
-
-        private void OnNotifyTacticalUnitMoveToCommandExecuted(long receivedFrom, NotifyTacticalUnitMoveToCommandExecuted tacticalUnitMoveToCommandExecuted)
-        {
-            var command = Mapper.Map<NetworkTacticalUnitMoveToCommand>(tacticalUnitMoveToCommandExecuted.Command);
-
-            CombatInteraction.RunTacticalUnitMoveToCommand(command);
-        }
-
-        private void OnNotifyTacticalUnitUseAbilityCommandExecuted(long receivedFrom, NotifyTacticalUnitUseAbilityCommandExecuted tacticalUnitUseAbilityCommandExecuted)
-        {
-            var command = Mapper.Map<NetworkTacticalUnitUseAbilityCommand>(tacticalUnitUseAbilityCommandExecuted.Command);
-
-            CombatInteraction.RunTacticalUnitUseAbilityCommand(command);
-        }
-
-        private async void OnNotifyTacticalUnitAttackCommandExecuted(long receivedFrom, NotifyTacticalUnitAttackCommandExecuted message)
-        {
-            var command = Mapper.Map<NetworkTacticalUnitAttackCommand>(message.Command);
-
-            await WaitWhileTrue(() => Game.ArmyCombat == null || !string.Equals(Game.ArmyCombat.Turn.UnitId, message.Command.UnitId, StringComparison.OrdinalIgnoreCase),
-                "Waiting for unit turn to start");
-
-            CombatInteraction.RunTacticalUnitAttackCommand(command);
-        }
-
         private void OnNotifyGlobalMapCombatResultsClosed(long receivedFrom, NotifyGlobalMapCombatResultsClosed globalMapCombatResultsClosed)
         {
             ResetPlayersTracker(Game.PlayersInGlobalMapCombatResults);
             GlobalMapInteraction.CloseCombatResults();
-        }
-
-        private void OnNotifyCrusadeArmyBattleResultsClosed(long receivedFrom, NotifyCrusadeArmyBattleResultsClosed crusadeArmyBattleResultsClosed)
-        {
-            ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyBattleResults);
-            GlobalMapInteraction.CloseCrusadeArmyBattleResults();
         }
 
         private void OnNotifyCrusadeArmyBattleResultsManualCombatStarted(long receivedFrom, NotifyCrusadeArmyBattleResultsManualCombatStarted crusadeArmyBattleResultsManualCombatStarted)

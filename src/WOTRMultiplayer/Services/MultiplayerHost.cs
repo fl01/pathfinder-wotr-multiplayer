@@ -995,13 +995,6 @@ namespace WOTRMultiplayer.Services
             return true;
         }
 
-        public void OnCrusadeArmyBattleResultsClosed()
-        {
-            ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyBattleResults);
-            var message = new NotifyCrusadeArmyBattleResultsClosed();
-            Send(message);
-        }
-
         public void OnCrusadeArmyBattleResultsManualCombatStarted()
         {
             ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyBattleResults);
@@ -1071,62 +1064,6 @@ namespace WOTRMultiplayer.Services
                 AreaSeed = Game.ArmyCombat.AreaSeed,
                 Seed = Game.ArmyCombat.Seed
             };
-            Send(message);
-        }
-
-        public void OnTacticalCombatUnitUseAbilityCommand(NetworkTacticalUnitUseAbilityCommand tacticalUnitUseAbilityCommand)
-        {
-            var message = new NotifyTacticalUnitUseAbilityCommandExecuted
-            {
-                Command = Mapper.Map<Networking.Messages.Contracts.NetworkTacticalUnitUseAbilityCommand>(tacticalUnitUseAbilityCommand)
-            };
-            Send(message);
-        }
-
-        public void OnTacticalCombatAccelerationChanged(bool isAccelerated)
-        {
-            var message = new NotifyTacticalCombatAccelerationChanged
-            {
-                IsAccelerated = isAccelerated
-            };
-            Send(message);
-        }
-
-        public void OnTacticalCombatUnitAttackCommand(NetworkTacticalUnitAttackCommand tacticalUnitAttackCommand)
-        {
-            var message = new NotifyTacticalUnitAttackCommandExecuted
-            {
-                Command = Mapper.Map<Networking.Messages.Contracts.NetworkTacticalUnitAttackCommand>(tacticalUnitAttackCommand)
-            };
-            Send(message);
-        }
-
-        public void OnTacticalCombatUnitMoveToCommand(NetworkTacticalUnitMoveToCommand tacticalUnitMoveToCommand)
-        {
-            var message = new NotifyTacticalUnitMoveToCommandExecuted
-            {
-                Command = Mapper.Map<Networking.Messages.Contracts.NetworkTacticalUnitMoveToCommand>(tacticalUnitMoveToCommand)
-            };
-            Send(message);
-        }
-
-        public bool OnTacticalCombatTotalDefenseUsed()
-        {
-            var message = new NotifyTacticalCombatTotalDefenseUsed();
-            Send(message);
-            return true;
-        }
-
-        public bool OnTacticalCombatTurnPostponed()
-        {
-            var message = new NotifyTacticalCombatTurnPostponed();
-            Send(message);
-            return true;
-        }
-
-        public void OnTacticalCombatRetreat()
-        {
-            var message = new NotifyTacticalCombatRetreated();
             Send(message);
         }
 

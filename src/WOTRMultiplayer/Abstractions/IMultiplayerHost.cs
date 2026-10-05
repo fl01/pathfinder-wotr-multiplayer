@@ -112,25 +112,9 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnTacticalCombatInitialized();
 
-        void OnCrusadeArmyBattleResultsClosed();
-
         void OnCrusadeArmyBattleResultsManualCombatStarted();
 
         void OnGlobalMapCombatResultsClosed();
-
-        void OnTacticalCombatAccelerationChanged(bool isAccelerated);
-
-        void OnTacticalCombatUnitUseAbilityCommand(NetworkTacticalUnitUseAbilityCommand tacticalUnitUseAbilityCommand);
-
-        void OnTacticalCombatUnitAttackCommand(NetworkTacticalUnitAttackCommand tacticalUnitAttackCommand);
-
-        void OnTacticalCombatUnitMoveToCommand(NetworkTacticalUnitMoveToCommand tacticalUnitMoveToCommand);
-
-        bool OnTacticalCombatTotalDefenseUsed();
-
-        bool OnTacticalCombatTurnPostponed();
-
-        void OnTacticalCombatRetreat();
 
         bool OnGlobalMapCrusadeArmySquadSplit(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot, int count);
 

@@ -430,12 +430,11 @@ namespace WOTRMultiplayer.UI
 
             var lobbyContainer = CreateDefaultGameObject(windowContainer.transform);
             var lobbyContainerRect = lobbyContainer.GetComponent<RectTransform>();
-            var lobbyWidth = Math.Min(Screen.width * 0.45f, 1444);
-            var lobbyHeight = Math.Min(Screen.height * 0.65f, 1000);
-            lobbyContainerRect.sizeDelta = new Vector2(lobbyWidth, lobbyHeight);
+            var parentRect = lobbyContainerRect.parent as RectTransform;
             lobbyContainerRect.anchorMin = new Vector2(0.5f, 0.5f);
             lobbyContainerRect.anchorMax = new Vector2(0.5f, 0.5f);
             lobbyContainerRect.pivot = new Vector2(0.5f, 0.5f);
+            lobbyContainerRect.sizeDelta = new Vector2(parentRect.rect.width * 0.6f, parentRect.rect.height * 0.8f);
 
             var background = CreateBackgroundArt(lobbyContainer.transform);
             UnityEngine.Object.DestroyImmediate(background.transform.Find("Art").gameObject);
