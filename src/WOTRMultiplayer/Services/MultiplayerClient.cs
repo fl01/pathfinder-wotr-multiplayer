@@ -160,7 +160,7 @@ namespace WOTRMultiplayer.Services
             {
                 Logger.LogInformation("Dialog answer is allowed to be selected. DialogId={DialogId}, DialogName={DialogName}, CueName={CueName}, AnswerName={AnswerName}", Game.DialogState.Dialog.Id, Game.DialogState.Dialog.Name, cueName, answerName);
                 Game.DialogState.IsSelectingAnswer = false;
-                Game.DialogState.SystemAnswerEnabled = false;
+                Game.DialogState.IsCueWitnessedByAll = false;
                 return true;
             }
 
@@ -183,7 +183,7 @@ namespace WOTRMultiplayer.Services
             return false;
         }
 
-        public void MakeCueAnswerSuggestion(string cueName, string answerName)
+        public override void MakeCueAnswerSuggestion(string cueName, string answerName)
         {
             var message = new ClientDialogCueAnswerSuggested
             {
@@ -750,7 +750,7 @@ namespace WOTRMultiplayer.Services
                 return;
             }
 
-            Game.DialogState.SystemAnswerEnabled = true;
+            Game.DialogState.IsCueWitnessedByAll = true;
             var canContinue = HasControlOverFeature(NetworkPlayerControlledFeature.Dialogs);
             DialogInteraction.SetDialogContinueButtonState(canContinue);
         }

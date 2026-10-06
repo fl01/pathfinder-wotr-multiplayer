@@ -50,6 +50,8 @@ namespace WOTRMultiplayer.Abstractions
 
         bool OnBeforeSelectDialogAnswer(NetworkDialog networkDialog, string cueName, string answerName, bool isExitAnswer, string manualUnitSelectionId);
 
+        bool OnBeforeChooseBookCharacter(string cueName, string answerName);
+
         void OnAlternateCueAnswerAction(string cueName, string answerName);
 
         void OnAfterPlayDialogCue();
@@ -333,6 +335,8 @@ namespace WOTRMultiplayer.Abstractions
         void OnLevelingSecondaryOutfitColorAppearanceChanged(string textureName);
 
         bool CanControlCharacterSelectionWindow();
+
+        bool CanControlDialog();
 
         void OnCharacterSelectionWindowShown();
 

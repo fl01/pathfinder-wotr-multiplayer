@@ -402,5 +402,7 @@ namespace WOTRMultiplayer.Abstractions
         void OnCrusadeArmyBattleResultsClosed();
 
         void MakeCueAnswerSuggestion(string cueName, string answerName);
+
+        bool OnBeforeChooseBookCharacter(string cueName, string answerName);
     }
 }

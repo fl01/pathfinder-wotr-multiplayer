@@ -215,6 +215,25 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        public bool OnBeforeChooseBookCharacter(string cueName, string answerName)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return true;
+                }
+
+                var shouldContinueExecution = _multiplayerActorAccessor.Current.OnBeforeChooseBookCharacter(cueName, answerName);
+                return shouldContinueExecution;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while choosing book character. CueName={CueName}, AnswerName={AnswerName}", cueName, answerName);
+                throw;
+            }
+        }
+
         public void OnAlternateCueAnswerAction(string cueName, string answerName)
         {
             try

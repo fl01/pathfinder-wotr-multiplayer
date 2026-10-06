@@ -18,7 +18,7 @@ namespace WOTRMultiplayer.Entities.Dialogs
 
         public bool IsSelectingAnswer { get; set; }
 
-        public bool SystemAnswerEnabled { get; set; }
+        public bool IsCueWitnessedByAll { get; set; }
 
         public NetworkDialogState(NetworkDialog networkDialog)
         {

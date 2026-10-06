@@ -288,7 +288,7 @@ namespace WOTRMultiplayer.Services
             if (Game.DialogState?.IsSelectingAnswer ?? false)
             {
                 Game.DialogState.IsSelectingAnswer = false;
-                Game.DialogState.SystemAnswerEnabled = false;
+                Game.DialogState.IsCueWitnessedByAll = false;
 
                 return true;
             }
@@ -311,7 +311,7 @@ namespace WOTRMultiplayer.Services
             return isSelected;
         }
 
-        public void MakeCueAnswerSuggestion(string cueName, string answerName)
+        public override void MakeCueAnswerSuggestion(string cueName, string answerName)
         {
             if (Game.DialogState == null
                 || !string.Equals(Game.DialogState.CurrentCueName, cueName, StringComparison.OrdinalIgnoreCase)
@@ -2407,7 +2407,7 @@ namespace WOTRMultiplayer.Services
             }
 
             Logger.LogInformation("All players have witnessed current cue. CueName={CueName}", currentCue);
-            Game.DialogState.SystemAnswerEnabled = true;
+            Game.DialogState.IsCueWitnessedByAll = true;
             var message = new NotifyDialogCueWitnessedByAll
             {
                 Dialog = Mapper.Map<Networking.Messages.Contracts.NetworkDialog>(Game.DialogState.Dialog),

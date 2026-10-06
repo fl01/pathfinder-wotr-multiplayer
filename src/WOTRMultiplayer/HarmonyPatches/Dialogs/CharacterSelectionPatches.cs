@@ -3,7 +3,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Kingmaker;
-using Kingmaker.Blueprints.Root;
 using Kingmaker.DialogSystem;
 using Kingmaker.DialogSystem.Blueprints;
 using Kingmaker.EntitySystem.Entities;
@@ -11,7 +10,6 @@ using Kingmaker.UI.BookEvent;
 using Kingmaker.UI.MVVM._VM.Dialog.BookEvent;
 using Kingmaker.UI.MVVM._VM.Dialog.Dialog;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.Entities.Dialogs;
 
 namespace WOTRMultiplayer.HarmonyPatches.Dialogs
 {
@@ -27,7 +25,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
                 return true;
             }
 
-            var canContinue = Main.Multiplayer.CanControlCharacterSelectionWindow();
+            var canContinue = Main.Multiplayer.CanControlDialog();
             return canContinue;
         }
 
@@ -40,7 +38,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
                 return true;
             }
 
-            var canContinue = Main.Multiplayer.CanControlCharacterSelectionWindow();
+            var canContinue = Main.Multiplayer.CanControlDialog();
             return canContinue;
         }
 
@@ -53,13 +51,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
                 return true;
             }
 
-            var isLastAnswer = answer.IsExit() || answer.NextCue.Cues.Count == 0;
-            var networkDialog = new NetworkDialog
-            {
-                Id = Game.Instance.DialogController.Dialog.AssetGuid.ToString(),
-                Name = Game.Instance.DialogController.Dialog.name
-            };
-            var canContinue = Main.Multiplayer.OnBeforeSelectDialogAnswer(networkDialog, Game.Instance.DialogController.CurrentCue.name, answer.name, isLastAnswer, null);
+            var canContinue = Main.Multiplayer.OnBeforeChooseBookCharacter(Game.Instance.DialogController.CurrentCue.name, answer.name);
             return canContinue;
         }
 

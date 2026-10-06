@@ -2071,6 +2071,23 @@ namespace WOTRMultiplayer.Services
             UpdateGlobalMapCrusadeArmyBuyLeaderUIState();
         }
 
+        public bool OnBeforeChooseBookCharacter(string cueName, string answerName)
+        {
+            // no need to check for cue witnesses here as it's only a popup for character selection window
+            if (HasControlOverFeature(NetworkPlayerControlledFeature.Dialogs))
+            {
+                return true;
+            }
+
+            MakeCueAnswerSuggestion(cueName, answerName);
+
+            return false;
+        }
+
+        public virtual void MakeCueAnswerSuggestion(string cueName, string answerName)
+        {
+        }
+
         public void ForceUnpause()
         {
             lock (ActionLock)
@@ -3228,7 +3245,7 @@ namespace WOTRMultiplayer.Services
                     CombatInteraction.UpdateTacticalCombatUIState(canControlTacticalCombat);
                     break;
                 case NetworkPlayerControlledFeature.Dialogs:
-                    var canContinue = (Game.DialogState?.SystemAnswerEnabled ?? false) && HasControlOverFeature(NetworkPlayerControlledFeature.Dialogs);
+                    var canContinue = (Game.DialogState?.IsCueWitnessedByAll ?? false) && HasControlOverFeature(NetworkPlayerControlledFeature.Dialogs);
                     DialogInteraction.SetDialogContinueButtonState(canContinue);
                     break;
             }
