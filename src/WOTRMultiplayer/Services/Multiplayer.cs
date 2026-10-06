@@ -219,12 +219,12 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                if (!CanControlDialog())
                 {
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.MakeCueAnswerSuggestion(cueName, answerName);
+                _multiplayerActorAccessor.Current.MakeCueAnswerSuggestion(cueName, answerName);
             }
             catch (Exception ex)
             {
@@ -242,7 +242,7 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.SendSelectedAnswer();
+                _multiplayerActorAccessor.Host.OnAfterPlayDialogCue();
             }
             catch (Exception ex)
             {
@@ -2404,6 +2404,11 @@ namespace WOTRMultiplayer.Services
         public bool CanControlTacticalCombat()
         {
             return _multiplayerActorAccessor.Current != null && _multiplayerActorAccessor.Current.HasControlOverFeature(NetworkPlayerControlledFeature.CrusadeArmyCombat);
+        }
+
+        public bool CanControlDialog()
+        {
+            return _multiplayerActorAccessor.Current != null && _multiplayerActorAccessor.Current.HasControlOverFeature(NetworkPlayerControlledFeature.Dialogs);
         }
 
         public void OnGlobalMapSkipDay()

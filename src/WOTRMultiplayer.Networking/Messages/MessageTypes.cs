@@ -297,7 +297,10 @@
             NotifyMagicHackSpellCreated,
             ClientInvalidUnitTurnStartRequested,
             NotifyArmyCombatTurnSynchronizationRequired,
-            ClientArmyCombatTurnSynchronized
+            ClientArmyCombatTurnSynchronized,
+            ClientDialogCueAnswerSelected,
+            NotifyDialogCueAnswerSelectionDenied,
+            NotifyDialogCueWitnessedByAll
         }
 
         public static class Mods

@@ -70,7 +70,16 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         public void ResetSuggestedDialogAnswers()
         {
-            MarkDialogAnswers([], []);
+            if (UniRx.MainThreadDispatcher.IsInMainThread)
+            {
+                MarkDialogAnswers([], []);
+                return;
+            }
+
+            _mainThreadAccessor.Post(() =>
+            {
+                MarkDialogAnswers([], []);
+            });
         }
 
         public void PlayUnableToSelectCueAnimation(string answerName)

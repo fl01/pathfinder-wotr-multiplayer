@@ -27,9 +27,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnAreaTransition(NetworkAreaTransition areaTransition);
 
-        void SendSelectedAnswer();
-
-        void MakeCueAnswerSuggestion(string cueName, string answerName);
+        void OnAfterPlayDialogCue();
 
         void OnPerceptionCheck(NetworkPerceptionCheck check);
 

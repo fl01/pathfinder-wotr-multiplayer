@@ -158,21 +158,42 @@ namespace WOTRMultiplayer.Services
 
             if (Game.DialogState.Answer != null && string.Equals(answerName, Game.DialogState.Answer.AnswerName, StringComparison.OrdinalIgnoreCase))
             {
-                Logger.LogInformation("Proceeding with dialog answer without extra steps. DialogId={DialogId}, DialogName={DialogName}, CueName={CueName}, AnswerName={AnswerName}", Game.DialogState.Dialog.Id, Game.DialogState.Dialog.Name, cueName, answerName);
+                Logger.LogInformation("Dialog answer is allowed to be selected. DialogId={DialogId}, DialogName={DialogName}, CueName={CueName}, AnswerName={AnswerName}", Game.DialogState.Dialog.Id, Game.DialogState.Dialog.Name, cueName, answerName);
                 Game.DialogState.IsSelectingAnswer = false;
+                Game.DialogState.SystemAnswerEnabled = false;
                 return true;
             }
 
+            // even though client has a control over a dialog, yet state/flow is technically controlled by host (single source of truth)
+            if (HasControlOverFeature(NetworkPlayerControlledFeature.Dialogs))
+            {
+                var selectAnswer = new ClientDialogCueAnswerSelected
+                {
+                    Dialog = Mapper.Map<Networking.Messages.Contracts.NetworkDialog>(networkDialog),
+                    CueName = cueName,
+                    AnswerName = answerName,
+                    IsExitAnswer = isExitAnswer,
+                    ManualUnitSelectionId = manualUnitSelectionId
+                };
+                Send(selectAnswer);
+                return false;
+            }
+
+            MakeCueAnswerSuggestion(cueName, answerName);
+            return false;
+        }
+
+        public void MakeCueAnswerSuggestion(string cueName, string answerName)
+        {
             var message = new ClientDialogCueAnswerSuggested
             {
-                Dialog = Mapper.Map<Networking.Messages.Contracts.NetworkDialog>(networkDialog),
+                Dialog = Mapper.Map<Networking.Messages.Contracts.NetworkDialog>(Game.DialogState.Dialog),
                 CueName = cueName,
                 AnswerName = answerName
             };
             Send(message);
 
             Game.DialogState.IsSelectingAnswer = true;
-            return false;
         }
 
         public bool StartDialog(NetworkDialog networkDialog)
@@ -679,6 +700,8 @@ namespace WOTRMultiplayer.Services
                .On<NotifyDialogCueAnswerSelected>(OnNotifyDialogCueAnswerSelected)
                .On<NotifyDialogPopupClosed>(OnNotifyDialogPopupClosed)
                .On<NotifyDialogPopupAccepted>(OnNotifyDialogPopupAccepted)
+               .On<NotifyDialogCueAnswerSelectionDenied>(OnNotifyDialogCueAnswerSelectionDenied)
+               .On<NotifyDialogCueWitnessedByAll>(OnNotifyDialogCueWitnessedByAll)
 
                // vendor interaction
                .On<NotifyVendorDealMade>(OnNotifyVendorDealMade)
@@ -717,6 +740,30 @@ namespace WOTRMultiplayer.Services
                .On<NotifyDungeonBoonSelected>(OnNotifyDungeonBoonSelected)
                .On<NotifyDungeonBoonConfirmed>(OnNotifyDungeonBoonConfirmed)
                ;
+        }
+
+        private void OnNotifyDialogCueWitnessedByAll(long receivedFrom, NotifyDialogCueWitnessedByAll message)
+        {
+            var remoteDialog = Mapper.Map<NetworkDialog>(message.Dialog);
+            if (!IsOnSameDialogState(Game.DialogState, remoteDialog, message.CueName))
+            {
+                return;
+            }
+
+            Game.DialogState.SystemAnswerEnabled = true;
+            var canContinue = HasControlOverFeature(NetworkPlayerControlledFeature.Dialogs);
+            DialogInteraction.SetDialogContinueButtonState(canContinue);
+        }
+
+        private void OnNotifyDialogCueAnswerSelectionDenied(long receivedFrom, NotifyDialogCueAnswerSelectionDenied message)
+        {
+            var remoteDialog = Mapper.Map<NetworkDialog>(message.Dialog);
+            if (!IsOnSameDialogState(Game.DialogState, remoteDialog, message.CueName))
+            {
+                return;
+            }
+
+            DialogInteraction.PlayUnableToSelectCueAnimation(message.AnswerName);
         }
 
         private async void OnNotifyArmyCombatTurnSynchronizationRequired(long receivedFrom, NotifyArmyCombatTurnSynchronizationRequired message)

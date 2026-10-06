@@ -400,5 +400,7 @@ namespace WOTRMultiplayer.Abstractions
         void OnTacticalCombatUnitMoveToCommand(NetworkTacticalUnitMoveToCommand tacticalUnitMoveToCommand);
 
         void OnCrusadeArmyBattleResultsClosed();
+
+        void MakeCueAnswerSuggestion(string cueName, string answerName);
     }
 }

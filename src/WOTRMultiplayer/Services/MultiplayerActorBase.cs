@@ -2950,7 +2950,7 @@ namespace WOTRMultiplayer.Services
                 return;
             }
 
-            PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.Session.PlayerLeft.Key, warningDuration: 2f, args: networkPlayer.Name);
+            PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.Session.PlayerLeft.Key, warningDuration: 2f, args: new PlayerLogParameter(networkPlayer));
         }
 
         protected NetworkPlayer CleanupPlayer(long playerId)
@@ -3226,6 +3226,10 @@ namespace WOTRMultiplayer.Services
 
                     var canControlTacticalCombat = HasControlOverFeature(NetworkPlayerControlledFeature.CrusadeArmyCombat);
                     CombatInteraction.UpdateTacticalCombatUIState(canControlTacticalCombat);
+                    break;
+                case NetworkPlayerControlledFeature.Dialogs:
+                    var canContinue = (Game.DialogState?.SystemAnswerEnabled ?? false) && HasControlOverFeature(NetworkPlayerControlledFeature.Dialogs);
+                    DialogInteraction.SetDialogContinueButtonState(canContinue);
                     break;
             }
         }
@@ -3535,6 +3539,14 @@ namespace WOTRMultiplayer.Services
             }
 
             return true;
+        }
+
+        protected bool IsOnSameDialogState(NetworkDialogState local, NetworkDialog remoteDialog, string remoteCue)
+        {
+            return local?.Dialog != null
+                && remoteDialog != null
+                && string.Equals(local.Dialog.Name, remoteDialog.Name, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(local.CurrentCueName, remoteCue, StringComparison.OrdinalIgnoreCase);
         }
 
         protected void ResetGlobalMapCounters()
