@@ -2650,12 +2650,12 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor.Current == null || !_multiplayerActorAccessor.Host.IsActive)
+                if (!CanControlDialog())
                 {
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnDialogPopupAccepted(networkDialogPopup);
+                _multiplayerActorAccessor.Current.OnDialogPopupAccepted(networkDialogPopup);
             }
             catch (Exception ex)
             {
@@ -2668,12 +2668,12 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor.Current == null || !_multiplayerActorAccessor.Host.IsActive)
+                if (!CanControlDialog())
                 {
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnDialogPopupClosed(networkDialogPopup);
+                _multiplayerActorAccessor.Current.OnDialogPopupClosed(networkDialogPopup);
             }
             catch (Exception ex)
             {

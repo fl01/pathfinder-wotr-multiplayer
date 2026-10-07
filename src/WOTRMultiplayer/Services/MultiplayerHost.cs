@@ -709,26 +709,6 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
-        public void OnDialogPopupAccepted(NetworkDialogPopup networkDialogPopup)
-        {
-            ResetPlayersTracker(Game.PlayersInDialogPopup);
-            var message = new NotifyDialogPopupAccepted
-            {
-                Popup = Mapper.Map<Networking.Messages.Contracts.NetworkDialogPopup>(networkDialogPopup)
-            };
-            Send(message);
-        }
-
-        public void OnDialogPopupClosed(NetworkDialogPopup networkDialogPopup)
-        {
-            ResetPlayersTracker(Game.PlayersInDialogPopup);
-            var message = new NotifyDialogPopupClosed
-            {
-                Popup = Mapper.Map<Networking.Messages.Contracts.NetworkDialogPopup>(networkDialogPopup)
-            };
-            Send(message);
-        }
-
         public bool OnClickGroupChangerUnit(string unitId)
         {
             var everyoneIsReady = false;

@@ -1750,6 +1750,26 @@ namespace WOTRMultiplayer.Services
             UpdateDialogPopupState();
         }
 
+        public void OnDialogPopupAccepted(NetworkDialogPopup networkDialogPopup)
+        {
+            ResetPlayersTracker(Game.PlayersInDialogPopup);
+            var message = new NotifyDialogPopupAccepted
+            {
+                Popup = Mapper.Map<Networking.Messages.Contracts.NetworkDialogPopup>(networkDialogPopup)
+            };
+            Send(message);
+        }
+
+        public void OnDialogPopupClosed(NetworkDialogPopup networkDialogPopup)
+        {
+            ResetPlayersTracker(Game.PlayersInDialogPopup);
+            var message = new NotifyDialogPopupClosed
+            {
+                Popup = Mapper.Map<Networking.Messages.Contracts.NetworkDialogPopup>(networkDialogPopup)
+            };
+            Send(message);
+        }
+
         public void OnGlobalMapCommonPopupShown(NetworkGlobalMapCommonPopup globalMapCommonPopup)
         {
             AddPlayerToTracker(Game.PlayersInGlobalMapCommonPopup, Game.LocalPlayerId);
@@ -2534,7 +2554,7 @@ namespace WOTRMultiplayer.Services
             {
                 var readyPlayers = Game.PlayersInDialogPopup.Count;
                 var totalPlayers = GetSyncedPlayersCount();
-                var canUse = HasControlOverUI && readyPlayers >= totalPlayers;
+                var canUse = HasControlOverFeature(NetworkPlayerControlledFeature.Dialogs) && readyPlayers >= totalPlayers;
                 DialogInteraction.UpdateDialogPopupUI(canUse, readyPlayers, totalPlayers);
             }
         }
@@ -3787,6 +3807,8 @@ namespace WOTRMultiplayer.Services
 
                 // dialogs
                 .On<NotifyDialogPopupShown>(OnNotifyDialogPopupShown)
+                .On<NotifyDialogPopupClosed>(OnNotifyDialogPopupClosed)
+                .On<NotifyDialogPopupAccepted>(OnNotifyDialogPopupAccepted)
 
                 // game modes
                 .On<NotifyGameModeTypeStarted>(OnNotifyGameModeTypeStarted)
@@ -4398,6 +4420,20 @@ namespace WOTRMultiplayer.Services
             AddPlayerToTracker(Game.PlayersInDialogPopup, message.PlayerId);
 
             UpdateDialogPopupState();
+        }
+
+        private void OnNotifyDialogPopupAccepted(long playerId, NotifyDialogPopupAccepted message)
+        {
+            var popup = Mapper.Map<NetworkDialogPopup>(message.Popup);
+
+            DialogInteraction.AcceptDialogPopup(popup);
+        }
+
+        private void OnNotifyDialogPopupClosed(long playerId, NotifyDialogPopupClosed message)
+        {
+            var popup = Mapper.Map<NetworkDialogPopup>(message.Popup);
+
+            DialogInteraction.CloseDialogPopup(popup);
         }
 
         private void OnNotifyInventoryItemTransferred(long receivedFrom, NotifyInventoryItemTransferred message)

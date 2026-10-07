@@ -698,8 +698,6 @@ namespace WOTRMultiplayer.Services
                .On<NotifyDialogStarted>(OnNotifyDialogStarted)
                .On<NotifyDialogCueAnswerSuggested>(OnNotifyDialogCueAnswerSuggested)
                .On<NotifyDialogCueAnswerSelected>(OnNotifyDialogCueAnswerSelected)
-               .On<NotifyDialogPopupClosed>(OnNotifyDialogPopupClosed)
-               .On<NotifyDialogPopupAccepted>(OnNotifyDialogPopupAccepted)
                .On<NotifyDialogCueAnswerSelectionDenied>(OnNotifyDialogCueAnswerSelectionDenied)
                .On<NotifyDialogCueWitnessedByAll>(OnNotifyDialogCueWitnessedByAll)
 
@@ -1661,20 +1659,6 @@ namespace WOTRMultiplayer.Services
             {
                 Logger.LogWarning("Client dialog is already started. Id={Id}, Name={Name}", dialog.Id, dialog.Name);
             }
-        }
-
-        private void OnNotifyDialogPopupAccepted(long playerId, NotifyDialogPopupAccepted message)
-        {
-            var popup = Mapper.Map<NetworkDialogPopup>(message.Popup);
-
-            DialogInteraction.AcceptDialogPopup(popup);
-        }
-
-        private void OnNotifyDialogPopupClosed(long playerId, NotifyDialogPopupClosed message)
-        {
-            var popup = Mapper.Map<NetworkDialogPopup>(message.Popup);
-
-            DialogInteraction.CloseDialogPopup(popup);
         }
 
         private void OnNotifyDialogCueAnswerSelected(long playerId, NotifyDialogCueAnswerSelected message)
