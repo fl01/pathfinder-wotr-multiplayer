@@ -554,9 +554,7 @@ namespace WOTRMultiplayer.UI.Controllers
                 InfoCallPCMethod = InfoCallPCMethod.None
             };
 
-            var template = new TooltipTemplateSimple(
-                new LocalizedString { Key = WellKnownKeys.LobbyWindow.Tooltips.Players.Color.Header.Key },
-                new LocalizedString { Key = WellKnownKeys.LobbyWindow.Tooltips.Players.Color.Description.Key });
+            var template = new TooltipTemplateSimple(new LocalizedString { Key = WellKnownKeys.LobbyWindow.Tooltips.Players.Color.Header.Key });
             var tooltip = TooltipHelper.SetTooltip(playerIconObject.GetComponent<Image>(), template, config);
             _disposables.Add(tooltip);
         }

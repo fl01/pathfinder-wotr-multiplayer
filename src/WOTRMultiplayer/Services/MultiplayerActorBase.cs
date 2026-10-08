@@ -3418,7 +3418,7 @@ namespace WOTRMultiplayer.Services
             }
 
             GameInteraction.ReselectSelectedCharacters();
-            PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Session.CharacterOwnerChanged.Key, CombatTextSeverity.Common, networkCharacter.Owner.Name, new UnitLogParameter(networkCharacter.UnitId));
+            PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Session.CharacterOwnerChanged.Key, CombatTextSeverity.Common, new PlayerLogParameter(networkCharacter.Owner), new UnitLogParameter(networkCharacter.UnitId));
 
             if (Game.Combat?.Turn != null)
             {

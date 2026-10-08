@@ -6,7 +6,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [MessageType((int)MessageTypes.Game.NotifyDialogPopupClosed)]
-    public class NotifyDialogPopupClosed
+    public class NotifyDialogPopupClosed : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

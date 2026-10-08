@@ -158,8 +158,7 @@
                 },
                 "players": {
                     "color": {
-                        "header": "Player Color",
-                        "description": "Color picker will be available eventually"
+                        "header": "Player Color"
                     }
                 },
                 "advancedControls": {

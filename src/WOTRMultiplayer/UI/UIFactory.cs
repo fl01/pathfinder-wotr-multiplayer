@@ -782,8 +782,9 @@ namespace WOTRMultiplayer.UI
             itemsContainerObject.AddComponent<VerticalLayoutGroup>();
             var dropdownWidth = width * 0.25f;
             var titleWidth = width * 0.45f;
+            // let's call it a possibility
+            //CreateAdvancedControlItem(WellKnownKeys.LobbyWindow.AdvancedControls.Items.GlobalMap.Title.Key, NetworkPlayerControlledFeature.GlobalMap, titleWidth, dropdownWidth, itemsContainerObject.transform);
             CreateAdvancedControlItem(WellKnownKeys.LobbyWindow.AdvancedControls.Items.Dialogs.Title.Key, NetworkPlayerControlledFeature.Dialogs, titleWidth, dropdownWidth, itemsContainerObject.transform);
-            CreateAdvancedControlItem(WellKnownKeys.LobbyWindow.AdvancedControls.Items.GlobalMap.Title.Key, NetworkPlayerControlledFeature.GlobalMap, titleWidth, dropdownWidth, itemsContainerObject.transform);
             CreateAdvancedControlItem(WellKnownKeys.LobbyWindow.AdvancedControls.Items.CrusadeArmyCombat.Title.Key, NetworkPlayerControlledFeature.CrusadeArmyCombat, titleWidth, dropdownWidth, itemsContainerObject.transform);
         }
 

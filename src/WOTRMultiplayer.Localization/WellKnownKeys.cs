@@ -595,12 +595,6 @@ public static class WellKnownKeys
                     {
                         public static string Key { get; set; }
                     }
-
-                    [Description("description")]
-                    public static class Description
-                    {
-                        public static string Key { get; set; }
-                    }
                 }
             }
 
