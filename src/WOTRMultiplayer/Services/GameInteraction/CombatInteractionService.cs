@@ -589,7 +589,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     Game.Instance.TurnBasedCombatController.CurrentTurn?.End();
                     Game.Instance.TurnBasedCombatController.CurrentTurn?.Dispose();
                     Game.Instance.TurnBasedCombatController.CurrentTurn = null;
-                    _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.Combat.Turn.InvalidUnit.Key, CombatTextSeverity.Critical, unitId, player?.Name);
+                    _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.Combat.Turn.InvalidUnit.Key, CombatTextSeverity.Critical, unitId, new PlayerLogParameter(player));
                     _logger.LogInformation("Unit has been killed / Turn has been reset as unit is invalid for one of the clients. PlayerId={PlayerId}, UnitId={UnitId}", player.Id, unitId);
                     tcs.SetResult(true);
                 }
@@ -822,6 +822,29 @@ namespace WOTRMultiplayer.Services.GameInteraction
             });
 
             return tcs.Task;
+        }
+
+        public void UpdateTacticalCombatUIState(bool canControlTacticalCombat)
+        {
+            _mainThreadAccessor.Post(() =>
+            {
+                var view = Main.UIAccessor.TacticalCombatPCView;
+                if (view?.ViewModel == null)
+                {
+                    _logger.LogWarning("Unable to update invalid tactical combat view");
+                    return;
+                }
+
+                view.m_AccelerateButton.Interactable = canControlTacticalCombat;
+                view.m_FleeButton.Interactable = canControlTacticalCombat;
+                if (view.m_UnitCrusadeActionBarPCView?.ViewModel != null)
+                {
+                    view.m_UnitCrusadeActionBarPCView.m_DefenseButton.Interactable = canControlTacticalCombat;
+                    view.m_UnitCrusadeActionBarPCView.m_HoldButton.Interactable = canControlTacticalCombat;
+                }
+
+                _logger.LogInformation("Tactical combat UI state has been updated. CanControl={CanControl}", canControlTacticalCombat);
+            });
         }
 
         public Task<bool> StartCombatAsync(NetworkCombatState networkCombatState)

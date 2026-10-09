@@ -70,7 +70,16 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         public void ResetSuggestedDialogAnswers()
         {
-            MarkDialogAnswers([], []);
+            if (UniRx.MainThreadDispatcher.IsInMainThread)
+            {
+                MarkDialogAnswers([], []);
+                return;
+            }
+
+            _mainThreadAccessor.Post(() =>
+            {
+                MarkDialogAnswers([], []);
+            });
         }
 
         public void PlayUnableToSelectCueAnimation(string answerName)
@@ -394,7 +403,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                         continue;
                     }
 
-                    var color = _mapper.Map<Color>(playerColor);
+                    var color = playerColor.ToUnityColor();
                     var mutedColor = _uiFactory.MuteColor(color);
                     var suggestionIconObject = _uiFactory.CreateCircleIcon(parent, mutedColor, size: 9f);
                     suggestionIconObject.name = SuggestionIconObjectPrefix + i.ToString();

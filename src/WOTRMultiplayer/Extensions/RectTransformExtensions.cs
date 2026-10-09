@@ -24,5 +24,12 @@ namespace WOTRMultiplayer.Extensions
             transform.anchorMax = new Vector2(0f, 0.5f);
             transform.pivot = new Vector2(0.5f, 0.5f);
         }
+
+        public static void Right(this RectTransform transform)
+        {
+            transform.anchorMin = new Vector2(1f, 0.5f);
+            transform.anchorMax = new Vector2(1f, 0.5f);
+            transform.pivot = new Vector2(1f, 0.5f);
+        }
     }
 }

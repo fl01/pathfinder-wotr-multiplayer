@@ -21,7 +21,7 @@ jobs:
     env:
       INFO_PATH: ./src/WOTRMultiplayer/Info.json
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+      BASE_RUN: 875 # github run offset so the next run becomes version 1
     steps:
       - uses: actions/checkout@v4
       - name: Read current version
@@ -32,10 +32,9 @@ jobs:
           majorMinor="${baseFullVersion%.*}"
           echo "MajorMinorVersion: $majorMinor"
           
-          # github run offset so the next run becomes version 1
-          baseRun=847
+          echo "Base Run: ${{ env.BASE_RUN }}"
           echo "GitHub Run: ${{ github.run_number }}"
-          versionRunNumber=$(( ${{ github.run_number }} - baseRun ))
+          versionRunNumber=$(( ${{ github.run_number }} - ${{ env.BASE_RUN }} ))
           versionRunNumber=$(( versionRunNumber < 0 ? 0 : versionRunNumber ))
           echo "Version Run: $versionRunNumber"
           

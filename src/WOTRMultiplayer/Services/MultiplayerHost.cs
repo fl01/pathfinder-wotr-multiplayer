@@ -105,6 +105,10 @@ namespace WOTRMultiplayer.Services
                 SessionSeed = CreateRandomSeed()
             };
 
+            Game.FeatureControllers.TryAdd(NetworkPlayerControlledFeature.Dialogs, Game.LocalPlayerId);
+            Game.FeatureControllers.TryAdd(NetworkPlayerControlledFeature.GlobalMap, Game.LocalPlayerId);
+            Game.FeatureControllers.TryAdd(NetworkPlayerControlledFeature.CrusadeArmyCombat, Game.LocalPlayerId);
+
             Game.Characters.AddRange(gameStartUp.Characters);
 
             var settings = SettingsService.GetSettings();
@@ -145,6 +149,20 @@ namespace WOTRMultiplayer.Services
 
             OnCharactersChanged?.Invoke(Game.StartUp.Title, Game.Characters);
             Logger.LogInformation("Game starting point has been updated. GameId={GameId}, IsNewGameSequence={IsNewGameSequence}, SavePath={SavePath}", Game.Id, Game.StartUp.IsNewGameSequence, Game.StartUp.SavePath);
+        }
+
+        public void ChangeFeatureControl(NetworkPlayerControlledFeature feature, NetworkPlayer player)
+        {
+            var actualPlayer = GetPlayer(player.Id);
+            if (actualPlayer == null)
+            {
+                Logger.LogWarning("Unable to change feature control for missing player. PlayerId={PlayerId}", player.Id);
+                return;
+            }
+
+            UpdateFeatureControl(feature, actualPlayer.Id);
+
+            SendAdvancedControlsUpdate();
         }
 
         public void ChangeCharacterOwner(NetworkCharacter character, NetworkPlayer player)
@@ -267,40 +285,33 @@ namespace WOTRMultiplayer.Services
 
         public bool OnBeforeSelectDialogAnswer(NetworkDialog networkDialog, string cueName, string answerName, bool isExitAnswer, string manualUnitSelectionId)
         {
-            Logger.LogInformation("Select Dialog Answer. DialogId={DialogId}, DialogName={DialogName}, CueName={CueName} Answer={Answer}, IsExitAnswer={IsExitAnswer}, ManualUnitSelectionId={ManualUnitSelectionId}",
-                networkDialog.Id, networkDialog.Name, cueName, answerName, isExitAnswer, manualUnitSelectionId);
-
-            var missingPlayers = GetPlayersWhoHaveNotSeenCueYet(cueName);
-            if (missingPlayers.Count > 0)
+            if (Game.DialogState?.IsSelectingAnswer ?? false)
             {
-                var names = string.Join(";", missingPlayers.Select(p => p.Name));
-                Logger.LogWarning("Some players haven't seen the dialog yet. Players={Players}", names);
-                DialogInteraction.PlayUnableToSelectCueAnimation(answerName);
-                PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.Dialogs.WaitingForOtherPlayers.Key, addToLog: false);
+                Game.DialogState.IsSelectingAnswer = false;
+                Game.DialogState.IsCueWitnessedByAll = false;
+
+                return true;
+            }
+
+            if (!HasControlOverFeature(NetworkPlayerControlledFeature.Dialogs))
+            {
+                Logger.LogInformation("Making cue answer suggestion due to lack of dialog control. DialogId={DialogId}, DialogName={DialogName}, CueName={CueName} Answer={Answer}, IsExitAnswer={IsExitAnswer}, ManualUnitSelectionId={ManualUnitSelectionId}",
+                    networkDialog.Id, networkDialog.Name, cueName, answerName, isExitAnswer, manualUnitSelectionId);
+
+                MakeCueAnswerSuggestion(cueName, answerName);
                 return false;
             }
 
-            DialogInteraction.ResetSuggestedDialogAnswers();
-            Game.DialogState.AnswerSuggestions.Clear();
-            Game.DialogState.CueViews.TryRemove(cueName, out _);
-            Game.DialogState.Answer = new NetworkDialogAnswer
-            {
-                AnswerName = answerName,
-                CueName = cueName,
-                ManualUnitSelectionId = manualUnitSelectionId
-            };
-
-            /// the game performs its "dialog stat check" roll logic a bit later,
-            /// so the answer can't be sent right away unless it's the last one
-            if (isExitAnswer)
+            var isSelected = TrySelectDialogCueAnswer(networkDialog, cueName, answerName, isExitAnswer, manualUnitSelectionId);
+            if (isSelected && isExitAnswer)
             {
                 SendSelectedAnswer();
+                Game.DialogState.Answer = null;
             }
-
-            return true;
+            return isSelected;
         }
 
-        public void MakeCueAnswerSuggestion(string cueName, string answerName)
+        public override void MakeCueAnswerSuggestion(string cueName, string answerName)
         {
             if (Game.DialogState == null
                 || !string.Equals(Game.DialogState.CurrentCueName, cueName, StringComparison.OrdinalIgnoreCase)
@@ -314,28 +325,16 @@ namespace WOTRMultiplayer.Services
             UpdateCueAnswerSuggestions(Game.LocalPlayerId, cueName, answerName);
         }
 
-        public void SendSelectedAnswer()
+
+        public void OnAfterPlayDialogCue()
         {
-            if (Game.DialogState == null)
+            // notification has already been sent previously to avoid waiting for the dialog animation
+            // this gives a better response for clients that control the dialog, but also tests whether any race conditions have been left without serialization
+            if (HasControlOverFeature(NetworkPlayerControlledFeature.Dialogs))
             {
-                Logger.LogError("Unable to send dialog answer because dialog is null");
-                return;
+                SendSelectedAnswer();
             }
 
-            if (Game.DialogState.Answer == null)
-            {
-                return;
-            }
-
-            var message = new NotifyDialogCueAnswerSelected
-            {
-                Dialog = Mapper.Map<Networking.Messages.Contracts.NetworkDialog>(Game.DialogState.Dialog),
-                CueName = Game.DialogState.Answer.CueName,
-                AnswerName = Game.DialogState.Answer.AnswerName,
-                ManualUnitSelectionId = Game.DialogState.Answer.ManualUnitSelectionId
-            };
-
-            Send(message);
             Game.DialogState.Answer = null;
         }
 
@@ -710,26 +709,6 @@ namespace WOTRMultiplayer.Services
             Send(message);
         }
 
-        public void OnDialogPopupAccepted(NetworkDialogPopup networkDialogPopup)
-        {
-            ResetPlayersTracker(Game.PlayersInDialogPopup);
-            var message = new NotifyDialogPopupAccepted
-            {
-                Popup = Mapper.Map<Networking.Messages.Contracts.NetworkDialogPopup>(networkDialogPopup)
-            };
-            Send(message);
-        }
-
-        public void OnDialogPopupClosed(NetworkDialogPopup networkDialogPopup)
-        {
-            ResetPlayersTracker(Game.PlayersInDialogPopup);
-            var message = new NotifyDialogPopupClosed
-            {
-                Popup = Mapper.Map<Networking.Messages.Contracts.NetworkDialogPopup>(networkDialogPopup)
-            };
-            Send(message);
-        }
-
         public bool OnClickGroupChangerUnit(string unitId)
         {
             var everyoneIsReady = false;
@@ -977,13 +956,6 @@ namespace WOTRMultiplayer.Services
             return true;
         }
 
-        public void OnCrusadeArmyBattleResultsClosed()
-        {
-            ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyBattleResults);
-            var message = new NotifyCrusadeArmyBattleResultsClosed();
-            Send(message);
-        }
-
         public void OnCrusadeArmyBattleResultsManualCombatStarted()
         {
             ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyBattleResults);
@@ -1053,62 +1025,6 @@ namespace WOTRMultiplayer.Services
                 AreaSeed = Game.ArmyCombat.AreaSeed,
                 Seed = Game.ArmyCombat.Seed
             };
-            Send(message);
-        }
-
-        public void OnTacticalCombatUnitUseAbilityCommand(NetworkTacticalUnitUseAbilityCommand tacticalUnitUseAbilityCommand)
-        {
-            var message = new NotifyTacticalUnitUseAbilityCommandExecuted
-            {
-                Command = Mapper.Map<Networking.Messages.Contracts.NetworkTacticalUnitUseAbilityCommand>(tacticalUnitUseAbilityCommand)
-            };
-            Send(message);
-        }
-
-        public void OnTacticalCombatAccelerationChanged(bool isAccelerated)
-        {
-            var message = new NotifyTacticalCombatAccelerationChanged
-            {
-                IsAccelerated = isAccelerated
-            };
-            Send(message);
-        }
-
-        public void OnTacticalCombatUnitAttackCommand(NetworkTacticalUnitAttackCommand tacticalUnitAttackCommand)
-        {
-            var message = new NotifyTacticalUnitAttackCommandExecuted
-            {
-                Command = Mapper.Map<Networking.Messages.Contracts.NetworkTacticalUnitAttackCommand>(tacticalUnitAttackCommand)
-            };
-            Send(message);
-        }
-
-        public void OnTacticalCombatUnitMoveToCommand(NetworkTacticalUnitMoveToCommand tacticalUnitMoveToCommand)
-        {
-            var message = new NotifyTacticalUnitMoveToCommandExecuted
-            {
-                Command = Mapper.Map<Networking.Messages.Contracts.NetworkTacticalUnitMoveToCommand>(tacticalUnitMoveToCommand)
-            };
-            Send(message);
-        }
-
-        public bool OnTacticalCombatTotalDefenseUsed()
-        {
-            var message = new NotifyTacticalCombatTotalDefenseUsed();
-            Send(message);
-            return true;
-        }
-
-        public bool OnTacticalCombatTurnPostponed()
-        {
-            var message = new NotifyTacticalCombatTurnPostponed();
-            Send(message);
-            return true;
-        }
-
-        public void OnTacticalCombatRetreat()
-        {
-            var message = new NotifyTacticalCombatRetreated();
             Send(message);
         }
 
@@ -1700,6 +1616,7 @@ namespace WOTRMultiplayer.Services
                .On<ClientDialogCueAnswerSuggested>(OnClientDialogCueAnswerSuggested)
                .On<ClientDialogStartRequested>(OnClientDialogStartRequested)
                .On<ClientDialogCueWitnessed>(OnClientDialogCueWitnessed)
+               .On<ClientDialogCueAnswerSelected>(OnClientDialogCueAnswerSelected)
 
                // pause
                .On<ClientGameAutoPaused>(OnClientGameAutoPaused)
@@ -1707,6 +1624,31 @@ namespace WOTRMultiplayer.Services
                // inventory
                .On<NotifyPolymorphicItemCreationRequested>(OnNotifyPolymorphicItemCreationRequested)
                ;
+        }
+
+        private void OnClientDialogCueAnswerSelected(long receivedFrom, ClientDialogCueAnswerSelected message)
+        {
+            var remoteDialog = Mapper.Map<NetworkDialog>(message.Dialog);
+            if (!IsOnSameDialogState(Game.DialogState, remoteDialog, message.CueName) || Game.DialogState.IsSelectingAnswer)
+            {
+                return;
+            }
+
+            if (TrySelectDialogCueAnswer(Game.DialogState.Dialog, Game.DialogState.CurrentCueName, message.AnswerName, message.IsExitAnswer, message.ManualUnitSelectionId))
+            {
+                Game.DialogState.IsSelectingAnswer = true;
+                SendSelectedAnswer();
+                DialogInteraction.SelectDialogAnswer(message.AnswerName, message.ManualUnitSelectionId);
+                return;
+            }
+
+            var denied = new NotifyDialogCueAnswerSelectionDenied
+            {
+                Dialog = message.Dialog,
+                AnswerName = message.AnswerName,
+                CueName = message.CueName
+            };
+            Send(receivedFrom, denied);
         }
 
         private void OnClientArmyCombatTurnSynchronized(long receivedFrom, ClientArmyCombatTurnSynchronized message)
@@ -1761,7 +1703,7 @@ namespace WOTRMultiplayer.Services
             {
                 Logger.LogWarning("Client combat has been restarted for some reason, but host already advanced further in startup sequence. PlayerId={PlayerId}", receivedFrom);
                 var player = GetPlayer(receivedFrom);
-                PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Start.DesyncedStartup.Client.Key, CombatTextSeverity.Critical, player?.Name);
+                PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Start.DesyncedStartup.Client.Key, CombatTextSeverity.Critical, new PlayerLogParameter(player));
 
                 await WaitWhileTrue(() => CombatInteraction.IsRiderActive(), "Waiting for current turn to end before resetting combat");
 
@@ -2150,6 +2092,15 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
+                foreach (var feature in Game.FeatureControllers.Keys)
+                {
+                    if (Game.FeatureControllers[feature] == removedPlayer.Id)
+                    {
+                        Game.FeatureControllers.AddOrUpdate(feature, Game.LocalPlayerId, (key, existing) => Game.LocalPlayerId);
+                    }
+                }
+                SendAdvancedControlsUpdate();
+
                 InvokeOnPlayersChanged();
                 var playersChanged = CreateNotifyLobbyPlayersChanged();
                 _networkHost.BroadcastExcept(playerId, playersChanged);
@@ -2202,6 +2153,8 @@ namespace WOTRMultiplayer.Services
                         Characters = Mapper.Map<List<Networking.Messages.Contracts.NetworkCharacter>>(Game.Characters)
                     };
                     Send(playerId, lobbyCharactersChanged);
+
+                    SendAdvancedControlsUpdate(playerId);
 
                     InvokeOnPlayersChanged();
 
@@ -2434,7 +2387,16 @@ namespace WOTRMultiplayer.Services
             }
 
             Logger.LogInformation("All players have witnessed current cue. CueName={CueName}", currentCue);
-            DialogInteraction.SetDialogContinueButtonState(true);
+            Game.DialogState.IsCueWitnessedByAll = true;
+            var message = new NotifyDialogCueWitnessedByAll
+            {
+                Dialog = Mapper.Map<Networking.Messages.Contracts.NetworkDialog>(Game.DialogState.Dialog),
+                CueName = currentCue
+            };
+            Send(message);
+
+            var buttonState = HasControlOverFeature(NetworkPlayerControlledFeature.Dialogs);
+            DialogInteraction.SetDialogContinueButtonState(buttonState);
         }
 
         private List<NetworkPlayer> GetPlayersNotReadyToResume(long requestedByPlayerId)
@@ -2669,7 +2631,7 @@ namespace WOTRMultiplayer.Services
                                 continue;
                             }
 
-                            PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Turn.HostOrderDesync.Key, CombatTextSeverity.Debug, player.Name);
+                            PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Turn.HostOrderDesync.Key, CombatTextSeverity.Debug, new PlayerLogParameter(player));
 
                             var desyncedTurnStartMessage = new NotifyInvalidCombatTurnStarted
                             {
@@ -2734,6 +2696,27 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        private void SendAdvancedControlsUpdate()
+        {
+            var message = CreateAdvancedControlsChangedMessage();
+            Send(message);
+        }
+
+        private void SendAdvancedControlsUpdate(long playerId)
+        {
+            var message = CreateAdvancedControlsChangedMessage();
+            Send(playerId, message);
+        }
+
+        private NotifyAdvancedControlsChanged CreateAdvancedControlsChangedMessage()
+        {
+            var message = new NotifyAdvancedControlsChanged
+            {
+                Features = Mapper.Map<Dictionary<string, long>>(Game.FeatureControllers)
+            };
+            return message;
+        }
+
         private void TryEndTurn()
         {
             try
@@ -2781,6 +2764,61 @@ namespace WOTRMultiplayer.Services
                 Logger.LogError(ex, "Error while trying to end turn");
                 throw;
             }
+        }
+
+        private bool TrySelectDialogCueAnswer(NetworkDialog dialog, string cueName, string answerName, bool isExitAnswer, string manualUnitSelectionId)
+        {
+            Logger.LogInformation("Trying to select dialog answer. DialogId={DialogId}, DialogName={DialogName}, CueName={CueName} Answer={Answer}, IsExitAnswer={IsExitAnswer}, ManualUnitSelectionId={ManualUnitSelectionId}",
+                dialog.Id, dialog.Name, cueName, answerName, isExitAnswer, manualUnitSelectionId);
+
+            var missingPlayers = GetPlayersWhoHaveNotSeenCueYet(cueName);
+            if (missingPlayers.Count > 0)
+            {
+                var names = string.Join(";", missingPlayers.Select(p => p.Name));
+                Logger.LogWarning("Some players haven't seen the dialog yet. Players={Players}", names);
+                if (HasControlOverFeature(NetworkPlayerControlledFeature.Dialogs))
+                {
+                    DialogInteraction.PlayUnableToSelectCueAnimation(answerName);
+                    PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.Dialogs.WaitingForOtherPlayers.Key, addToLog: false);
+                }
+
+                return false;
+            }
+
+            DialogInteraction.ResetSuggestedDialogAnswers();
+            Game.DialogState.AnswerSuggestions.Clear();
+            Game.DialogState.CueViews.TryRemove(cueName, out _);
+            Game.DialogState.Answer = new NetworkDialogAnswer
+            {
+                AnswerName = answerName,
+                CueName = cueName,
+                ManualUnitSelectionId = manualUnitSelectionId
+            };
+
+            return true;
+        }
+
+        private void SendSelectedAnswer()
+        {
+            if (Game.DialogState == null)
+            {
+                Logger.LogError("Unable to send dialog answer because dialog is null");
+                return;
+            }
+
+            if (Game.DialogState.Answer == null)
+            {
+                return;
+            }
+
+            var message = new NotifyDialogCueAnswerSelected
+            {
+                Dialog = Mapper.Map<Networking.Messages.Contracts.NetworkDialog>(Game.DialogState.Dialog),
+                CueName = Game.DialogState.Answer.CueName,
+                AnswerName = Game.DialogState.Answer.AnswerName,
+                ManualUnitSelectionId = Game.DialogState.Answer.ManualUnitSelectionId
+            };
+            Send(message);
         }
     }
 }

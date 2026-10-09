@@ -163,17 +163,14 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public List<NetworkPlayer> GetOtherPlayers()
-        {
-            lock (ActionLock)
-            {
-                return [.. Game.Players.Where(p => p.Id != Game.LocalPlayerId) ?? []];
-            }
-        }
-
         public List<NetworkCharacter> GetCharacters()
         {
             return [.. Game.Characters ?? []];
+        }
+
+        public IDictionary<NetworkPlayerControlledFeature, long> GetFeaturesControl()
+        {
+            return Game.FeatureControllers.ToDictionary(x => x.Key, x => x.Value);
         }
 
         public bool IsControlledByLocalPlayer(string unitId)
@@ -362,6 +359,67 @@ namespace WOTRMultiplayer.Services
             Send(message);
 
             UpdateDungeonBoonSelectorUIState();
+        }
+
+        public void OnTacticalCombatRetreat()
+        {
+            var message = new NotifyTacticalCombatRetreated();
+            Send(message);
+        }
+
+        public void OnTacticalCombatAccelerationChanged(bool isAccelerated)
+        {
+            var message = new NotifyTacticalCombatAccelerationChanged
+            {
+                IsAccelerated = isAccelerated
+            };
+            Send(message);
+        }
+
+        public bool OnTacticalCombatTurnPostponed()
+        {
+            var message = new NotifyTacticalCombatTurnPostponed();
+            Send(message);
+            return true;
+        }
+
+        public void OnTacticalCombatUnitUseAbilityCommand(NetworkTacticalUnitUseAbilityCommand tacticalUnitUseAbilityCommand)
+        {
+            var message = new NotifyTacticalUnitUseAbilityCommandExecuted
+            {
+                Command = Mapper.Map<Networking.Messages.Contracts.NetworkTacticalUnitUseAbilityCommand>(tacticalUnitUseAbilityCommand)
+            };
+            Send(message);
+        }
+
+        public void OnTacticalCombatUnitAttackCommand(NetworkTacticalUnitAttackCommand tacticalUnitAttackCommand)
+        {
+            var message = new NotifyTacticalUnitAttackCommandExecuted
+            {
+                Command = Mapper.Map<Networking.Messages.Contracts.NetworkTacticalUnitAttackCommand>(tacticalUnitAttackCommand)
+            };
+            Send(message);
+        }
+
+        public void OnTacticalCombatUnitMoveToCommand(NetworkTacticalUnitMoveToCommand tacticalUnitMoveToCommand)
+        {
+            var message = new NotifyTacticalUnitMoveToCommandExecuted
+            {
+                Command = Mapper.Map<Networking.Messages.Contracts.NetworkTacticalUnitMoveToCommand>(tacticalUnitMoveToCommand)
+            };
+            Send(message);
+        }
+
+        public bool OnTacticalCombatTotalDefenseUsed()
+        {
+            var message = new NotifyTacticalCombatTotalDefenseUsed();
+            Send(message);
+            return true;
+        }
+
+        public bool HasControlOverFeature(NetworkPlayerControlledFeature feature)
+        {
+            return Game.FeatureControllers.TryGetValue(feature, out var playerId) && playerId == Game.LocalPlayerId;
         }
 
         public void OnEquipmentSlotChanged(NetworkEquipmentSlot equipmentSlot)
@@ -1692,6 +1750,26 @@ namespace WOTRMultiplayer.Services
             UpdateDialogPopupState();
         }
 
+        public void OnDialogPopupAccepted(NetworkDialogPopup networkDialogPopup)
+        {
+            ResetPlayersTracker(Game.PlayersInDialogPopup);
+            var message = new NotifyDialogPopupAccepted
+            {
+                Popup = Mapper.Map<Networking.Messages.Contracts.NetworkDialogPopup>(networkDialogPopup)
+            };
+            Send(message);
+        }
+
+        public void OnDialogPopupClosed(NetworkDialogPopup networkDialogPopup)
+        {
+            ResetPlayersTracker(Game.PlayersInDialogPopup);
+            var message = new NotifyDialogPopupClosed
+            {
+                Popup = Mapper.Map<Networking.Messages.Contracts.NetworkDialogPopup>(networkDialogPopup)
+            };
+            Send(message);
+        }
+
         public void OnGlobalMapCommonPopupShown(NetworkGlobalMapCommonPopup globalMapCommonPopup)
         {
             AddPlayerToTracker(Game.PlayersInGlobalMapCommonPopup, Game.LocalPlayerId);
@@ -1745,7 +1823,7 @@ namespace WOTRMultiplayer.Services
             }
             else if (Game.ArmyCombat != null)
             {
-                OnUnitDeathInTacticalCombat(unitId, groupId);
+                OnUnitDeathInTacticalCombat(unitId);
             }
         }
 
@@ -1915,6 +1993,13 @@ namespace WOTRMultiplayer.Services
             UpdateGlobalMapCrusadeArmyBattleResultsUIState();
         }
 
+        public void OnCrusadeArmyBattleResultsClosed()
+        {
+            ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyBattleResults);
+            var message = new NotifyCrusadeArmyBattleResultsClosed();
+            Send(message);
+        }
+
         public void OnGlobalMapCombatResultsShown()
         {
             AddPlayerToTracker(Game.PlayersInGlobalMapCombatResults, Game.LocalPlayerId);
@@ -2004,6 +2089,23 @@ namespace WOTRMultiplayer.Services
             Send(message);
 
             UpdateGlobalMapCrusadeArmyBuyLeaderUIState();
+        }
+
+        public bool OnBeforeChooseBookCharacter(string cueName, string answerName)
+        {
+            // no need to check for cue witnesses here as it's only a popup for character selection window
+            if (HasControlOverFeature(NetworkPlayerControlledFeature.Dialogs))
+            {
+                return true;
+            }
+
+            MakeCueAnswerSuggestion(cueName, answerName);
+
+            return false;
+        }
+
+        public virtual void MakeCueAnswerSuggestion(string cueName, string answerName)
+        {
         }
 
         public void ForceUnpause()
@@ -2452,7 +2554,7 @@ namespace WOTRMultiplayer.Services
             {
                 var readyPlayers = Game.PlayersInDialogPopup.Count;
                 var totalPlayers = GetSyncedPlayersCount();
-                var canUse = HasControlOverUI && readyPlayers >= totalPlayers;
+                var canUse = HasControlOverFeature(NetworkPlayerControlledFeature.Dialogs) && readyPlayers >= totalPlayers;
                 DialogInteraction.UpdateDialogPopupUI(canUse, readyPlayers, totalPlayers);
             }
         }
@@ -2606,7 +2708,8 @@ namespace WOTRMultiplayer.Services
             {
                 var readyPlayers = Game.PlayersInGlobalMapCrusadeArmyBattleResults.Count;
                 var totalPlayers = GetSyncedPlayersCount();
-                var canUse = HasControlOverUI && readyPlayers >= totalPlayers;
+                var feature = CombatInteraction.IsInCrusadeTacticalCombat() ? NetworkPlayerControlledFeature.CrusadeArmyCombat : NetworkPlayerControlledFeature.GlobalMap;
+                var canUse = HasControlOverFeature(feature) && readyPlayers >= totalPlayers;
                 GlobalMapInteraction.UpdateCrusadeArmyBattleResultsUI(canUse, readyPlayers, totalPlayers);
             }
         }
@@ -2874,7 +2977,7 @@ namespace WOTRMultiplayer.Services
             }
 
             PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.Session.PlayerJoinedShort.Key, addToLog: false, args: networkPlayer.Name);
-            PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Session.PlayerJoinedFull.Key, CombatTextSeverity.Common, args: networkPlayer.Name);
+            PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Session.PlayerJoinedFull.Key, CombatTextSeverity.Common, args: new PlayerLogParameter(networkPlayer));
         }
 
         protected void ShowPlayerDisconnectedMessage(NetworkPlayer networkPlayer)
@@ -2884,7 +2987,7 @@ namespace WOTRMultiplayer.Services
                 return;
             }
 
-            PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.Session.PlayerLeft.Key, warningDuration: 2f, args: networkPlayer.Name);
+            PlayerNotification.ShowWarningNotification(WellKnownKeys.GameNotifications.Session.PlayerLeft.Key, warningDuration: 2f, args: new PlayerLogParameter(networkPlayer));
         }
 
         protected NetworkPlayer CleanupPlayer(long playerId)
@@ -3150,6 +3253,45 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        protected void UpdateUIStateOnFeatureControlChange(NetworkPlayerControlledFeature feature)
+        {
+            Logger.LogInformation("Updating UI on feature control change. Feature={Feature}", feature);
+            switch (feature)
+            {
+                case NetworkPlayerControlledFeature.CrusadeArmyCombat:
+                    UpdateGlobalMapCrusadeArmyBattleResultsUIState();
+
+                    var canControlTacticalCombat = HasControlOverFeature(NetworkPlayerControlledFeature.CrusadeArmyCombat);
+                    CombatInteraction.UpdateTacticalCombatUIState(canControlTacticalCombat);
+                    break;
+                case NetworkPlayerControlledFeature.Dialogs:
+                    var canContinue = (Game.DialogState?.IsCueWitnessedByAll ?? false) && HasControlOverFeature(NetworkPlayerControlledFeature.Dialogs);
+                    DialogInteraction.SetDialogContinueButtonState(canContinue);
+                    break;
+            }
+        }
+
+        protected void UpdateFeatureControl(NetworkPlayerControlledFeature feature, long playerId)
+        {
+            if (Game.FeatureControllers.TryGetValue(feature, out var controlledByPlayerId) && controlledByPlayerId == playerId)
+            {
+                return;
+            }
+
+            Game.FeatureControllers.AddOrUpdate(feature, playerId, (key, existing) => playerId);
+
+            if (Game.Stage == NetworkLobbyStage.Playing)
+            {
+                UpdateUIStateOnFeatureControlChange(feature);
+
+                var player = GetPlayer(playerId);
+                if (player != null)
+                {
+                    PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Session.AdvancedControlChanged.Key, CombatTextSeverity.Common, feature, new PlayerLogParameter(player));
+                }
+            }
+        }
+
         protected virtual void OnCombatStageChanged(NetworkCombatStage combatStage)
         {
         }
@@ -3276,7 +3418,7 @@ namespace WOTRMultiplayer.Services
             }
 
             GameInteraction.ReselectSelectedCharacters();
-            PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Session.CharacterOwnerChanged.Key, CombatTextSeverity.Common, networkCharacter.Owner.Name, new UnitLogParameter(networkCharacter.UnitId));
+            PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Session.CharacterOwnerChanged.Key, CombatTextSeverity.Common, new PlayerLogParameter(networkCharacter.Owner), new UnitLogParameter(networkCharacter.UnitId));
 
             if (Game.Combat?.Turn != null)
             {
@@ -3434,6 +3576,14 @@ namespace WOTRMultiplayer.Services
             }
 
             return true;
+        }
+
+        protected bool IsOnSameDialogState(NetworkDialogState local, NetworkDialog remoteDialog, string remoteCue)
+        {
+            return local?.Dialog != null
+                && remoteDialog != null
+                && string.Equals(local.Dialog.Name, remoteDialog.Name, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(local.CurrentCueName, remoteCue, StringComparison.OrdinalIgnoreCase);
         }
 
         protected void ResetGlobalMapCounters()
@@ -3597,6 +3747,16 @@ namespace WOTRMultiplayer.Services
                 .On<NotifyKingdomLoaded>(OnNotifyKingdomLoaded)
                 .On<NotifyKingdomUnloaded>(OnNotifyKingdomUnloaded)
 
+                // crusade combat
+                .On<NotifyTacticalCombatRetreated>(OnNotifyTacticalCombatRetreated)
+                .On<NotifyTacticalCombatAccelerationChanged>(OnNotifyTacticalCombatAccelerationChanged)
+                .On<NotifyTacticalCombatTurnPostponed>(OnNotifyTacticalCombatTurnPostponed)
+                .On<NotifyTacticalCombatTotalDefenseUsed>(OnNotifyTacticalCombatTotalDefenseUsed)
+                .On<NotifyTacticalUnitAttackCommandExecuted>(OnNotifyTacticalUnitAttackCommandExecuted)
+                .On<NotifyTacticalUnitUseAbilityCommandExecuted>(OnNotifyTacticalUnitUseAbilityCommandExecuted)
+                .On<NotifyTacticalUnitMoveToCommandExecuted>(OnNotifyTacticalUnitMoveToCommandExecuted)
+                .On<NotifyCrusadeArmyBattleResultsClosed>(OnNotifyCrusadeArmyBattleResultsClosed)
+
                 // kingdom
                 .On<NotifyKingdomSettlementLoaded>(OnNotifyKingdomSettlementLoaded)
 
@@ -3647,6 +3807,8 @@ namespace WOTRMultiplayer.Services
 
                 // dialogs
                 .On<NotifyDialogPopupShown>(OnNotifyDialogPopupShown)
+                .On<NotifyDialogPopupClosed>(OnNotifyDialogPopupClosed)
+                .On<NotifyDialogPopupAccepted>(OnNotifyDialogPopupAccepted)
 
                 // game modes
                 .On<NotifyGameModeTypeStarted>(OnNotifyGameModeTypeStarted)
@@ -3671,6 +3833,56 @@ namespace WOTRMultiplayer.Services
                 .On<NotifyDungeonGameOverShown>(OnNotifyDungeonGameOverShown)
                 .On<NotifyDungeonBoonSelectorShown>(OnNotifyDungeonBoonSelectorShown)
                 ;
+        }
+
+        private void OnNotifyCrusadeArmyBattleResultsClosed(long receivedFrom, NotifyCrusadeArmyBattleResultsClosed message)
+        {
+            ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyBattleResults);
+            GlobalMapInteraction.CloseCrusadeArmyBattleResults();
+        }
+
+        private void OnNotifyTacticalUnitMoveToCommandExecuted(long receivedFrom, NotifyTacticalUnitMoveToCommandExecuted message)
+        {
+            var command = Mapper.Map<NetworkTacticalUnitMoveToCommand>(message.Command);
+
+            CombatInteraction.RunTacticalUnitMoveToCommand(command);
+        }
+
+        private void OnNotifyTacticalUnitUseAbilityCommandExecuted(long receivedFrom, NotifyTacticalUnitUseAbilityCommandExecuted message)
+        {
+            var command = Mapper.Map<NetworkTacticalUnitUseAbilityCommand>(message.Command);
+
+            CombatInteraction.RunTacticalUnitUseAbilityCommand(command);
+        }
+
+        private async void OnNotifyTacticalUnitAttackCommandExecuted(long receivedFrom, NotifyTacticalUnitAttackCommandExecuted message)
+        {
+            var command = Mapper.Map<NetworkTacticalUnitAttackCommand>(message.Command);
+
+            await WaitWhileTrue(() => Game.ArmyCombat == null || !string.Equals(Game.ArmyCombat.Turn.UnitId, message.Command.UnitId, StringComparison.OrdinalIgnoreCase),
+                "Waiting for unit turn to start");
+
+            CombatInteraction.RunTacticalUnitAttackCommand(command);
+        }
+
+        private void OnNotifyTacticalCombatTotalDefenseUsed(long receivedFrom, NotifyTacticalCombatTotalDefenseUsed message)
+        {
+            CombatInteraction.UseTacticalCombatTotalDefense();
+        }
+
+        private void OnNotifyTacticalCombatTurnPostponed(long receivedFrom, NotifyTacticalCombatTurnPostponed message)
+        {
+            CombatInteraction.PostponeTacticalCombatTurn();
+        }
+
+        private void OnNotifyTacticalCombatAccelerationChanged(long receivedFrom, NotifyTacticalCombatAccelerationChanged message)
+        {
+            CombatInteraction.SetTacticalCombatAcceleration(message.IsAccelerated);
+        }
+
+        private void OnNotifyTacticalCombatRetreated(long receivedFrom, NotifyTacticalCombatRetreated message)
+        {
+            CombatInteraction.RetreatFromTacticalCombat();
         }
 
         private void OnNotifyDungeonBoonSelectorShown(long receivedFrom, NotifyDungeonBoonSelectorShown message)
@@ -4210,6 +4422,20 @@ namespace WOTRMultiplayer.Services
             UpdateDialogPopupState();
         }
 
+        private void OnNotifyDialogPopupAccepted(long playerId, NotifyDialogPopupAccepted message)
+        {
+            var popup = Mapper.Map<NetworkDialogPopup>(message.Popup);
+
+            DialogInteraction.AcceptDialogPopup(popup);
+        }
+
+        private void OnNotifyDialogPopupClosed(long playerId, NotifyDialogPopupClosed message)
+        {
+            var popup = Mapper.Map<NetworkDialogPopup>(message.Popup);
+
+            DialogInteraction.CloseDialogPopup(popup);
+        }
+
         private void OnNotifyInventoryItemTransferred(long receivedFrom, NotifyInventoryItemTransferred message)
         {
             var transferItem = Mapper.Map<NetworkItemsTransfer>(message.TransferItem);
@@ -4710,7 +4936,7 @@ namespace WOTRMultiplayer.Services
             OnUnitDeath(unitId, Game.Combat.RemotelyKilledUnits, CombatInteraction.IsRiderActive);
         }
 
-        private void OnUnitDeathInTacticalCombat(string unitId, string groupId)
+        private void OnUnitDeathInTacticalCombat(string unitId)
         {
             OnUnitDeath(unitId, Game.ArmyCombat.RemotelyKilledUnits, CombatInteraction.IsActiveArmyCombatUnitBusy);
         }

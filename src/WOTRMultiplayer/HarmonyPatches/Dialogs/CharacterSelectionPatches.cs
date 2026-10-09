@@ -3,7 +3,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Kingmaker;
-using Kingmaker.Blueprints.Root;
 using Kingmaker.DialogSystem;
 using Kingmaker.DialogSystem.Blueprints;
 using Kingmaker.EntitySystem.Entities;
@@ -11,7 +10,6 @@ using Kingmaker.UI.BookEvent;
 using Kingmaker.UI.MVVM._VM.Dialog.BookEvent;
 using Kingmaker.UI.MVVM._VM.Dialog.Dialog;
 using Microsoft.Extensions.Logging;
-using WOTRMultiplayer.Entities.Dialogs;
 
 namespace WOTRMultiplayer.HarmonyPatches.Dialogs
 {
@@ -27,7 +25,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
                 return true;
             }
 
-            var canContinue = Main.Multiplayer.CanControlCharacterSelectionWindow();
+            var canContinue = Main.Multiplayer.CanControlDialog();
             return canContinue;
         }
 
@@ -40,7 +38,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
                 return true;
             }
 
-            var canContinue = Main.Multiplayer.CanControlCharacterSelectionWindow();
+            var canContinue = Main.Multiplayer.CanControlDialog();
             return canContinue;
         }
 
@@ -53,13 +51,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
                 return true;
             }
 
-            var isLastAnswer = answer.IsExit() || answer.NextCue.Cues.Count == 0;
-            var networkDialog = new NetworkDialog
-            {
-                Id = Game.Instance.DialogController.Dialog.AssetGuid.ToString(),
-                Name = Game.Instance.DialogController.Dialog.name
-            };
-            var canContinue = Main.Multiplayer.OnBeforeSelectDialogAnswer(networkDialog, Game.Instance.DialogController.CurrentCue.name, answer.name, isLastAnswer, null);
+            var canContinue = Main.Multiplayer.OnBeforeChooseBookCharacter(Game.Instance.DialogController.CurrentCue.name, answer.name);
             return canContinue;
         }
 
@@ -101,12 +93,12 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
                 var identifier = $"{nameof(CharacterSelection)}:{nameof(SelectRandomCharacter)}:{Game.Instance.CurrentlyLoadedArea.name}:{units.Length}:{Game.Instance.DialogController?.Dialog?.name}:{minInclusive}:{maxExclusive}_{seededContext.Id}";
                 int index = Main.Multiplayer.ValueGenerator.Range(seededContext.Lifetime, identifier, minInclusive, maxExclusive);
                 var unit = units[index];
-                Main.GetLogger<CueSelectionPatches>().LogInformation("Dialog random unit has been selected. Index={Index}, UnitName={UnitName}, MinRange={MinRange}, MaxRange={MaxRange}, Identifier={Identifier}", index, unit.CharacterName, minInclusive, maxExclusive, identifier);
+                Main.GetLogger<CharacterSelectionPatches>().LogInformation("Dialog random unit has been selected. Index={Index}, UnitName={UnitName}, MinRange={MinRange}, MaxRange={MaxRange}, Identifier={Identifier}", index, unit.CharacterName, minInclusive, maxExclusive, identifier);
                 return index;
             }
             catch (System.Exception ex)
             {
-                Main.GetLogger<CueSelectionPatches>().LogError(ex, "Unable to select random dialog character");
+                Main.GetLogger<CharacterSelectionPatches>().LogError(ex, "Unable to select random dialog character");
                 throw;
             }
         }

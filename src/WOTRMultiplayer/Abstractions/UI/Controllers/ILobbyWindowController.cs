@@ -10,7 +10,7 @@ namespace WOTRMultiplayer.Abstractions.UI.Controllers
 {
     public interface ILobbyWindowController
     {
-        void UpdatePlayers(List<NetworkPlayer> players);
+        void UpdatePlayers(List<NetworkPlayer> players, bool isDropdownInteractable);
 
         void InitializeContent(LobbyWindowOwner owner, Transform parent);
 
@@ -21,6 +21,8 @@ namespace WOTRMultiplayer.Abstractions.UI.Controllers
         void UpdateCharacters(List<NetworkCharacter> characters, bool isDropdownInteractable);
 
         void UpdateCharacterOwnerDropdown(NetworkCharacter character, bool silent = false);
+
+        void UpdateAdvancedControls(IDictionary<NetworkPlayerControlledFeature, long> features, bool silent = false);
 
         void SetActiveOwner(LobbyWindowOwner owner);
 
@@ -37,5 +39,7 @@ namespace WOTRMultiplayer.Abstractions.UI.Controllers
         public ILobbyWindow Window { get; }
 
         Action<NetworkCharacter, NetworkPlayer> OnCharacterOwnerChanged { get; set; }
+
+        Action<NetworkPlayerControlledFeature, NetworkPlayer> OnFeatureControlChanged { get; set; }
     }
 }

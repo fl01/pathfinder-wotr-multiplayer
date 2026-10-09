@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using WOTRMultiplayer.Entities;
 using WOTRMultiplayer.Entities.Area;
-using WOTRMultiplayer.Entities.Combat.Crusades;
 using WOTRMultiplayer.Entities.Connectivity;
 using WOTRMultiplayer.Entities.Dialogs;
 using WOTRMultiplayer.Entities.Dungeon;
@@ -24,11 +23,11 @@ namespace WOTRMultiplayer.Abstractions
 
         void ChangeCharacterOwner(NetworkCharacter character, NetworkPlayer player);
 
+        void ChangeFeatureControl(NetworkPlayerControlledFeature feature, NetworkPlayer player);
+
         void OnAreaTransition(NetworkAreaTransition areaTransition);
 
-        void SendSelectedAnswer();
-
-        void MakeCueAnswerSuggestion(string cueName, string answerName);
+        void OnAfterPlayDialogCue();
 
         void OnPerceptionCheck(NetworkPerceptionCheck check);
 
@@ -96,10 +95,6 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnZoneLootLeft();
 
-        void OnDialogPopupClosed(NetworkDialogPopup networkDialogPopup);
-
-        void OnDialogPopupAccepted(NetworkDialogPopup networkDialogPopup);
-
         void OnCharacterSelectionWindowAccepted();
 
         void OnCharacterSelectionWindowClosed();
@@ -110,25 +105,9 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnTacticalCombatInitialized();
 
-        void OnCrusadeArmyBattleResultsClosed();
-
         void OnCrusadeArmyBattleResultsManualCombatStarted();
 
         void OnGlobalMapCombatResultsClosed();
-
-        void OnTacticalCombatAccelerationChanged(bool isAccelerated);
-
-        void OnTacticalCombatUnitUseAbilityCommand(NetworkTacticalUnitUseAbilityCommand tacticalUnitUseAbilityCommand);
-
-        void OnTacticalCombatUnitAttackCommand(NetworkTacticalUnitAttackCommand tacticalUnitAttackCommand);
-
-        void OnTacticalCombatUnitMoveToCommand(NetworkTacticalUnitMoveToCommand tacticalUnitMoveToCommand);
-
-        bool OnTacticalCombatTotalDefenseUsed();
-
-        bool OnTacticalCombatTurnPostponed();
-
-        void OnTacticalCombatRetreat();
 
         bool OnGlobalMapCrusadeArmySquadSplit(NetworkGlobalMapArmySquadSlot globalMapArmySquadSlot, int count);
 

@@ -6,7 +6,7 @@ namespace WOTRMultiplayer.Networking.Messages.Game
 {
     [ProtoContract]
     [MessageType((int)MessageTypes.Game.NotifyTacticalUnitAttackCommandExecuted)]
-    public class NotifyTacticalUnitAttackCommandExecuted
+    public class NotifyTacticalUnitAttackCommandExecuted : IForwardableMessage
     {
         [ProtoMember(1)]
         [LogMe]

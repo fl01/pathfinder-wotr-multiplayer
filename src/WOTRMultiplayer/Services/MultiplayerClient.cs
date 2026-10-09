@@ -48,6 +48,8 @@ namespace WOTRMultiplayer.Services
 
         public Action<NetworkCharacter> OnCharacterOwnerChanged { get; set; }
 
+        public Action<IDictionary<NetworkPlayerControlledFeature, long>> OnFeaturesControlChanged { get; set; }
+
         public bool IsActive => _networkClient.IsActive;
 
         public bool IsConnecting => _networkClient.IsConnecting;
@@ -156,21 +158,42 @@ namespace WOTRMultiplayer.Services
 
             if (Game.DialogState.Answer != null && string.Equals(answerName, Game.DialogState.Answer.AnswerName, StringComparison.OrdinalIgnoreCase))
             {
-                Logger.LogInformation("Proceeding with dialog answer without extra steps. DialogId={DialogId}, DialogName={DialogName}, CueName={CueName}, AnswerName={AnswerName}", Game.DialogState.Dialog.Id, Game.DialogState.Dialog.Name, cueName, answerName);
+                Logger.LogInformation("Dialog answer is allowed to be selected. DialogId={DialogId}, DialogName={DialogName}, CueName={CueName}, AnswerName={AnswerName}", Game.DialogState.Dialog.Id, Game.DialogState.Dialog.Name, cueName, answerName);
                 Game.DialogState.IsSelectingAnswer = false;
+                Game.DialogState.IsCueWitnessedByAll = false;
                 return true;
             }
 
+            // even though client has a control over a dialog, yet state/flow is technically controlled by host (single source of truth)
+            if (HasControlOverFeature(NetworkPlayerControlledFeature.Dialogs))
+            {
+                var selectAnswer = new ClientDialogCueAnswerSelected
+                {
+                    Dialog = Mapper.Map<Networking.Messages.Contracts.NetworkDialog>(networkDialog),
+                    CueName = cueName,
+                    AnswerName = answerName,
+                    IsExitAnswer = isExitAnswer,
+                    ManualUnitSelectionId = manualUnitSelectionId
+                };
+                Send(selectAnswer);
+                return false;
+            }
+
+            MakeCueAnswerSuggestion(cueName, answerName);
+            return false;
+        }
+
+        public override void MakeCueAnswerSuggestion(string cueName, string answerName)
+        {
             var message = new ClientDialogCueAnswerSuggested
             {
-                Dialog = Mapper.Map<Networking.Messages.Contracts.NetworkDialog>(networkDialog),
+                Dialog = Mapper.Map<Networking.Messages.Contracts.NetworkDialog>(Game.DialogState.Dialog),
                 CueName = cueName,
                 AnswerName = answerName
             };
             Send(message);
 
             Game.DialogState.IsSelectingAnswer = true;
-            return false;
         }
 
         public bool StartDialog(NetworkDialog networkDialog)
@@ -551,6 +574,7 @@ namespace WOTRMultiplayer.Services
                .On<NotifySaveGameSyncStatusChanged>(OnNotifyLobbySyncStatusChanged)
                .On<NotifySaveGameTransferProgressChanged>(OnNotifySaveGameTransferProgressChanged)
                .On<NotifyNewGameDifficultyChanged>(OnNotifyNewGameDifficultyChanged)
+               .On<NotifyAdvancedControlsChanged>(OnNotifyAdvancedControlsChanged)
 
                // new game sequence
                .On<NotifyNewGameSequencePhaseChanged>(OnNotifyNewGameSequencePhaseChanged)
@@ -617,15 +641,7 @@ namespace WOTRMultiplayer.Services
                .On<NotifyGlobalMapAutoCrusadeCombatChanged>(OnNotifyGlobalMapAutoCrusadeCombatChanged)
                .On<NotifyGlobalMapCombatResultsClosed>(OnNotifyGlobalMapCombatResultsClosed)
                .On<NotifyCrusadeArmyBattleResultsManualCombatStarted>(OnNotifyCrusadeArmyBattleResultsManualCombatStarted)
-               .On<NotifyCrusadeArmyBattleResultsClosed>(OnNotifyCrusadeArmyBattleResultsClosed)
                .On<NotifyTacticalCombatInitialized>(OnNotifyTacticalCombatInitialized)
-               .On<NotifyTacticalUnitAttackCommandExecuted>(OnNotifyTacticalUnitAttackCommandExecuted)
-               .On<NotifyTacticalUnitUseAbilityCommandExecuted>(OnNotifyTacticalUnitUseAbilityCommandExecuted)
-               .On<NotifyTacticalUnitMoveToCommandExecuted>(OnNotifyTacticalUnitMoveToCommandExecuted)
-               .On<NotifyTacticalCombatTurnPostponed>(OnNotifyTacticalCombatTurnPostponed)
-               .On<NotifyTacticalCombatTotalDefenseUsed>(OnNotifyTacticalCombatTotalDefenseUsed)
-               .On<NotifyTacticalCombatRetreated>(OnNotifyTacticalCombatRetreated)
-               .On<NotifyTacticalCombatAccelerationChanged>(OnNotifyTacticalCombatAccelerationChanged)
                .On<NotifyGlobalMapCrusadeArmySquadSplit>(OnNotifyGlobalMapCrusadeArmySquadSplit)
                .On<NotifyGlobalMapCrusadeArmySquadsMerged>(OnNotifyGlobalMapCrusadeArmySquadsMerged)
                .On<NotifyGlobalMapCrusadeArmySquadsSwitched>(OnNotifyGlobalMapCrusadeArmySquadsSwitched)
@@ -682,8 +698,8 @@ namespace WOTRMultiplayer.Services
                .On<NotifyDialogStarted>(OnNotifyDialogStarted)
                .On<NotifyDialogCueAnswerSuggested>(OnNotifyDialogCueAnswerSuggested)
                .On<NotifyDialogCueAnswerSelected>(OnNotifyDialogCueAnswerSelected)
-               .On<NotifyDialogPopupClosed>(OnNotifyDialogPopupClosed)
-               .On<NotifyDialogPopupAccepted>(OnNotifyDialogPopupAccepted)
+               .On<NotifyDialogCueAnswerSelectionDenied>(OnNotifyDialogCueAnswerSelectionDenied)
+               .On<NotifyDialogCueWitnessedByAll>(OnNotifyDialogCueWitnessedByAll)
 
                // vendor interaction
                .On<NotifyVendorDealMade>(OnNotifyVendorDealMade)
@@ -722,6 +738,30 @@ namespace WOTRMultiplayer.Services
                .On<NotifyDungeonBoonSelected>(OnNotifyDungeonBoonSelected)
                .On<NotifyDungeonBoonConfirmed>(OnNotifyDungeonBoonConfirmed)
                ;
+        }
+
+        private void OnNotifyDialogCueWitnessedByAll(long receivedFrom, NotifyDialogCueWitnessedByAll message)
+        {
+            var remoteDialog = Mapper.Map<NetworkDialog>(message.Dialog);
+            if (!IsOnSameDialogState(Game.DialogState, remoteDialog, message.CueName))
+            {
+                return;
+            }
+
+            Game.DialogState.IsCueWitnessedByAll = true;
+            var canContinue = HasControlOverFeature(NetworkPlayerControlledFeature.Dialogs);
+            DialogInteraction.SetDialogContinueButtonState(canContinue);
+        }
+
+        private void OnNotifyDialogCueAnswerSelectionDenied(long receivedFrom, NotifyDialogCueAnswerSelectionDenied message)
+        {
+            var remoteDialog = Mapper.Map<NetworkDialog>(message.Dialog);
+            if (!IsOnSameDialogState(Game.DialogState, remoteDialog, message.CueName))
+            {
+                return;
+            }
+
+            DialogInteraction.PlayUnableToSelectCueAnimation(message.AnswerName);
         }
 
         private async void OnNotifyArmyCombatTurnSynchronizationRequired(long receivedFrom, NotifyArmyCombatTurnSynchronizationRequired message)
@@ -791,7 +831,7 @@ namespace WOTRMultiplayer.Services
             {
                 Logger.LogWarning("Host combat has been restarted for some reason, but client already advanced further in startup sequence");
                 var player = GetHost();
-                PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Start.DesyncedStartup.Host.Key, CombatTextSeverity.Critical, player?.Name);
+                PlayerNotification.AddCombatText(WellKnownKeys.GameNotifications.Combat.Start.DesyncedStartup.Host.Key, CombatTextSeverity.Critical, new PlayerLogParameter(player));
 
                 await CombatInteraction.ForceResetCombatAsync();
                 return;
@@ -1222,60 +1262,10 @@ namespace WOTRMultiplayer.Services
             GlobalMapInteraction.SplitCrusadeArmySquad(squadSlot, globalMapCrusadeArmySquadSplit.Count);
         }
 
-        private void OnNotifyTacticalCombatAccelerationChanged(long receivedFrom, NotifyTacticalCombatAccelerationChanged message)
-        {
-            CombatInteraction.SetTacticalCombatAcceleration(message.IsAccelerated);
-        }
-
-        private void OnNotifyTacticalCombatRetreated(long receivedFrom, NotifyTacticalCombatRetreated tacticalCombatRetreated)
-        {
-            CombatInteraction.RetreatFromTacticalCombat();
-        }
-
-        private void OnNotifyTacticalCombatTotalDefenseUsed(long receivedFrom, NotifyTacticalCombatTotalDefenseUsed tacticalCombatTotalDefenseUsed)
-        {
-            CombatInteraction.UseTacticalCombatTotalDefense();
-        }
-
-        private void OnNotifyTacticalCombatTurnPostponed(long receivedFrom, NotifyTacticalCombatTurnPostponed tacticalCombatTurnPostponed)
-        {
-            CombatInteraction.PostponeTacticalCombatTurn();
-        }
-
-        private void OnNotifyTacticalUnitMoveToCommandExecuted(long receivedFrom, NotifyTacticalUnitMoveToCommandExecuted tacticalUnitMoveToCommandExecuted)
-        {
-            var command = Mapper.Map<NetworkTacticalUnitMoveToCommand>(tacticalUnitMoveToCommandExecuted.Command);
-
-            CombatInteraction.RunTacticalUnitMoveToCommand(command);
-        }
-
-        private void OnNotifyTacticalUnitUseAbilityCommandExecuted(long receivedFrom, NotifyTacticalUnitUseAbilityCommandExecuted tacticalUnitUseAbilityCommandExecuted)
-        {
-            var command = Mapper.Map<NetworkTacticalUnitUseAbilityCommand>(tacticalUnitUseAbilityCommandExecuted.Command);
-
-            CombatInteraction.RunTacticalUnitUseAbilityCommand(command);
-        }
-
-        private async void OnNotifyTacticalUnitAttackCommandExecuted(long receivedFrom, NotifyTacticalUnitAttackCommandExecuted message)
-        {
-            var command = Mapper.Map<NetworkTacticalUnitAttackCommand>(message.Command);
-
-            await WaitWhileTrue(() => Game.ArmyCombat == null || !string.Equals(Game.ArmyCombat.Turn.UnitId, message.Command.UnitId, StringComparison.OrdinalIgnoreCase),
-                "Waiting for unit turn to start");
-
-            CombatInteraction.RunTacticalUnitAttackCommand(command);
-        }
-
         private void OnNotifyGlobalMapCombatResultsClosed(long receivedFrom, NotifyGlobalMapCombatResultsClosed globalMapCombatResultsClosed)
         {
             ResetPlayersTracker(Game.PlayersInGlobalMapCombatResults);
             GlobalMapInteraction.CloseCombatResults();
-        }
-
-        private void OnNotifyCrusadeArmyBattleResultsClosed(long receivedFrom, NotifyCrusadeArmyBattleResultsClosed crusadeArmyBattleResultsClosed)
-        {
-            ResetPlayersTracker(Game.PlayersInGlobalMapCrusadeArmyBattleResults);
-            GlobalMapInteraction.CloseCrusadeArmyBattleResults();
         }
 
         private void OnNotifyCrusadeArmyBattleResultsManualCombatStarted(long receivedFrom, NotifyCrusadeArmyBattleResultsManualCombatStarted crusadeArmyBattleResultsManualCombatStarted)
@@ -1671,20 +1661,6 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        private void OnNotifyDialogPopupAccepted(long playerId, NotifyDialogPopupAccepted message)
-        {
-            var popup = Mapper.Map<NetworkDialogPopup>(message.Popup);
-
-            DialogInteraction.AcceptDialogPopup(popup);
-        }
-
-        private void OnNotifyDialogPopupClosed(long playerId, NotifyDialogPopupClosed message)
-        {
-            var popup = Mapper.Map<NetworkDialogPopup>(message.Popup);
-
-            DialogInteraction.CloseDialogPopup(popup);
-        }
-
         private void OnNotifyDialogCueAnswerSelected(long playerId, NotifyDialogCueAnswerSelected message)
         {
             Game.DialogState.Answer = new NetworkDialogAnswer
@@ -1776,25 +1752,36 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        private void OnNotifyLobbyCharactersChanged(long playerId, NotifyLobbyCharactersChanged lobbyCharactersChanged)
+        private void OnNotifyAdvancedControlsChanged(long playerId, NotifyAdvancedControlsChanged message)
+        {
+            var features = Mapper.Map<Dictionary<NetworkPlayerControlledFeature, long>>(message.Features);
+            foreach (var feature in features)
+            {
+                UpdateFeatureControl(feature.Key, feature.Value);
+            }
+
+            OnFeaturesControlChanged?.Invoke(Game.FeatureControllers);
+        }
+
+        private void OnNotifyLobbyCharactersChanged(long playerId, NotifyLobbyCharactersChanged message)
         {
             Game.Characters.Clear();
             ResetCharacterOwnership();
-            foreach (var networkCharacter in lobbyCharactersChanged.Characters)
+            foreach (var networkCharacter in message.Characters)
             {
                 var character = Mapper.Map<NetworkCharacter>(networkCharacter);
                 character.Owner = GetPlayer(networkCharacter.OwnerId);
                 Game.Characters.Add(character);
             }
 
-            OnCharactersChanged?.Invoke(lobbyCharactersChanged.Title, Game.Characters);
+            OnCharactersChanged?.Invoke(message.Title, Game.Characters);
         }
 
-        private void OnNotifyLobbyPlayersChanged(long playerId, NotifyLobbyPlayersChanged playersChanged)
+        private void OnNotifyLobbyPlayersChanged(long playerId, NotifyLobbyPlayersChanged message)
         {
             // a lot of lame lookups below, but shouldn't really matter for a small collection size
-            var disconnectedPlayers = Game.Players.Where(x => !playersChanged.Players.Any(c => c.Id == x.Id)).ToList();
-            var newPlayers = playersChanged.Players.Where(x => !Game.Players.Any(c => c.Id == x.Id)).ToList();
+            var disconnectedPlayers = Game.Players.Where(x => !message.Players.Any(c => c.Id == x.Id)).ToList();
+            var newPlayers = message.Players.Where(x => !Game.Players.Any(c => c.Id == x.Id)).ToList();
             // no need to handle player info updates here as any ready/loading/etc statuses are synced separately
 
             foreach (var disconnectedPlayer in disconnectedPlayers)

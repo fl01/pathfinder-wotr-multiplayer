@@ -33,9 +33,9 @@ namespace WOTRMultiplayer.Abstractions
 
         List<NetworkPlayer> GetPlayers();
 
-        List<NetworkPlayer> GetOtherPlayers();
-
         List<NetworkCharacter> GetCharacters();
+
+        IDictionary<NetworkPlayerControlledFeature, long> GetFeaturesControl();
 
         bool ReadyChanged();
 
@@ -231,6 +231,10 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnDialogPopupShown(NetworkDialogPopup networkDialogPopup);
 
+        void OnDialogPopupClosed(NetworkDialogPopup networkDialogPopup);
+
+        void OnDialogPopupAccepted(NetworkDialogPopup networkDialogPopup);
+
         void OnUseInventoryItem(NetworkUseInventoryItem useInventoryItem);
 
         void OnLevelingBodyTypeAppearanceChanged(int index);
@@ -382,5 +386,27 @@ namespace WOTRMultiplayer.Abstractions
         void OnDungeonGameOverShown();
 
         void OnDungeonBoonSelectorShown();
+
+        bool HasControlOverFeature(NetworkPlayerControlledFeature feature);
+
+        void OnTacticalCombatRetreat();
+
+        void OnTacticalCombatAccelerationChanged(bool isAccelerated);
+
+        bool OnTacticalCombatTurnPostponed();
+
+        bool OnTacticalCombatTotalDefenseUsed();
+
+        void OnTacticalCombatUnitUseAbilityCommand(NetworkTacticalUnitUseAbilityCommand tacticalUnitUseAbilityCommand);
+
+        void OnTacticalCombatUnitAttackCommand(NetworkTacticalUnitAttackCommand tacticalUnitAttackCommand);
+
+        void OnTacticalCombatUnitMoveToCommand(NetworkTacticalUnitMoveToCommand tacticalUnitMoveToCommand);
+
+        void OnCrusadeArmyBattleResultsClosed();
+
+        void MakeCueAnswerSuggestion(string cueName, string answerName);
+
+        bool OnBeforeChooseBookCharacter(string cueName, string answerName);
     }
 }

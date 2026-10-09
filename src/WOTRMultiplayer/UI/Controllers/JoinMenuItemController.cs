@@ -470,6 +470,12 @@ namespace WOTRMultiplayer.UI.Controllers
             Lobby.UpdateCharacterOwnerDropdown(character);
         }
 
+        private void OnMultiplayerFeaturesControlChanged(IDictionary<NetworkPlayerControlledFeature, long> features)
+        {
+            _logger.LogInformation("Updating features control. Features={Features}", features);
+            Lobby.UpdateAdvancedControls(features, silent: true);
+        }
+
         private void SetupHandlers(bool enable)
         {
             _multiplayerClient.OnNetworkError = enable ? OnMultiplayerError : null;
@@ -477,6 +483,7 @@ namespace WOTRMultiplayer.UI.Controllers
             _multiplayerClient.OnPlayersChanged = enable ? OnMultiplayerPlayersChanged : null;
             _multiplayerClient.OnCharactersChanged = enable ? OnMultiplayerCharactersChanged : null;
             _multiplayerClient.OnCharacterOwnerChanged = enable ? OnMultiplayerCharacterOwnerChanged : null;
+            _multiplayerClient.OnFeaturesControlChanged = enable ? OnMultiplayerFeaturesControlChanged : null;
             _multiplayerClient.OnNewGameSequenceStarted = enable ? OnMultiplayerNewGameSequenceStarted : null;
             _multiplayerClient.OnSaveGameTransferProgressChanged = enable ? OnMultiplayerSaveGameTransferProgressChanged : null;
             _multiplayerClient.OnGameStarted = enable ? OnMultiplayerOnGameStarted : null;
@@ -505,7 +512,7 @@ namespace WOTRMultiplayer.UI.Controllers
 
         private void OnMultiplayerPlayersChanged(NetworkLobbyStage lobbyStage, List<NetworkPlayer> players)
         {
-            Lobby.UpdatePlayers(players);
+            Lobby.UpdatePlayers(players, isDropdownInteractable: false);
 
             MainThreadAccessor.Post(() =>
             {

@@ -50,6 +50,8 @@ namespace WOTRMultiplayer.Abstractions
 
         bool OnBeforeSelectDialogAnswer(NetworkDialog networkDialog, string cueName, string answerName, bool isExitAnswer, string manualUnitSelectionId);
 
+        bool OnBeforeChooseBookCharacter(string cueName, string answerName);
+
         void OnAlternateCueAnswerAction(string cueName, string answerName);
 
         void OnAfterPlayDialogCue();
@@ -334,6 +336,8 @@ namespace WOTRMultiplayer.Abstractions
 
         bool CanControlCharacterSelectionWindow();
 
+        bool CanControlDialog();
+
         void OnCharacterSelectionWindowShown();
 
         void OnCharacterSelectionWindowAccepted();
@@ -372,7 +376,7 @@ namespace WOTRMultiplayer.Abstractions
 
         void OnCrusadeArmyBattleResultsShown();
 
-        void OnCrusadeArmyBattleResultsClosed();
+        void OnCrusadeArmyBattleResultsClosed(bool isTacticalCombat);
 
         void OnCrusadeArmyBattleResultsManualCombatStarted();
 

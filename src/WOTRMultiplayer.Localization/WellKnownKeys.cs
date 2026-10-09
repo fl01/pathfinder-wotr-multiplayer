@@ -443,6 +443,50 @@ public static class WellKnownKeys
             }
         }
 
+        [Description("advancedControls")]
+        public static class AdvancedControls
+        {
+            [Description("title")]
+            public static class Title
+            {
+                public static string Key { get; set; }
+            }
+
+            [Description("items")]
+            public static class Items
+            {
+                [Description("dialogs")]
+                public static class Dialogs
+                {
+                    [Description("title")]
+                    public static class Title
+                    {
+                        public static string Key { get; set; }
+                    }
+                }
+
+                [Description("globalMap")]
+                public static class GlobalMap
+                {
+                    [Description("title")]
+                    public static class Title
+                    {
+                        public static string Key { get; set; }
+                    }
+                }
+
+                [Description("crusadeArmyCombat")]
+                public static class CrusadeArmyCombat
+                {
+                    [Description("title")]
+                    public static class Title
+                    {
+                        public static string Key { get; set; }
+                    }
+                }
+            }
+        }
+
         [Description("characters")]
         public static class Characters
         {
@@ -545,6 +589,20 @@ public static class WellKnownKeys
             {
                 [Description("color")]
                 public static class Color
+                {
+                    [Description("header")]
+                    public static class Header
+                    {
+                        public static string Key { get; set; }
+                    }
+                }
+            }
+
+            [Description("advancedControls")]
+            public static class AdvancedControls
+            {
+                [Description("title")]
+                public static class Title
                 {
                     [Description("header")]
                     public static class Header
@@ -1274,6 +1332,12 @@ public static class WellKnownKeys
 
             [Description("characterOwnerChanged")]
             public static class CharacterOwnerChanged
+            {
+                public static string Key { get; set; }
+            }
+
+            [Description("advancedControlChanged")]
+            public static class AdvancedControlChanged
             {
                 public static string Key { get; set; }
             }

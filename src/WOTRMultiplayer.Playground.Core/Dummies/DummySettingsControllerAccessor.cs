@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using WOTRMultiplayer.Abstractions.Settings;
 using WOTRMultiplayer.Services.Settings;
 
@@ -10,7 +9,7 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
     {
         private readonly Dictionary<string, string> _defaultStringKeys = new()
         {
-            { WellKnownSettings.General.PlayerName.Key, Assembly.GetEntryAssembly().GetName().Name }
+            { WellKnownSettings.General.PlayerName.Key, $"Playground-{Guid.NewGuid()}" }
         };
 
         public void CreateDefaultValue<TValue>(WellKnownSettingKey<TValue> settingKey)

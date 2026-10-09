@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using Kingmaker.Armies.TacticalCombat;
 using Kingmaker.UI.MVVM._PCView.TacticalCombat.Result;
 using Kingmaker.UI.MVVM._VM.TacticalCombat.Result;
 
@@ -28,7 +29,8 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat.Crusades
                 return;
             }
 
-            Main.Multiplayer.OnCrusadeArmyBattleResultsClosed();
+            var isTacticalCombat = TacticalCombatHelper.IsActive;
+            Main.Multiplayer.OnCrusadeArmyBattleResultsClosed(isTacticalCombat);
         }
 
         [HarmonyPatch(typeof(TacticalCombatResultsVM), nameof(TacticalCombatResultsVM.StartManualCombat))]

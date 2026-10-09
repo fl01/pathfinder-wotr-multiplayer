@@ -28,7 +28,8 @@
             NotifyNewGameDifficultyChanged,
             NotifySaveGameChunkCreated,
             NotifySaveGameChunkReceived,
-            NotifySaveGameTransferProgressChanged
+            NotifySaveGameTransferProgressChanged,
+            NotifyAdvancedControlsChanged
         }
 
         public enum Game
@@ -296,7 +297,10 @@
             NotifyMagicHackSpellCreated,
             ClientInvalidUnitTurnStartRequested,
             NotifyArmyCombatTurnSynchronizationRequired,
-            ClientArmyCombatTurnSynchronized
+            ClientArmyCombatTurnSynchronized,
+            ClientDialogCueAnswerSelected,
+            NotifyDialogCueAnswerSelectionDenied,
+            NotifyDialogCueWitnessedByAll
         }
 
         public static class Mods

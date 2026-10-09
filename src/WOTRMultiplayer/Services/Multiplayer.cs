@@ -95,6 +95,7 @@ namespace WOTRMultiplayer.Services
             _multiplayerActorAccessor.Host.Reset();
             _multiplayerActorAccessor.Client.Reset();
             _multiplayerActorAccessor.Client.OnCharacterOwnerChanged = null;
+            _multiplayerActorAccessor.Client.OnFeaturesControlChanged = null;
 
             _lobbyWindowController.Reset();
             UIFactory.DestroyStandaloneLobbyWindow();
@@ -214,16 +215,35 @@ namespace WOTRMultiplayer.Services
             }
         }
 
+        public bool OnBeforeChooseBookCharacter(string cueName, string answerName)
+        {
+            try
+            {
+                if (_multiplayerActorAccessor.Current == null)
+                {
+                    return true;
+                }
+
+                var shouldContinueExecution = _multiplayerActorAccessor.Current.OnBeforeChooseBookCharacter(cueName, answerName);
+                return shouldContinueExecution;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while choosing book character. CueName={CueName}, AnswerName={AnswerName}", cueName, answerName);
+                throw;
+            }
+        }
+
         public void OnAlternateCueAnswerAction(string cueName, string answerName)
         {
             try
             {
-                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                if (!CanControlDialog())
                 {
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.MakeCueAnswerSuggestion(cueName, answerName);
+                _multiplayerActorAccessor.Current.MakeCueAnswerSuggestion(cueName, answerName);
             }
             catch (Exception ex)
             {
@@ -241,7 +261,7 @@ namespace WOTRMultiplayer.Services
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.SendSelectedAnswer();
+                _multiplayerActorAccessor.Host.OnAfterPlayDialogCue();
             }
             catch (Exception ex)
             {
@@ -2402,7 +2422,12 @@ namespace WOTRMultiplayer.Services
 
         public bool CanControlTacticalCombat()
         {
-            return _multiplayerActorAccessor.Current != null && _multiplayerActorAccessor.Host.IsActive;
+            return _multiplayerActorAccessor.Current != null && _multiplayerActorAccessor.Current.HasControlOverFeature(NetworkPlayerControlledFeature.CrusadeArmyCombat);
+        }
+
+        public bool CanControlDialog()
+        {
+            return _multiplayerActorAccessor.Current != null && _multiplayerActorAccessor.Current.HasControlOverFeature(NetworkPlayerControlledFeature.Dialogs);
         }
 
         public void OnGlobalMapSkipDay()
@@ -2625,12 +2650,12 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor.Current == null || !_multiplayerActorAccessor.Host.IsActive)
+                if (!CanControlDialog())
                 {
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnDialogPopupAccepted(networkDialogPopup);
+                _multiplayerActorAccessor.Current.OnDialogPopupAccepted(networkDialogPopup);
             }
             catch (Exception ex)
             {
@@ -2643,12 +2668,12 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor.Current == null || !_multiplayerActorAccessor.Host.IsActive)
+                if (!CanControlDialog())
                 {
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnDialogPopupClosed(networkDialogPopup);
+                _multiplayerActorAccessor.Current.OnDialogPopupClosed(networkDialogPopup);
             }
             catch (Exception ex)
             {
@@ -2863,12 +2888,12 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                if (!CanControlTacticalCombat())
                 {
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnTacticalCombatAccelerationChanged(isAccelerated);
+                _multiplayerActorAccessor.Current.OnTacticalCombatAccelerationChanged(isAccelerated);
             }
             catch (Exception ex)
             {
@@ -2987,16 +3012,18 @@ namespace WOTRMultiplayer.Services
             }
         }
 
-        public void OnCrusadeArmyBattleResultsClosed()
+        public void OnCrusadeArmyBattleResultsClosed(bool isTacticalCombat)
         {
             try
             {
-                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                // same screen is shared to show results of auto-combat (GlobalMap) or after fight (TacticalCombat)
+                var currentFeature = isTacticalCombat ? NetworkPlayerControlledFeature.CrusadeArmyCombat : NetworkPlayerControlledFeature.GlobalMap;
+                if (_multiplayerActorAccessor.Current == null || !_multiplayerActorAccessor.Current.HasControlOverFeature(currentFeature))
                 {
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnCrusadeArmyBattleResultsClosed();
+                _multiplayerActorAccessor.Current.OnCrusadeArmyBattleResultsClosed();
             }
             catch (Exception ex)
             {
@@ -3063,12 +3090,12 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                if (!CanControlTacticalCombat())
                 {
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnTacticalCombatUnitMoveToCommand(tacticalUnitMoveToCommand);
+                _multiplayerActorAccessor.Current.OnTacticalCombatUnitMoveToCommand(tacticalUnitMoveToCommand);
             }
             catch (Exception ex)
             {
@@ -3081,12 +3108,12 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                if (!CanControlTacticalCombat())
                 {
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnTacticalCombatUnitAttackCommand(tacticalUnitAttackCommand);
+                _multiplayerActorAccessor.Current.OnTacticalCombatUnitAttackCommand(tacticalUnitAttackCommand);
             }
             catch (Exception ex)
             {
@@ -3099,12 +3126,12 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                if (!CanControlTacticalCombat())
                 {
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnTacticalCombatUnitUseAbilityCommand(tacticalUnitUseAbilityCommand);
+                _multiplayerActorAccessor.Current.OnTacticalCombatUnitUseAbilityCommand(tacticalUnitUseAbilityCommand);
             }
             catch (Exception ex)
             {
@@ -3117,17 +3144,12 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return true;
-                }
-
-                if (_multiplayerActorAccessor.Client.IsActive)
+                if (!CanControlTacticalCombat())
                 {
                     return false;
                 }
 
-                var canContinue = _multiplayerActorAccessor.Host.OnTacticalCombatTotalDefenseUsed();
+                var canContinue = _multiplayerActorAccessor.Current.OnTacticalCombatTotalDefenseUsed();
                 return canContinue;
             }
             catch (Exception ex)
@@ -3141,17 +3163,12 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor.Current == null)
-                {
-                    return true;
-                }
-
-                if (_multiplayerActorAccessor.Client.IsActive)
+                if (!CanControlTacticalCombat())
                 {
                     return false;
                 }
 
-                var canContinue = _multiplayerActorAccessor.Host.OnTacticalCombatTurnPostponed();
+                var canContinue = _multiplayerActorAccessor.Current.OnTacticalCombatTurnPostponed();
                 return canContinue;
             }
             catch (Exception ex)
@@ -3165,12 +3182,12 @@ namespace WOTRMultiplayer.Services
         {
             try
             {
-                if (_multiplayerActorAccessor.Current == null || _multiplayerActorAccessor.Client.IsActive)
+                if (!CanControlTacticalCombat())
                 {
                     return;
                 }
 
-                _multiplayerActorAccessor.Host.OnTacticalCombatRetreat();
+                _multiplayerActorAccessor.Current.OnTacticalCombatRetreat();
             }
             catch (Exception ex)
             {
