@@ -2629,7 +2629,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     return;
                 }
 
-                _networkExecutionContext.Value = RemoteExecutionContext.CreateLootClosed(networkMapObject.Id);
+                using var context = _networkExecutionContext.Value = RemoteExecutionContext.CreateLootClosed(networkMapObject.Id);
                 interactionPart.OnLootClosed();
                 _logger.LogInformation("Loot Closed actions have been triggered. MapObjectId={MapObjectId}", networkMapObject.Id);
             });
