@@ -524,8 +524,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     if (globalMapEncounter.Seed.HasValue)
                     {
                         var component = encounter.AreaEntrance.Area.GetComponent<CombatRandomEncounterAreaSettings>();
-                        var zone = GlobalMapView.Instance.NaturalSettingsZones.GetWorldPoint(position);
-                        combatRandomEncounterData.RandomCombat = CombatRandomEncountersGenerator.GenerateRandomEncounter(globalMapEncounter.Seed.Value, zone, component, null);
+                        combatRandomEncounterData.RandomCombat = CombatRandomEncountersGenerator.GenerateRandomEncounter(globalMapEncounter.Seed.Value, globalMapEncounter.Zone.Value, component, null);
                     }
 
                     RandomEncountersController.State.Player.StartEncounter(combatRandomEncounterData);

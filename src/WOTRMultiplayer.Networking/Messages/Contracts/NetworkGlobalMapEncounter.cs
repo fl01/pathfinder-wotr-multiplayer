@@ -25,5 +25,9 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
         [ProtoMember(5)]
         [LogMe]
         public bool IsTrader { get; set; }
+
+        [ProtoMember(6)]
+        [LogMe]
+        public string Zone { get; set; }
     }
 }

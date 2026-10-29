@@ -1,4 +1,6 @@
-﻿namespace WOTRMultiplayer.Entities.GlobalMap
+﻿using Kingmaker.Enums;
+
+namespace WOTRMultiplayer.Entities.GlobalMap
 {
     public class NetworkGlobalMapEncounter
     {
@@ -11,5 +13,7 @@
         public NetworkVector3 Position { get; set; }
 
         public bool IsTrader { get; set; }
+
+        public GlobalMapZone? Zone { get; set; }
     }
 }

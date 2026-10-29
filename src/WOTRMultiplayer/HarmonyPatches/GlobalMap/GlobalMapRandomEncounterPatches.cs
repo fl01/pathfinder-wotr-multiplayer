@@ -1,8 +1,13 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Kingmaker.Assets.Controllers.GlobalMap;
+using Kingmaker.Dungeon.Utils;
+using Kingmaker.Enums;
+using Kingmaker.RandomEncounters;
+using Kingmaker.RandomEncounters.Settings;
 using Kingmaker.UI.MVVM._PCView.GlobalMap.Message;
 using Kingmaker.UI.MVVM._VM.GlobalMap.Message;
 using Kingmaker.Utility;
@@ -15,6 +20,19 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
     [HarmonyPatch]
     public class GlobalMapRandomEncounterPatches
     {
+        [HarmonyPatch(typeof(CombatRandomEncountersGenerator), nameof(CombatRandomEncountersGenerator.SelectArmy))]
+        [HarmonyPostfix]
+        public static void CombatRandomEncountersGenerator_SelectArmy_Postfix(PersistentRandom random, GlobalMapZone setting, int cr, ref ArmySettings __result)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            var units = string.Join(";", (__result?.UnitsByCR ?? []).Select(unitCR => $"{unitCR.CR}={{{string.Join(",", unitCR.Units.Select(x => x.name))}}}"));
+            Main.GetLogger<GlobalMapRandomEncounterPatches>().LogInformation("Area Units have been selected. Seed={Seed}, Zone={Zone}, CR={CR}, Units=[{Units}]", random.Value, setting, cr, units);
+        }
+
         [HarmonyPatch(typeof(GlobalMapRandomEncounterView), nameof(GlobalMapRandomEncounterView.BindViewImplementation))]
         [HarmonyTranspiler]
         public static IEnumerable<CodeInstruction> GlobalMapRandomEncounterView_BindViewImplementation_Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -118,6 +136,7 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
             {
                 AvoidanceResult = encounter.AvoidanceCheckResult.ToString(),
                 BlueprintId = encounter.Blueprint.AssetGuid.ToString(),
+                Zone = encounter.RandomCombat?.Zone,
                 Position = encounter.Position?.ToNetworkVector3(),
                 Seed = encounter.RandomCombat?.Seed,
                 IsTrader = encounter.IsTraderRE,
