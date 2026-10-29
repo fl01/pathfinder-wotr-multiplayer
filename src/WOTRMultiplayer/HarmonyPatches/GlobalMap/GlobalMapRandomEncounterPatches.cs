@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Kingmaker.Assets.Controllers.GlobalMap;
+using Kingmaker.Blueprints;
 using Kingmaker.Dungeon.Utils;
 using Kingmaker.Enums;
 using Kingmaker.RandomEncounters;
@@ -31,6 +32,18 @@ namespace WOTRMultiplayer.HarmonyPatches.GlobalMap
 
             var units = string.Join(";", (__result?.UnitsByCR ?? []).Select(unitCR => $"{unitCR.CR}={{{string.Join(",", unitCR.Units.Select(x => x.name))}}}"));
             Main.GetLogger<GlobalMapRandomEncounterPatches>().LogInformation("Area Units have been selected. Seed={Seed}, Zone={Zone}, CR={CR}, Units=[{Units}]", random.Value, setting, cr, units);
+        }
+
+        [HarmonyPatch(typeof(ArmySettings), nameof(ArmySettings.GetRandomUnitInternal), [typeof(int), typeof(int), typeof(UnitRoleFlags), typeof(bool)])]
+        [HarmonyPostfix]
+        public static void ArmySettings_GetRandomUnitInternal_Postfix(int seed, int targetCR, UnitRoleFlags flags, bool first, ref BlueprintUnit __result)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            Main.GetLogger<GlobalMapRandomEncounterPatches>().LogInformation("Selecting unit for random encounter. Seed={Seed}, TargetCR={TargetCR}, Flags={Flags}, IsFirst={IsFirst}, Unit={Unit}", seed, targetCR, flags, first, __result?.name);
         }
 
         [HarmonyPatch(typeof(GlobalMapRandomEncounterView), nameof(GlobalMapRandomEncounterView.BindViewImplementation))]
