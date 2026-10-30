@@ -3,7 +3,14 @@
 This document contains known issues, causes, and fixes for the mod.
 
 ## Table of contents
+- [P2P and GameCodes](#p2p-and-gamecodes)
 - [UnityModManager & Harmony Issues](#umm--harmony-issues)
+
+
+## P2P and GameCodes
+
+### General troubleshooting of connection
+Checkt this [issue](https://github.com/fl01/pathfinder-wotr-multiplayer/issues/39)
 
 ## UMM & Harmony Issues
 
