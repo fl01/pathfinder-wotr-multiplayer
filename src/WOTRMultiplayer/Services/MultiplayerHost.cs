@@ -1279,6 +1279,12 @@ namespace WOTRMultiplayer.Services
 
         public NetworkAIAction OnAfterAISelectedAction(NetworkAIAction aiAction)
         {
+            if (Game.Combat != null && Game.Combat.Turn == null && Game.Combat.Stage != NetworkCombatStage.Running)
+            {
+                Logger.LogWarning("Skipping AI action sync as combat has not yet fully started. UnitId={UnitId}, Action={Action}", aiAction.UnitId, aiAction.ActionType);
+                return null;
+            }
+
             var message = new NotifyAIActionSelected
             {
                 Action = Mapper.Map<Networking.Messages.Contracts.NetworkAIAction>(aiAction)

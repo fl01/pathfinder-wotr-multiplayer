@@ -35,7 +35,7 @@ namespace WOTRMultiplayer.Abstractions.GameInteraction
 
         void DelayCombatTurn(string unitId, string targetUnitId);
 
-        Task UpdateCombatStateAsync(NetworkCombatState networkCombatState, List<NetworkAreaEffect> areaEffects, bool requiresFullUpdate);
+        Task UpdateCombatStateAsync(NetworkCombatState networkCombatState, List<NetworkAreaEffect> areaEffects, bool isFullUpdate);
 
         void InitializeCrusadeArmyCombat();
 

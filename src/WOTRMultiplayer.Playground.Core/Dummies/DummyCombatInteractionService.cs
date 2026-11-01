@@ -97,7 +97,7 @@ namespace WOTRMultiplayer.Playground.Core.Dummies
             return false;
         }
 
-        public Task UpdateCombatStateAsync(NetworkCombatState networkCombatState, List<NetworkAreaEffect> areaEffects, bool requiresFullUpdate)
+        public Task UpdateCombatStateAsync(NetworkCombatState networkCombatState, List<NetworkAreaEffect> areaEffects, bool isFullUpdate)
         {
             return Task.CompletedTask;
         }

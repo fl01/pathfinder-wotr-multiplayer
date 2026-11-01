@@ -66,6 +66,30 @@ namespace WOTRMultiplayer.HarmonyPatches.Combat
             return canContinue;
         }
 
+        [HarmonyPatch(typeof(CombatController), nameof(CombatController.StartRound))]
+        [HarmonyPrefix]
+        public static void CombatController_StartRound_Prefix()
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            Main.GetLogger<CombatControllerPatches>().LogInformation("Starting combat round");
+        }
+
+        [HarmonyPatch(typeof(CombatController), nameof(CombatController.ChooseNextUnit))]
+        [HarmonyPostfix]
+        public static void CombatController_ChooseNextUnit_Postfix(CombatController __instance)
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            Main.GetLogger<CombatControllerPatches>().LogInformation("Next unit chosen. UnitId={UnitId}", __instance.m_NextUnit?.UniqueId);
+        }
+
         [HarmonyPatch(typeof(CombatController), nameof(CombatController.StartTurn))]
         [HarmonyPrefix]
         public static bool CombatController_StartTurn_Prefix(CombatController __instance, UnitEntityData unit)

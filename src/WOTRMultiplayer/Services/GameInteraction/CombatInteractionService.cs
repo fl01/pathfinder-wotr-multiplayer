@@ -258,7 +258,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return state;
         }
 
-        public Task UpdateCombatStateAsync(NetworkCombatState networkCombatState, List<NetworkAreaEffect> networkAreaEffects, bool requiresFullUpdate)
+        public Task UpdateCombatStateAsync(NetworkCombatState networkCombatState, List<NetworkAreaEffect> networkAreaEffects, bool isFullUpdate)
         {
             var taskCompletion = new TaskCompletionSource<bool>();
             _mainThreadAccessor.Post(() =>
@@ -266,44 +266,41 @@ namespace WOTRMultiplayer.Services.GameInteraction
                 try
                 {
                     _logger.LogInformation("Updating combat state");
-                    var requiresExtraLog = false;
                     var turnBasedController = Game.Instance.TurnBasedCombatController;
-                    if (requiresFullUpdate && turnBasedController.m_HasSurpriseRound != networkCombatState.HasSurpriseRound)
+                    if (isFullUpdate)
                     {
-                        _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.Combat.Start.SurpriseOverride.Key, CombatTextSeverity.Common, turnBasedController.m_HasSurpriseRound, networkCombatState.HasSurpriseRound);
-                        _logger.LogWarning("Surprise round difference synced. PreviousSurpriseState={PreviousSurpriseState}, NewSurpriseState={NewSurpriseState}", turnBasedController.m_HasSurpriseRound, networkCombatState.HasSurpriseRound);
-                        turnBasedController.m_HasSurpriseRound = networkCombatState.HasSurpriseRound;
-                        turnBasedController.m_Units = [.. turnBasedController.m_Units.OrderBy(u => u.Unit.GetTimeToNextTurn())];
-                        requiresExtraLog = true;
-                    }
+                        var shouldLogRound = false;
 
-                    if (requiresFullUpdate && Game.Instance.TurnBasedCombatController.RoundNumber != networkCombatState.RoundNumber)
-                    {
-                        _logger.LogWarning("RoundNumber difference synced. PreviousRoundNumber={PreviousRoundNumber}, NewRoundNumber={NewRoundNumber}", turnBasedController.RoundNumber, networkCombatState.RoundNumber);
-                        turnBasedController.RoundNumber = networkCombatState.RoundNumber;
-                        var initiativeTracker = Game.Instance.UI?.TurnBasedUI?.m_InitiativeTrackerVm;
-                        if (initiativeTracker != null)
+                        if (turnBasedController.m_HasSurpriseRound != networkCombatState.HasSurpriseRound)
                         {
-                            initiativeTracker.RoundCounter.Value = networkCombatState.RoundNumber;
-                            initiativeTracker.m_NeedUpdate = true;
+                            _playerNotificationService.AddCombatText(WellKnownKeys.GameNotifications.Combat.Start.SurpriseOverride.Key, CombatTextSeverity.Common, turnBasedController.m_HasSurpriseRound, networkCombatState.HasSurpriseRound);
+                            _logger.LogWarning("Surprise round difference synced. From={From}, To={To}", turnBasedController.m_HasSurpriseRound, networkCombatState.HasSurpriseRound);
+                            turnBasedController.m_HasSurpriseRound = networkCombatState.HasSurpriseRound;
+                            shouldLogRound = true;
                         }
 
-                        requiresExtraLog = true;
+                        if (Game.Instance.TurnBasedCombatController.RoundNumber != networkCombatState.RoundNumber)
+                        {
+                            _logger.LogWarning("RoundNumber difference synced. From={From}, To={To}", turnBasedController.RoundNumber, networkCombatState.RoundNumber);
+                            turnBasedController.RoundNumber = networkCombatState.RoundNumber;
+                            shouldLogRound = true;
+                        }
+
+                        if (shouldLogRound)
+                        {
+                            Game.Instance.TurnBasedCombatController.LogRound();
+                        }
                     }
 
-                    UpdateCombatState(networkCombatState, requiresFullUpdate);
+                    UpdateCombatState(networkCombatState, isFullUpdate);
 
                     TriggerAreaEffects(networkAreaEffects);
-
-                    if (requiresExtraLog)
-                    {
-                        Game.Instance.TurnBasedCombatController.LogRound();
-                    }
 
                     taskCompletion.SetResult(true);
                 }
                 catch (Exception ex)
                 {
+                    taskCompletion.SetResult(false);
                     _logger.LogError(ex, "Error while updating combat state");
                     throw;
                 }

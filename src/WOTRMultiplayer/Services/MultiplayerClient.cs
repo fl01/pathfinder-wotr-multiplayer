@@ -290,13 +290,12 @@ namespace WOTRMultiplayer.Services
 
         public bool CanContinueCombat()
         {
-            if (Game.Combat == null)
+            if (Game.Combat == null || Game.Combat.Stage != NetworkCombatStage.Running)
             {
                 return false;
             }
 
-            var canContinue = Game.Combat.Stage == NetworkCombatStage.Running;
-            return canContinue;
+            return true;
         }
 
         public void OnBeforeTryRollRestRandomEncounter()
@@ -1559,12 +1558,7 @@ namespace WOTRMultiplayer.Services
             try
             {
                 await WaitWhileTrue(() => Game.Combat?.Turn == null, "Turn has not been initialized yet");
-
-                var combatState = Mapper.Map<NetworkCombatState>(message.CombatState);
-                var areaEffects = Mapper.Map<List<NetworkAreaEffect>>(message.TriggeredAreaEffects);
-                Game.Combat.TriggeredAreaEffects.AddRange(areaEffects);
-
-                await CombatInteraction.UpdateCombatStateAsync(combatState, areaEffects, false);
+                await UpdateCombatStateAsync(message.CombatState, message.TriggeredAreaEffects, isFullUpdate: false);
 
                 ValueGenerator.ResetSeededGenerators(Random.IdentifierLifetime.CombatTurn);
 
@@ -1576,6 +1570,18 @@ namespace WOTRMultiplayer.Services
                 Logger.LogError(ex, "Unable to sync combat turn");
                 throw;
             }
+        }
+
+        private async Task UpdateCombatStateAsync(Networking.Messages.Contracts.NetworkCombatState networkCombatState, List<Networking.Messages.Contracts.NetworkAreaEffect> networkAreaEffects, bool isFullUpdate)
+        {
+            var combatState = Mapper.Map<NetworkCombatState>(networkCombatState);
+            var areaEffects = Mapper.Map<List<NetworkAreaEffect>>(networkAreaEffects);
+            lock (ActionLock)
+            {
+                Game.Combat.TriggeredAreaEffects.AddRange(areaEffects);
+            }
+
+            await CombatInteraction.UpdateCombatStateAsync(combatState, areaEffects, isFullUpdate);
         }
 
         private async void OnNotifyCombatTurnStarted(long playerId, NotifyCombatTurnStarted message)
@@ -1621,11 +1627,7 @@ namespace WOTRMultiplayer.Services
             Game.Combat.Seed = message.CombatSeed;
             Logger.LogInformation("Combat seed has been configured. Seed={Seed}", Game.Combat.Seed);
 
-            var combatState = Mapper.Map<NetworkCombatState>(message.State);
-            var areaEffects = Mapper.Map<List<NetworkAreaEffect>>(message.TriggeredAreaEffects);
-            Game.Combat.TriggeredAreaEffects.AddRange(areaEffects);
-
-            await CombatInteraction.UpdateCombatStateAsync(combatState, areaEffects, true);
+            await UpdateCombatStateAsync(message.State, message.TriggeredAreaEffects, isFullUpdate: true);
 
             var confirmation = new ClientCombatInitializationCompleted();
             Send(confirmation);
