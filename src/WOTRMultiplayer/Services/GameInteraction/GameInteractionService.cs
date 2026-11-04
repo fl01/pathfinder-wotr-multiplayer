@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoMapper;
 using Kingmaker;
 using Kingmaker.AreaLogic.AlushenyrraIsles;
 using Kingmaker.Blueprints;
@@ -106,6 +107,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         private readonly float _maxLootableEntityDistance = 20.Feet().Meters;
 
         private readonly ILogger<GameInteractionService> _logger;
+        private readonly IMapper _mapper;
         private readonly IUIAccessor _uiAccessor;
         private readonly IMainThreadAccessor _mainThreadAccessor;
         private readonly IEquipmentDefinitions _equipmentDefinitions;
@@ -123,6 +125,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
 
         public GameInteractionService(
             ILogger<GameInteractionService> logger,
+            IMapper mapper,
             IUIAccessor uiAccessor,
             IMainThreadAccessor mainThreadAccessor,
             IEquipmentDefinitions equipmentDefinitions,
@@ -131,6 +134,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             IGameStateLookupService gameStateLookupService)
         {
             _logger = logger;
+            _mapper = mapper;
             _uiAccessor = uiAccessor;
             _mainThreadAccessor = mainThreadAccessor;
             _equipmentDefinitions = equipmentDefinitions;
@@ -144,9 +148,9 @@ namespace WOTRMultiplayer.Services.GameInteraction
             var camping = Game.Instance.Player.Camping;
             var state = new NetworkCampingState
             {
-                PotionBlueprintRecipeId = camping.SelectedPotion?.Item.AssetGuid.ToString(),
                 CookingBlueprintRecipeId = camping.CookingRecipe?.AssetGuid.ToString(),
-                ScrollBlueprintRecipeId = camping.SelectedScroll?.Item.AssetGuid.ToString(),
+                SelectedPotion = _mapper.Map<NetworkCraftItem>(camping.SelectedPotion),
+                SelectedScroll = _mapper.Map<NetworkCraftItem>(camping.SelectedScroll),
                 AutotuneIterationsStatus = camping.AutotuneRestIterations,
                 IterationsCount = camping.RestIterationsCount
             };
@@ -1249,8 +1253,8 @@ namespace WOTRMultiplayer.Services.GameInteraction
                     var campingState = Game.Instance.Player.Camping;
 
                     UpdateCookingRecipe(campingState, networkCampingState.CookingBlueprintRecipeId);
-                    UpdateAlchemistRecipe(campingState, networkCampingState.PotionBlueprintRecipeId);
-                    UpdateScrollScribingRecipe(campingState, networkCampingState.ScrollBlueprintRecipeId);
+                    UpdateAlchemistRecipe(campingState, networkCampingState.SelectedPotion);
+                    UpdateScrollScribingRecipe(campingState, networkCampingState.SelectedScroll);
 
                     campingState.RestIterationsCount = networkCampingState.IterationsCount;
                     campingState.m_AutoTuneRestIterations = networkCampingState.AutotuneIterationsStatus;
@@ -3600,14 +3604,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             return (item, vendorAction);
         }
 
-        private void ActivateTrap(TrapObjectData trapObjectData, UnitEntityData triggeredUnit)
-        {
-            EventBus.RaiseEvent<ITrapActivationHandler>(x => x.HandleTrapActivation(triggeredUnit, trapObjectData.View));
-            trapObjectData.RunTrapActions();
-            trapObjectData.Deactivate(false);
-        }
-
-        private CraftItemInfo GetCampingCraftItemInfo(UnitEntityData crafter, UsableItemType itemType, string itemBlueprintId)
+        private CraftItemInfo GetCampingCraftItemInfo(UnitEntityData crafter, UsableItemType itemType, NetworkCraftItem networkCraftItem)
         {
             if (crafter == null)
             {
@@ -3615,22 +3612,17 @@ namespace WOTRMultiplayer.Services.GameInteraction
             }
 
             var craftingRecipes = Game.Instance.BlueprintRoot.CraftRoot.CollectCraftList(crafter, itemType);
-            var recipe = craftingRecipes.FirstOrDefault(c => string.Equals(c.Info.Item.AssetGuid.ToString(), itemBlueprintId, StringComparison.OrdinalIgnoreCase));
+            var recipe = craftingRecipes.FirstOrDefault(c => (int?)c.Info.Metamagic?.MetamagicMask == networkCraftItem.MetamagicMask
+                && string.Equals(c.Info.Item.AssetGuid.ToString(), networkCraftItem.BlueprintId, StringComparison.OrdinalIgnoreCase));
 
             return recipe?.Info;
         }
 
-        private void UpdateScrollScribingRecipe(CampingState campingState, string scrollItemBlueprintId)
+        private void UpdateScrollScribingRecipe(CampingState campingState, NetworkCraftItem networkCraftItem)
         {
-            if (string.IsNullOrEmpty(scrollItemBlueprintId))
+            if (networkCraftItem == null)
             {
-                campingState.SelectedScroll = null;
-                return;
-            }
-
-            if (campingState.SelectedScroll != null && string.Equals(campingState.SelectedScroll.Item.AssetGuid.ToString(), scrollItemBlueprintId))
-            {
-                _logger.LogInformation("Same camping scroll scribing recipe is already selected, skipping updates. BlueprintId={BlueprintId}", scrollItemBlueprintId);
+                campingState.SelectedPotion = null;
                 return;
             }
 
@@ -3638,32 +3630,29 @@ namespace WOTRMultiplayer.Services.GameInteraction
             var crafter = campingState.GetCharacterByRoleType(roleType);
             if (crafter == null)
             {
+                _logger.LogError("Missing scroll crafter");
                 return;
             }
 
-            var recipe = GetCampingCraftItemInfo(crafter, UsableItemType.Scroll, scrollItemBlueprintId);
+            var recipe = GetCampingCraftItemInfo(crafter, UsableItemType.Scroll, networkCraftItem);
             if (recipe == null)
             {
-                _logger.LogError("Unable update camping scroll scribing recipe due to missing blueprint id. BlueprintId={BlueprintId}", scrollItemBlueprintId);
+                _logger.LogError("Unable update camping scroll scribing recipe due to missing blueprint id. BlueprintId={BlueprintId}, MetamagicMask={MetamagicMask}", networkCraftItem.BlueprintId, networkCraftItem.MetamagicMask);
                 return;
             }
 
             campingState.SelectedScroll = recipe;
 
-            UpdateCraftingUI(roleType);
+            UpdateCraftingUI(CampingRoleType.ScrollScribe);
+            _uiAccessor.RestView?.m_ScribesRoles.m_ScrollsIconButton.Interactable = false;
+            _logger.LogInformation("Scroll scribing has been updated. BlueprintId={BlueprintId}, MetamagicMask={MetamagicMask}", recipe.Item?.AssetGuid.ToString(), recipe.Metamagic?.MetamagicMask);
         }
 
-        private void UpdateAlchemistRecipe(CampingState campingState, string potionBlueprintRecipeId)
+        private void UpdateAlchemistRecipe(CampingState campingState, NetworkCraftItem networkCraftItem)
         {
-            if (string.IsNullOrEmpty(potionBlueprintRecipeId))
+            if (networkCraftItem == null)
             {
                 campingState.SelectedPotion = null;
-                return;
-            }
-
-            if (campingState.SelectedPotion != null && string.Equals(campingState.SelectedPotion.Item.AssetGuid.ToString(), potionBlueprintRecipeId))
-            {
-                _logger.LogInformation("Same camping alchemist potion recipe is already selected, skipping updates. BlueprintId={BlueprintId}", potionBlueprintRecipeId);
                 return;
             }
 
@@ -3671,19 +3660,21 @@ namespace WOTRMultiplayer.Services.GameInteraction
             var crafter = campingState.GetCharacterByRoleType(roleType);
             if (crafter == null)
             {
+                _logger.LogError("Missing potion crafter");
                 return;
             }
 
-            var recipe = GetCampingCraftItemInfo(crafter, UsableItemType.Potion, potionBlueprintRecipeId);
+            var recipe = GetCampingCraftItemInfo(crafter, UsableItemType.Potion, networkCraftItem);
             if (recipe == null)
             {
-                _logger.LogError("Unable update camping alchemist potion recipe due to missing blueprint id. BlueprintId={BlueprintId}", potionBlueprintRecipeId);
+                _logger.LogError("Unable update camping alchemist potion recipe due to missing blueprint id. BlueprintId={BlueprintId}", networkCraftItem.BlueprintId);
                 return;
             }
 
             campingState.SelectedPotion = recipe;
 
-            UpdateCraftingUI(roleType);
+            UpdateCraftingUI(CampingRoleType.Alchemist);
+            _logger.LogInformation("Potion crafting has been updated. BlueprintId={BlueprintId}", recipe.Item?.AssetGuid.ToString());
         }
 
         private void UpdateCraftingUI(CampingRoleType campingRoleType)

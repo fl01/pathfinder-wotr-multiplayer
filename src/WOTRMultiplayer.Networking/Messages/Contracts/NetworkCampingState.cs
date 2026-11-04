@@ -12,11 +12,11 @@ namespace WOTRMultiplayer.Networking.Messages.Contracts
 
         [ProtoMember(2)]
         [LogMe]
-        public string PotionBlueprintRecipeId { get; set; }
+        public NetworkCraftItem SelectedPotion { get; set; }
 
         [ProtoMember(3)]
         [LogMe]
-        public string ScrollBlueprintRecipeId { get; set; }
+        public NetworkCraftItem SelectedScroll { get; set; }
 
         [ProtoMember(4)]
         [LogMe]

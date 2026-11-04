@@ -5,6 +5,7 @@ using AutoMapper;
 using Kingmaker.Armies.TacticalCombat.Parts;
 using Kingmaker.Blueprints.Area;
 using Kingmaker.Blueprints.Root;
+using Kingmaker.Craft;
 using Kingmaker.Dungeon;
 using Kingmaker.EntitySystem;
 using Kingmaker.EntitySystem.Entities;
@@ -25,6 +26,7 @@ using WOTRMultiplayer.Entities.AreaEffects;
 using WOTRMultiplayer.Entities.Combat;
 using WOTRMultiplayer.Entities.Equipment;
 using WOTRMultiplayer.Entities.GlobalMap.Kingdom;
+using WOTRMultiplayer.Entities.Items;
 using WOTRMultiplayer.Entities.MapObjects;
 using WOTRMultiplayer.Entities.NewGame;
 using WOTRMultiplayer.Entities.SpellbookManagement;
@@ -106,6 +108,25 @@ namespace WOTRMultiplayer.Config.Mapping
 
             CreateMap<UnitPartTacticalCombat, NetworkUnitPartTacticalCombat>().ConstructUsing(x => Create(x))
                 .ForAllMembers(x => x.Ignore());
+
+            CreateMap<CraftItemInfo, NetworkCraftItem>().ConstructUsing(x => Create(x))
+                .ForAllMembers(x => x.Ignore());
+        }
+
+        private NetworkCraftItem Create(CraftItemInfo craftItemInfo)
+        {
+            if (craftItemInfo == null)
+            {
+                return null;
+            }
+
+            var item = new NetworkCraftItem
+            {
+                BlueprintId = craftItemInfo.Item?.AssetGuid.ToString(),
+                MetamagicMask = (int?)craftItemInfo.Metamagic?.MetamagicMask
+            };
+
+            return item;
         }
 
         private NetworkUnitPartTacticalCombat Create(UnitPartTacticalCombat unitPartTacticalCombat)
