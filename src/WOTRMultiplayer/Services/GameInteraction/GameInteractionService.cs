@@ -3622,7 +3622,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
         {
             if (networkCraftItem == null)
             {
-                campingState.SelectedPotion = null;
+                campingState.SelectedScroll = null;
                 return;
             }
 
