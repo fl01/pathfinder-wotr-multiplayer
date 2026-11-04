@@ -3630,7 +3630,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
             var crafter = campingState.GetCharacterByRoleType(roleType);
             if (crafter == null)
             {
-                _logger.LogError("Missing scroll crafter");
                 return;
             }
 
@@ -3660,7 +3659,6 @@ namespace WOTRMultiplayer.Services.GameInteraction
             var crafter = campingState.GetCharacterByRoleType(roleType);
             if (crafter == null)
             {
-                _logger.LogError("Missing potion crafter");
                 return;
             }
 
@@ -3674,6 +3672,7 @@ namespace WOTRMultiplayer.Services.GameInteraction
             campingState.SelectedPotion = recipe;
 
             UpdateCraftingUI(CampingRoleType.Alchemist);
+            _uiAccessor.RestView?.m_AlchemyRoles.m_PotionIconButton.Interactable = false;
             _logger.LogInformation("Potion crafting has been updated. BlueprintId={BlueprintId}", recipe.Item?.AssetGuid.ToString());
         }
 
