@@ -139,7 +139,7 @@ namespace WOTRMultiplayer.Networking.Channels.TCP
                     _logger.LogWarning(args.Message);
                     break;
                 default:
-                    _logger.LogInformation(args.Message);
+                    _logger.LogDebug(args.Message);
                     break;
             }
         }
