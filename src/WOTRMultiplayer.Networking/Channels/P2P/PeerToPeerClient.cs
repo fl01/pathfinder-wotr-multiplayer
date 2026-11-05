@@ -111,7 +111,7 @@ namespace WOTRMultiplayer.Networking.Channels.P2P
         {
             try
             {
-                _logger.LogInformation("Sending NatIntroduce request. Host={Host}, Port={Port}, SessionId={SessionId}", host, port, sessionId);
+                _logger.LogInformation("Sending NatIntroduce request. SessionId={SessionId}", sessionId);
                 _net.NatPunchModule.SendNatIntroduceRequest(host, port, sessionId);
             }
             catch (Exception ex)
