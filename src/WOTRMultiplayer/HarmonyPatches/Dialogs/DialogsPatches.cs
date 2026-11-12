@@ -13,6 +13,7 @@ using Kingmaker.Controllers.Units;
 using Kingmaker.Designers.EventConditionActionSystem.Actions;
 using Kingmaker.DialogSystem.Blueprints;
 using Kingmaker.EntitySystem.Entities;
+using Kingmaker.Globalmap.View;
 using Kingmaker.Localization;
 using Kingmaker.UI.MVVM._VM.Dialog.Dialog;
 using Kingmaker.UnitLogic.Interaction;
@@ -60,6 +61,40 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
             }
 
             _isScriptedDialog.Value = unitInteraction is SpawnerInteractionPart.Wrapper wrapper && wrapper.Source is SpawnerInteractionDialog;
+        }
+
+        [HarmonyPatch(typeof(GlobalMapView), nameof(GlobalMapView.EnterLocation))]
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> GlobalMapView_EnterLocation_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var target = PatchesUtils.GetTranspilerTarget(MethodBase.GetCurrentMethod());
+            var lookFor = AccessTools.Method(typeof(DialogController), nameof(DialogController.StartDialogWithoutTarget));
+            var replaceWith = AccessTools.Method(typeof(DialogsPatches), nameof(DialogsPatches.OnLocationBookEvent));
+            var matcher = new CodeMatcher(instructions);
+            var match = matcher.SearchForward(x => x.Calls(lookFor));
+            if (match.IsInvalid)
+            {
+                Main.GetLogger<DialogsPatches>().LogError("Transpiler has not been applied. Target={Target}", target);
+                return instructions;
+            }
+
+            var newInstructions = new List<CodeInstruction>()
+            {
+                new(OpCodes.Call, replaceWith),
+            };
+            match = match.Advance(-1).Insert(newInstructions);
+            Main.GetLogger<DialogsPatches>().LogDebug("Transpiler has been applied. Target={Target}", target);
+            return matcher.Instructions();
+        }
+
+        private static void OnLocationBookEvent()
+        {
+            if (!Main.Multiplayer.IsActive)
+            {
+                return;
+            }
+
+            _isScriptedDialog.Value = true;
         }
 
         [HarmonyPatch(typeof(StartDialog), nameof(StartDialog.RunAction))]
@@ -148,7 +183,8 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
                 return;
             }
 
-            if (__instance.PlayingBookPage)
+            // book events are constructed from multiple PlayCue calls to load different pages. DialogController.CurrentCue is the "real" cue
+            if (__instance.PlayingBookPage && __instance.CurrentCue == cue)
             {
                 var dialog = Game.Instance.DialogController.Dialog;
                 var networkDialog = new NetworkDialog
@@ -156,6 +192,7 @@ namespace WOTRMultiplayer.HarmonyPatches.Dialogs
                     Id = dialog.AssetGuid.ToString(),
                     Name = dialog.name
                 };
+
                 Main.Multiplayer.OnAfterCueShow(networkDialog, cue.name, false);
                 return;
             }

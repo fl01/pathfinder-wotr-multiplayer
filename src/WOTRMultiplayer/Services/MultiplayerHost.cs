@@ -319,7 +319,7 @@ namespace WOTRMultiplayer.Services
                 || Game.DialogState.IsSelectingAnswer
                 || GetPlayersWhoHaveNotSeenCueYet(Game.DialogState.CurrentCueName).Count > 0)
             {
-                Logger.LogWarning("Invalid dialog state to make answer suggestions");
+                Logger.LogWarning("Invalid dialog state to make answer suggestions. Cue={Cue}, Answer={Answer}", cueName, answerName);
                 return;
             }
 
