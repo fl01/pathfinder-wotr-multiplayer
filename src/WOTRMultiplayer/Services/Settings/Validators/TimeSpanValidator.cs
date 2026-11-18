@@ -13,8 +13,7 @@ namespace WOTRMultiplayer.Services.Settings.Validators
             @"hh\:mm\:ss",
             @"hh\:mm\:ss\.f",
             @"hh\:mm\:ss\.ff",
-            @"hh\:mm\:ss\.fff",
-            @"hh\:mm\:ss\.ffff"
+            @"hh\:mm\:ss\.fff"
         ];
 
         public TimeSpanValidator()

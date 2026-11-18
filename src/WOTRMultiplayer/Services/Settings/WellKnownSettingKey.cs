@@ -1,4 +1,6 @@
-﻿namespace WOTRMultiplayer.Services.Settings
+﻿using System;
+
+namespace WOTRMultiplayer.Services.Settings
 {
     public class WellKnownSettingKey<T>
     {
@@ -11,14 +13,13 @@
             DefaultValue = defaultValue;
         }
 
-        public static implicit operator WellKnownSettingKey<string>(WellKnownSettingKey<T> value)
+        public WellKnownSettingKey<string> AsStringSetting()
         {
-            var settingAsString = new WellKnownSettingKey<string>(value.DefaultValue?.ToString())
+            var defaultValue = DefaultValue is TimeSpan ts ? ts.ToString(@"hh\:mm\:ss\.fff") : DefaultValue?.ToString();
+            return new WellKnownSettingKey<string>(defaultValue)
             {
-                Key = value.Key
+                Key = Key
             };
-
-            return settingAsString;
         }
     }
 }

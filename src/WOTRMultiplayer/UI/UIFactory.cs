@@ -1046,49 +1046,49 @@ namespace WOTRMultiplayer.UI
             yield return CreateStringInputSetting(
                 WellKnownKeys.Settings.DangerZone.DefaultForcedPauseTimeout.Title.Key,
                 WellKnownKeys.Settings.DangerZone.DefaultForcedPauseTimeout.Tooltip.Key,
-                WellKnownSettings.DangerZone.DefaultForcedPauseTimeout,
+                WellKnownSettings.DangerZone.DefaultForcedPauseTimeout.AsStringSetting(),
                 new TimeSpanValidator(),
                 TimeSpanValidator.MaxLength,
                 isMultiplayerOff);
             yield return CreateStringInputSetting(
                 WellKnownKeys.Settings.DangerZone.RestEncounterForcedPauseTimeout.Title.Key,
                 WellKnownKeys.Settings.DangerZone.RestEncounterForcedPauseTimeout.Tooltip.Key,
-                WellKnownSettings.DangerZone.RestEncounterForcedPauseTimeout,
+                WellKnownSettings.DangerZone.RestEncounterForcedPauseTimeout.AsStringSetting(),
                 new TimeSpanValidator(),
                 TimeSpanValidator.MaxLength,
                 isMultiplayerOff);
             yield return CreateStringInputSetting(
                 WellKnownKeys.Settings.DangerZone.RestEncounterSyncTimeout.Title.Key,
                 WellKnownKeys.Settings.DangerZone.RestEncounterSyncTimeout.Tooltip.Key,
-                WellKnownSettings.DangerZone.RestEncounterSyncTimeout,
+                WellKnownSettings.DangerZone.RestEncounterSyncTimeout.AsStringSetting(),
                 new TimeSpanValidator(),
                 TimeSpanValidator.MaxLength,
                 isMultiplayerOff);
             yield return CreateStringInputSetting(
                 WellKnownKeys.Settings.DangerZone.NetworkAwaiterTimeout.Title.Key,
                 WellKnownKeys.Settings.DangerZone.NetworkAwaiterTimeout.Tooltip.Key,
-                WellKnownSettings.DangerZone.NetworkAwaiterTimeout,
+                WellKnownSettings.DangerZone.NetworkAwaiterTimeout.AsStringSetting(),
                 new TimeSpanValidator(),
                 TimeSpanValidator.MaxLength,
                 isMultiplayerOff);
             yield return CreateStringInputSetting(
                 WellKnownKeys.Settings.DangerZone.CombatTurnDelayForAI.Title.Key,
                 WellKnownKeys.Settings.DangerZone.CombatTurnDelayForAI.Tooltip.Key,
-                WellKnownSettings.DangerZone.CombatTurnDelayForAI,
+                WellKnownSettings.DangerZone.CombatTurnDelayForAI.AsStringSetting(),
                 new TimeSpanValidator(),
                 TimeSpanValidator.MaxLength,
                 isMultiplayerOff);
             yield return CreateStringInputSetting(
                 WellKnownKeys.Settings.DangerZone.PlayerTurnEndDelay.Title.Key,
                 WellKnownKeys.Settings.DangerZone.PlayerTurnEndDelay.Tooltip.Key,
-                WellKnownSettings.DangerZone.PlayerTurnEndDelay,
+                WellKnownSettings.DangerZone.PlayerTurnEndDelay.AsStringSetting(),
                 new TimeSpanValidator(),
                 TimeSpanValidator.MaxLength,
                 isMultiplayerOff);
             yield return CreateStringInputSetting(
                 WellKnownKeys.Settings.DangerZone.CombatPauseCooldown.Title.Key,
                 WellKnownKeys.Settings.DangerZone.CombatPauseCooldown.Tooltip.Key,
-                WellKnownSettings.DangerZone.CombatPauseCooldown,
+                WellKnownSettings.DangerZone.CombatPauseCooldown.AsStringSetting(),
                 new TimeSpanValidator(),
                 TimeSpanValidator.MaxLength,
                 isMultiplayerOff);
@@ -1102,14 +1102,14 @@ namespace WOTRMultiplayer.UI
             yield return CreateStringInputSetting(
                 WellKnownKeys.Settings.DangerZone.LocalUnitDeathNotificationDelay.Title.Key,
                 WellKnownKeys.Settings.DangerZone.LocalUnitDeathNotificationDelay.Tooltip.Key,
-                WellKnownSettings.DangerZone.LocalUnitDeathNotificationDelay,
+                WellKnownSettings.DangerZone.LocalUnitDeathNotificationDelay.AsStringSetting(),
                 new TimeSpanValidator(),
                 TimeSpanValidator.MaxLength,
                 isMultiplayerOff);
             yield return CreateStringInputSetting(
                 WellKnownKeys.Settings.DangerZone.RemoteUnitDeathProcessingDelay.Title.Key,
                 WellKnownKeys.Settings.DangerZone.RemoteUnitDeathProcessingDelay.Tooltip.Key,
-                WellKnownSettings.DangerZone.RemoteUnitDeathProcessingDelay,
+                WellKnownSettings.DangerZone.RemoteUnitDeathProcessingDelay.AsStringSetting(),
                 new TimeSpanValidator(),
                 TimeSpanValidator.MaxLength,
                 isMultiplayerOff);

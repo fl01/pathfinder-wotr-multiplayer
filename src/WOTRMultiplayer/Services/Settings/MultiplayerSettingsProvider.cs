@@ -41,16 +41,16 @@ namespace WOTRMultiplayer.Services.Settings
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.Miscellaneous.MaxConnectionHistoryRecords);
 
             // danger zone
-            _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.DefaultForcedPauseTimeout);
-            _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.RestEncounterForcedPauseTimeout);
-            _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.NetworkAwaiterTimeout);
-            _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.RestEncounterSyncTimeout);
-            _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.CombatTurnDelayForAI);
-            _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.PlayerTurnEndDelay);
-            _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.CombatPauseCooldown);
+            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.DangerZone.DefaultForcedPauseTimeout.AsStringSetting());
+            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.DangerZone.RestEncounterForcedPauseTimeout.AsStringSetting());
+            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.DangerZone.NetworkAwaiterTimeout.AsStringSetting());
+            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.DangerZone.RestEncounterSyncTimeout.AsStringSetting());
+            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.DangerZone.CombatTurnDelayForAI.AsStringSetting());
+            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.DangerZone.PlayerTurnEndDelay.AsStringSetting());
+            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.DangerZone.CombatPauseCooldown.AsStringSetting());
             _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.DangerZone.SaveGameChunkSize);
-            _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.LocalUnitDeathNotificationDelay);
-            _settingsControllerAccessor.CreateDefaultValue<string>(WellKnownSettings.DangerZone.RemoteUnitDeathProcessingDelay);
+            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.DangerZone.LocalUnitDeathNotificationDelay.AsStringSetting());
+            _settingsControllerAccessor.CreateDefaultValue(WellKnownSettings.DangerZone.RemoteUnitDeathProcessingDelay.AsStringSetting());
         }
 
         public NetworkMultiplayerSettings GetSettings()
